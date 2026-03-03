@@ -4,6 +4,8 @@ const cors = require("cors");
 const admin = require("./firebaseAdmin");
 const PDFDocument = require("pdfkit");
 const multer = require("multer");
+const crypto = require("crypto");
+const dns = require("dns").promises;
 const transporter = require("./mailer");
 require("dotenv").config();
 
@@ -18,6 +20,22 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 15 * 1024 * 1024 },
 });
+
+/* =============================
+   EMAIL MX DOMAIN VALIDATOR
+============================= */
+
+const isEmailDomainValid = async (email) => {
+  try {
+    if (!email || !email.includes("@")) return false;
+    const domain = email.split("@")[1];
+    if (!domain) return false;
+    const records = await dns.resolveMx(domain);
+    return records && records.length > 0;
+  } catch {
+    return false;
+  }
+};
 
 /* =============================
    FIREBASE STORAGE HELPER
@@ -48,8 +66,6 @@ const deleteFromFirebase = async (url) => {
   if (!path) return;
 
   try {
-    // ✅ Use FIREBASE_STORAGE_BUCKET from .env directly
-    // e.g. "aadona-cms.firebasestorage.app"
     const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
     if (!bucketName) {
       console.log("⚠️ FIREBASE_STORAGE_BUCKET not set in .env");
@@ -70,6 +86,9 @@ const deleteFromFirebase = async (url) => {
 /* =============================
    VERIFY TOKEN MIDDLEWARE
 ============================= */
+
+// In-memory OTP store { email -> { otp, expiresAt } }
+const otpStore = new Map();
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -177,7 +196,7 @@ const RelatedProductSchema = new mongoose.Schema(
 const RelatedProduct = mongoose.model("RelatedProduct", RelatedProductSchema);
 
 /* =============================
-   CATEGORY SCHEMA — Dynamic CMS Categories
+   CATEGORY SCHEMA
 ============================= */
 
 const CategorySchema = new mongoose.Schema(
@@ -235,6 +254,30 @@ const BlogSchema = new mongoose.Schema(
 const Blog = mongoose.model("Blog", BlogSchema);
 
 /* =============================
+   INQUIRY SCHEMA — Admin Inbox
+============================= */
+
+const InquirySchema = new mongoose.Schema(
+  {
+    formType: { type: String, required: true },
+    customerName: { type: String, default: "Unknown" },
+    customerEmail: { type: String, default: "" },
+    formData: { type: mongoose.Schema.Types.Mixed },
+    status: { type: String, enum: ["new", "read", "replied"], default: "new" },
+    replies: [
+      {
+        message: { type: String, required: true },
+        sentBy: { type: String },
+        sentAt: { type: Date, default: Date.now },
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+const Inquiry = mongoose.model("Inquiry", InquirySchema);
+
+/* =============================
    SLUG GENERATOR
 ============================= */
 
@@ -259,12 +302,10 @@ app.get("/", (req, res) => {
    ⚠️ ORDER MATTERS: specific routes MUST come before /:id param routes
 ============================= */
 
-/* -------- GET ALL CATEGORIES (Public) -------- */
 app.get("/categories", async (req, res) => {
   try {
     const { type } = req.query;
     const query = type ? { type } : {};
-    // Sort by order field (set by admin drag-reorder), then by creation date as tiebreaker
     const categories = await Category.find(query).sort({ order: 1, createdAt: 1 });
     res.json(categories);
   } catch (err) {
@@ -272,7 +313,6 @@ app.get("/categories", async (req, res) => {
   }
 });
 
-/* -------- CREATE CATEGORY (Admin) -------- */
 app.post("/categories", verifyToken, async (req, res) => {
   try {
     const { type, name, subCategories, order } = req.body;
@@ -281,7 +321,6 @@ app.post("/categories", verifyToken, async (req, res) => {
     const existing = await Category.findOne({ type, name });
     if (existing) return res.status(400).json({ message: "Category already exists" });
 
-    // New categories get order = current max + 1 so they go to the end
     const maxOrderDoc = await Category.findOne({ type }).sort({ order: -1 });
     const newOrder = maxOrderDoc ? maxOrderDoc.order + 1 : 0;
 
@@ -299,11 +338,7 @@ app.post("/categories", verifyToken, async (req, res) => {
   }
 });
 
-/* -------- REORDER CATEGORIES (Admin) --------
-   ⚠️ CRITICAL: This MUST be before PUT /categories/:id
-   Otherwise Express matches "reorder" as the :id param
-   and tries to update a category with id="reorder" → fails silently
--------- */
+/* ⚠️ MUST be before PUT /categories/:id */
 app.put("/categories/reorder", verifyToken, async (req, res) => {
   try {
     const { items } = req.body;
@@ -323,7 +358,6 @@ app.put("/categories/reorder", verifyToken, async (req, res) => {
   }
 });
 
-/* -------- RENAME CATEGORY (Admin) — cascades name to all products -------- */
 app.put("/categories/:id/rename", verifyToken, async (req, res) => {
   try {
     const { newName } = req.body;
@@ -342,14 +376,13 @@ app.put("/categories/:id/rename", verifyToken, async (req, res) => {
     const productResult = await Product.updateMany({ category: oldName }, { $set: { category: trimmedNew } });
     await RelatedProduct.updateMany({ category: oldName }, { $set: { category: trimmedNew } });
 
-    console.log(`✅ Category renamed: "${oldName}" → "${trimmedNew}", ${productResult.modifiedCount} products updated`);
+    console.log(`✅ Category renamed: "${oldName}" to "${trimmedNew}", ${productResult.modifiedCount} products updated`);
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-/* -------- RENAME SUBCATEGORY (Admin) — cascades name to all products -------- */
 app.put("/categories/:id/subcategory/:subName/rename", verifyToken, async (req, res) => {
   try {
     const { newName } = req.body;
@@ -377,14 +410,13 @@ app.put("/categories/:id/subcategory/:subName/rename", verifyToken, async (req, 
       { $set: { subCategory: trimmedNew } }
     );
 
-    console.log(`✅ SubCategory renamed: "${oldSubName}" → "${trimmedNew}", ${productResult.modifiedCount} products updated`);
+    console.log(`✅ SubCategory renamed: "${oldSubName}" to "${trimmedNew}", ${productResult.modifiedCount} products updated`);
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-/* -------- RENAME EXTRA CATEGORY (Admin) — cascades name to all products -------- */
 app.put("/categories/:id/subcategory/:subName/extra/rename", verifyToken, async (req, res) => {
   try {
     const { oldExtra, newExtra } = req.body;
@@ -415,14 +447,13 @@ app.put("/categories/:id/subcategory/:subName/extra/rename", verifyToken, async 
       { $set: { extraCategory: trimmedNew } }
     );
 
-    console.log(`✅ ExtraCategory renamed: "${oldExtra}" → "${trimmedNew}", ${productResult.modifiedCount} products updated`);
+    console.log(`✅ ExtraCategory renamed: "${oldExtra}" to "${trimmedNew}", ${productResult.modifiedCount} products updated`);
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-/* -------- UPDATE CATEGORY (Admin) -------- */
 app.put("/categories/:id", verifyToken, async (req, res) => {
   try {
     const updated = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -433,7 +464,6 @@ app.put("/categories/:id", verifyToken, async (req, res) => {
   }
 });
 
-/* -------- HELPER: Delete all products under a category/subcategory -------- */
 const deleteProductsCascade = async (query) => {
   const products = await Product.find(query);
   for (const product of products) {
@@ -445,7 +475,6 @@ const deleteProductsCascade = async (query) => {
   await RelatedProduct.deleteMany(query);
 };
 
-/* -------- DELETE CATEGORY (Admin) — CASCADE deletes all products -------- */
 app.delete("/categories/:id", verifyToken, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -461,7 +490,6 @@ app.delete("/categories/:id", verifyToken, async (req, res) => {
   }
 });
 
-/* -------- ADD SUBCATEGORY (Admin) -------- */
 app.post("/categories/:id/subcategory", verifyToken, async (req, res) => {
   try {
     const { name, extraCategories } = req.body;
@@ -482,10 +510,7 @@ app.post("/categories/:id/subcategory", verifyToken, async (req, res) => {
   }
 });
 
-/* -------- REORDER SUBCATEGORIES (Admin) --------
-   ⚠️ CRITICAL: This MUST be before PUT /categories/:id/subcategory/:subName
-   Otherwise Express matches "reorder" as the :subName param
--------- */
+/* ⚠️ MUST be before PUT /categories/:id/subcategory/:subName */
 app.put("/categories/:id/subcategory/reorder", verifyToken, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -494,12 +519,10 @@ app.put("/categories/:id/subcategory/reorder", verifyToken, async (req, res) => 
     const { orderedNames } = req.body;
     if (!Array.isArray(orderedNames)) return res.status(400).json({ message: "orderedNames array required" });
 
-    // Rebuild subCategories array in the new order, preserving all data
     const reordered = orderedNames
       .map(name => category.subCategories.find(s => s.name === name))
       .filter(Boolean);
 
-    // Append any subcategories NOT in orderedNames (safety net)
     const missing = category.subCategories.filter(s => !orderedNames.includes(s.name));
     category.subCategories = [...reordered, ...missing];
 
@@ -512,7 +535,6 @@ app.put("/categories/:id/subcategory/reorder", verifyToken, async (req, res) => 
   }
 });
 
-/* -------- UPDATE SUBCATEGORY (Admin) -------- */
 app.put("/categories/:id/subcategory/:subName", verifyToken, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -531,7 +553,6 @@ app.put("/categories/:id/subcategory/:subName", verifyToken, async (req, res) =>
   }
 });
 
-/* -------- DELETE SUBCATEGORY (Admin) — CASCADE deletes all products -------- */
 app.delete("/categories/:id/subcategory/:subName", verifyToken, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -588,7 +609,6 @@ app.put("/products/reorder", verifyToken, async (req, res) => {
   }
 });
 
-/* -------- GET ALL PRODUCTS -------- */
 app.get("/products", async (req, res) => {
   try {
     const { sort } = req.query;
@@ -599,13 +619,6 @@ app.get("/products", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-/* -------- REORDER PRODUCTS (Admin) --------
-   ⚠️ CRITICAL: This MUST be before GET /products/:slug
-   Otherwise Express matches "reorder" as the :slug param
--------- */
-
-/* -------- NOW the parameterized routes can come -------- */
 
 app.get("/products/:slug", async (req, res) => {
   try {
@@ -660,7 +673,7 @@ app.get("/products/:slug/datasheet", async (req, res) => {
     doc.fontSize(10).fillColor("gray").text("Generated automatically from AADONA Product System", { align: "center" });
     doc.end();
   } catch (err) {
-    console.log("PDF ERROR ❌:", err.message);
+    console.log("PDF ERROR:", err.message);
     res.status(500).json({ error: "Failed to generate PDF" });
   }
 });
@@ -676,7 +689,6 @@ app.post("/products", verifyToken, async (req, res) => {
       counter++;
     }
 
-    // ✅ Set order for new product
     const lastProduct = await Product.findOne().sort({ order: -1 });
     const nextOrder = lastProduct ? lastProduct.order + 1 : 0;
 
@@ -693,13 +705,11 @@ app.put("/products/:id", verifyToken, async (req, res) => {
     const existing = await Product.findById(req.params.id);
     if (!existing) return res.status(404).json({ message: "Product not found" });
 
-    // ✅ If image changed → delete old image from Firebase
     if (req.body.image && req.body.image !== existing.image) {
       await deleteFromFirebase(existing.image);
       console.log("🗑️ Old product image deleted from Firebase");
     }
 
-    // ✅ If datasheet changed → delete old datasheet from Firebase
     if (req.body.datasheet && req.body.datasheet !== existing.datasheet) {
       await deleteFromFirebase(existing.datasheet);
       console.log("🗑️ Old product datasheet deleted from Firebase");
@@ -728,16 +738,132 @@ app.delete("/products/:id", verifyToken, async (req, res) => {
   }
 });
 
+/* =============================
+   OTP ROUTES
+============================= */
+
+app.post("/send-otp", verifyToken, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = Date.now() + 2 * 60 * 1000;
+    otpStore.set(email, { otp, expiresAt });
+
+    await transporter.sendMail({
+      from: `"Admin System" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your Admin Account OTP",
+      html: `
+        <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
+          <h2 style="color:#166534;margin-bottom:8px">Admin Account Verification</h2>
+          <p style="color:#374151;margin-bottom:20px">Use the OTP below to verify your email and create your admin account:</p>
+          <div style="font-size:38px;font-weight:bold;letter-spacing:12px;color:#166534;text-align:center;padding:20px;background:#f0fdf4;border-radius:10px;margin-bottom:20px">
+            ${otp}
+          </div>
+          <p style="color:#6b7280;font-size:13px">This OTP expires in <strong>2 minutes</strong>. Do not share it with anyone.</p>
+          <p style="color:#9ca3af;font-size:12px;margin-top:16px">If you did not request this, please ignore this email.</p>
+        </div>
+      `,
+    });
+
+    console.log(`✅ OTP sent to: ${email}`);
+    res.json({ message: "OTP sent successfully" });
+  } catch (err) {
+    console.error("❌ Send OTP error:", err.message);
+    res.status(500).json({ message: "Failed to send OTP" });
+  }
+});
+
+app.post("/verify-otp", verifyToken, async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ message: "Email and OTP are required" });
+
+    const record = otpStore.get(email);
+    if (!record) return res.status(400).json({ message: "OTP not found. Please request a new one." });
+
+    if (Date.now() > record.expiresAt) {
+      otpStore.delete(email);
+      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+    }
+
+    if (record.otp !== otp.toString()) {
+      return res.status(400).json({ message: "Invalid OTP. Please try again." });
+    }
+
+    otpStore.delete(email);
+    console.log(`✅ OTP verified for: ${email}`);
+    res.json({ message: "OTP verified successfully" });
+  } catch (err) {
+    console.error("❌ Verify OTP error:", err.message);
+    res.status(500).json({ message: "Failed to verify OTP" });
+  }
+});
+
+/* =============================
+   ADMIN ROUTES
+============================= */
+
 app.post("/create-admin", verifyToken, async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
+
     const user = await admin.auth().createUser({ email, password });
     await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+
+    console.log(`✅ Admin created: ${email}`);
     res.json({ message: "New Admin Created ✅" });
   } catch (error) {
+    console.error("❌ Create admin error:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
+
+app.get("/get-admins", verifyToken, async (req, res) => {
+  try {
+    const listResult = await admin.auth().listUsers(100);
+    const admins = listResult.users
+      .filter(user => user.customClaims?.admin === true)
+      .map(user => ({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || null,
+        lastSignIn: user.metadata.lastSignInTime || null,
+        createdAt: user.metadata.creationTime || null,
+      }));
+
+    console.log(`✅ Fetched ${admins.length} admins`);
+    res.json({ admins });
+  } catch (err) {
+    console.error("❌ Get admins error:", err.message);
+    res.status(500).json({ message: "Failed to fetch admins" });
+  }
+});
+
+app.delete("/delete-admin/:uid", verifyToken, async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    if (uid === req.user.uid) {
+      return res.status(400).json({ message: "You cannot remove your own admin access." });
+    }
+
+    await admin.auth().setCustomUserClaims(uid, { admin: false });
+
+    console.log(`✅ Admin access removed for UID: ${uid}`);
+    res.json({ message: "Admin access removed successfully" });
+  } catch (err) {
+    console.error("❌ Delete admin error:", err.message);
+    res.status(500).json({ message: "Failed to remove admin" });
+  }
+});
+
+/* =============================
+   RELATED PRODUCTS ROUTES
+============================= */
 
 app.post("/save-related-products", verifyToken, async (req, res) => {
   console.log("📦 /save-related-products HIT");
@@ -823,11 +949,6 @@ app.get("/related-products/raw", verifyToken, async (req, res) => {
   }
 });
 
-/* -------- REMOVE ONE PRODUCT from a related-products entry (Admin) --------
-   Does NOT delete the product from the database.
-   Only removes it from that category combo's related list in MongoDB.
-   Body: { category, subCategory, extraCategory, type, productId }
--------- */
 app.put("/related-products/remove", verifyToken, async (req, res) => {
   try {
     const { category, subCategory, extraCategory, type, productId } = req.body;
@@ -985,13 +1106,11 @@ app.put("/blogs/:id", verifyToken, async (req, res) => {
     const existing = await Blog.findById(req.params.id);
     if (!existing) return res.status(404).json({ message: "Blog not found" });
 
-    // ✅ If hero image changed → delete old one from Firebase
     if (req.body.image && req.body.image !== existing.image) {
       await deleteFromFirebase(existing.image);
       console.log("🗑️ Old blog hero image deleted from Firebase");
     }
 
-    // ✅ If blocks changed → delete any old block images that are no longer present
     if (req.body.blocks) {
       const newBlockUrls = new Set(
         req.body.blocks
@@ -1019,10 +1138,8 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ message: "Blog not found" });
 
-    // ✅ Delete hero image from Firebase
     await deleteFromFirebase(blog.image);
 
-    // ✅ Delete all image blocks from Firebase too
     const blockImages = (blog.blocks || []).filter(b => b.type === "image" && b.url);
     for (const block of blockImages) {
       await deleteFromFirebase(block.url);
@@ -1039,16 +1156,107 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
 });
 
 /* =============================
+   INQUIRY ROUTES — Admin Inbox
+============================= */
+
+// GET all inquiries
+app.get("/inquiries", verifyToken, async (req, res) => {
+  try {
+    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+    res.json(inquiries);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Mark as read
+app.put("/inquiries/:id/read", verifyToken, async (req, res) => {
+  try {
+    const inquiry = await Inquiry.findByIdAndUpdate(
+      req.params.id,
+      { status: "read" },
+      { new: true }
+    );
+    if (!inquiry) return res.status(404).json({ message: "Inquiry not found" });
+    res.json(inquiry);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reply to inquiry — email customer + save in DB
+app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ message: "Message is required" });
+
+    const inquiry = await Inquiry.findById(req.params.id);
+    if (!inquiry) return res.status(404).json({ message: "Inquiry not found" });
+    if (!inquiry.customerEmail) return res.status(400).json({ message: "No customer email found" });
+
+    await transporter.sendMail({
+      from: `"AADONA Support" <${process.env.EMAIL_USER}>`,
+      to: inquiry.customerEmail,
+      subject: `Re: Your ${inquiry.formType} inquiry`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
+          <h2 style="color:#166534">AADONA Response</h2>
+          <p>Dear ${inquiry.customerName},</p>
+          <div style="background:#f0fdf4;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #16a34a">
+            ${message}
+          </div>
+          <p style="color:#6b7280;font-size:13px">This is regarding your <b>${inquiry.formType}</b> inquiry submitted on ${new Date(inquiry.createdAt).toDateString()}.</p>
+          <p style="color:#166534;font-weight:bold">Team AADONA</p>
+        </div>
+      `,
+    });
+
+    inquiry.replies.push({ message, sentBy: req.user.email, sentAt: new Date() });
+    inquiry.status = "replied";
+    await inquiry.save();
+
+    console.log(`✅ Reply sent to: ${inquiry.customerEmail}`);
+    res.json({ message: "Reply sent successfully ✅", inquiry });
+  } catch (err) {
+    console.error("❌ Reply error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete inquiry
+app.delete("/inquiries/:id", verifyToken, async (req, res) => {
+  try {
+    await Inquiry.findByIdAndDelete(req.params.id);
+    res.json({ message: "Inquiry deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =============================
    FORM SUBMISSION ROUTES
+   ✅ Email MX verified before saving
+   ✅ All forms saved to MongoDB as Inquiry
 ============================= */
 
 app.post("/submit-partner", async (req, res) => {
   const form = req.body;
   console.log("📧 Partner form received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Partner Application",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Partner Application - ${form.companyName || "Unknown"}`,
       html: `
@@ -1085,9 +1293,20 @@ app.post("/submit-project-locking", async (req, res) => {
   const form = req.body;
   console.log("📧 Project Locking form received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Project Locking",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Project Locking Request - ${form.projectName || "Unknown"}`,
       html: `
@@ -1124,9 +1343,20 @@ app.post("/submit-demo", async (req, res) => {
   const form = req.body;
   console.log("📧 Demo request received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Demo Request",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Demo Request - ${form.firstName} ${form.lastName}`,
       html: `
@@ -1156,9 +1386,20 @@ app.post("/submit-training", async (req, res) => {
   const form = req.body;
   console.log("📧 Training request received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Training Request",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Training Request - ${form.firstName} ${form.lastName}`,
       html: `
@@ -1189,9 +1430,20 @@ app.post("/submit-warranty", upload.single("invoiceFile"), async (req, res) => {
   const form = req.body;
   console.log("📧 Warranty check received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Warranty Check",
+      customerName: form.email,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Warranty Request" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Warranty Check - Serial: ${form.serialNumber || "Unknown"}`,
       html: `
@@ -1223,9 +1475,20 @@ app.post("/submit-techsquad", upload.single("invoiceFile"), async (req, res) => 
   const form = req.body;
   console.log("📧 Tech Squad request received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Tech Squad",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Tech Squad Request - ${form.firstName} ${form.lastName}`,
       html: `
@@ -1259,9 +1522,20 @@ app.post("/submit-doa", upload.single("invoiceFile"), async (req, res) => {
   const form = req.body;
   console.log("📧 DOA request received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "DOA Request",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New DOA Request - Serial: ${form.serialNumber || "Unknown"}`,
       html: `
@@ -1298,9 +1572,20 @@ app.post("/submit-product-support", async (req, res) => {
   const form = req.body;
   console.log("📧 Product Support request received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Product Support",
+      customerName: form.email,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"${form.productModel} - Support" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Product Support Request - ${form.productModel || "Unknown"}`,
       html: `
@@ -1326,9 +1611,20 @@ app.post("/submit-product-registration", upload.single("invoiceFile"), async (re
   const form = req.body;
   console.log("📧 Product Registration received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Product Registration",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Product Registration - Serial: ${form.serialNumber || "Unknown"}`,
       html: `
@@ -1366,9 +1662,20 @@ app.post("/submit-contact", async (req, res) => {
   const form = req.body;
   console.log("📧 Contact form received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Contact",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Contact Message - ${form.subject || "Unknown"}`,
       html: `
@@ -1396,9 +1703,20 @@ app.post("/submit-apply", upload.single("resumeFile"), async (req, res) => {
   const form = req.body;
   console.log("📧 Job application received:", form.email);
 
+  const emailValid = await isEmailDomainValid(form.email);
+  if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+
   try {
+    await Inquiry.create({
+      formType: "Job Application",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: form,
+    });
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Job Application - ${form.firstName} ${form.lastName}`,
       html: `
@@ -1430,9 +1748,23 @@ app.post("/submit-whistleblower", upload.single("attachmentFile"), async (req, r
   const form = req.body;
   console.log("📧 Whistle blower report received:", form.name || "Anonymous");
 
+  // Whistleblower email optional — verify only if provided
+  if (form.email) {
+    const emailValid = await isEmailDomainValid(form.email);
+    if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
+  }
+
   try {
+    await Inquiry.create({
+      formType: "Whistleblower",
+      customerName: form.name || "Anonymous",
+      customerEmail: form.email || "",
+      formData: form,
+    });
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"${form.name || "Anonymous"} - Whistleblower" <${process.env.EMAIL_USER}>`,
+      replyTo: form.email || process.env.EMAIL_USER,
       to: process.env.COMPANY_EMAIL,
       subject: `New Whistle Blower Report - ${form.name || "Anonymous"}`,
       html: `
