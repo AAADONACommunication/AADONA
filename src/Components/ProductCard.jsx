@@ -1,21 +1,31 @@
 // src/components/ProductCard.jsx
 import React from 'react';
-// Assuming your checkmark image is in src/assets/checkcircle.png
 import CheckCircle from '../assets/checkcircle.png'; 
 
 const ProductCard = ({ product }) => {
+  
+  // ✅ 1. Naya Helper: Jo category name ko URL friendly banayega
+  const nameToSlug = (name) =>
+    name ? name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "") : "category";
+
+  // ✅ 2. Naya URL Structure: /category-name/product-slug
+  const detailUrl = `/${nameToSlug(product.category)}/${product.slug}`;
+
   return (
-    <div className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group 
+    <div 
+      // ✅ 3. Click handle karne ke liye (Naye Tab mein khulega)
+      onClick={() => window.open(detailUrl, "_blank", "noopener,noreferrer")}
+      className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group 
                     transform transition duration-300 ease-in-out 
-                    // Green border on hover
-                    hover:shadow-2xl hover:scale-[1.02] hover:border-green-500 border border-transparent">
+                    hover:shadow-2xl hover:scale-[1.02] hover:border-green-500 border border-transparent"
+    >
       
       {/* Product Image Area */}
       <div className="h-48 flex items-center justify-center p-4 bg-gray-50 border-b border-gray-100">
         <img
           className="max-h-full object-contain"
-          src={product.imageUrl}
-          alt={product.model}
+          src={product.image} // Aapke data mein 'image' field use ho raha hai
+          alt={product.name}
         />
       </div>
 
@@ -24,7 +34,7 @@ const ProductCard = ({ product }) => {
         <div> 
           {/* Model Name/Title */}
           <h3 className="text-2xl font-bold text-gray-800 mb-2">
-            {product.model}
+            {product.name}
           </h3>
           
           {/* Short Description */}
@@ -40,7 +50,6 @@ const ProductCard = ({ product }) => {
           <ul className="text-gray-700 text-base mb-6 space-y-2">
             {product.features.map((feature, index) => (
               <li key={index} className="flex items-center">
-                {/* Custom Checkmark Icon */}
                 <img
                   src={CheckCircle}
                   alt="Check"
@@ -52,17 +61,15 @@ const ProductCard = ({ product }) => {
           </ul>
         )}
         
-        {/* CTA Button - Green with Hover Effect */}
+        {/* CTA Button */}
         <div className="mt-auto"> 
-          <a 
-            href={`/products/${product.id}`}
+          <div 
             className="inline-flex items-center justify-center px-6 py-3 border border-transparent 
                        text-base font-medium rounded-md shadow-sm text-white bg-green-600 
-                       // Hover effect: darker green and lift shadow
                        hover:bg-green-700 hover:shadow-lg transition duration-200 ease-in-out w-full"
           >
             View Product
-          </a>
+          </div>
         </div>
       </div>
     </div>

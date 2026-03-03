@@ -107,7 +107,7 @@ const App = () => {
 
           {/* 🔥 CMS CATEGORY ROUTE */}
           <Route path="/:categoryName" element={<CategoryProductsPage />} />
-          <Route path="/productDetails/:slug" element={<ProductDetailPage/>}/>
+          <Route path="/:categoryName/:slug" element={<ProductDetailPage/>}/>
 
         </Routes>
       </Router>

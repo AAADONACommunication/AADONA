@@ -1,8 +1,56 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate,Link } from "react-router-dom";
-import { Download, ArrowLeft } from "lucide-react";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
+import { useParams, Link,useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { Download, ChevronRight, ArrowLeft } from "lucide-react";
+import Navbar from "../Components/Navbar";
+import Footer from "../Components/Footer";
+import CheckCircle from "../assets/checkcircle.png";
+
+const API = `${import.meta.env.VITE_API_URL}/products`;
+const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;
+const CATEGORY_API = `${import.meta.env.VITE_API_URL}/categories`;
+
+// Helper to convert name to slug
+const nameToSlug = (name) =>
+  name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
+
+/* -------------------- PRODUCT CARD (Updated Routing) -------------------- */
+const ProductCard = ({ product }) => {
+  // Naya dynamic URL structure: /category-slug/product-slug
+  const categoryPath = nameToSlug(product.category);
+  const detailUrl = `/${categoryPath}/${product.slug}`;
+
+  return (
+    <div
+      onClick={() => window.open(detailUrl, "_blank", "noopener,noreferrer")}
+      className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group transform transition duration-300 ease-in-out hover:shadow-2xl hover:scale-[1.02] hover:border-green-500 border border-transparent"
+    >
+      <div className="h-48 flex items-center justify-center p-4 bg-gray-50 border-b border-gray-100">
+        <img className="max-h-full object-contain" src={product.image} alt={product.name} loading="lazy" />
+      </div>
+      <div className="p-4 sm:p-6 flex-grow flex flex-col justify-between text-left">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">{product.name}</h3>
+          {product.description && <p className="text-gray-600 text-base mb-4">{product.description}</p>}
+        </div>
+        {product.features && product.features.length > 0 && (
+          <ul className="text-gray-700 text-base mb-6 space-y-2">
+            {product.features.map((feature, index) => (
+              <li key={index} className="flex items-center">
+                <img src={CheckCircle} alt="Check" className="h-5 w-5 mr-2 flex-shrink-0" loading="lazy" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-auto">
+          <div className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 hover:shadow-lg transition duration-200 ease-in-out w-full">
+            View Product
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
