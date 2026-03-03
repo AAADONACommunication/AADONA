@@ -17,7 +17,7 @@
     "gsap": "^3.13.0",
     "jspdf": "^4.2.0",
     "lucide-react": "^0.553.0",
-    "quill": "^2.0.2",
+    "quill": "^2.0.3",
     "react": "^19.1.1",
     "react-chatbotify": "^2.4.1",
     "react-dom": "^19.1.1",
