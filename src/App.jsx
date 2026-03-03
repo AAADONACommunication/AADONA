@@ -31,6 +31,7 @@ import WarrantyCheck from "./pages/support/WarrantyCheckButton";
 import WhistleBlowerButton from "./pages/About/WhistleBlowerButton";
 import ApplyNow from "./pages/About/ApplyNow";
 import PrivacyPolicy from "./Components/PrivacyPolicy";
+import Breadcrumbs from "./BreadCrumbs";
 
 /* ✅ CMS Dynamic Category Page */
 import CategoryProductsPage from "./pages/CategoryProductsPage";
@@ -50,6 +51,7 @@ const App = () => {
       <Chatbot />
 
       <Router>
+    <Breadcrumbs/>
         <Routes>
 
           <Route path="/" element={<Home />} />

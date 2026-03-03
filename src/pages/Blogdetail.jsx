@@ -258,12 +258,12 @@ const BlogDetail = () => {
       <Navbar />
 
       {/* HERO SECTION */}
-      <div className="relative h-screen mt-24 overflow-hidden group">
+      <div className="relative h-screen overflow-hidden group">
         <div className="absolute inset-0">
           <img
             src={blog.image}
             alt={blog.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+            className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-1000"
             onError={(e) => {
               e.target.src = "https://placehold.co/1920x1080/2d2d2d/ffffff?text=Article";
             }}
