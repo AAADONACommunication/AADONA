@@ -84,6 +84,22 @@ const deleteFromFirebase = async (url) => {
 };
 
 /* =============================
+   FIREBASE UPLOAD HELPER
+============================= */
+
+const uploadToFirebase = async (file, folder) => {
+  if (!file) return null;
+  const bucket = admin.storage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
+  const fileName = `${folder}/${Date.now()}-${file.originalname}`;
+  const fileUpload = bucket.file(fileName);
+  await fileUpload.save(file.buffer, {
+    metadata: { contentType: file.mimetype },
+  });
+  await fileUpload.makePublic();
+  return `https://storage.googleapis.com/${process.env.FIREBASE_STORAGE_BUCKET}/${fileName}`;
+};
+
+/* =============================
    VERIFY TOKEN MIDDLEWARE
 ============================= */
 
@@ -1434,12 +1450,13 @@ app.post("/submit-warranty", upload.single("invoiceFile"), async (req, res) => {
   if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
 
   try {
-    await Inquiry.create({
-      formType: "Warranty Check",
-      customerName: form.email,
-      customerEmail: form.email,
-      formData: form,
-    });
+    const attachmentUrl = await uploadToFirebase(req.file, "warranty");
+      await Inquiry.create({
+        formType: "Warranty Check",
+        customerName: form.email,
+        customerEmail: form.email,
+        formData: { ...form, attachmentUrl },
+      });
 
     const mailOptions = {
       from: `"Warranty Request" <${process.env.EMAIL_USER}>`,
@@ -1479,12 +1496,13 @@ app.post("/submit-techsquad", upload.single("invoiceFile"), async (req, res) => 
   if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
 
   try {
-    await Inquiry.create({
-      formType: "Tech Squad",
-      customerName: `${form.firstName} ${form.lastName}`,
-      customerEmail: form.email,
-      formData: form,
-    });
+    const attachmentUrl = await uploadToFirebase(req.file, "techsquad");
+      await Inquiry.create({
+        formType: "Tech Squad",
+        customerName: `${form.firstName} ${form.lastName}`,
+        customerEmail: form.email,
+        formData: { ...form, attachmentUrl },
+      });
 
     const mailOptions = {
       from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
@@ -1526,11 +1544,12 @@ app.post("/submit-doa", upload.single("invoiceFile"), async (req, res) => {
   if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
 
   try {
+    const attachmentUrl = await uploadToFirebase(req.file, "doa");
     await Inquiry.create({
       formType: "DOA Request",
       customerName: `${form.firstName} ${form.lastName}`,
       customerEmail: form.email,
-      formData: form,
+      formData: { ...form, attachmentUrl },
     });
 
     const mailOptions = {
@@ -1615,11 +1634,12 @@ app.post("/submit-product-registration", upload.single("invoiceFile"), async (re
   if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
 
   try {
+    const attachmentUrl = await uploadToFirebase(req.file, "registrations");
     await Inquiry.create({
       formType: "Product Registration",
       customerName: `${form.firstName} ${form.lastName}`,
       customerEmail: form.email,
-      formData: form,
+      formData: { ...form, attachmentUrl },
     });
 
     const mailOptions = {
@@ -1707,11 +1727,12 @@ app.post("/submit-apply", upload.single("resumeFile"), async (req, res) => {
   if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
 
   try {
+    const attachmentUrl = await uploadToFirebase(req.file, "resumes");
     await Inquiry.create({
       formType: "Job Application",
       customerName: `${form.firstName} ${form.lastName}`,
       customerEmail: form.email,
-      formData: form,
+      formData: { ...form, attachmentUrl },
     });
 
     const mailOptions = {
@@ -1755,11 +1776,12 @@ app.post("/submit-whistleblower", upload.single("attachmentFile"), async (req, r
   }
 
   try {
+    const attachmentUrl = await uploadToFirebase(req.file, "whistleblower");
     await Inquiry.create({
       formType: "Whistleblower",
       customerName: form.name || "Anonymous",
       customerEmail: form.email || "",
-      formData: form,
+      formData: { ...form, attachmentUrl },
     });
 
     const mailOptions = {
