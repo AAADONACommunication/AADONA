@@ -72,7 +72,7 @@ const Footer = () => {
                     href="mailto:contact@aadona.com"
                     className="hover:text-green-300 transition duration-300"
                   >
-                    support@aadona.com
+                    contact@aadona.com
                   </a>
                 </div>
               </div>
