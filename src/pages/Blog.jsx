@@ -1,8 +1,11 @@
+/* eslint-disable */
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Navigation ke liye import
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import bg from "../assets/bg.jpg";
 
+// --- Icons (Same as before) ---
 const SearchIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"></circle>
@@ -41,6 +44,7 @@ const ClockIcon = (props) => (
 );
 
 const BlogPage = () => {
+  const navigate = useNavigate(); // Navigation hook initialize kiya
   const [hoveredCard, setHoveredCard] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [blogPosts, setBlogPosts] = useState([]);
@@ -64,7 +68,6 @@ const BlogPage = () => {
       post.author.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // ✅ FIXED: Generate slug if missing
   const generateSlug = (title) => {
     return title
       .toLowerCase()
@@ -75,44 +78,42 @@ const BlogPage = () => {
   };
 
   const handleCardClick = (post) => {
-    // ✅ Use slug if available, otherwise generate from title
     const slug = post.slug || generateSlug(post.title);
-    console.log('🔵 Opening blog with slug:', slug); // Debug log
-    window.open(`/blog/${slug}`, '_blank');
+    // ✅ FIXED: Ab ye window.open ki jagah navigate use karega (Same tab navigation)
+    navigate(`/blog/${slug}`);
   };
 
   return (
-    <div className="min-h-screen font-sans">
+    <div className="min-h-screen font-sans bg-white">
       <Navbar />
 
-      {/* HERO */}
+      {/* HERO SECTION */}
       <div className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
+          <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl animate-fade-in-down">
             Our Blog
           </h1>
-          <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
+          <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto opacity-90">
             Insights, stories, and expertise from the world of networking.
           </p>
           <div className="max-w-2xl mx-auto mt-12">
-            <div className="relative">
+            <div className="relative group">
               <input
                 type="text"
                 placeholder="Search articles..."
                 className="w-full px-6 py-4 rounded-full bg-white border border-green-200 text-gray-700 shadow-md focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 placeholder-gray-400"
-                aria-label="Search articles"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <SearchIcon className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500" />
+              <SearchIcon className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* BLOG CARDS */}
+      {/* BLOG CARDS SECTION */}
       <div
-        className="bg-cover bg-center py-16"
+        className="bg-cover bg-fixed py-16"
         style={{ backgroundImage: `url(${bg})` }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -120,20 +121,18 @@ const BlogPage = () => {
             <h2 className="text-3xl font-bold text-gray-800">
               {searchQuery ? `Search Results for "${searchQuery}"` : "Latest Posts"}
             </h2>
-            <button className="text-green-600 hover:text-green-700 font-medium flex items-center gap-2 transition-all duration-300 hover:gap-3">
+            <button className="text-green-600 hover:text-green-700 font-semibold flex items-center gap-2 transition-all duration-300 hover:gap-3">
               View All
               <ArrowRightIcon className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Loading Spinner */}
-          {blogsLoading && (
+          {/* Loading State */}
+          {blogsLoading ? (
             <div className="flex justify-center py-20">
               <div className="animate-spin w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full" />
             </div>
-          )}
-
-          {!blogsLoading && (
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredBlogPosts.length > 0 ? (
                 filteredBlogPosts.map((post) => (
@@ -142,32 +141,33 @@ const BlogPage = () => {
                     onClick={() => handleCardClick(post)}
                     onMouseEnter={() => setHoveredCard(post._id)}
                     onMouseLeave={() => setHoveredCard(null)}
-                    className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
                   >
+                    {/* Image Container */}
                     <div className="relative overflow-hidden h-56">
                       <img
                         src={post.image}
                         alt={post.title}
-                        className={`w-full h-full object-fill transition-transform duration-700 ${
+                        className={`w-full h-full object-cover transition-transform duration-700 ${
                           hoveredCard === post._id ? "scale-110" : "scale-100"
                         }`}
-                        loading="lazy"
                         onError={(e) => {
                           e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Blog";
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     </div>
 
-                     <div className="p-7 flex flex-col h-full">                     
-                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    {/* Content Container */}
+                    <div className="p-7 flex flex-col flex-grow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                           <UserIcon className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-800">{post.author}</p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">                           
-                            <span className="flex items-center gap-1 mr-0.5">
+                          <p className="text-sm font-bold text-gray-800 leading-none">{post.author}</p>
+                          <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
+                            <span className="flex items-center gap-1">
                               <CalendarIcon className="w-3 h-3" />
                               {post.date}
                             </span>
@@ -183,31 +183,36 @@ const BlogPage = () => {
                         {post.title}
                       </h3>
 
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+                      <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
+                        {post.excerpt}
+                      </p>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-xs text-gray-400">
                           <span>{post.views || 0} views</span>
-                          <span className="flex items-center gap-1 text-red-400">
+                          <span className="flex items-center gap-1 text-red-400 font-medium">
                             ❤️ {post.likes || 0}
                           </span>
                         </div>
-                        <button className="text-green-600 hover:text-green-700 font-medium text-sm flex items-center gap-1 transition-all duration-300 group">
+                        <button className="text-green-600 font-bold text-sm flex items-center gap-1 group/btn">
                           Read More
-                          <ArrowRightIcon className="w-7 h-6 transform group-hover:translate-x-1 transition-transform duration-300" />
+                          <ArrowRightIcon className="w-5 h-5 transform group-hover/btn:translate-x-1 transition-transform" />
                         </button>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="lg:col-span-3 text-center py-10 bg-white rounded-xl shadow-lg border-2 border-dashed border-gray-200">
-                  <p className="text-xl text-gray-600">
-                    No blog posts found for "{searchQuery}".
+                <div className="lg:col-span-3 text-center py-20 bg-white/80 backdrop-blur rounded-2xl shadow-inner border-2 border-dashed border-gray-300">
+                  <p className="text-xl text-gray-600 font-medium">
+                    No articles match "{searchQuery}"
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Try a different search term.
-                  </p>
+                  <button 
+                    onClick={() => setSearchQuery("")}
+                    className="mt-4 text-green-600 underline font-bold"
+                  >
+                    Clear Search
+                  </button>
                 </div>
               )}
             </div>
