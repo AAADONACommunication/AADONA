@@ -81,7 +81,7 @@ const ProductSupport = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">Product Support</h1>
             <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-              Access our comprehensive support tools and resources
+              Access comprehensive support tools and resources
             </p>
           </div>
         </div>
@@ -89,14 +89,7 @@ const ProductSupport = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-8">
           <main className="grow pt-4 pb-16 px-4 md:px-8 lg:px-16">
             <div className="max-w-4xl mx-auto">
-              <section className="bg-green-50 py-10 px-6 rounded-2xl shadow-sm text-center mb-12">
-                <h2 className="text-2xl md:text-3xl font-bold text-green-800 mb-4">
-                  Need Help with Your Product? We're Here to Assist You.
-                </h2>
-                <p className="max-w-2xl mx-auto text-gray-700 leading-relaxed">
-                  Fill out the form below and our team will get back to you within 24 hours
-                </p>
-              </section>
+              
 
               {/* ✅ Success Message */}
               {isSubmitted && (
