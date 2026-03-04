@@ -77,7 +77,7 @@ const Careers = () => {
 
           {/* APPLY NOW BUTTON */}
           <div className="text-center mt-16">
-            <Link to="/applyNow">
+            <Link to="/careers/applyNow">
               <button
                 className="inline-flex items-center px-8 py-4 text-lg font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none transition-all"
               >

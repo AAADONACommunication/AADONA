@@ -83,7 +83,7 @@ const App = () => {
           <Route path="/ourCustomers" element={<OurCustomer />} />
           <Route path="/whistleBlower" element={<WhistleBlower />} />
           <Route path="/whistleButton" element={<WhistleBlowerButton />} />
-          <Route path="/applyNow" element={<ApplyNow />} />
+          <Route path="/careers/applyNow" element={<ApplyNow />} />
           <Route path="/contactus" element={<ContactUs />} />
 
           {/* Partners */}
@@ -100,7 +100,7 @@ const App = () => {
           <Route path="/requestDda" element={<RequestDda />} />
           <Route path="/techSquad" element={<TechSquad />} />
           <Route path="/warranty" element={<Warranty />} />
-          <Route path="/warrantyCheck" element={<WarrantyCheck />} />
+          <Route path="/warranty/check-Warranty" element={<WarrantyCheck />} />
           <Route path="/customers" element={<CustomersPage />} />
 
           <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
