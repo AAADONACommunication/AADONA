@@ -11,6 +11,7 @@ import Products from "./tabs/Products";
 import Categories from "./tabs/Categories";
 import Blogs from "./tabs/Blogs";
 import Inbox from "./tabs/Inbox";
+import History from "./tabs/History";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
@@ -205,6 +206,7 @@ export default function AdminPanel() {
               { id: "categories", label: "🗂️ Categories" },
               { id: "blogs", label: "✍️ Blogs" },
               { id: "inbox", label: "📬 Inbox" },
+              { id: "history", label: "📋 History" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -254,6 +256,8 @@ export default function AdminPanel() {
               loadInquiries={loadInquiries}
             />
           )}
+
+          {activeTab === "history" && <History />}
 
         </div>
       </div>

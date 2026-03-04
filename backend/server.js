@@ -44,7 +44,6 @@ const isEmailDomainValid = async (email) => {
 const getFirebasePath = (url) => {
   if (!url || typeof url !== "string") return null;
   try {
-    // Firebase URL: https://firebasestorage.googleapis.com/v0/b/BUCKET/o/PATH%2FFILE.jpg?alt=media&token=xxx
     const match = url.match(/\/o\/(.+?)(\?|$)/);
     if (!match) {
       console.log("⚠️ Could not extract path from URL:", url);
@@ -71,7 +70,6 @@ const deleteFromFirebase = async (url) => {
       console.log("⚠️ FIREBASE_STORAGE_BUCKET not set in .env");
       return;
     }
-
     await admin.storage().bucket(bucketName).file(path).delete();
     console.log("✅ Firebase deleted:", path);
   } catch (e) {
@@ -103,7 +101,6 @@ const uploadToFirebase = async (file, folder) => {
    VERIFY TOKEN MIDDLEWARE
 ============================= */
 
-// In-memory OTP store { email -> { otp, expiresAt } }
 const otpStore = new Map();
 
 const verifyToken = async (req, res, next) => {
@@ -211,10 +208,6 @@ const RelatedProductSchema = new mongoose.Schema(
 
 const RelatedProduct = mongoose.model("RelatedProduct", RelatedProductSchema);
 
-/* =============================
-   CATEGORY SCHEMA
-============================= */
-
 const CategorySchema = new mongoose.Schema(
   {
     type: { type: String, required: true, enum: ["active", "passive"] },
@@ -231,10 +224,6 @@ const CategorySchema = new mongoose.Schema(
 );
 
 const Category = mongoose.model("Category", CategorySchema);
-
-/* =============================
-   BLOG SCHEMA
-============================= */
 
 const BlogSchema = new mongoose.Schema(
   {
@@ -269,10 +258,6 @@ const BlogSchema = new mongoose.Schema(
 
 const Blog = mongoose.model("Blog", BlogSchema);
 
-/* =============================
-   INQUIRY SCHEMA — Admin Inbox
-============================= */
-
 const InquirySchema = new mongoose.Schema(
   {
     formType: { type: String, required: true },
@@ -292,6 +277,47 @@ const InquirySchema = new mongoose.Schema(
 );
 
 const Inquiry = mongoose.model("Inquiry", InquirySchema);
+
+/* =============================
+   AUDIT LOG SCHEMA
+============================= */
+
+const AuditLogSchema = new mongoose.Schema({
+  adminEmail: { type: String, required: true },
+  action:     { type: String, required: true },
+  entity:     { type: String, required: true },
+  entityName: { type: String, default: "" },
+  details:    { type: mongoose.Schema.Types.Mixed, default: {} },
+}, { timestamps: true });
+
+const AuditLog = mongoose.model("AuditLog", AuditLogSchema);
+
+const logAction = (adminEmail, action, entity, entityName = "", details = {}) => {
+  AuditLog.create({ adminEmail, action, entity, entityName, details })
+    .catch(err => console.log("⚠️ Audit log failed:", err.message));
+};
+
+/* =============================
+   DIFF HELPER — compare two objects
+============================= */
+
+const getDiff = (oldObj, newObj, fields) => {
+  const changes = {};
+  fields.forEach(field => {
+    const oldVal = oldObj[field];
+    const newVal = newObj[field];
+    if (newVal !== undefined && String(newVal) !== String(oldVal)) {
+      changes[field] = { old: oldVal, new: newVal };
+    }
+  });
+  return changes;
+};
+
+const getArrayDiff = (oldArr = [], newArr = []) => {
+  const added = newArr.filter(x => !oldArr.includes(x));
+  const removed = oldArr.filter(x => !newArr.includes(x));
+  return { added, removed };
+};
 
 /* =============================
    SLUG GENERATOR
@@ -315,7 +341,6 @@ app.get("/", (req, res) => {
 
 /* =============================
    CATEGORY ROUTES
-   ⚠️ ORDER MATTERS: specific routes MUST come before /:id param routes
 ============================= */
 
 app.get("/categories", async (req, res) => {
@@ -347,6 +372,10 @@ app.post("/categories", verifyToken, async (req, res) => {
       order: order !== undefined ? order : newOrder,
     });
 
+    logAction(req.user.email, "CREATE", "Category", category.name, {
+      changes: { type: { new: type }, name: { new: name } }
+    });
+
     console.log("✅ Category created:", category.name);
     res.status(201).json(category);
   } catch (err) {
@@ -354,7 +383,6 @@ app.post("/categories", verifyToken, async (req, res) => {
   }
 });
 
-/* ⚠️ MUST be before PUT /categories/:id */
 app.put("/categories/reorder", verifyToken, async (req, res) => {
   try {
     const { items } = req.body;
@@ -365,6 +393,10 @@ app.put("/categories/reorder", verifyToken, async (req, res) => {
         Category.findByIdAndUpdate(id, { $set: { order } })
       )
     );
+
+    logAction(req.user.email, "UPDATE", "Category", "Reorder", {
+      changes: { reordered: { new: `${items.length} categories reordered` } }
+    });
 
     console.log("✅ Categories reordered:", items.length, "items");
     res.json({ message: "Reordered successfully" });
@@ -389,10 +421,14 @@ app.put("/categories/:id/rename", verifyToken, async (req, res) => {
     category.name = trimmedNew;
     await category.save();
 
-    const productResult = await Product.updateMany({ category: oldName }, { $set: { category: trimmedNew } });
+    await Product.updateMany({ category: oldName }, { $set: { category: trimmedNew } });
     await RelatedProduct.updateMany({ category: oldName }, { $set: { category: trimmedNew } });
 
-    console.log(`✅ Category renamed: "${oldName}" to "${trimmedNew}", ${productResult.modifiedCount} products updated`);
+    logAction(req.user.email, "UPDATE", "Category", trimmedNew, {
+      changes: { name: { old: oldName, new: trimmedNew } }
+    });
+
+    console.log(`✅ Category renamed: "${oldName}" to "${trimmedNew}"`);
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -411,13 +447,12 @@ app.put("/categories/:id/subcategory/:subName/rename", verifyToken, async (req, 
     const trimmedNew = newName.trim();
     const sub = category.subCategories.find(s => s.name === oldSubName);
     if (!sub) return res.status(404).json({ message: "SubCategory not found" });
-
     if (oldSubName === trimmedNew) return res.json(category);
 
     sub.name = trimmedNew;
     await category.save();
 
-    const productResult = await Product.updateMany(
+    await Product.updateMany(
       { category: category.name, subCategory: oldSubName },
       { $set: { subCategory: trimmedNew } }
     );
@@ -426,7 +461,11 @@ app.put("/categories/:id/subcategory/:subName/rename", verifyToken, async (req, 
       { $set: { subCategory: trimmedNew } }
     );
 
-    console.log(`✅ SubCategory renamed: "${oldSubName}" to "${trimmedNew}", ${productResult.modifiedCount} products updated`);
+    logAction(req.user.email, "UPDATE", "Category", `${category.name} > ${trimmedNew}`, {
+      changes: { subCategory: { old: oldSubName, new: trimmedNew } }
+    });
+
+    console.log(`✅ SubCategory renamed: "${oldSubName}" to "${trimmedNew}"`);
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -448,13 +487,12 @@ app.put("/categories/:id/subcategory/:subName/extra/rename", verifyToken, async 
     const trimmedNew = newExtra.trim();
     const idx = sub.extraCategories.indexOf(oldExtra);
     if (idx === -1) return res.status(404).json({ message: "Extra category not found" });
-
     if (oldExtra === trimmedNew) return res.json(category);
 
     sub.extraCategories[idx] = trimmedNew;
     await category.save();
 
-    const productResult = await Product.updateMany(
+    await Product.updateMany(
       { category: category.name, subCategory: subName, extraCategory: oldExtra },
       { $set: { extraCategory: trimmedNew } }
     );
@@ -463,7 +501,11 @@ app.put("/categories/:id/subcategory/:subName/extra/rename", verifyToken, async 
       { $set: { extraCategory: trimmedNew } }
     );
 
-    console.log(`✅ ExtraCategory renamed: "${oldExtra}" to "${trimmedNew}", ${productResult.modifiedCount} products updated`);
+    logAction(req.user.email, "UPDATE", "Category", `${category.name} > ${subName}`, {
+      changes: { extraCategory: { old: oldExtra, new: trimmedNew } }
+    });
+
+    console.log(`✅ ExtraCategory renamed: "${oldExtra}" to "${trimmedNew}"`);
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -499,6 +541,10 @@ app.delete("/categories/:id", verifyToken, async (req, res) => {
     await deleteProductsCascade({ category: category.name });
     await Category.findByIdAndDelete(req.params.id);
 
+    logAction(req.user.email, "DELETE", "Category", category.name, {
+      changes: { deleted: { old: category.name, new: "DELETED" } }
+    });
+
     console.log("🗑️ Category + all products deleted:", category.name);
     res.json({ message: "Category and all its products deleted successfully" });
   } catch (err) {
@@ -520,13 +566,16 @@ app.post("/categories/:id/subcategory", verifyToken, async (req, res) => {
     category.subCategories.push({ name, extraCategories: extraCategories || [] });
     await category.save();
 
+    logAction(req.user.email, "CREATE", "Category", `${category.name} > ${name}`, {
+      changes: { subCategory: { new: name }, extraCategories: { new: (extraCategories || []).join(", ") || "none" } }
+    });
+
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-/* ⚠️ MUST be before PUT /categories/:id/subcategory/:subName */
 app.put("/categories/:id/subcategory/reorder", verifyToken, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -543,10 +592,14 @@ app.put("/categories/:id/subcategory/reorder", verifyToken, async (req, res) => 
     category.subCategories = [...reordered, ...missing];
 
     await category.save();
+
+    logAction(req.user.email, "UPDATE", "Category", category.name, {
+      changes: { subCategoryReorder: { new: orderedNames.join(" → ") } }
+    });
+
     console.log("✅ SubCategories reordered for category:", category.name);
     res.json(category);
   } catch (err) {
-    console.log("❌ SubCategory reorder error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -559,10 +612,30 @@ app.put("/categories/:id/subcategory/:subName", verifyToken, async (req, res) =>
     const sub = category.subCategories.find(s => s.name === req.params.subName);
     if (!sub) return res.status(404).json({ message: "SubCategory not found" });
 
-    if (req.body.name) sub.name = req.body.name;
-    if (req.body.extraCategories !== undefined) sub.extraCategories = req.body.extraCategories;
+    const changes = {};
+    if (req.body.name && req.body.name !== sub.name) {
+      changes.name = { old: sub.name, new: req.body.name };
+      sub.name = req.body.name;
+    }
+    if (req.body.extraCategories !== undefined) {
+      const diff = getArrayDiff(sub.extraCategories, req.body.extraCategories);
+      if (diff.added.length || diff.removed.length) {
+        changes.extraCategories = {
+          old: sub.extraCategories.join(", ") || "none",
+          new: req.body.extraCategories.join(", ") || "none",
+          added: diff.added,
+          removed: diff.removed,
+        };
+      }
+      sub.extraCategories = req.body.extraCategories;
+    }
 
     await category.save();
+
+    if (Object.keys(changes).length > 0) {
+      logAction(req.user.email, "UPDATE", "Category", `${category.name} > ${req.params.subName}`, { changes });
+    }
+
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -581,6 +654,10 @@ app.delete("/categories/:id/subcategory/:subName", verifyToken, async (req, res)
     category.subCategories = category.subCategories.filter(s => s.name !== subName);
     await category.save();
 
+    logAction(req.user.email, "DELETE", "Category", `${category.name} > ${subName}`, {
+      changes: { deleted: { old: `${category.name} > ${subName}`, new: "DELETED" } }
+    });
+
     console.log("🗑️ SubCategory + all products deleted:", subName);
     res.json(category);
   } catch (err) {
@@ -590,7 +667,6 @@ app.delete("/categories/:id/subcategory/:subName", verifyToken, async (req, res)
 
 /* =============================
    PRODUCT ROUTES
-   ⚠️ CRITICAL: Specific routes MUST come before parameterized routes
 ============================= */
 
 app.put("/products/reorder", verifyToken, async (req, res) => {
@@ -617,6 +693,11 @@ app.put("/products/reorder", verifyToken, async (req, res) => {
     }));
 
     await Product.bulkWrite(bulkOps);
+
+    logAction(req.user.email, "UPDATE", "Product", "Reorder", {
+      changes: { reordered: { new: `${validItems.length} products reordered` } }
+    });
+
     console.log("✅ Products reordered:", validItems.length, "items");
     res.json({ message: "Products reordered successfully" });
   } catch (err) {
@@ -709,6 +790,17 @@ app.post("/products", verifyToken, async (req, res) => {
     const nextOrder = lastProduct ? lastProduct.order + 1 : 0;
 
     const newProduct = await Product.create({ ...req.body, slug, order: nextOrder });
+
+    logAction(req.user.email, "CREATE", "Product", newProduct.name, {
+      changes: {
+        name: { new: newProduct.name },
+        category: { new: newProduct.category },
+        subCategory: { new: newProduct.subCategory },
+        type: { new: newProduct.type },
+        model: { new: newProduct.model || "-" },
+      }
+    });
+
     res.status(201).json(newProduct);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -731,7 +823,64 @@ app.put("/products/:id", verifyToken, async (req, res) => {
       console.log("🗑️ Old product datasheet deleted from Firebase");
     }
 
+    // Track basic field changes
+    const changes = getDiff(existing, req.body, [
+      "name", "description", "category", "subCategory", "extraCategory",
+      "type", "model", "fullName", "series"
+    ]);
+
+    // Track highlights changes
+    if (req.body.highlights) {
+      const diff = getArrayDiff(existing.highlights || [], req.body.highlights);
+      if (diff.added.length || diff.removed.length) {
+        changes.highlights = {
+          old: (existing.highlights || []).join(", ") || "none",
+          new: req.body.highlights.join(", ") || "none",
+          added: diff.added,
+          removed: diff.removed,
+        };
+      }
+    }
+
+    // Track overview changes
+    if (req.body.overview) {
+      if (req.body.overview.title !== existing.overview?.title) {
+        changes["overview.title"] = { old: existing.overview?.title, new: req.body.overview.title };
+      }
+      if (req.body.overview.content !== existing.overview?.content) {
+        changes["overview.content"] = {
+          old: (existing.overview?.content || "").substring(0, 80) + "...",
+          new: (req.body.overview.content || "").substring(0, 80) + "...",
+        };
+      }
+    }
+
+    // Track specifications changes
+    if (req.body.specifications) {
+      const oldSpecStr = JSON.stringify(existing.specifications || {});
+      const newSpecStr = JSON.stringify(req.body.specifications || {});
+      if (oldSpecStr !== newSpecStr) {
+        const oldKeys = Object.keys(existing.specifications || {});
+        const newKeys = Object.keys(req.body.specifications || {});
+        changes.specifications = {
+          old: `${oldKeys.length} sections`,
+          new: `${newKeys.length} sections`,
+        };
+      }
+    }
+
+    // Track image change
+    if (req.body.image && req.body.image !== existing.image) {
+      changes.image = { old: "Previous image", new: "New image uploaded" };
+    }
+
+    // Track datasheet change
+    if (req.body.datasheet && req.body.datasheet !== existing.datasheet) {
+      changes.datasheet = { old: "Previous datasheet", new: "New datasheet uploaded" };
+    }
+
     const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    logAction(req.user.email, "UPDATE", "Product", updated.name, { changes });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -746,6 +895,14 @@ app.delete("/products/:id", verifyToken, async (req, res) => {
     await deleteFromFirebase(product.image);
     await deleteFromFirebase(product.datasheet);
     await Product.findByIdAndDelete(req.params.id);
+
+    logAction(req.user.email, "DELETE", "Product", product.name, {
+      changes: {
+        name: { old: product.name, new: "DELETED" },
+        category: { old: product.category, new: "DELETED" },
+        subCategory: { old: product.subCategory, new: "DELETED" },
+      }
+    });
 
     console.log("🗑️ Product deleted:", product.name);
     res.json({ message: "Deleted successfully" });
@@ -830,6 +987,10 @@ app.post("/create-admin", verifyToken, async (req, res) => {
     const user = await admin.auth().createUser({ email, password });
     await admin.auth().setCustomUserClaims(user.uid, { admin: true });
 
+    logAction(req.user.email, "CREATE", "Admin", email, {
+      changes: { email: { new: email } }
+    });
+
     console.log(`✅ Admin created: ${email}`);
     res.json({ message: "New Admin Created ✅" });
   } catch (error) {
@@ -874,6 +1035,10 @@ app.delete("/delete-admin/:uid", verifyToken, async (req, res) => {
 
     await admin.auth().deleteUser(uid);
 
+    logAction(req.user.email, "DELETE", "Admin", userRecord.email, {
+      changes: { email: { old: userRecord.email, new: "DELETED" } }
+    });
+
     console.log(`✅ Admin permanently deleted. UID: ${uid}, Email: ${userRecord.email}`);
     res.json({ message: "Admin removed successfully ✅" });
 
@@ -911,6 +1076,10 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
       type: type || null,
     };
 
+    // Get existing related products before update
+    const existing = await RelatedProduct.findOne(filter);
+    const oldRelated = existing ? existing.relatedProducts : [];
+
     const result = await RelatedProduct.findOneAndUpdate(
       filter,
       {
@@ -924,6 +1093,19 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
       },
       { upsert: true, new: true }
     );
+
+    // Track what was added/removed
+    const diff = getArrayDiff(oldRelated.map(String), relatedProducts.map(String));
+    logAction(req.user.email, "UPDATE", "Product", `Related: ${category} > ${subCategory}`, {
+      changes: {
+        relatedProducts: {
+          old: `${oldRelated.length} products`,
+          new: `${relatedProducts.length} products`,
+          added: `${diff.added.length} added`,
+          removed: `${diff.removed.length} removed`,
+        }
+      }
+    });
 
     console.log("✅ Saved successfully:", result._id);
     res.json({ message: "Related products saved successfully ✅", result });
@@ -997,6 +1179,16 @@ app.put("/related-products/remove", verifyToken, async (req, res) => {
       id => id.toString() !== productId.toString()
     );
     await related.save();
+
+    logAction(req.user.email, "UPDATE", "Product", `Related: ${category} > ${subCategory}`, {
+      changes: {
+        relatedProducts: {
+          old: `${before} products`,
+          new: `${related.relatedProducts.length} products`,
+          removed: `Product ID: ${productId}`,
+        }
+      }
+    });
 
     console.log(`✅ Removed product ${productId} from related list. ${before} → ${related.relatedProducts.length}`);
     res.json({
@@ -1120,6 +1312,15 @@ app.post("/blogs", verifyToken, async (req, res) => {
     }
 
     const blog = await Blog.create({ ...req.body, slug: finalSlug });
+
+    logAction(req.user.email, "CREATE", "Blog", blog.title, {
+      changes: {
+        title: { new: blog.title },
+        author: { new: blog.author },
+        published: { new: blog.published },
+      }
+    });
+
     res.status(201).json(blog);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1151,7 +1352,25 @@ app.put("/blogs/:id", verifyToken, async (req, res) => {
       }
     }
 
+    // Track field changes
+    const changes = getDiff(existing, req.body, ["title", "excerpt", "author", "readTime", "published", "date"]);
+
+    // Track image change
+    if (req.body.image && req.body.image !== existing.image) {
+      changes.image = { old: "Previous image", new: "New image uploaded" };
+    }
+
+    // Track blocks change
+    if (req.body.blocks) {
+      const oldCount = (existing.blocks || []).length;
+      const newCount = req.body.blocks.length;
+      if (oldCount !== newCount) {
+        changes.blocks = { old: `${oldCount} blocks`, new: `${newCount} blocks` };
+      }
+    }
+
     const updated = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    logAction(req.user.email, "UPDATE", "Blog", updated.title, { changes });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1173,6 +1392,13 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
 
     await Blog.findByIdAndDelete(req.params.id);
 
+    logAction(req.user.email, "DELETE", "Blog", blog.title, {
+      changes: {
+        title: { old: blog.title, new: "DELETED" },
+        author: { old: blog.author, new: "DELETED" },
+      }
+    });
+
     console.log("🗑️ Blog deleted:", blog.title);
     res.json({ message: "Deleted successfully" });
   } catch (err) {
@@ -1181,10 +1407,9 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
 });
 
 /* =============================
-   INQUIRY ROUTES — Admin Inbox
+   INQUIRY ROUTES
 ============================= */
 
-// GET all inquiries
 app.get("/inquiries", verifyToken, async (req, res) => {
   try {
     const inquiries = await Inquiry.find().sort({ createdAt: -1 });
@@ -1194,7 +1419,6 @@ app.get("/inquiries", verifyToken, async (req, res) => {
   }
 });
 
-// Mark as read
 app.put("/inquiries/:id/read", verifyToken, async (req, res) => {
   try {
     const inquiry = await Inquiry.findByIdAndUpdate(
@@ -1209,7 +1433,6 @@ app.put("/inquiries/:id/read", verifyToken, async (req, res) => {
   }
 });
 
-// Reply to inquiry — email customer + save in DB
 app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
   try {
     const { message } = req.body;
@@ -1248,14 +1471,11 @@ app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
   }
 });
 
-// Delete inquiry
-// Delete inquiry
 app.delete("/inquiries/:id", verifyToken, async (req, res) => {
   try {
     const inquiry = await Inquiry.findById(req.params.id);
     if (!inquiry) return res.status(404).json({ message: "Inquiry not found" });
 
-    // Delete attachment from Firebase if exists
     const attachmentUrl = inquiry.formData?.attachmentUrl;
     if (attachmentUrl) {
       await deleteFromFirebase(attachmentUrl);
@@ -1270,9 +1490,20 @@ app.delete("/inquiries/:id", verifyToken, async (req, res) => {
 });
 
 /* =============================
+   AUDIT LOG ROUTE
+============================= */
+
+app.get("/audit-logs", verifyToken, async (req, res) => {
+  try {
+    const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(500);
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =============================
    FORM SUBMISSION ROUTES
-   ✅ Email MX verified before saving
-   ✅ All forms saved to MongoDB as Inquiry
 ============================= */
 
 app.post("/submit-partner", async (req, res) => {
@@ -1471,12 +1702,12 @@ app.post("/submit-warranty", upload.single("invoiceFile"), async (req, res) => {
 
   try {
     const attachmentUrl = await uploadToFirebase(req.file, "warranty");
-      await Inquiry.create({
-        formType: "Warranty Check",
-        customerName: form.email,
-        customerEmail: form.email,
-        formData: { ...form, attachmentUrl },
-      });
+    await Inquiry.create({
+      formType: "Warranty Check",
+      customerName: form.email,
+      customerEmail: form.email,
+      formData: { ...form, attachmentUrl },
+    });
 
     const mailOptions = {
       from: `"Warranty Request" <${process.env.EMAIL_USER}>`,
@@ -1517,12 +1748,12 @@ app.post("/submit-techsquad", upload.single("invoiceFile"), async (req, res) => 
 
   try {
     const attachmentUrl = await uploadToFirebase(req.file, "techsquad");
-      await Inquiry.create({
-        formType: "Tech Squad",
-        customerName: `${form.firstName} ${form.lastName}`,
-        customerEmail: form.email,
-        formData: { ...form, attachmentUrl },
-      });
+    await Inquiry.create({
+      formType: "Tech Squad",
+      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: form.email,
+      formData: { ...form, attachmentUrl },
+    });
 
     const mailOptions = {
       from: `"${form.firstName} ${form.lastName}" <${process.env.EMAIL_USER}>`,
@@ -1789,7 +2020,6 @@ app.post("/submit-whistleblower", upload.single("attachmentFile"), async (req, r
   const form = req.body;
   console.log("📧 Whistle blower report received:", form.name || "Anonymous");
 
-  // Whistleblower email optional — verify only if provided
   if (form.email) {
     const emailValid = await isEmailDomainValid(form.email);
     if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });

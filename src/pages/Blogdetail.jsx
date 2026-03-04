@@ -84,10 +84,10 @@ const BlogDetail = () => {
     const style = document.createElement("style");
     style.id = "ql-render-styles";
     style.innerHTML = `
-      .ql-editor-content h1 { font-size: 2rem; font-weight: 800; color: #1a1a1a; margin: 1.5rem 0 0.75rem; line-height: 1.2; }
-      .ql-editor-content h2 { font-size: 1.5rem; font-weight: 700; color: #1a1a1a; margin: 1.25rem 0 0.6rem; line-height: 1.3; }
-      .ql-editor-content h3 { font-size: 1.2rem; font-weight: 600; color: #1a1a1a; margin: 1rem 0 0.5rem; }
-      .ql-editor-content p { margin: 0 0 1rem; line-height: 1.8; word-wrap: break-word; overflow-wrap: break-word; }
+      .ql-editor-content h1 { font-size: 2.4rem; font-weight: 800; color: #1a1a1a; margin: 1.5rem 0 0.75rem; line-height: 1.2; }
+      .ql-editor-content h2 { font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 1.25rem 0 0.6rem; line-height: 1.3; }
+      .ql-editor-content h3 { font-size: 1.4rem; font-weight: 600; color: #1a1a1a; margin: 1rem 0 0.5rem; }
+      .ql-editor-content p { font-size: 1.05rem; margin: 0 0 1rem; line-height: 1.85; word-wrap: break-word; overflow-wrap: break-word; }
       .ql-editor-content strong { font-weight: 700; color: #111; }
       .ql-editor-content em { font-style: italic; }
       .ql-editor-content u { text-decoration: underline; }
@@ -337,8 +337,9 @@ const BlogDetail = () => {
                 </div>
               )}
               {block.type === "image" && (
-                <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl  sm:p-12 mb-8">
-                  <div className="overflow-hidden rounded-xl shadow-md border border-gray-100 hover:shadow-xl transition-shadow duration-300 max-h-88">                    <img
+  <div className="mb-8">
+                  <div className="overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                    <img
                       src={block.url}
                       alt={block.caption || "Blog image"}
                       className="w-full hover:scale-105 transition-transform duration-700"
