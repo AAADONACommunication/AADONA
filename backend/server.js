@@ -867,12 +867,21 @@ app.delete("/delete-admin/:uid", verifyToken, async (req, res) => {
       return res.status(400).json({ message: "You cannot remove your own admin access." });
     }
 
-    await admin.auth().setCustomUserClaims(uid, { admin: false });
+    const userRecord = await admin.auth().getUser(uid);
+    if (!userRecord.customClaims?.admin) {
+      return res.status(400).json({ message: "This user is not an admin." });
+    }
 
-    console.log(`✅ Admin access removed for UID: ${uid}`);
-    res.json({ message: "Admin access removed successfully" });
+    await admin.auth().deleteUser(uid);
+
+    console.log(`✅ Admin permanently deleted. UID: ${uid}, Email: ${userRecord.email}`);
+    res.json({ message: "Admin removed successfully ✅" });
+
   } catch (err) {
     console.error("❌ Delete admin error:", err.message);
+    if (err.code === "auth/user-not-found") {
+      return res.status(404).json({ message: "User not found in Firebase." });
+    }
     res.status(500).json({ message: "Failed to remove admin" });
   }
 });
