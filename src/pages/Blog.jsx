@@ -148,7 +148,7 @@ const BlogPage = () => {
                       <img
                         src={post.image}
                         alt={post.title}
-                        className={`w-full h-full object-cover transition-transform duration-700 ${
+                        className={`w-full h-full object-fill transition-transform duration-700 ${
                           hoveredCard === post._id ? "scale-110" : "scale-100"
                         }`}
                         onError={(e) => {
