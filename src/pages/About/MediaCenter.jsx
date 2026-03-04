@@ -24,7 +24,6 @@ const buildCategoryData = (modules) => {
 
 const categories = buildCategoryData(imageModules);
 
-// Folder name → DB name (sirf sorting ke liye, title same rahega)
 const folderToDbName = {
   "Wireless": "Wireless Solutions",
   "Network Switch": "Network Switches",
@@ -94,18 +93,22 @@ export default function MediaCenter() {
                 scrollRefs.current[cat.title] = React.createRef();
               }
               return (
-                <section key={i} className="px-4">
+                <section key={i} className="px-4 relative">
                   <h2 className="text-4xl font-bold text-green-800 text-center mb-10">{cat.title}</h2>
-                  <div className="relative group">
-
+                  
+                  <div className="relative group flex items-center">
+                    
+                    {/* Left Arrow Button - Always Visible */}
                     <button
                       onClick={() => scrollRefs.current[cat.title].current.scrollBy({ left: -350, behavior: 'smooth' })}
-                      className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 text-white text-6xl font-bold px-2 py-6 opacity-0 group-hover:opacity-100 hover:text-green-200 transition-all z-20"
-                    >‹</button>
+                      className="hidden md:flex absolute -left-4 lg:-left-8 top-1/2 -translate-y-1/2 bg-green-700 text-white w-12 h-12 items-center justify-center rounded-full shadow-lg hover:bg-green-800 transition-all z-30"
+                    >
+                      <span className="text-3xl mb-1">‹</span>
+                    </button>
 
                     <div
                       ref={scrollRefs.current[cat.title]}
-                      className="overflow-x-auto hide-scrollbar scroll-smooth snap-x snap-mandatory px-2 pb-4"
+                      className="overflow-x-auto hide-scrollbar scroll-smooth snap-x snap-mandatory px-2 pb-4 w-full"
                     >
                       <div className="flex gap-8">
                         {cat.images.map((img, idx) => (
@@ -124,10 +127,13 @@ export default function MediaCenter() {
                       </div>
                     </div>
 
+                    {/* Right Arrow Button - Always Visible */}
                     <button
                       onClick={() => scrollRefs.current[cat.title].current.scrollBy({ left: 350, behavior: 'smooth' })}
-                      className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 text-white text-6xl font-bold px-2 py-6 opacity-0 group-hover:opacity-100 hover:text-green-200 transition-all z-20"
-                    >›</button>
+                      className="hidden md:flex absolute -right-4 lg:-right-8 top-1/2 -translate-y-1/2 bg-green-700 text-white w-12 h-12 items-center justify-center rounded-full shadow-lg hover:bg-green-800 transition-all z-30"
+                    >
+                      <span className="text-3xl mb-1">›</span>
+                    </button>
 
                   </div>
                 </section>
