@@ -276,7 +276,7 @@ export default function Insights() {
                 className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-400 hover:text-green-600 transition"
               >
                 <Globe size={13} />
-                View full breakdown in Google Analytic
+                View full breakdown in Google Analytics
               </a>
             </div>
           </div>
