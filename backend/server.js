@@ -1088,8 +1088,8 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
           category,
           subCategory,
           extraCategory: extraCategory || null,
-          relatedProducts,
         },
+        $addToSet: { relatedProducts: { $each: relatedProducts } },
       },
       { upsert: true, new: true }
     );

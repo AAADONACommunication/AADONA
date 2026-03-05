@@ -340,6 +340,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
   const removeRelatedProduct = (productId) =>
     setForm({ ...form, relatedProducts: (form.relatedProducts || []).filter((id) => id !== productId) });
 
+  // ── Save Related Products (MERGE with existing — purane nahi hatenge) ──
   const saveRelatedProducts = async () => {
     if (!form.relatedCategory || !form.relatedSubCategory) {
       alert("Please select category and subcategory");
@@ -352,6 +353,25 @@ export default function Products({ products, setProducts, allCategories, reloadP
     setRelatedBtnLoading(true);
     try {
       const token = await auth.currentUser.getIdToken();
+
+      // ── Step 1: Fetch existing related products for this combo ──
+      const params = new URLSearchParams({
+        category: form.relatedCategory,
+        subCategory: form.relatedSubCategory,
+        ...(form.relatedExtraCategory ? { extraCategory: form.relatedExtraCategory } : {}),
+        ...(form.relatedType ? { type: form.relatedType } : {}),
+      });
+      const existingRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/related-products/raw?${params}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const existingData = await existingRes.json();
+      const existingIds = existingData.relatedProducts || [];
+
+      // ── Step 2: Merge — purane + naye, duplicates hata do ──
+      const mergedProducts = [...new Set([...existingIds, ...form.relatedProducts])];
+
+      // ── Step 3: Save merged list ──
       const res = await fetch(`${import.meta.env.VITE_API_URL}/save-related-products`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -360,12 +380,12 @@ export default function Products({ products, setProducts, allCategories, reloadP
           category: form.relatedCategory,
           subCategory: form.relatedSubCategory,
           extraCategory: form.relatedExtraCategory || null,
-          relatedProducts: form.relatedProducts,
+          relatedProducts: mergedProducts,
         }),
       });
       const data = await safeJson(res);
       if (res.ok) {
-        alert("Related products saved successfully ✅");
+        alert(`Related products saved successfully ✅ (${mergedProducts.length} total)`);
         setForm({ ...form, relatedType: "", relatedCategory: "", relatedSubCategory: "", relatedExtraCategory: "", relatedProducts: [] });
       } else {
         alert(data.message || "Failed to save related products");
