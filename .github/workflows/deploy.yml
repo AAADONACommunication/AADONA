@@ -36,5 +36,6 @@ jobs:
 
             echo "♻️ Restarting backend with PM2"
             pm2 restart myapp || pm2 start server.js --name myapp
+            nginx -s reload
 
             echo "✅ Deployment Finished"
