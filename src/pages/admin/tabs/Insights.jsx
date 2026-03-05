@@ -417,7 +417,7 @@ export default function Insights() {
               <a href={GA_URL} target="_blank" rel="noopener noreferrer"
                 className="mt-4 flex items-center justify-center gap-1 text-xs text-gray-400 hover:text-green-600 transition">
                 <ArrowUpRight size={13} />
-                Full breakdown in Google Analytics
+                Full breakdown in Google Analytic
               </a>
             </div>
           </div>
