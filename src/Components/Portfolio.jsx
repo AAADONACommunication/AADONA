@@ -116,7 +116,7 @@ const App = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-extrabold text-green-700 sm:text-4xl inline-block pb-1">
-            Our Soultion Portfolio
+            Our Solution Portfolio
           </h2>
         </div>
         {/*
