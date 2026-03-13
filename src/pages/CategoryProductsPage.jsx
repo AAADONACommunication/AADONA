@@ -329,7 +329,7 @@ export default function CategoryProductsPage() {
   {loading ? (
     <SubCategorySkeleton />
   ) : (
-    <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 w-full max-w-xl">
+    <div className="grid grid-cols-3 sm:flex sm:flex-wrap sm:justify-center gap-2 w-full max-w-xl">
       {orderedSubCategories.map((cat, index) => {
         const isOdd = orderedSubCategories.length % 2 !== 0;
         const isLast = index === orderedSubCategories.length - 1;
