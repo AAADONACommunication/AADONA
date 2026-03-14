@@ -1,7 +1,7 @@
 import {React,useEffect} from 'react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-import bg from '../../assets/bg.jpg'; // ✅ Same background as CSR
+import bg from '../../assets/bg.jpg';
 
 const Careers = () => {
   useEffect(() => {
@@ -31,7 +31,7 @@ const Careers = () => {
                       style={{ backgroundImage: `url(${bg})` }}
                     >
 
-        {/* ✅ Content Section (frosted like CSR) */}
+        {/* Content Section (frosted like CSR) */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="backdrop-blur-sm bg-white/50 rounded-2xl shadow-lg p-10 border border-white/40">
             <p className="text-lg text-gray-800 leading-relaxed text-center">
