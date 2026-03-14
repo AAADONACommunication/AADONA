@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import CheckCircle from "../assets/checkcircle.png";
-import banner_animation from '../assets/banner_animation.gif'
+import banner_animation from '../assets/banner6.gif'
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;
