@@ -7,6 +7,14 @@ const buildDatasheetHTML = (product) => {
     path.resolve(__dirname, "../assets/logo.jpg")
   ).toString("base64");
 
+  const bg = fs.readFileSync(
+    path.resolve(__dirname, "../assets/bg.png")
+  ).toString("base64");
+
+  const makeIndia = fs.readFileSync(
+    path.resolve(__dirname, "../assets/MakeInIndia.png")
+  ).toString("base64");
+
   /* FEATURES */
   const highlightsHTML = (product.highlights || [])
     .map(h => `<li>${h}</li>`)
@@ -55,6 +63,23 @@ const buildDatasheetHTML = (product) => {
       overflow: hidden;
     }
 
+    .bg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 450px;
+      object-fit: cover;
+      opacity: 0.9;
+    }
+
+    .logo {
+      position: absolute;
+      top: 50px;
+      left: 60px;
+      width: 240px;
+    }
+
     .model {
       position: absolute;
       top: 220px;
@@ -81,6 +106,13 @@ const buildDatasheetHTML = (product) => {
       font-weight: 600;
       text-align: center;
       width: 650px;
+    }
+
+    .india {
+      position: absolute;
+      bottom: 180px;
+      right: 120px;
+      width: 180px;
     }
 
     .cover-footer {
@@ -242,6 +274,10 @@ const buildDatasheetHTML = (product) => {
   ===================== -->
   <div class="page">
 
+    <img class="bg" src="data:image/png;base64,${bg}" />
+
+    <img class="logo" src="data:image/jpeg;base64,${logo}" />
+
     <div class="model">
       Model: ${product.model || product.name}
     </div>
@@ -251,6 +287,8 @@ const buildDatasheetHTML = (product) => {
     <div class="desc">
       ${product.description || ""}
     </div>
+
+    <img class="india" src="data:image/png;base64,${makeIndia}" />
 
     <div class="cover-footer">
       © 2024 AADONA Communication Pvt Ltd. All rights reserved
