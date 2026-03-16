@@ -2,11 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const admin = require("./firebaseAdmin");
-const PDFDocument = require("pdfkit");
 const multer = require("multer");
 const crypto = require("crypto");
 const dns = require("dns").promises;
 const transporter = require("./mailer");
+const puppeteer = require("puppeteer-core");
 require("dotenv").config();
 const { BetaAnalyticsDataClient } = require("@google-analytics/data");
 const analyticsClient = new BetaAnalyticsDataClient();
@@ -331,6 +331,428 @@ const generateSlug = (name) => {
     .trim()
     .replace(/\s+/g, "")
     .replace(/[^\w]+/g, "");
+};
+
+/* =============================
+   PDF BROCHURE HTML TEMPLATE
+============================= */
+
+const buildDatasheetHTML = (product) => {
+  const companyLogoUrl = process.env.COMPANY_LOGO_URL || "";
+  const companyName = process.env.COMPANY_NAME || "AADONA";
+  const companyWebsite = process.env.COMPANY_WEBSITE || "www.aadona.online";
+  const companyEmail = process.env.COMPANY_EMAIL || "";
+  const primaryColor = process.env.PDF_PRIMARY_COLOR || "#166534";
+  const accentColor = process.env.PDF_ACCENT_COLOR || "#16a34a";
+
+  // Specifications table rows
+  const specsHTML = product.specifications && Object.keys(product.specifications).length
+    ? Object.entries(product.specifications).map(([section, specs]) => `
+        <div class="spec-section">
+          <div class="spec-section-title">${section}</div>
+          <table class="spec-table">
+            ${Object.entries(specs || {}).map(([key, value], i) => `
+              <tr class="${i % 2 === 0 ? "spec-row-even" : "spec-row-odd"}">
+                <td class="spec-key">${key}</td>
+                <td class="spec-val">${value}</td>
+              </tr>
+            `).join("")}
+          </table>
+        </div>
+      `).join("")
+    : "<p style='color:#888;font-style:italic;'>No specifications available.</p>";
+
+  // Features / highlights list
+  const highlightsHTML = (product.highlights || []).length
+    ? `<ul class="features-list">${(product.highlights || []).map(h => `<li>${h}</li>`).join("")}</ul>`
+    : "<p style='color:#888;font-style:italic;'>No highlights listed.</p>";
+
+  // featuresDetail cards
+  const featureCardsHTML = (product.featuresDetail || []).length
+    ? `<div class="feat-cards">${(product.featuresDetail || []).map(f => `
+        <div class="feat-card">
+          <div class="feat-card-title">${f.title || ""}</div>
+          <div class="feat-card-desc">${f.description || ""}</div>
+        </div>
+      `).join("")}</div>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>${product.name} — Datasheet</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      color: #1a1a1a;
+      background: #fff;
+      font-size: 12px;
+    }
+
+    /* ---- COVER HEADER ---- */
+    .cover-header {
+      background: ${primaryColor};
+      color: #fff;
+      padding: 32px 48px 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cover-logo {
+      height: 52px;
+      object-fit: contain;
+    }
+
+    .cover-company {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      color: #fff;
+    }
+
+    .cover-tagline {
+      font-size: 10px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* ---- PRODUCT HERO SECTION ---- */
+    .hero {
+      display: flex;
+      padding: 36px 48px;
+      gap: 36px;
+      border-bottom: 3px solid ${accentColor};
+      background: #f9fafb;
+    }
+
+    .hero-image-wrap {
+      flex: 0 0 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .hero-image {
+      max-width: 220px;
+      max-height: 200px;
+      object-fit: contain;
+    }
+
+    .hero-info {
+      flex: 1;
+    }
+
+    .hero-category {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: ${accentColor};
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .hero-name {
+      font-size: 26px;
+      font-weight: bold;
+      color: ${primaryColor};
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    .hero-model {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .hero-desc {
+      font-size: 12px;
+      color: #444;
+      line-height: 1.7;
+      max-width: 520px;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: ${primaryColor};
+      color: #fff;
+      font-size: 10px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-outline {
+      border: 1.5px solid ${primaryColor};
+      color: ${primaryColor};
+      background: transparent;
+      font-size: 10px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    /* ---- CONTENT SECTIONS ---- */
+    .content {
+      padding: 0 48px 48px 48px;
+    }
+
+    .section {
+      margin-top: 36px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: ${primaryColor};
+      border-left: 4px solid ${accentColor};
+      padding-left: 10px;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---- OVERVIEW ---- */
+    .overview-box {
+      background: #f0fdf4;
+      border-radius: 8px;
+      padding: 18px 22px;
+      color: #374151;
+      line-height: 1.8;
+      font-size: 12px;
+    }
+
+    /* ---- FEATURES LIST ---- */
+    .features-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 24px;
+      padding: 0;
+    }
+
+    .features-list li {
+      padding: 6px 10px 6px 22px;
+      position: relative;
+      font-size: 12px;
+      color: #374151;
+      line-height: 1.5;
+      background: #f9fafb;
+      border-radius: 4px;
+    }
+
+    .features-list li::before {
+      content: "✔";
+      position: absolute;
+      left: 6px;
+      color: ${accentColor};
+      font-size: 10px;
+      top: 7px;
+    }
+
+    /* ---- FEATURE DETAIL CARDS ---- */
+    .feat-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .feat-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-top: 3px solid ${accentColor};
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .feat-card-title {
+      font-weight: bold;
+      font-size: 12px;
+      color: ${primaryColor};
+      margin-bottom: 6px;
+    }
+
+    .feat-card-desc {
+      font-size: 11px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* ---- SPECS TABLE ---- */
+    .spec-section {
+      margin-bottom: 20px;
+    }
+
+    .spec-section-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #fff;
+      background: ${primaryColor};
+      padding: 7px 12px;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+    }
+
+    .spec-row-even { background: #f9fafb; }
+    .spec-row-odd  { background: #fff; }
+
+    .spec-key {
+      padding: 7px 12px;
+      font-weight: bold;
+      color: #374151;
+      width: 40%;
+      font-size: 11px;
+      border-right: 1px solid #e5e7eb;
+    }
+
+    .spec-val {
+      padding: 7px 12px;
+      color: #555;
+      font-size: 11px;
+    }
+
+    /* ---- FOOTER ---- */
+    .footer {
+      background: ${primaryColor};
+      color: rgba(255,255,255,0.85);
+      padding: 18px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      margin-top: 40px;
+    }
+
+    .footer-brand {
+      font-weight: bold;
+      font-size: 13px;
+      color: #fff;
+      letter-spacing: 2px;
+    }
+
+    .footer-info {
+      text-align: right;
+      line-height: 1.8;
+    }
+
+    /* ---- PAGE BREAK HELPER ---- */
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER HEADER -->
+  <div class="cover-header">
+    ${companyLogoUrl
+      ? `<img src="${companyLogoUrl}" class="cover-logo" alt="${companyName} Logo" />`
+      : `<div class="cover-company">${companyName}</div>`
+    }
+    <div style="text-align:right;">
+      <div class="cover-company">${companyName}</div>
+      <div class="cover-tagline">PRODUCT DATASHEET</div>
+    </div>
+  </div>
+
+  <!-- HERO SECTION -->
+  <div class="hero">
+    <div class="hero-image-wrap">
+      ${product.image
+        ? `<img src="${product.image}" class="hero-image" alt="${product.name}" />`
+        : `<div style="color:#ccc;font-size:11px;text-align:center;">No Image</div>`
+      }
+    </div>
+    <div class="hero-info">
+      <div class="hero-category">${product.category} › ${product.subCategory}${product.extraCategory ? " › " + product.extraCategory : ""}</div>
+      <div class="hero-name">${product.name}</div>
+      ${product.model ? `<div class="hero-model">Model: ${product.model}</div>` : ""}
+      ${product.series ? `<div style="font-size:11px;color:#888;margin-bottom:10px;">Series: ${product.series}</div>` : ""}
+      <div class="hero-desc">${product.description}</div>
+      <div class="hero-badges">
+        <span class="badge">${product.type.toUpperCase()}</span>
+        <span class="badge-outline">${product.category}</span>
+        ${product.series ? `<span class="badge-outline">${product.series} Series</span>` : ""}
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    ${product.overview?.content ? `
+    <div class="section">
+      <div class="section-title">${product.overview?.title || "Product Overview"}</div>
+      <div class="overview-box">${product.overview.content}</div>
+    </div>
+    ` : ""}
+
+    <!-- KEY FEATURES -->
+    ${(product.highlights || []).length ? `
+    <div class="section">
+      <div class="section-title">Key Features</div>
+      ${highlightsHTML}
+    </div>
+    ` : ""}
+
+    <!-- FEATURE DETAILS -->
+    ${(product.featuresDetail || []).length ? `
+    <div class="section">
+      <div class="section-title">Feature Details</div>
+      ${featureCardsHTML}
+    </div>
+    ` : ""}
+
+    <!-- SPECIFICATIONS -->
+    ${product.specifications && Object.keys(product.specifications).length ? `
+    <div class="section page-break">
+      <div class="section-title">Technical Specifications</div>
+      ${specsHTML}
+    </div>
+    ` : ""}
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div>
+      <div class="footer-brand">${companyName}</div>
+      <div style="margin-top:4px;">Product Datasheet — ${product.name}</div>
+    </div>
+    <div class="footer-info">
+      <div>${companyWebsite}</div>
+      ${companyEmail ? `<div>${companyEmail}</div>` : ""}
+      <div>Generated: ${new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</div>
+    </div>
+  </div>
+
+</body>
+</html>`;
 };
 
 /* =============================
@@ -729,51 +1151,60 @@ app.get("/products/:slug", async (req, res) => {
   }
 });
 
+/* =============================
+   DATASHEET PDF ROUTE (Puppeteer)
+============================= */
+
 app.get("/products/:slug/datasheet", async (req, res) => {
   try {
+
     const product = await Product.findOne({ slug: req.params.slug });
-    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
+    if (!product)
+      return res.status(404).json({ message: "Product not found" });
+
+    const html = buildDatasheetHTML(product);
+
+    const browser = await puppeteer.launch({
+      executablePath: process.env.CHROME_PATH || "/usr/bin/chromium-browser",
+      headless: "new",
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+    });
+
+    const page = await browser.newPage();
+
+    await page.setContent(html, {
+      waitUntil: "networkidle0",
+    });
+
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+    });
+
+    await browser.close();
+
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=${product.slug}-datasheet.pdf`);
-    doc.pipe(res);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${product.slug}.pdf`
+    );
 
-    doc.fontSize(22).font("Helvetica-Bold").text(product.name, { align: "center" });
-    doc.moveDown(2);
-    doc.fontSize(16).font("Helvetica-Bold").text("Product Overview");
-    doc.moveDown(0.5);
-    doc.fontSize(12).font("Helvetica").text(product.overview?.content || product.description, { align: "justify" });
-    doc.moveDown(1.5);
+    res.send(pdf);
 
-    if (product.highlights?.length) {
-      doc.fontSize(16).font("Helvetica-Bold").text("Features");
-      doc.moveDown(0.5);
-      product.highlights.forEach((item) => {
-        doc.fontSize(12).font("Helvetica").text("• " + item);
-      });
-      doc.moveDown(1.5);
-    }
-
-    if (product.specifications && Object.keys(product.specifications).length) {
-      doc.fontSize(16).font("Helvetica-Bold").text("Specifications");
-      doc.moveDown(0.5);
-      Object.entries(product.specifications).forEach(([category, specs]) => {
-        doc.fontSize(14).font("Helvetica-Bold").text(category);
-        doc.moveDown(0.3);
-        Object.entries(specs || {}).forEach(([key, value]) => {
-          doc.fontSize(12).font("Helvetica").text(`${key}: ${value}`);
-        });
-        doc.moveDown(1);
-      });
-    }
-
-    doc.moveDown(2);
-    doc.fontSize(10).fillColor("gray").text("Generated automatically from AADONA Product System", { align: "center" });
-    doc.end();
   } catch (err) {
+
     console.log("PDF ERROR:", err.message);
-    res.status(500).json({ error: "Failed to generate PDF" });
+
+    res.status(500).json({
+      error: "Failed to generate PDF",
+    });
+
   }
 });
 
@@ -825,13 +1256,11 @@ app.put("/products/:id", verifyToken, async (req, res) => {
       console.log("Old product datasheet deleted from Firebase");
     }
 
-    // Track basic field changes
     const changes = getDiff(existing, req.body, [
       "name", "description", "category", "subCategory", "extraCategory",
       "type", "model", "fullName", "series"
     ]);
 
-    // Track highlights changes
     if (req.body.highlights) {
       const diff = getArrayDiff(existing.highlights || [], req.body.highlights);
       if (diff.added.length || diff.removed.length) {
@@ -844,7 +1273,6 @@ app.put("/products/:id", verifyToken, async (req, res) => {
       }
     }
 
-    // Track overview changes
     if (req.body.overview) {
       if (req.body.overview.title !== existing.overview?.title) {
         changes["overview.title"] = { old: existing.overview?.title, new: req.body.overview.title };
@@ -857,7 +1285,6 @@ app.put("/products/:id", verifyToken, async (req, res) => {
       }
     }
 
-    // Track specifications changes
     if (req.body.specifications) {
       const oldSpecStr = JSON.stringify(existing.specifications || {});
       const newSpecStr = JSON.stringify(req.body.specifications || {});
@@ -871,12 +1298,10 @@ app.put("/products/:id", verifyToken, async (req, res) => {
       }
     }
 
-    // Track image change
     if (req.body.image && req.body.image !== existing.image) {
       changes.image = { old: "Previous image", new: "New image uploaded" };
     }
 
-    // Track datasheet change
     if (req.body.datasheet && req.body.datasheet !== existing.datasheet) {
       changes.datasheet = { old: "Previous datasheet", new: "New datasheet uploaded" };
     }
@@ -1078,7 +1503,6 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
       type: type || null,
     };
 
-    // Get existing related products before update
     const existing = await RelatedProduct.findOne(filter);
     const oldRelated = existing ? existing.relatedProducts : [];
 
@@ -1096,7 +1520,6 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // Track what was added/removed
     const diff = getArrayDiff(oldRelated.map(String), relatedProducts.map(String));
     logAction(req.user.email, "UPDATE", "Product", `Related: ${category} > ${subCategory}`, {
       changes: {
@@ -1354,15 +1777,12 @@ app.put("/blogs/:id", verifyToken, async (req, res) => {
       }
     }
 
-    // Track field changes
     const changes = getDiff(existing, req.body, ["title", "excerpt", "author", "readTime", "published", "date"]);
 
-    // Track image change
     if (req.body.image && req.body.image !== existing.image) {
       changes.image = { old: "Previous image", new: "New image uploaded" };
     }
 
-    // Track blocks change
     if (req.body.blocks) {
       const oldCount = (existing.blocks || []).length;
       const newCount = req.body.blocks.length;
@@ -1512,7 +1932,6 @@ app.get("/analytics/summary", verifyToken, async (req, res) => {
   try {
     const propertyId = process.env.GA_PROPERTY_ID;
 
-    // Date range from query params — default: last 30 days
     const { range } = req.query;
 
     let startDate, endDate, dailyRange, dailyDimension;
@@ -1906,7 +2325,7 @@ app.post("/submit-warranty", upload.single("invoiceFile"), async (req, res) => {
 
 app.post("/submit-techsquad", upload.single("invoiceFile"), async (req, res) => {
   const form = req.body;
-  console.log("📧 Tech Squad request received:", form.email);
+  console.log("Tech Squad request received:", form.email);
 
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid) return res.status(400).json({ success: false, message: "Invalid email address. Please enter a real email." });
@@ -2183,7 +2602,7 @@ app.post("/submit-apply", upload.single("resumeFile"), async (req, res) => {
 
 app.post("/submit-whistleblower", upload.single("attachmentFile"), async (req, res) => {
   const form = req.body;
-  console.log("📧 Whistle blower report received:", form.name || "Anonymous");
+  console.log("Whistle blower report received:", form.name || "Anonymous");
 
   if (form.email) {
     const emailValid = await isEmailDomainValid(form.email);
