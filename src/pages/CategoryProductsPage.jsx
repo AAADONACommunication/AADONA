@@ -340,34 +340,34 @@ export default function CategoryProductsPage() {
 
 </div>
 
-     <div className="max-w-7xl mx-auto px-6 mt-7 space-y-3 flex flex-col items-center">
+ <div className="max-w-7xl mx-auto px-6 mt-7 space-y-3 flex flex-col items-center">
   {loading ? (
     <SubCategorySkeleton />
   ) : (
-    <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 w-full max-w-xl">
+    <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 sm:pt-4 md:gap-4 w-full max-w-5xl">
       {orderedSubCategories.map((cat, index) => {
         const isOdd = orderedSubCategories.length % 2 !== 0;
         const isLast = index === orderedSubCategories.length - 1;
 
         return (
-        <button
-  key={cat}
-  onClick={() => setActiveSubCategory(cat)}
-  className={`px-2 py-1 sm:px-8 sm:py-2.5 text-sm sm:text-base rounded-lg font-semibold transition-all duration-300 w-full sm:w-auto
-    ${isOdd && isLast ? "col-span-2 mx-auto" : ""}
-    ${
-      activeSubCategory === cat
-        ? "bg-green-600 text-white shadow-md"
-        : "bg-white text-gray-600 border hover:bg-gray-100"
-    }`}
->
-  {cat}
-</button>
+          <button
+            key={cat}
+            onClick={() => setActiveSubCategory(cat)}
+            className={`px-2 py-1 sm:px-8 sm:py-2 text-sm sm:text-base rounded-lg font-semibold transition-all duration-300 w-full sm:w-auto
+              min-w-0 break-words whitespace-normal text-center
+              ${isOdd && isLast ? "col-span-2 mx-auto" : ""}
+              ${
+                activeSubCategory === cat
+                  ? "bg-green-600 text-white shadow-md"
+                  : "bg-white text-gray-600 border hover:bg-gray-100"
+              }`}
+          >
+            {cat}
+          </button>
         );
       })}
     </div>
   )}
-
   {!loading && detailOptions.length > 0 && (
     <div className="flex flex-col items-center space-y-8 w-full">
       <div className="flex items-center gap-2 bg-gray-200/60 p-1.5 rounded-full border border-gray-300 flex-wrap justify-center">
