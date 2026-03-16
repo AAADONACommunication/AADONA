@@ -48,6 +48,7 @@ const buildDatasheetHTML = (product) => {
 
     body {
       margin: 0;
+      padding: 0;
       font-family: Arial, Helvetica, sans-serif;
       color: #222;
     }
@@ -61,66 +62,80 @@ const buildDatasheetHTML = (product) => {
       width: 794px;
       height: 1123px;
       overflow: hidden;
+      background: #fff;
     }
 
+    /* BG — bottom half network pattern */
     .bg {
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 450px;
+      height: 520px;
       object-fit: cover;
-      opacity: 0.9;
+      opacity: 0.85;
     }
 
+    /* LOGO — top left, large */
     .logo {
       position: absolute;
-      top: 50px;
-      left: 60px;
-      width: 240px;
+      top: 36px;
+      left: 48px;
+      width: 200px;
     }
 
-    .model {
+    /* MODEL + SERIES — left side, below logo */
+    .model-block {
       position: absolute;
-      top: 220px;
-      left: 120px;
-      font-size: 34px;
-      font-weight: 700;
+      top: 200px;
+      left: 48px;
     }
 
+    .model-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.5;
+    }
+
+    /* PRODUCT IMAGE — center */
     .product {
       position: absolute;
-      top: 420px;
+      top: 300px;
       left: 50%;
       transform: translateX(-50%);
-      width: 420px;
-      filter: drop-shadow(0px 20px 30px rgba(0,0,0,0.25));
+      width: 460px;
+      filter: drop-shadow(0px 16px 28px rgba(0,0,0,0.18));
     }
 
+    /* DESCRIPTION — center bottom */
     .desc {
       position: absolute;
-      top: 740px;
+      bottom: 230px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 22px;
+      font-size: 16px;
       font-weight: 600;
       text-align: center;
-      width: 650px;
+      white-space: nowrap;
+      color: #222;
     }
 
+    /* MAKE IN INDIA — bottom right corner */
     .india {
       position: absolute;
-      bottom: 180px;
-      right: 120px;
-      width: 180px;
+      bottom: 60px;
+      right: 48px;
+      width: 130px;
     }
 
+    /* FOOTER */
     .cover-footer {
       position: absolute;
-      bottom: 30px;
-      left: 60px;
-      font-size: 12px;
-      color: #333;
+      bottom: 18px;
+      left: 48px;
+      font-size: 11px;
+      color: #555;
     }
 
     /* ============================
@@ -140,28 +155,29 @@ const buildDatasheetHTML = (product) => {
     }
 
     .page2 h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
+      font-size: 26px;
+      margin-top: 0;
+      margin-bottom: 18px;
       border-bottom: 3px solid #1b7f4c;
       padding-bottom: 8px;
       color: #1b7f4c;
     }
 
     .page2 p {
-      font-size: 16px;
-      line-height: 1.7;
+      font-size: 15px;
+      line-height: 1.8;
       margin-bottom: 40px;
       color: #333;
     }
 
     .page2 ul {
-      padding-left: 20px;
+      padding-left: 22px;
       margin-bottom: 40px;
     }
 
     .page2 li {
       margin-bottom: 10px;
-      font-size: 16px;
+      font-size: 15px;
       color: #333;
     }
 
@@ -170,9 +186,10 @@ const buildDatasheetHTML = (product) => {
     }
 
     .spec-section h2 {
-      font-size: 20px;
+      font-size: 18px;
       margin-bottom: 10px;
       color: #1b7f4c;
+      font-weight: 700;
     }
 
     table {
@@ -182,12 +199,24 @@ const buildDatasheetHTML = (product) => {
 
     td {
       border: 1px solid #ddd;
-      padding: 10px;
-      font-size: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      vertical-align: top;
     }
 
-    tr:nth-child(even) {
-      background: #f5f5f5;
+    td:first-child {
+      width: 40%;
+      font-weight: 600;
+      color: #333;
+      background: #f9f9f9;
+    }
+
+    td:last-child {
+      color: #444;
+    }
+
+    tr:nth-child(even) td:first-child {
+      background: #f0f0f0;
     }
 
     /* ============================
@@ -274,22 +303,30 @@ const buildDatasheetHTML = (product) => {
   ===================== -->
   <div class="page">
 
+    <!-- Background network pattern -->
     <img class="bg" src="data:image/png;base64,${bg}" />
 
+    <!-- AADONA Logo top left -->
     <img class="logo" src="data:image/jpeg;base64,${logo}" />
 
-    <div class="model">
-      Model: ${product.model || product.name}
+    <!-- Model + Series block -->
+    <div class="model-block">
+      <div class="model-text">Model: ${product.model || product.name}</div>
+      ${product.series ? `<div class="model-text">Series: ${product.series}</div>` : ""}
     </div>
 
+    <!-- Product Image center -->
     <img class="product" src="${product.image}" />
 
+    <!-- Description -->
     <div class="desc">
       ${product.description || ""}
     </div>
 
+    <!-- Make In India bottom right -->
     <img class="india" src="data:image/png;base64,${makeIndia}" />
 
+    <!-- Footer -->
     <div class="cover-footer">
       © 2024 AADONA Communication Pvt Ltd. All rights reserved
     </div>
@@ -329,12 +366,10 @@ const buildDatasheetHTML = (product) => {
   ===================== -->
   <div class="last-page">
 
-    <!-- CENTER LOGO -->
     <div class="last-logo-wrap">
       <img class="last-logo" src="data:image/jpeg;base64,${logo}" alt="AADONA Logo" />
     </div>
 
-    <!-- ADDRESS SECTION -->
     <div class="address-section">
 
       <div class="address-col">
@@ -359,12 +394,10 @@ const buildDatasheetHTML = (product) => {
 
     </div>
 
-    <!-- TRADEMARK LINE -->
     <div class="trademark-line">
       AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd &nbsp;&nbsp; Printed in India
     </div>
 
-    <!-- FOOTER -->
     <div class="last-footer">
       © 2024 AADONA Communication Pvt Ltd. All rights reserved
     </div>
