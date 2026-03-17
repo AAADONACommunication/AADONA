@@ -57,86 +57,129 @@ const buildDatasheetHTML = (product) => {
        PAGE 1 — COVER
     ============================ */
 
-    .page {
-      position: relative;
-      width: 794px;
-      height: 1123px;
-      overflow: hidden;
-      background: #fff;
-    }
+/* ============================
+   PAGE — COVER (PREMIUM)
+============================ */
 
-    /* BG — bottom half network pattern */
-    .bg {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 520px;
-      object-fit: cover;
-      opacity: 0.85;
-    }
+.page {
+  position: relative;
+  width: 794px;
+  height: 1123px;
+  overflow: hidden;
+  font-family: "Poppins", Arial, sans-serif;
+  color: #fff;
+}
 
-    /* LOGO — top left, large */
-    .logo {
-      position: absolute;
-      top: 36px;
-      left: 48px;
-      width: 200px;
-    }
+/* FULL BACKGROUND */
+.bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-    /* MODEL + SERIES — left side, below logo */
-    .model-block {
-      position: absolute;
-      top: 200px;
-      left: 48px;
-    }
+/* DARK OVERLAY (for readability) */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.6) 0%,
+    rgba(0,0,0,0.3) 40%,
+    rgba(0,0,0,0.8) 100%
+  );
+}
 
-    .model-text {
-      font-size: 22px;
-      font-weight: 700;
-      color: #111;
-      line-height: 1.5;
-    }
+/* LOGO */
+.logo {
+  position: absolute;
+  top: 40px;
+  left: 50px;
+  width: 180px;
+  z-index: 2;
+}
 
-    /* PRODUCT IMAGE — center */
-    .product {
-      position: absolute;
-      top: 300px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 460px;
-      filter: drop-shadow(0px 16px 28px rgba(0,0,0,0.18));
-    }
+/* MODEL BLOCK */
+.model-block {
+  position: absolute;
+  top: 180px;
+  left: 50px;
+  z-index: 2;
+}
 
-    /* DESCRIPTION — center bottom */
-    .desc {
-      position: absolute;
-      bottom: 230px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 16px;
-      font-weight: 600;
-      text-align: center;
-      white-space: nowrap;
-      color: #222;
-    }
+.model-text {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
 
-    /* MAKE IN INDIA — bottom right corner */
-    .india {
-      position: absolute;
-      bottom: 60px;
-      right: 48px;
-      width: 130px;
-    }
+/* PRODUCT IMAGE */
+.product {
+  position: absolute;
+  top: 280px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 480px;
+  z-index: 2;
 
-    /* FOOTER */
-    .cover-footer {
-      position: absolute;
-      bottom: 18px;
-      left: 48px;
-      font-size: 11px;
-      color: #555;
-    }
+  filter: drop-shadow(0px 25px 50px rgba(0,0,0,0.6));
+  transition: transform 0.3s ease;
+}
+
+/* Slight premium lift feel */
+.product:hover {
+  transform: translateX(-50%) scale(1.03);
+}
+
+/* DESCRIPTION */
+.desc {
+  position: absolute;
+  bottom: 220px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  max-width: 80%;
+  line-height: 1.6;
+  z-index: 2;
+}
+
+/* INDIA BADGE */
+.india {
+  position: absolute;
+  bottom: 60px;
+  right: 50px;
+  width: 120px;
+  z-index: 2;
+}
+
+/* FOOTER */
+.cover-footer {
+  position: absolute;
+  bottom: 20px;
+  left: 50px;
+  font-size: 12px;
+  opacity: 0.8;
+  z-index: 2;
+}
+
+/* GLASS CARD EFFECT (optional highlight box) */
+.glass-box {
+  position: absolute;
+  top: 150px;
+  left: 40px;
+  right: 40px;
+  height: 800px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
+  z-index: 1;
+}
 
     /* ============================
        PAGE BREAK
@@ -223,77 +266,124 @@ const buildDatasheetHTML = (product) => {
        LAST PAGE — BACK COVER
     ============================ */
 
-    .last-page {
-      position: relative;
-      width: 794px;
-      height: 1123px;
-      overflow: hidden;
-      background: #fff;
-    }
+    
+.last-page {
+  position: relative;
+  width: 794px;
+  height: 1123px;
+  overflow: hidden;
+  font-family: "Poppins", Arial, sans-serif;
+  background: #0f172a; /* dark premium bg */
+  color: #fff;
+}
 
-    .last-logo-wrap {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -60%);
-      text-align: center;
-    }
+/* SUBTLE GRADIENT */
+.last-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 60%);
+}
 
-    .last-logo {
-      width: 280px;
-    }
+/* LOGO CENTER */
+.last-logo-wrap {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
 
-    .address-section {
-      position: absolute;
-      bottom: 200px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: space-around;
-      padding: 30px 60px 0 60px;
-      border-top: 1px solid #ccc;
-    }
+.last-logo {
+  width: 260px;
+  filter: drop-shadow(0px 10px 30px rgba(0,0,0,0.6));
+}
 
-    .address-col {
-      width: 45%;
-      font-size: 13px;
-      color: #333;
-      line-height: 1.8;
-    }
+/* DIVIDER LINE */
+.divider {
+  position: absolute;
+  top: 58%;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #aaa, transparent);
+  opacity: 0.4;
+}
 
-    .address-col .company-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: #222;
-      margin-bottom: 2px;
-    }
+/* ADDRESS SECTION */
+.address-section {
+  position: absolute;
+  bottom: 220px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 70px;
+  gap: 40px;
+}
 
-    .address-col .dept-name {
-      font-weight: 700;
-      color: #222;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
+.address-col {
+  width: 48%;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #d1d5db;
+}
 
-    .trademark-line {
-      position: absolute;
-      bottom: 110px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 12px;
-      color: #555;
-      padding: 0 60px;
-    }
+/* COMPANY NAME */
+.company-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
 
-    .last-footer {
-      position: absolute;
-      bottom: 30px;
-      left: 60px;
-      font-size: 12px;
-      color: #333;
-    }
+/* DEPARTMENT */
+.dept-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-bottom: 10px;
+}
 
+/* WEBSITE + EMAIL highlight */
+.address-col a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+/* TRADEMARK */
+.trademark-line {
+  position: absolute;
+  bottom: 120px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+  padding: 0 60px;
+}
+
+/* FOOTER */
+.last-footer {
+  position: absolute;
+  bottom: 30px;
+  left: 70px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* SMALL DECOR DOTS */
+.decor-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #38bdf8;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.dot1 { top: 80px; left: 80px; }
+.dot2 { bottom: 100px; right: 100px; }
   </style>
 </head>
 <body>
@@ -301,37 +391,43 @@ const buildDatasheetHTML = (product) => {
   <!-- =====================
        PAGE 1 — COVER
   ===================== -->
-  <div class="page">
+ <div class="page">
 
-    <!-- Background network pattern -->
-    <img class="bg" src="data:image/png;base64,${bg}" />
+  <!-- FULL BG -->
+  <img class="bg" src="data:image/png;base64,${bg}" />
 
-    <!-- AADONA Logo top left -->
-    <img class="logo" src="data:image/jpeg;base64,${logo}" />
+  <!-- DARK OVERLAY -->
+  <div class="overlay"></div>
 
-    <!-- Model + Series block -->
-    <div class="model-block">
-      <div class="model-text">Model: ${product.model || product.name}</div>
-      ${product.series ? `<div class="model-text">Series: ${product.series}</div>` : ""}
-    </div>
+  <!-- GLASS BOX -->
+  <div class="glass-box"></div>
 
-    <!-- Product Image center -->
-    <img class="product" src="${product.image}" />
+  <!-- LOGO -->
+  <img class="logo" src="data:image/jpeg;base64,${logo}" />
 
-    <!-- Description -->
-    <div class="desc">
-      ${product.description || ""}
-    </div>
-
-    <!-- Make In India bottom right -->
-    <img class="india" src="data:image/png;base64,${makeIndia}" />
-
-    <!-- Footer -->
-    <div class="cover-footer">
-      © 2024 AADONA Communication Pvt Ltd. All rights reserved
-    </div>
-
+  <!-- MODEL -->
+  <div class="model-block">
+    <div class="model-text">Model: ${product.model || product.name}</div>
+    ${product.series ? `<div class="model-text">Series: ${product.series}</div>` : ""}
   </div>
+
+  <!-- PRODUCT -->
+  <img class="product" src="${product.image}" />
+
+  <!-- DESCRIPTION -->
+  <div class="desc">
+    ${product.description || ""}
+  </div>
+
+  <!-- INDIA -->
+  <img class="india" src="data:image/png;base64,${makeIndia}" />
+
+  <!-- FOOTER -->
+  <div class="cover-footer">
+    © 2024 AADONA Communication Pvt Ltd. All rights reserved
+  </div>
+
+</div>
 
   <!-- PAGE BREAK -->
   <div class="page-break"></div>
@@ -364,45 +460,57 @@ const buildDatasheetHTML = (product) => {
   <!-- =====================
        LAST PAGE — BACK COVER
   ===================== -->
-  <div class="last-page">
+ 
+<div class="last-page">
 
-    <div class="last-logo-wrap">
-      <img class="last-logo" src="data:image/jpeg;base64,${logo}" alt="AADONA Logo" />
+  <!-- DECOR -->
+  <div class="decor-dot dot1"></div>
+  <div class="decor-dot dot2"></div>
+
+  <!-- LOGO -->
+  <div class="last-logo-wrap">
+    <img class="last-logo" src="data:image/jpeg;base64,${logo}" alt="AADONA Logo" />
+  </div>
+
+  <!-- DIVIDER -->
+  <div class="divider"></div>
+
+  <!-- ADDRESS -->
+  <div class="address-section">
+
+    <div class="address-col">
+      <div class="company-name">AADONA Communication Pvt Ltd</div>
+      <div class="dept-name">Corporate Headquarters</div>
+      1st Floor, Phoenix Tech Tower, Plot No.14/46,<br/>
+      IDA-Uppal, Hyderabad, Telangana 500039<br/>
+      <a>www.aadona.com</a><br/>
+      Toll Free No. : 1800 202 6599<br/>
+      <a>contact@aadona.com</a>
     </div>
 
-    <div class="address-section">
-
-      <div class="address-col">
-        <div class="company-name">AADONA Communication Pvt Ltd</div>
-        <div class="dept-name">Corporate Headquarters</div>
-        1st Floor, Phoenix Tech Tower, Plot No.14/46,<br/>
-        IDA-Uppal, Hyderabad, Telangana 500039<br/>
-        www.aadona.com<br/>
-        Toll Free No. : 1800 202 6599<br/>
-        contact@aadona.com
-      </div>
-
-      <div class="address-col">
-        <div class="company-name">AADONA Communication Pvt Ltd</div>
-        <div class="dept-name">Production, Warehousing and Billing Center</div>
-        7, SBI Colony, Mohaba Bazar, Hirapur Road,<br/>
-        Raipur Chhattisgarh: 492099<br/>
-        www.aadona.com<br/>
-        Toll Free No. : 1800 202 6599<br/>
-        contact@aadona.com
-      </div>
-
-    </div>
-
-    <div class="trademark-line">
-      AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd &nbsp;&nbsp; Printed in India
-    </div>
-
-    <div class="last-footer">
-      © 2024 AADONA Communication Pvt Ltd. All rights reserved
+    <div class="address-col">
+      <div class="company-name">AADONA Communication Pvt Ltd</div>
+      <div class="dept-name">Production, Warehousing and Billing Center</div>
+      7, SBI Colony, Mohaba Bazar, Hirapur Road,<br/>
+      Raipur Chhattisgarh: 492099<br/>
+      <a>www.aadona.com</a><br/>
+      Toll Free No. : 1800 202 6599<br/>
+      <a>contact@aadona.com</a>
     </div>
 
   </div>
+
+  <!-- TRADEMARK -->
+  <div class="trademark-line">
+    AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd &nbsp;&nbsp; • &nbsp;&nbsp; Printed in India
+  </div>
+
+  <!-- FOOTER -->
+  <div class="last-footer">
+    © 2024 AADONA Communication Pvt Ltd. All rights reserved
+  </div>
+
+</div>
 
 </body>
 </html>
