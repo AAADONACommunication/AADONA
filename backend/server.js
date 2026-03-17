@@ -994,10 +994,22 @@ app.get("/products/:slug/datasheet", pdfLimiter, async (req, res) => {
     const html = buildDatasheetHTML(product);
     const browser = await getBrowser();
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 900 });
+
+    // Match HTML page width exactly (794px = A4 width at 96dpi)
+    await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 });
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    const pdf = await page.pdf({ format: "A4", printBackground: true });
+    // Wait for fonts + images to fully load
+    await page.evaluateHandle("document.fonts.ready");
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const pdf = await page.pdf({
+      width: "794px",
+      height: "1123px",
+      printBackground: true,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
+
     await page.close();
 
     res.setHeader("Content-Type", "application/pdf");

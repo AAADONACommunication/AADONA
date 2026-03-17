@@ -34,7 +34,7 @@ const buildDatasheetHTML = (product) => {
       return `
         <div class="spec-section">
           <h2>${section}</h2>
-          <table>${rows}</table>
+          <table class="spec-table">${rows}</table>
         </div>
       `;
     }).join("");
@@ -50,99 +50,77 @@ const buildDatasheetHTML = (product) => {
 
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      padding: 0;
       font-family: 'Open Sans', Arial, sans-serif;
       color: #222;
+      width: 794px;
     }
 
     /* ============================
-       PAGE WRAPPER
+       COVER PAGE — PAGE 1
     ============================ */
 
-    .pdf-page {
+    .cover-page {
       width: 794px;
       height: 1123px;
-      overflow: hidden;
-      position: relative;
+      background-color: #0a1628;
+      background-image: url("data:image/png;base64,${bg}");
+      background-size: cover;
+      background-position: center center;
       page-break-after: always;
-      page-break-inside: avoid;
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
 
-    .pdf-page:last-child {
-      page-break-after: auto;
-    }
-
-    /* ============================
-       PAGE 1 — COVER
-    ============================ */
-
-    .page {
-      background: #0a1628;
-    }
-
-    /* BG — FULL PAGE */
-    .bg {
+    .cover-dark-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      opacity: 0.35;
-      z-index: 0;
-    }
-
-    /* Dark gradient overlay for readability */
-    .cover-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       background: linear-gradient(
         160deg,
-        rgba(5,15,35,0.82) 0%,
-        rgba(10,30,60,0.55) 45%,
-        rgba(5,15,35,0.80) 100%
+        rgba(5,15,35,0.88) 0%,
+        rgba(10,30,60,0.65) 45%,
+        rgba(5,15,35,0.88) 100%
       );
-      z-index: 1;
     }
 
-    /* Green left accent bar */
-    .cover-accent-bar {
+    .cover-left-bar {
       position: absolute;
       top: 0;
       left: 0;
       width: 6px;
       height: 100%;
       background: linear-gradient(180deg, #1b7f4c 0%, #25a86a 50%, #1b7f4c 100%);
-      z-index: 3;
     }
 
-    /* Top header band */
+    /* All content sits above overlays */
+    .cover-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-left: 6px;
+    }
+
+    /* Header */
     .cover-header {
-      position: absolute;
-      top: 0;
-      left: 6px;
-      right: 0;
-      height: 90px;
-      background: rgba(255,255,255,0.04);
-      border-bottom: 1px solid rgba(255,255,255,0.10);
       display: flex;
       align-items: center;
+      height: 90px;
       padding: 0 42px;
-      z-index: 4;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      flex-shrink: 0;
     }
 
-    .logo {
+    .cover-logo {
       height: 52px;
       width: auto;
-      object-fit: contain;
       filter: brightness(0) invert(1);
     }
 
@@ -156,79 +134,77 @@ const buildDatasheetHTML = (product) => {
       color: rgba(255,255,255,0.40);
     }
 
-    /* Model + Series block */
-    .model-block {
-      position: absolute;
-      top: 130px;
-      left: 54px;
-      z-index: 4;
+    /* Model block */
+    .cover-model-section {
+      padding: 40px 54px 0 54px;
+      flex-shrink: 0;
     }
 
-    .series-label {
+    .cover-series {
       font-family: 'Montserrat', sans-serif;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 4px;
       text-transform: uppercase;
       color: #25a86a;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
-    .model-name {
+    .cover-model-name {
       font-family: 'Montserrat', sans-serif;
       font-size: 34px;
       font-weight: 800;
       color: #ffffff;
       line-height: 1.15;
       letter-spacing: -0.5px;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.5);
     }
 
-    .model-sub {
+    .cover-model-sub {
       font-family: 'Montserrat', sans-serif;
       font-size: 14px;
       font-weight: 400;
       color: rgba(255,255,255,0.50);
-      margin-top: 6px;
+      margin-top: 8px;
       letter-spacing: 0.5px;
     }
 
-    /* Decorative rule under model block */
-    .model-rule {
-      position: absolute;
-      top: 278px;
-      left: 54px;
+    .cover-green-rule {
       width: 60px;
       height: 3px;
       background: linear-gradient(90deg, #25a86a, transparent);
-      z-index: 4;
+      margin: 16px 0 0 54px;
+      flex-shrink: 0;
     }
 
     /* Product image */
-    .product {
-      position: absolute;
-      top: 280px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 480px;
-      filter: drop-shadow(0px 24px 48px rgba(0,0,0,0.55))
-              drop-shadow(0px 4px 12px rgba(37,168,106,0.18));
-      z-index: 4;
+    .cover-product-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 40px;
     }
 
-    /* Description + Make In India row */
-    .desc-wrap {
-      position: absolute;
-      bottom: 95px;
-      left: 54px;
-      right: 54px;
-      z-index: 4;
+    .cover-product-img {
+      max-width: 480px;
+      max-height: 420px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0px 20px 40px rgba(0,0,0,0.6))
+              drop-shadow(0px 4px 10px rgba(37,168,106,0.15));
+    }
+
+    /* Description row */
+    .cover-desc-row {
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
+      padding: 0 54px 24px 54px;
+      flex-shrink: 0;
     }
 
-    .desc {
+    .cover-desc-text {
       font-family: 'Montserrat', sans-serif;
       font-size: 13px;
       font-weight: 600;
@@ -240,35 +216,31 @@ const buildDatasheetHTML = (product) => {
       padding-left: 14px;
     }
 
-    .india {
+    .cover-india-img {
       width: 110px;
       object-fit: contain;
       filter: brightness(0) invert(1);
       opacity: 0.72;
     }
 
-    /* Footer band */
-    .cover-footer-band {
-      position: absolute;
-      bottom: 0;
-      left: 6px;
-      right: 0;
-      height: 58px;
-      background: rgba(0,0,0,0.50);
-      border-top: 1px solid rgba(255,255,255,0.08);
+    /* Footer */
+    .cover-footer {
       display: flex;
       align-items: center;
+      height: 58px;
       padding: 0 42px;
-      z-index: 4;
+      background: rgba(0,0,0,0.50);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
     }
 
-    .cover-footer {
+    .cover-footer-copy {
       font-size: 10px;
       color: rgba(255,255,255,0.30);
       letter-spacing: 0.4px;
     }
 
-    .cover-footer-right {
+    .cover-footer-label {
       margin-left: auto;
       font-family: 'Montserrat', sans-serif;
       font-size: 10px;
@@ -282,14 +254,14 @@ const buildDatasheetHTML = (product) => {
        PAGE 2+ — CONTENT
     ============================ */
 
-    .page2-inner {
-      padding: 80px;
+    .content-page {
       width: 794px;
-      min-height: 1123px;
-      background: #fff;
+      padding: 80px;
+      background: #ffffff;
+      page-break-after: always;
     }
 
-    .page2-inner h1 {
+    .content-page h1 {
       font-family: 'Montserrat', sans-serif;
       font-size: 22px;
       font-weight: 800;
@@ -300,19 +272,19 @@ const buildDatasheetHTML = (product) => {
       color: #1b7f4c;
     }
 
-    .page2-inner p {
+    .content-page p {
       font-size: 14px;
       line-height: 1.9;
       margin-bottom: 40px;
       color: #444;
     }
 
-    .page2-inner ul {
+    .content-page ul {
       padding-left: 22px;
       margin-bottom: 40px;
     }
 
-    .page2-inner li {
+    .content-page li {
       margin-bottom: 10px;
       font-size: 14px;
       color: #444;
@@ -331,30 +303,30 @@ const buildDatasheetHTML = (product) => {
       font-weight: 700;
     }
 
-    table {
+    .spec-table {
       width: 100%;
       border-collapse: collapse;
     }
 
-    td {
+    .spec-table td {
       border: 1px solid #e0e0e0;
       padding: 10px 14px;
       font-size: 13px;
       vertical-align: top;
     }
 
-    td:first-child {
+    .spec-table td:first-child {
       width: 40%;
       font-weight: 600;
       color: #333;
       background: #f6f8f6;
     }
 
-    td:last-child {
+    .spec-table td:last-child {
       color: #444;
     }
 
-    tr:nth-child(even) td:first-child {
+    .spec-table tr:nth-child(even) td:first-child {
       background: #eef2ee;
     }
 
@@ -363,56 +335,57 @@ const buildDatasheetHTML = (product) => {
     ============================ */
 
     .last-page {
-      background: #0a1628;
+      width: 794px;
+      height: 1123px;
+      background-color: #0a1628;
+      background-image: url("data:image/png;base64,${bg}");
+      background-size: cover;
+      background-position: center center;
+      page-break-after: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
 
-    .last-bg {
+    .last-dark-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      opacity: 0.20;
-      z-index: 0;
-    }
-
-    .last-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       background: linear-gradient(
         180deg,
-        rgba(5,15,35,0.70) 0%,
-        rgba(10,22,50,0.85) 60%,
-        rgba(5,12,28,0.95) 100%
+        rgba(5,15,35,0.75) 0%,
+        rgba(10,22,50,0.88) 60%,
+        rgba(5,12,28,0.96) 100%
       );
-      z-index: 1;
     }
 
-    .last-accent-bar {
+    .last-left-bar {
       position: absolute;
       top: 0;
       left: 0;
       width: 6px;
       height: 100%;
       background: linear-gradient(180deg, #1b7f4c 0%, #25a86a 50%, #1b7f4c 100%);
-      z-index: 3;
     }
 
-    .last-logo-wrap {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -58%);
-      text-align: center;
-      z-index: 4;
+    .last-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-left: 6px;
     }
 
-    .last-logo {
+    /* Center logo area */
+    .last-logo-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .last-logo-img {
       width: 260px;
       filter: brightness(0) invert(1);
       opacity: 0.92;
@@ -428,16 +401,12 @@ const buildDatasheetHTML = (product) => {
       margin-top: 14px;
     }
 
-    /* Decorative divider under logo */
-    .last-divider {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, 36px);
+    .last-divider-row {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 12px;
-      z-index: 4;
+      margin-top: 24px;
     }
 
     .last-divider-line {
@@ -446,7 +415,9 @@ const buildDatasheetHTML = (product) => {
       background: linear-gradient(90deg, transparent, rgba(37,168,106,0.6));
     }
 
-    .last-divider-line.right {
+    .last-divider-line-r {
+      width: 80px;
+      height: 1px;
       background: linear-gradient(90deg, rgba(37,168,106,0.6), transparent);
     }
 
@@ -455,29 +426,27 @@ const buildDatasheetHTML = (product) => {
       height: 6px;
       border-radius: 50%;
       background: #25a86a;
+      flex-shrink: 0;
     }
 
-    .address-section {
-      position: absolute;
-      bottom: 140px;
-      left: 6px;
-      right: 0;
+    /* Address section */
+    .last-address-section {
       display: flex;
       justify-content: space-around;
       align-items: flex-start;
-      padding: 32px 54px 0 54px;
+      padding: 32px 54px 24px 54px;
       border-top: 1px solid rgba(255,255,255,0.10);
-      z-index: 4;
+      flex-shrink: 0;
     }
 
-    .address-col {
+    .last-address-col {
       width: 44%;
       font-size: 12px;
       color: rgba(255,255,255,0.52);
       line-height: 1.9;
     }
 
-    .address-col .company-name {
+    .last-company-name {
       font-family: 'Montserrat', sans-serif;
       font-size: 13px;
       font-weight: 700;
@@ -485,7 +454,7 @@ const buildDatasheetHTML = (product) => {
       margin-bottom: 2px;
     }
 
-    .address-col .dept-name {
+    .last-dept-name {
       font-family: 'Montserrat', sans-serif;
       font-weight: 600;
       color: #25a86a;
@@ -495,50 +464,44 @@ const buildDatasheetHTML = (product) => {
       text-transform: uppercase;
     }
 
-    .address-col .web {
+    .last-web {
       color: rgba(37,168,106,0.80);
     }
 
-    .address-vdivider {
+    .last-vdivider {
       width: 1px;
       background: rgba(255,255,255,0.10);
       align-self: stretch;
-      min-height: 110px;
     }
 
-    .trademark-line {
-      position: absolute;
-      bottom: 78px;
-      left: 6px;
-      right: 0;
+    /* Trademark */
+    .last-trademark {
       text-align: center;
       font-size: 10px;
       color: rgba(255,255,255,0.22);
       letter-spacing: 0.5px;
-      z-index: 4;
+      padding: 0 54px 16px 54px;
+      flex-shrink: 0;
     }
 
-    .last-footer-band {
-      position: absolute;
-      bottom: 0;
-      left: 6px;
-      right: 0;
-      height: 56px;
-      background: rgba(0,0,0,0.52);
-      border-top: 1px solid rgba(255,255,255,0.07);
+    /* Footer */
+    .last-footer {
       display: flex;
       align-items: center;
+      height: 56px;
       padding: 0 54px;
-      z-index: 4;
+      background: rgba(0,0,0,0.52);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
     }
 
-    .last-footer {
+    .last-footer-copy {
       font-size: 10px;
       color: rgba(255,255,255,0.28);
       letter-spacing: 0.4px;
     }
 
-    .last-footer-right {
+    .last-footer-url {
       margin-left: auto;
       font-family: 'Montserrat', sans-serif;
       font-size: 10px;
@@ -553,81 +516,95 @@ const buildDatasheetHTML = (product) => {
 <body>
 
   <!-- PAGE 1 — COVER -->
-  <div class="pdf-page page">
-    <img class="bg" src="data:image/png;base64,${bg}" />
-    <div class="cover-overlay"></div>
-    <div class="cover-accent-bar"></div>
-    <div class="cover-header">
-      <img class="logo" src="data:image/jpeg;base64,${logo}" />
-      <div class="cover-tagline">Communication Technology</div>
-    </div>
-    <div class="model-block">
-      ${product.series ? `<div class="series-label">${product.series}</div>` : ""}
-      <div class="model-name">${product.model || product.name}</div>
-      ${product.description ? `<div class="model-sub">${product.description}</div>` : ""}
-    </div>
-    <div class="model-rule"></div>
-    <img class="product" src="${product.image}" />
-    <div class="desc-wrap">
-      ${product.description ? `<div class="desc">${product.description}</div>` : "<div></div>"}
-      <img class="india" src="data:image/png;base64,${makeIndia}" />
-    </div>
-    <div class="cover-footer-band">
-      <div class="cover-footer">© 2024 AADONA Communication Pvt Ltd. All rights reserved</div>
-      <div class="cover-footer-right">Product Datasheet</div>
+  <div class="cover-page">
+    <div class="cover-dark-overlay"></div>
+    <div class="cover-left-bar"></div>
+    <div class="cover-content">
+
+      <div class="cover-header">
+        <img class="cover-logo" src="data:image/jpeg;base64,${logo}" />
+        <div class="cover-tagline">Communication Technology</div>
+      </div>
+
+      <div class="cover-model-section">
+        ${product.series ? `<div class="cover-series">${product.series}</div>` : ""}
+        <div class="cover-model-name">${product.model || product.name}</div>
+        ${product.description ? `<div class="cover-model-sub">${product.description}</div>` : ""}
+      </div>
+
+      <div class="cover-green-rule"></div>
+
+      <div class="cover-product-wrap">
+        <img class="cover-product-img" src="${product.image}" />
+      </div>
+
+      <div class="cover-desc-row">
+        ${product.description ? `<div class="cover-desc-text">${product.description}</div>` : "<div></div>"}
+        <img class="cover-india-img" src="data:image/png;base64,${makeIndia}" />
+      </div>
+
+      <div class="cover-footer">
+        <div class="cover-footer-copy">© 2024 AADONA Communication Pvt Ltd. All rights reserved</div>
+        <div class="cover-footer-label">Product Datasheet</div>
+      </div>
+
     </div>
   </div>
 
   <!-- PAGE 2+ — CONTENT -->
-  <div class="pdf-page" style="height: auto; min-height: 1123px; overflow: visible;">
-    <div class="page2-inner">
-      ${product.overview?.content ? `<h1>Product Overview</h1><p>${product.overview.content}</p>` : ""}
-      ${(product.highlights || []).length ? `<h1>Key Features</h1><ul>${highlightsHTML}</ul>` : ""}
-      ${Object.keys(product.specifications || {}).length ? `<h1>Technical Specifications</h1>${specsHTML}` : ""}
-    </div>
+  <div class="content-page">
+    ${product.overview?.content ? `<h1>Product Overview</h1><p>${product.overview.content}</p>` : ""}
+    ${(product.highlights || []).length ? `<h1>Key Features</h1><ul>${highlightsHTML}</ul>` : ""}
+    ${Object.keys(product.specifications || {}).length ? `<h1>Technical Specifications</h1>${specsHTML}` : ""}
   </div>
 
   <!-- LAST PAGE — BACK COVER -->
-  <div class="pdf-page last-page">
-    <img class="last-bg" src="data:image/png;base64,${bg}" />
-    <div class="last-overlay"></div>
-    <div class="last-accent-bar"></div>
-    <div class="last-logo-wrap">
-      <img class="last-logo" src="data:image/jpeg;base64,${logo}" alt="AADONA Logo" />
-      <div class="last-logo-tagline">Communication Technology</div>
-    </div>
-    <div class="last-divider">
-      <div class="last-divider-line"></div>
-      <div class="last-divider-dot"></div>
-      <div class="last-divider-line right"></div>
-    </div>
-    <div class="address-section">
-      <div class="address-col">
-        <div class="company-name">AADONA Communication Pvt Ltd</div>
-        <div class="dept-name">Corporate Headquarters</div>
-        1st Floor, Phoenix Tech Tower, Plot No.14/46,<br/>
-        IDA-Uppal, Hyderabad, Telangana 500039<br/>
-        <span class="web">www.aadona.com</span><br/>
-        Toll Free: 1800 202 6599<br/>
-        contact@aadona.com
+  <div class="last-page">
+    <div class="last-dark-overlay"></div>
+    <div class="last-left-bar"></div>
+    <div class="last-content">
+
+      <div class="last-logo-area">
+        <img class="last-logo-img" src="data:image/jpeg;base64,${logo}" alt="AADONA Logo" />
+        <div class="last-logo-tagline">Communication Technology</div>
+        <div class="last-divider-row">
+          <div class="last-divider-line"></div>
+          <div class="last-divider-dot"></div>
+          <div class="last-divider-line-r"></div>
+        </div>
       </div>
-      <div class="address-vdivider"></div>
-      <div class="address-col">
-        <div class="company-name">AADONA Communication Pvt Ltd</div>
-        <div class="dept-name">Production, Warehousing &amp; Billing</div>
-        7, SBI Colony, Mohaba Bazar, Hirapur Road,<br/>
-        Raipur, Chhattisgarh — 492099<br/>
-        <span class="web">www.aadona.com</span><br/>
-        Toll Free: 1800 202 6599<br/>
-        contact@aadona.com
+
+      <div class="last-address-section">
+        <div class="last-address-col">
+          <div class="last-company-name">AADONA Communication Pvt Ltd</div>
+          <div class="last-dept-name">Corporate Headquarters</div>
+          1st Floor, Phoenix Tech Tower, Plot No.14/46,<br/>
+          IDA-Uppal, Hyderabad, Telangana 500039<br/>
+          <span class="last-web">www.aadona.com</span><br/>
+          Toll Free: 1800 202 6599<br/>
+          contact@aadona.com
+        </div>
+        <div class="last-vdivider"></div>
+        <div class="last-address-col">
+          <div class="last-company-name">AADONA Communication Pvt Ltd</div>
+          <div class="last-dept-name">Production, Warehousing &amp; Billing</div>
+          7, SBI Colony, Mohaba Bazar, Hirapur Road,<br/>
+          Raipur, Chhattisgarh — 492099<br/>
+          <span class="last-web">www.aadona.com</span><br/>
+          Toll Free: 1800 202 6599<br/>
+          contact@aadona.com
+        </div>
       </div>
-    </div>
-    <div class="trademark-line">
-      AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd &nbsp;·&nbsp; Printed in India
-    </div>
-    <div class="last-footer-band">
-      <div class="last-footer">© 2024 AADONA Communication Pvt Ltd. All rights reserved</div>
-      <div class="last-footer-right">www.aadona.com</div>
+
+      <div class="last-trademark">
+        AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd &nbsp;·&nbsp; Printed in India
+      </div>
+
+      <div class="last-footer">
+        <div class="last-footer-copy">© 2024 AADONA Communication Pvt Ltd. All rights reserved</div>
+        <div class="last-footer-url">www.aadona.com</div>
+      </div>
+
     </div>
   </div>
 
