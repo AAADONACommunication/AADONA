@@ -253,6 +253,7 @@ app.use(
       "https://aadona.com",
       "https://www.aadona.com",
       "http://localhost:3000",
+      "http://localhost:5173",  // ← yeh add kar
     ],
     credentials: true,
   })
