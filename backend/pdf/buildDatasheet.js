@@ -2,17 +2,17 @@ const fs = require("fs");
 const path = require("path");
 
 const buildDatasheetHTML = (product) => {
-  // 🔥 FIXED: Proper base64 encoding
+  // FIXED: Proper base64 encoding with correct MIME types
   const logo = fs.readFileSync(
     path.resolve(__dirname, "../assets/logo.jpg"),
     'base64'
   );
-
+  
   const bg = fs.readFileSync(
     path.resolve(__dirname, "../assets/bg.png"),
     'base64'
   );
-
+  
   const makeIndia = fs.readFileSync(
     path.resolve(__dirname, "../assets/MakeInIndia.png"),
     'base64'
@@ -36,8 +36,8 @@ const buildDatasheetHTML = (product) => {
 
       return `
         <div class="spec-section">
-         <h2>${section}</h2>
-         <table>${rows}</table>
+          <h2>${section}</h2>
+          <table>${rows}</table>
         </div>
       `;
     }).join("");
@@ -47,49 +47,43 @@ const buildDatasheetHTML = (product) => {
 <html>
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* 🔥 PDF COMPATIBILITY FIRST */
-    @page { 
-      size: A4; 
-      margin: 0; 
-    }
-    
-    @media print {
-      * { 
-        -webkit-print-color-adjust: exact !important; 
-        print-color-adjust: exact !important; 
-        color-adjust: exact !important;
-      }
-      body { margin: 0 !important; }
-      .page, .page2, .last-page { 
-        position: relative !important; 
-        height: 297mm !important; 
-        page-break-after: always !important;
-      }
-      .page-break { page-break-before: always !important; }
+    /* BASE STYLES - PDF COMPATIBLE */
+    * {
+      box-sizing: border-box;
     }
 
-    /* YOUR ORIGINAL STYLES (UNCHANGED) */
     body {
       margin: 0;
       padding: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: "Arial", Helvetica, sans-serif;
       color: #222;
+      line-height: 1.4;
     }
 
     /* ============================
-       PAGE 1 — COVER (PREMIUM)
+       STANDARD A4 PAGE SIZE (210mm x 297mm)
+    ============================ */
+    .page, .page2, .last-page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0;
+      padding: 0;
+      position: relative;
+      page-break-after: always;
+      overflow: visible;
+    }
+
+    /* ============================
+       PAGE 1 — COVER PAGE
     ============================ */
     .page {
-      position: relative;
-      width: 794px;
-      height: 1123px;
-      overflow: hidden;
-      font-family: "Poppins", Arial, sans-serif;
+      background: #1a1a2e;
       color: #fff;
     }
 
-    /* FULL BACKGROUND */
+    /* BACKGROUND IMAGE */
     .bg {
       position: absolute;
       top: 0;
@@ -97,343 +91,332 @@ const buildDatasheetHTML = (product) => {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      z-index: 1;
     }
 
-    /* DARK OVERLAY (for readability) */
+    /* DARK OVERLAY */
     .overlay {
       position: absolute;
-      inset: 0;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: linear-gradient(
         to bottom,
         rgba(0,0,0,0.6) 0%,
-        rgba(0,0,0,0.3) 40%,
+        rgba(0,0,0,0.4) 40%,
         rgba(0,0,0,0.8) 100%
       );
+      z-index: 2;
     }
 
     /* LOGO */
     .logo {
       position: absolute;
-      top: 40px;
-      left: 50px;
-      width: 180px;
-      z-index: 2;
+      top: 30px;
+      left: 30px;
+      width: 140px;
+      z-index: 4;
     }
 
     /* MODEL BLOCK */
     .model-block {
       position: absolute;
-      top: 180px;
-      left: 50px;
-      z-index: 2;
+      top: 140px;
+      left: 30px;
+      z-index: 4;
     }
 
     .model-text {
-      font-size: 24px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
 
     /* PRODUCT IMAGE */
     .product {
       position: absolute;
-      top: 280px;
+      top: 220px;
       left: 50%;
       transform: translateX(-50%);
-      width: 480px;
-      z-index: 2;
-      filter: drop-shadow(0px 25px 50px rgba(0,0,0,0.6));
+      width: 65%;
+      max-width: 380px;
+      z-index: 4;
+      filter: drop-shadow(0 15px 30px rgba(0,0,0,0.5));
     }
 
     /* DESCRIPTION */
     .desc {
       position: absolute;
-      bottom: 220px;
+      bottom: 160px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 500;
       text-align: center;
       max-width: 80%;
-      line-height: 1.6;
-      z-index: 2;
+      line-height: 1.5;
+      z-index: 4;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
     /* INDIA BADGE */
     .india {
       position: absolute;
       bottom: 60px;
-      right: 50px;
-      width: 120px;
-      z-index: 2;
+      right: 30px;
+      width: 90px;
+      z-index: 4;
     }
 
     /* FOOTER */
     .cover-footer {
       position: absolute;
       bottom: 20px;
-      left: 50px;
-      font-size: 12px;
-      opacity: 0.8;
-      z-index: 2;
-    }
-
-    /* GLASS CARD EFFECT */
-    .glass-box {
-      position: absolute;
-      top: 150px;
-      left: 40px;
-      right: 40px;
-      height: 800px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.15);
-      z-index: 1;
+      left: 30px;
+      font-size: 11px;
+      opacity: 0.9;
+      z-index: 4;
     }
 
     /* ============================
-       PAGE BREAK
-    ============================ */
-    .page-break {
-      page-break-before: always;
-      page-break-inside: avoid;
-    }
-
-    /* ============================
-       PAGE 2+ — CONTENT
+       PAGE 2+ — CONTENT PAGES
     ============================ */
     .page2 {
-      padding: 80px;
       background: white;
-      min-height: 1123px;
+      padding: 60px 40px;
+      max-width: 210mm;
     }
 
     .page2 h1 {
-      font-size: 26px;
-      margin-top: 0;
-      margin-bottom: 18px;
+      font-size: 24px;
+      margin: 0 0 20px 0;
       border-bottom: 3px solid #1b7f4c;
-      padding-bottom: 8px;
-      color: #1b7f4c;
-    }
-
-    .page2 p {
-      font-size: 15px;
-      line-height: 1.8;
-      margin-bottom: 40px;
-      color: #333;
-    }
-
-    .page2 ul {
-      padding-left: 22px;
-      margin-bottom: 40px;
-    }
-
-    .page2 li {
-      margin-bottom: 10px;
-      font-size: 15px;
-      color: #333;
-    }
-
-    .spec-section {
-      margin-bottom: 40px;
-    }
-
-    .spec-section h2 {
-      font-size: 18px;
-      margin-bottom: 10px;
+      padding-bottom: 10px;
       color: #1b7f4c;
       font-weight: 700;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .page2 p {
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+      color: #333;
     }
 
-    td {
+    .page2 ul {
+      padding-left: 20px;
+      margin-bottom: 30px;
+    }
+
+    .page2 li {
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    /* SPECIFICATIONS */
+    .spec-section {
+      margin-bottom: 35px;
+    }
+
+    .spec-section h2 {
+      font-size: 17px;
+      margin-bottom: 12px;
+      color: #1b7f4c;
+      font-weight: 700;
+    }
+
+    .spec-section table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 0;
+    }
+
+    .spec-section td {
       border: 1px solid #ddd;
-      padding: 10px 12px;
+      padding: 12px 10px;
       font-size: 13px;
       vertical-align: top;
     }
 
-    td:first-child {
-      width: 40%;
+    .spec-section td:first-child {
+      width: 38%;
       font-weight: 600;
       color: #333;
-      background: #f9f9f9;
+      background: #f8f9fa;
     }
 
-    td:last-child {
+    .spec-section td:last-child {
       color: #444;
-    }
-
-    tr:nth-child(even) td:first-child {
-      background: #f0f0f0;
     }
 
     /* ============================
        LAST PAGE — BACK COVER
     ============================ */
     .last-page {
-      position: relative;
-      width: 794px;
-      height: 1123px;
-      overflow: hidden;
-      font-family: "Poppins", Arial, sans-serif;
-      background: #0f172a;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #fff;
-      min-height: 1123px;
+      padding: 0;
     }
 
-    .last-page::before {
-      content: "";
+    /* DECOR DOTS */
+    .decor-dot {
       position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 60%);
+      width: 8px;
+      height: 8px;
+      background: #38bdf8;
+      border-radius: 50%;
+      opacity: 0.7;
     }
 
+    .dot1 { top: 60px; left: 60px; }
+    .dot2 { bottom: 120px; right: 60px; }
+
+    /* LOGO CENTER */
     .last-logo-wrap {
       position: absolute;
-      top: 42%;
+      top: 35%;
       left: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
     }
 
     .last-logo {
-      width: 260px;
-      filter: drop-shadow(0px 10px 30px rgba(0,0,0,0.6));
+      width: 200px;
+      filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5));
     }
 
+    /* DIVIDER */
     .divider {
       position: absolute;
-      top: 58%;
+      top: 52%;
       left: 10%;
       width: 80%;
-      height: 1px;
-      background: linear-gradient(to right, transparent, #aaa, transparent);
-      opacity: 0.4;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #94a3b8, transparent);
+      opacity: 0.6;
     }
 
+    /* ADDRESS SECTION */
     .address-section {
       position: absolute;
-      bottom: 220px;
+      bottom: 180px;
       left: 0;
       right: 0;
       display: flex;
       justify-content: space-between;
-      padding: 0 70px;
-      gap: 40px;
+      padding: 0 50px;
+      gap: 30px;
     }
 
     .address-col {
       width: 48%;
-      font-size: 13px;
-      line-height: 1.8;
-      color: #d1d5db;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #cbd5e1;
     }
 
     .company-name {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 700;
       color: #fff;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .dept-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: #9ca3af;
-      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
     }
 
     .address-col a {
       color: #38bdf8;
       text-decoration: none;
+      font-weight: 500;
     }
 
+    /* TRADEMARK */
     .trademark-line {
       position: absolute;
-      bottom: 120px;
+      bottom: 100px;
       left: 0;
       right: 0;
       text-align: center;
-      font-size: 12px;
-      color: #9ca3af;
-      padding: 0 60px;
+      font-size: 11px;
+      color: #94a3b8;
+      padding: 0 50px;
     }
 
+    /* FOOTER */
     .last-footer {
       position: absolute;
-      bottom: 30px;
-      left: 70px;
-      font-size: 12px;
-      color: #9ca3af;
+      bottom: 25px;
+      left: 50px;
+      font-size: 11px;
+      color: #94a3b8;
     }
 
-    .decor-dot {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: #38bdf8;
-      border-radius: 50%;
-      opacity: 0.6;
+    /* ============================
+       PDF PRINT SPECIFIC FIXES
+    ============================ */
+    @media print {
+      body { 
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      .page, .page2, .last-page {
+        margin: 0 !important;
+        padding: 0 !important;
+        position: relative !important;
+        page-break-after: always;
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      
+      * { 
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      
+      img { -webkit-print-color-adjust: exact !important; }
     }
 
-    .dot1 { top: 80px; left: 80px; }
-    .dot2 { bottom: 100px; right: 100px; }
+    @page {
+      size: A4;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
-  <!-- =====================
-       PAGE 1 — COVER
-  ===================== -->
+  <!-- PAGE 1 — COVER -->
   <div class="page">
-    <!-- FULL BG -->
-    <img class="bg" src="data:image/png;base64,${bg}" />
-    
-    <!-- DARK OVERLAY -->
+    <img class="bg" src="data:image/png;base64,${bg}" alt="Background" />
     <div class="overlay"></div>
     
-    <!-- GLASS BOX -->
-    <div class="glass-box"></div>
+    <img class="logo" src="data:image/jpeg;base64,${logo}" alt="Logo" />
     
-    <!-- LOGO -->
-    <img class="logo" src="data:image/jpeg;base64,${logo}" />
-    
-    <!-- MODEL -->
     <div class="model-block">
       <div class="model-text">Model: ${product.model || product.name}</div>
       ${product.series ? `<div class="model-text">Series: ${product.series}</div>` : ""}
     </div>
     
-    <!-- PRODUCT -->
-    <img class="product" src="${product.image}" />
+    <img class="product" src="${product.image}" alt="Product" />
     
-    <!-- DESCRIPTION -->
-    <div class="desc">
-      ${product.description || ""}
-    </div>
+    <div class="desc">${product.description || ""}</div>
     
-    <!-- INDIA -->
-    <img class="india" src="data:image/png;base64,${makeIndia}" />
+    <img class="india" src="data:image/png;base64,${makeIndia}" alt="Make in India" />
     
-    <!-- FOOTER -->
     <div class="cover-footer">
       © 2026 AADONA Communication Pvt Ltd. All rights reserved
     </div>
   </div>
 
-  <!-- 🔥 PAGE BREAK -->
-  <div class="page-break"></div>
-
-  <!-- =====================
-       PAGE 2+ — CONTENT
-  ===================== -->
+  <!-- PAGE 2 — CONTENT -->
   <div class="page2">
     ${product.overview?.content ? `
       <h1>Product Overview</h1>
@@ -451,26 +434,17 @@ const buildDatasheetHTML = (product) => {
     ` : ""}
   </div>
 
-  <!-- 🔥 PAGE BREAK -->
-  <div class="page-break"></div>
-
-  <!-- =====================
-       LAST PAGE — BACK COVER
-  ===================== -->
+  <!-- LAST PAGE — BACK COVER -->
   <div class="last-page">
-    <!-- DECOR -->
     <div class="decor-dot dot1"></div>
     <div class="decor-dot dot2"></div>
-
-    <!-- LOGO -->
+    
     <div class="last-logo-wrap">
       <img class="last-logo" src="data:image/jpeg;base64,${logo}" alt="AADONA Logo" />
     </div>
-
-    <!-- DIVIDER -->
+    
     <div class="divider"></div>
-
-    <!-- ADDRESS -->
+    
     <div class="address-section">
       <div class="address-col">
         <div class="company-name">AADONA Communication Pvt Ltd</div>
@@ -493,18 +467,17 @@ const buildDatasheetHTML = (product) => {
       </div>
     </div>
 
-    <!-- TRADEMARK -->
     <div class="trademark-line">
-      AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd &nbsp;&nbsp; • &nbsp;&nbsp; Printed in India
+      AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd • Printed in India
     </div>
 
-    <!-- FOOTER -->
     <div class="last-footer">
       © 2026 AADONA Communication Pvt Ltd. All rights reserved
     </div>
   </div>
 </body>
-</html>`;
+</html>
+  `;
 };
 
 module.exports = buildDatasheetHTML;
