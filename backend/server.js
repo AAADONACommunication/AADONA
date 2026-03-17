@@ -149,20 +149,29 @@ const uploadToFirebase = async (file, folder) => {
 ============================= */
 
 const getBrowser = async () => {
-  if (browserInstance) return browserInstance;
+  if (browserInstance) {
+    try {
+      await browserInstance.version();
+      return browserInstance;
+    } catch (e) {
+      console.log("Browser instance dead, restarting:", e.message);
+      browserInstance = null;
+    }
+  }
 
   browserInstance = await puppeteer.launch({
-    executablePath: process.env.CHROME_PATH || "/usr/bin/chromium-browser",
+    executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome",
     headless: "new",
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
+      "--single-process",
     ],
   });
 
-  console.log("Puppeteer browser started");
+  console.log("Browser launched successfully");
   return browserInstance;
 };
 
