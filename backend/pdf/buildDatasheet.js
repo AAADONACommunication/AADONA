@@ -61,7 +61,7 @@ const buildDatasheetHTML = (product) => {
 <!-- ═══════════════════════════════════════
      PAGE 1 — COVER
 ═══════════════════════════════════════ -->
-<div class="page" style="background:#07111f;">
+<div class="page">
 
   <!-- Background image — rendered as <img> for Puppeteer reliability -->
   <img class="page-bg" src="data:image/png;base64,${bg}" />
@@ -113,10 +113,7 @@ const buildDatasheetHTML = (product) => {
         <!-- Header -->
         <div style="display:table;width:100%;height:88px;padding:0 48px;border-bottom:0.5px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);">
           <div style="display:table-cell;vertical-align:middle;">
-            <img src="data:image/jpeg;base64,${logo}" style="height:46px;width:auto;filter:brightness(0) invert(1);opacity:0.92;" />
-          </div>
-          <div style="display:table-cell;vertical-align:middle;text-align:right;">
-            <div style="font-family:'Montserrat',sans-serif;font-size:9px;font-weight:600;letter-spacing:3.5px;text-transform:uppercase;color:rgba(255,255,255,0.30);">Communication Technology</div>
+            <img src="data:image/jpeg;base64,${logo}" style="height:46px;width:auto;filter:brightness(0) invert(1);opacity:0.92;mix-blend-mode:screen;" />
           </div>
         </div>
 
@@ -148,12 +145,6 @@ const buildDatasheetHTML = (product) => {
 
         <!-- Description + Make in India strip -->
         <div style="display:table;width:100%;padding:0 52px 20px 52px;border-top:0.5px solid rgba(255,255,255,0.06);">
-          <div style="display:table-cell;vertical-align:bottom;padding-top:16px;">
-            ${product.description ? `
-            <div style="border-left:3px solid #25a86a;padding-left:14px;">
-              <div style="font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,0.72);line-height:1.7;">${product.description}</div>
-            </div>` : ""}
-          </div>
           <div style="display:table-cell;vertical-align:bottom;text-align:right;padding-top:16px;">
             <img src="data:image/png;base64,${makeIndia}" style="width:100px;filter:brightness(0) invert(1);opacity:0.65;" />
           </div>
@@ -239,7 +230,7 @@ const buildDatasheetHTML = (product) => {
 <!-- ═══════════════════════════════════════
      LAST PAGE — BACK COVER
 ═══════════════════════════════════════ -->
-<div class="page" style="background:#07111f;">
+<div class="page">
 
   <!-- Background image -->
   <img class="page-bg" src="data:image/png;base64,${bg}" />
@@ -279,9 +270,8 @@ const buildDatasheetHTML = (product) => {
     <div style="display:table-row;height:100%;">
       <div style="display:table-cell;vertical-align:middle;text-align:center;">
 
-        <img src="data:image/jpeg;base64,${logo}" style="width:260px;filter:brightness(0) invert(1);opacity:0.90;" />
+        <img src="data:image/jpeg;base64,${logo}" style="width:260px;filter:brightness(0) invert(1);opacity:0.90;mix-blend-mode:screen;" />
 
-        <div style="font-family:'Montserrat',sans-serif;font-size:9px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-top:16px;">Communication Technology</div>
 
         <!-- Divider -->
         <div style="display:flex;align-items:center;justify-content:center;margin-top:20px;">
