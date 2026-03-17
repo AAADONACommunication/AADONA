@@ -13,13 +13,11 @@
   "dependencies": {
     "@google-analytics/data": "^4.12.1",
     "@vitejs/plugin-react": "^5.1.0",
-    "express-rate-limit": "^8.3.1",
     "firebase": "^12.9.0",
     "framer-motion": "^12.23.24",
     "gsap": "^3.13.0",
     "jspdf": "^4.2.0",
     "lucide-react": "^0.553.0",
-    "puppeteer": "^24.39.1",
     "quill": "^2.0.2",
     "react": "^19.1.1",
     "react-chatbotify": "^2.4.1",

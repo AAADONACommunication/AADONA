@@ -57,7 +57,6 @@ const buildDatasheetHTML = (product) => {
        PAGE 1 — COVER
     ============================ */
 
-    
     .page {
       position: relative;
       width: 794px;
@@ -66,72 +65,68 @@ const buildDatasheetHTML = (product) => {
       background: #fff;
     }
 
-    /* FULL PAGE BACKGROUND */
-    .pdfbg {
+    /* BG — bottom half network pattern */
+    .bg {
       position: absolute;
-      top: 0;
+      bottom: 0;
       left: 0;
       width: 100%;
-      height: 100%;
+      height: 520px;
       object-fit: cover;
-      opacity: 0.5;
-      z-index: 0;
+      opacity: 0.85;
     }
 
-    /* LOGO */
+    /* LOGO — top left, large */
     .logo {
       position: absolute;
       top: 36px;
       left: 48px;
       width: 200px;
-      z-index: 2;
     }
 
-    /* PRODUCT WRAPPER */
-    .product-wrapper {
+    /* MODEL + SERIES — left side, below logo */
+    .model-block {
+      position: absolute;
+      top: 200px;
+      left: 48px;
+    }
+
+    .model-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.5;
+    }
+
+    /* PRODUCT IMAGE — center */
+    .product {
       position: absolute;
       top: 300px;
       left: 50%;
       transform: translateX(-50%);
       width: 460px;
-      z-index: 2;
+      filter: drop-shadow(0px 16px 28px rgba(0,0,0,0.18));
     }
 
-    /* PRODUCT IMAGE */
-    .product {
-      width: 100%;
-      display: block;
-      filter: drop-shadow(0px 16px 28px rgba(0,0,0,0.2));
-    }
-
-    /* OVERLAY TEXT (LEFT TOP ON IMAGE) */
-    .overlay-text {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      color: #fff;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
-    }
-
-    .model-text {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1.4;
-    }
-
+    /* DESCRIPTION — center bottom */
     .desc {
-      font-size: 14px;
-      font-weight: 500;
-      margin-top: 4px;
+      position: absolute;
+      bottom: 230px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      color: #222;
     }
 
-    /* MAKE IN INDIA */
+    /* MAKE IN INDIA — bottom right corner */
     .india {
       position: absolute;
       bottom: 60px;
       right: 48px;
       width: 130px;
-      z-index: 2;
     }
 
     /* FOOTER */
@@ -141,7 +136,6 @@ const buildDatasheetHTML = (product) => {
       left: 48px;
       font-size: 11px;
       color: #555;
-      z-index: 2;
     }
 
     /* ============================
