@@ -143,8 +143,6 @@ const ProductDetailPage = () => {
               {/* Very subtle dot pattern */}
               <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(rgba(0,0,0,0.07) 1px, transparent 1px)", backgroundSize: "20px 20px", opacity: 0.5 }} />
 
-           
-
               {/* Image */}
               <div className="relative z-10 p-12 lg:p-16 group anim-2">
                 <img
@@ -157,21 +155,21 @@ const ProductDetailPage = () => {
             </div>
 
             {/* RIGHT: Content */}
-            <div className="lg:w-5/12 relative flex flex-col justify-center bg-white p-12 lg:p-16 overflow-hidden">
+            <div className="lg:w-5/12 relative flex flex-col justify-center items-center lg:items-start bg-white p-12 lg:p-16 overflow-hidden text-center lg:text-left">
 
               {/* Subtle ambient */}
               <div style={{ position: "absolute", top: -80, right: -80, width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,168,89,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
 
               {/* Eyebrow */}
-              <div className="flex items-center gap-2.5 mb-5 anim-1">
+              <div className="flex items-center justify-center lg:justify-start gap-2.5 mb-5 anim-1">
                 <div style={{ width: 24, height: 1.5, background: "#00A859", borderRadius: 4 }} />
-                <div style={{ width: 6, height: 1.5, background: "rgba(0,168,89,0.3)", borderRadius: 4 }} />
+                {/* <div style={{ width: 6, height: 1.5, background: "rgba(0,168,89,0.3)", borderRadius: 4 }} /> */}
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", color: "#00A859", textTransform: "uppercase" }}>
                   Product Detail
                 </span>
               </div>
 
-              {/* Product Name — clean sans-serif, no serif */}
+              {/* Product Name */}
               <h1
                 className="anim-2"
                 style={{
@@ -188,7 +186,7 @@ const ProductDetailPage = () => {
               </h1>
 
               {/* Thin divider */}
-              <div className="anim-3" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+              <div className="anim-3 flex items-center justify-center lg:justify-start" style={{ gap: 8, marginBottom: 20 }}>
                 <div style={{ height: 1, width: 40, background: "linear-gradient(to right, #00A859, rgba(0,168,89,0.15))" }} />
                 <div style={{ height: 3, width: 3, borderRadius: "50%", background: "rgba(0,168,89,0.35)" }} />
               </div>
@@ -196,14 +194,13 @@ const ProductDetailPage = () => {
               {/* Description */}
               <p
                 className="anim-4"
-                style={{ color: "#636363", fontSize: 15, lineHeight: 1.75, fontWeight: 400, marginBottom: 44 }}
+                style={{ color: "#636363", fontSize: 16, lineHeight: 1.75, fontWeight: 400, marginBottom: 44 }}
               >
                 {product.description}
               </p>
 
               {/* CTA */}
-              <div className="anim-5" style={{ width: "100%", maxWidth: 370 }}>
-                {/* ✅ FIXED: Direct Firebase URL open karo */}
+              <div className="anim-5 w-full flex flex-col items-center lg:items-start" style={{ maxWidth: 370 }}>
                 {product.datasheet ? (
                   <a
                     href={product.datasheet}
@@ -214,17 +211,18 @@ const ProductDetailPage = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 10,
+                      gap: 8,
                       width: "100%",
-                      padding: "14px 24px",
+                      padding: "14px 16px",
                       borderRadius: 12,
                       background: "linear-gradient(135deg, #00c96e, #00A859 55%, #008f4c)",
                       color: "#fff",
                       fontWeight: 700,
-                      fontSize: 13,
-                      letterSpacing: "0.09em",
+                      fontSize: "clamp(10px, 2.8vw, 13px)",
+                      letterSpacing: "0.06em",
                       textTransform: "uppercase",
                       textDecoration: "none",
+                      whiteSpace: "nowrap",
                       boxShadow: "0 6px 22px rgba(0,168,89,0.28), inset 0 1px 0 rgba(255,255,255,0.14)"
                     }}
                   >
