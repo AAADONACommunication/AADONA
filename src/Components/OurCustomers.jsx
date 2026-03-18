@@ -40,7 +40,7 @@ const OurCustomers = () => {
       <div className="flex justify-center gap-3 mb-12">
   <button
     onClick={() => setActiveTab("government")}
-    className={`px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 rounded-lg font-medium transition-all text-s sm:text-md md:text-lg whitespace-nowrap ${
+    className={`px-4 py-2.5 sm:px-6 md:py-3 md:px-8 rounded-lg font-medium transition-all text-s sm:text-md md:text-lg whitespace-nowrap ${
       activeTab === "government"
         ? "bg-green-600 text-white scale-105 shadow-md"
         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -50,7 +50,7 @@ const OurCustomers = () => {
   </button>
   <button
     onClick={() => setActiveTab("private")}
-    className={`px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 rounded-lg font-medium transition-all text-s sm:text-md md:text-lg whitespace-nowrap ${
+    className={`px-4 py-2.5 sm:px-6 md:py-3 md:px-8 rounded-lg font-medium transition-all text-s sm:text-md md:text-lg whitespace-nowrap ${
       activeTab === "private"
         ? "bg-green-600 text-white scale-105 shadow-md"
         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
