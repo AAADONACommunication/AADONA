@@ -4,7 +4,7 @@ const path = require("path");
 const buildDatasheetHTML = (product) => {
 
   const logo = fs.readFileSync(
-    path.resolve(__dirname, "../assets/logo.jpg")
+    path.resolve(__dirname, "../assets/logo.png")
   ).toString("base64");
 
   const bg = fs.readFileSync(
@@ -167,7 +167,7 @@ const buildDatasheetHTML = (product) => {
 
         <div style="height:68px;background:rgba(0,0,0,0.55);border-top:0.5px solid rgba(255,255,255,0.07);display:table;width:100%;padding:0 48px;">
           <div style="display:table-cell;vertical-align:middle;">
-            <div style="font-size:9.5px;color:rgba(255,255,255,0.22);letter-spacing:0.3px;">© 2024 AADONA Communication Pvt Ltd. All rights reserved.</div>
+            <div style="font-size:9.5px;color:rgba(245,245,245);letter-spacing:0.3px;">© 2024 AADONA Communication Pvt Ltd. All rights reserved.</div>
           </div>
           <div style="display:table-cell;vertical-align:middle;text-align:right;">
             <div style="font-size:9px;font-weight:700;letter-spacing:2.5px;color:rgba(37,168,106,0.60);text-transform:uppercase;">Product Datasheet</div>
