@@ -228,7 +228,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
         subCategory: form.subCategory.trim(),
         extraCategory: hasExtraOptions ? form.extraCategory.trim() : null,
         overview: form.overview || {},
-        highlights: form.highlights || [],
+        featuresDetail: form.featuresDetail || [],
         specifications: form.specifications || {},
         datasheet: datasheetUrl,
       };
@@ -280,7 +280,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
       imageFile: null,
       features: p.features || [],
       overview: p.overview || {},
-      highlights: p.highlights || [],
+      featuresDetail: p.featuresDetail || [],
       specifications: p.specifications || {},
       datasheet: p.datasheet || "",
       relatedType: "", relatedCategory: "", relatedSubCategory: "",
@@ -294,7 +294,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
     setForm({
       name: "", type: "", category: "", subCategory: "",
       description: "", features: [], extraCategory: "", imageFile: null,
-      overview: {}, highlights: [], specifications: {}, datasheet: "",
+      overview: {}, featuresDetail: [], specifications: {}, datasheet: "",
       relatedType: "", relatedCategory: "", relatedSubCategory: "",
       relatedExtraCategory: "", relatedProducts: [],
     });
@@ -549,26 +549,80 @@ export default function Products({ products, setProducts, allCategories, reloadP
                 placeholder="Write a detailed product overview..." />
             </div>
 
-            {/* Highlights */}
+            {/* Features Detail */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-green-700 mb-2">Highlights</label>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {(form.highlights || []).map((h, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-lg border border-green-200 text-sm font-medium shadow-sm">
-                    <span>✦ {h}</span>
-                    <X size={14} className="cursor-pointer text-red-400 hover:text-red-600"
-                      onClick={() => setForm({ ...form, highlights: form.highlights.filter((_, idx) => idx !== i) })} />
-                  </div>
-                ))}
-              </div>
-              <input className={inputStyle} placeholder="Type highlight and press Enter"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.target.value.trim()) {
-                    e.preventDefault();
-                    setForm({ ...form, highlights: [...(form.highlights || []), e.target.value.trim()] });
-                    e.target.value = "";
+              <label className="block text-sm font-semibold text-green-700 mb-4">
+                Features
+              </label>
+
+              {(form.featuresDetail || []).map((item, i) => (
+                <div key={i} className="mb-3 border border-green-200 rounded-xl p-4 bg-green-50/60 relative">
+                  <button
+                    type="button"
+                    className="absolute top-3 right-3 text-red-400 hover:text-red-600"
+                    onClick={() => {
+                      const updated = form.featuresDetail.filter((_, idx) => idx !== i);
+                      setForm({ ...form, featuresDetail: updated });
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+
+                  {item._type === "subheading" && (
+                    <input
+                      className={`${inputStyle} mb-2`}
+                      placeholder="Subheading title"
+                      value={item.title || ""}
+                      onChange={(e) => {
+                        const updated = [...form.featuresDetail];
+                        updated[i] = { ...updated[i], title: e.target.value };
+                        setForm({ ...form, featuresDetail: updated });
+                      }}
+                    />
+                  )}
+
+                  <textarea
+                    className={inputStyle}
+                    rows="2"
+                    placeholder={item._type === "subheading" ? "Description / paragraph under subheading" : "Bullet point text"}
+                    value={item.description || ""}
+                    onChange={(e) => {
+                      const updated = [...form.featuresDetail];
+                      updated[i] = { ...updated[i], description: e.target.value };
+                      setForm({ ...form, featuresDetail: updated });
+                    }}
+                  />
+                </div>
+              ))}
+
+              {/* Add Buttons */}
+              <div className="flex gap-3 mt-3">
+                <button
+                  type="button"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      featuresDetail: [...(form.featuresDetail || []), { _type: "bullet", title: "", description: "" }],
+                    })
                   }
-                }} />
+                >
+                  <Plus size={14} /> Add Bullet Point
+                </button>
+
+                <button
+                  type="button"
+                  className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      featuresDetail: [...(form.featuresDetail || []), { _type: "subheading", title: "New Subheading", description: "" }],
+                    })
+                  }
+                >
+                  <Plus size={14} /> Add Subheading + Para
+                </button>
+              </div>
             </div>
 
             {/* Specifications */}

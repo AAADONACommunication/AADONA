@@ -84,6 +84,8 @@ export default function Blogs({ blogs, reloadBlogs }) {
     date: "", readTime: "3 min read", image: "", blocks: [],
   });
   const [editingBlogId, setEditingBlogId] = useState(null);
+  const [drafts, setDrafts] = useState([]);
+  const [draftsLoading, setDraftsLoading] = useState(false);
 
   const addTextBlock = () =>
     setBlogForm((prev) => ({ ...prev, blocks: [...prev.blocks, { type: "text", content: "" }] }));
@@ -134,11 +136,13 @@ export default function Blogs({ blogs, reloadBlogs }) {
     }
   };
 
-  const handleBlogSubmit = async (e) => {
+  const handleBlogSubmit = async (e, saveAsDraft = false) => {
     e.preventDefault();
     if (!blogForm.title.trim()) { alert("Title is required"); return; }
-    if (!blogForm.image) { alert("Hero image is required"); return; }
-    if (blogForm.blocks.length === 0) { alert("Add at least one content block"); return; }
+    if (!saveAsDraft) {
+      if (!blogForm.image) { alert("Hero image is required"); return; }
+      if (blogForm.blocks.length === 0) { alert("Add at least one content block"); return; }
+    }
 
     const slug = generateSlug(blogForm.title);
     const publishDate = editingBlogId
@@ -153,18 +157,35 @@ export default function Blogs({ blogs, reloadBlogs }) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...blogForm, slug, date: publishDate, published: true }),
+        body: JSON.stringify({ ...blogForm, slug, date: publishDate, published: !saveAsDraft }),
       });
 
       if (res.ok) {
-        alert(editingBlogId ? "Blog updated!" : "Blog published!");
+        alert(saveAsDraft ? "Draft saved!" : editingBlogId ? "Blog updated!" : "Blog published!");
         resetBlogForm();
         reloadBlogs();
+        if (saveAsDraft) loadDrafts();
       } else {
         alert("Failed to save blog");
       }
     } catch {
       alert("Error saving blog");
+    }
+  };
+
+  const loadDrafts = async () => {
+    setDraftsLoading(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch(`${BLOG_API}/drafts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setDrafts(data);
+    } catch (err) {
+      console.error("Draft load error:", err);
+    } finally {
+      setDraftsLoading(false);
     }
   };
 
@@ -182,12 +203,13 @@ export default function Blogs({ blogs, reloadBlogs }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const deleteBlog = async (id) => {
+  const deleteBlog = async (id, isDraft = false) => {
     if (!window.confirm("Delete this blog?")) return;
     try {
       const token = await auth.currentUser?.getIdToken();
       await fetch(`${BLOG_API}/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
       reloadBlogs();
+      if (isDraft) loadDrafts();
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -344,6 +366,13 @@ export default function Blogs({ blogs, reloadBlogs }) {
               className="bg-green-600 text-white px-10 py-3 rounded-full hover:bg-green-700 transition font-bold shadow-lg">
               {editingBlogId ? "Update Blog" : "Publish Blog"}
             </button>
+            <button
+              type="button"
+              onClick={(e) => handleBlogSubmit(e, true)}
+              className="bg-gray-100 text-gray-700 px-8 py-3 rounded-full hover:bg-gray-200 transition font-bold border border-gray-300"
+            >
+              💾 Save as Draft
+            </button>
             {editingBlogId && (
               <button type="button" onClick={resetBlogForm}
                 className="text-gray-400 font-medium hover:text-red-500 transition">
@@ -399,6 +428,77 @@ export default function Blogs({ blogs, reloadBlogs }) {
                   </button>
                   <button onClick={() => deleteBlog(blog._id)}
                     className="p-2.5 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+        {/* ── DRAFTS SECTION ── */}
+      <div className="bg-white rounded-3xl shadow-xl border border-yellow-100 overflow-hidden">
+        <div className="p-6 border-b border-yellow-100 bg-yellow-500 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">📝 Drafts</h2>
+            <p className="text-yellow-100 text-sm mt-1">
+              {drafts.length} draft{drafts.length !== 1 ? "s" : ""} saved
+            </p>
+          </div>
+          <button
+            onClick={loadDrafts}
+            disabled={draftsLoading}
+            className="bg-white text-yellow-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-yellow-50 transition disabled:opacity-50"
+          >
+            {draftsLoading ? "Loading..." : "🔄 Load Drafts"}
+          </button>
+        </div>
+
+        {drafts.length === 0 ? (
+          <div className="p-10 text-center text-gray-400 italic">
+            No drafts yet. Click "Load Drafts" to fetch saved drafts.
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {drafts.map((draft) => (
+              <div key={draft._id} className="flex items-start gap-5 px-6 py-5 hover:bg-yellow-50/40 transition group">
+                {draft.image ? (
+                  <img src={draft.image} alt={draft.title}
+                    className="w-20 h-20 object-cover rounded-xl flex-shrink-0 shadow-sm border border-yellow-100" />
+                ) : (
+                  <div className="w-20 h-20 rounded-xl flex-shrink-0 bg-yellow-100 flex items-center justify-center text-2xl">
+                    📝
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-gray-800 text-base group-hover:text-yellow-700 transition">
+                      {draft.title}
+                    </h3>
+                    <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                      DRAFT
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 line-clamp-1 mb-2">{draft.excerpt || "No excerpt"}</p>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+                    <span className="font-medium text-gray-500">{draft.author}</span>
+                    <span>•</span>
+                    <span>Last updated: {new Date(draft.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => { editBlog(draft); }}
+                    className="p-2.5 bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white rounded-xl transition shadow-sm"
+                    title="Edit & Publish"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={() => deleteBlog(draft._id, true)}
+                    className="p-2.5 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>

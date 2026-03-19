@@ -1436,6 +1436,17 @@ app.put("/related-products/remove", verifyToken, async (req, res) => {
    BLOG ROUTES
 ============================= */
 
+app.get("/blogs/drafts", verifyToken, async (req, res) => {
+  try {
+    const drafts = await Blog.find({ published: false })
+      .sort({ updatedAt: -1 })
+      .select("-comments");
+    res.json(drafts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/blogs", async (req, res) => {
   try {
     const blogs = await Blog.find({ published: true })

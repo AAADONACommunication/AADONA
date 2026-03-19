@@ -302,15 +302,30 @@ const ProductDetailPage = () => {
             )}
 
             {activeTab === "features" && (
-              <div className="grid md:grid-cols-2 gap-x-16 gap-y-4">
-                {product.highlights?.map((item, i) => (
-                  <div key={i} className="flex items-start gap-4">
-                    <div className="w-[22px] h-[22px] rounded-full bg-[#00A859]/10 flex-shrink-0 mt-[2px] flex items-center justify-center">
-                      <span className="text-[#00A859] text-[11px] font-black">✓</span>
+              <div className="space-y-5 max-w-3xl">
+                {(product.featuresDetail || []).map((item, i) =>
+                  item._type === "subheading" || item.title ? (
+                    <div key={i}>
+                      <h4 className="text-[15px] font-black text-[#111] uppercase tracking-[0.12em] mb-1 border-l-[3px] border-[#00A859] pl-4">
+                        {item.title}
+                      </h4>
+                      {item.description && (
+                        <p className="text-[15px] text-[#555] leading-relaxed pl-5">
+                          {item.description}
+                        </p>
+                      )}
                     </div>
-                    <span className="text-[#444] text-[15px] font-medium leading-relaxed">{item}</span>
-                  </div>
-                ))}
+                  ) : (
+                    <div key={i} className="flex items-start gap-4">
+                      <div className="w-[22px] h-[22px] rounded-full bg-[#00A859]/10 flex-shrink-0 mt-[2px] flex items-center justify-center">
+                        <span className="text-[#00A859] text-[11px] font-black">✓</span>
+                      </div>
+                      <span className="text-[#444] text-[15px] font-medium leading-relaxed">
+                        {item.description}
+                      </span>
+                    </div>
+                  )
+                )}
               </div>
             )}
 
