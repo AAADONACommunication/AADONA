@@ -165,10 +165,10 @@ export default function Blogs({ blogs, reloadBlogs }) {
       });
 
       if (res.ok) {
-        alert(saveAsDraft ? "Draft saved!" : editingBlogId ? "Blog updated!" : "Blog published!");
+        alert(saveAsDraft ? "Draft saved!" : editingBlogId && drafts.find(d => d._id === editingBlogId) ? "Blog published!" : editingBlogId ? "Blog updated!" : "Blog published!");
         resetBlogForm();
         reloadBlogs();
-        if (saveAsDraft) loadDrafts();
+        loadDrafts();
       } else {
         alert("Failed to save blog");
       }
@@ -368,8 +368,9 @@ export default function Blogs({ blogs, reloadBlogs }) {
           <div className="flex gap-4 pt-6 border-t border-green-100">
             <button type="submit"
               className="bg-green-600 text-white px-10 py-3 rounded-full hover:bg-green-700 transition font-bold shadow-lg">
-              {editingBlogId ? "Update Blog" : "Publish Blog"}
+              {editingBlogId && !drafts.find(d => d._id === editingBlogId) ? "Update Blog" : "Publish Blog"}
             </button>
+            {!editingBlogId || drafts.find(d => d._id === editingBlogId) ? (
             <button
               type="button"
               onClick={(e) => handleBlogSubmit(e, true)}
@@ -377,6 +378,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
             >
               💾 Save as Draft
             </button>
+            ) : null}
             {editingBlogId && (
               <button type="button" onClick={resetBlogForm}
                 className="text-gray-400 font-medium hover:text-red-500 transition">
