@@ -86,6 +86,10 @@ export default function Blogs({ blogs, reloadBlogs }) {
   const [editingBlogId, setEditingBlogId] = useState(null);
   const [drafts, setDrafts] = useState([]);
   const [draftsLoading, setDraftsLoading] = useState(false);
+  
+  useEffect(() => {
+    loadDrafts();
+  }, []);
 
   const addTextBlock = () =>
     setBlogForm((prev) => ({ ...prev, blocks: [...prev.blocks, { type: "text", content: "" }] }));
