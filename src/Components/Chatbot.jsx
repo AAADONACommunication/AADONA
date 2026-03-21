@@ -31,7 +31,7 @@ export default function Chatbot() {
 
       // 2. Simulate an auto-response from the chatbot (after a short delay)
       setTimeout(() => {
-        let botResponse = "Thank you for your message. Our team will be with you shortly";
+        let botResponse = "Thank you for your message. Our team will be with youshortly";
         if (userMessage.toLowerCase().includes('partner')) {
             botResponse = "To discuss a potential tech partnership, please visit our 'Partners' page or share your email, and we'll connect you with an account manager.";
         } else if (userMessage.toLowerCase().includes('help')) {
