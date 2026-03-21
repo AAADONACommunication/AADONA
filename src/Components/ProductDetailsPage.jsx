@@ -83,7 +83,11 @@ const ProductDetailPage = ({ product }) => {
               {product.specifications.map((spec, i) => (
                 <div key={i} className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                   <dt className="text-sm font-medium text-gray-500">{spec.key}</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{spec.value}</dd>
+                  <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                    {String(spec.value).split(' | ').map((line, i) => (
+                      <span key={i} className="block">{line.trim()}</span>
+                    ))}
+                  </dd>
                 </div>
               ))}
               {/* Fallback for when no specs are provided */}
