@@ -172,7 +172,53 @@ Blog:
  
 Website: www.aadona.com
 `.trim();
- 
+
+// ─── POST /chat/register ───────────────────────────────────────────────────
+router.post('/chat/register', async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    if (!name || !phone) {
+      return res.status(400).json({ success: false, error: 'Name and phone required.' });
+    }
+
+    const transporter = require('../mailer');
+
+    // Mail to AADONA team
+    await transporter.sendMail({
+      from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
+      to: process.env.COMPANY_EMAIL,
+      subject: `New Chatbot User — ${name}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:28px;border:1px solid #d1fae5;border-radius:12px">
+          <h2 style="color:#065f46;margin-bottom:4px">New Chatbot Registration</h2>
+          <p style="color:#6b7280;font-size:13px;margin-bottom:20px">A new user just started chatting on AADONA website.</p>
+          <table cellpadding="10" cellspacing="0" width="100%" style="border-collapse:collapse;font-size:14px">
+            <tr style="background:#f0fdf4">
+              <td style="border:1px solid #d1fae5;font-weight:600;color:#374151;width:40%">Name</td>
+              <td style="border:1px solid #d1fae5;color:#111827">${name}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #d1fae5;font-weight:600;color:#374151">Mobile</td>
+              <td style="border:1px solid #d1fae5;color:#111827">+91 ${phone}</td>
+            </tr>
+            <tr style="background:#f0fdf4">
+              <td style="border:1px solid #d1fae5;font-weight:600;color:#374151">Time</td>
+              <td style="border:1px solid #d1fae5;color:#111827">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</td>
+            </tr>
+          </table>
+          <p style="margin-top:20px;font-size:12px;color:#9ca3af">Sent automatically by AADONA Chatbot System</p>
+        </div>
+      `,
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Chat register error:', err.message);
+    // Don't block the user if mail fails
+    return res.json({ success: true });
+  }
+});
+
 // ─── POST /chat ────────────────────────────────────────────────────────────
 router.post('/chat', chatLimiter, async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const STORAGE_KEY_USER = 'aadona_chat_user';
 const STORAGE_KEY_HISTORY = (phone) => `aadona_chat_history_${phone}`;
 const MAX_HISTORY = 40; // messages to keep in localStorage
@@ -302,9 +302,15 @@ export default function Chatbot() {
     } catch { /* ignore */ }
   }, []);
 
-  const handleStart = (name, phone) => {
+  const handleStart = async (name, phone) => {
     const userData = { name, phone, joinedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
+
+    fetch(`${API_BASE}/chat/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone }),
+    }).catch(() => {});
     setUser(userData);
     setIsRegistered(true);
 
