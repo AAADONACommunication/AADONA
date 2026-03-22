@@ -12,6 +12,8 @@ require("dotenv").config();
 const { BetaAnalyticsDataClient } = require("@google-analytics/data");
 const analyticsClient = new BetaAnalyticsDataClient();
 const buildDatasheetHTML = require("./pdf/buildDatasheet");
+const chatbotRoute = require('./routes/chatbot');
+app.use(chatbotRoute);
 
 let browserInstance = null;
 
