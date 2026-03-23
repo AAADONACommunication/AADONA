@@ -18,13 +18,13 @@ const chatLimiter = rateLimit({
 const getProductsContext = async () => {
   try {
     const Product = mongoose.model('Product');
-    const products = await Product.find({}, 'name model category subCategory description features').limit(50);
-    if (!products.length) return '';
+    const products = await Product.find({}, 'name fullName model category subCategory description image slug').limit(50);
+    if (!products.length) return { context: '', products: [] };
     const list = products.map(p => 
-      `- ${p.fullName || p.name} (Model: ${p.model || 'N/A'}) | Category: ${p.category} > ${p.subCategory}\n  ${p.description?.slice(0, 100) || ''}`
+      `- ${p.fullName || p.name} (Model: ${p.model || 'N/A'}) | Slug: ${p.slug}\n  ${p.description?.slice(0, 100) || ''}`
     ).join('\n');
-    return `\n\nLIVE PRODUCT DATABASE:\n${list}`;
-  } catch { return ''; }
+    return { context: `\n\nLIVE PRODUCT DATABASE:\n${list}`, products };
+  } catch { return { context: '', products: [] }; }
 };
  
 // ─── AADONA System Prompt ──────────────────────────────────────────────────
@@ -262,7 +262,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
       return res.status(500).json({ success: false, error: 'AI service not configured.' });
     }
  
-    const productsContext = await getProductsContext();
+    const { context: productsContext, products } = await getProductsContext();
 
     const genAI = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -299,7 +299,21 @@ router.post('/chat', chatLimiter, async (req, res) => {
       });
     }
  
-    return res.json({ success: true, reply });
+    const mentionedProduct = products?.find(p => 
+      (p.model && p.model.length > 2 && reply.toLowerCase().includes(p.model.toLowerCase())) ||
+      (p.name && reply.toLowerCase().includes(p.name.toLowerCase()))
+    );
+
+    return res.json({ 
+      success: true, 
+      reply,
+      productCard: mentionedProduct ? {
+        name: mentionedProduct.fullName || mentionedProduct.name,
+        model: mentionedProduct.model,
+        image: mentionedProduct.image,
+        slug: mentionedProduct.slug,
+      } : null
+    });
  
   } catch (err) {
     console.error('Chatbot route error:', err.message);

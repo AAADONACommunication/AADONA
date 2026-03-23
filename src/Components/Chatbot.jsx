@@ -29,6 +29,33 @@ function getTime() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+function ProductCard({ product }) {
+  if (!product) return null;
+  return (
+    <div className="mt-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden w-[200px]">
+      {product.image && (
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-32 object-contain bg-slate-50 p-2"
+        />
+      )}
+      <div className="p-2.5">
+        <p className="text-xs font-semibold text-slate-800 leading-tight">{product.name}</p>
+        <p className="text-[10px] text-slate-500 mb-2">{product.model}</p>
+        <a
+          href={`https://www.aadona.online/products/${product.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-center text-[11px] font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-1.5 rounded-lg hover:opacity-90 transition"
+        >
+          View Product →
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function TypingDots() {
   return (
     <div className="flex items-end gap-1 px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm w-fit max-w-[80px]">
@@ -43,10 +70,9 @@ function TypingDots() {
   );
 }
 
-function BotMessage({ content, time }) {
+function BotMessage({ content, time, productCard }) {
   return (
     <div className="flex items-end gap-2 animate-fadeIn">
-      {/* Bot avatar */}
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 mb-1 shadow">
         <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
@@ -65,6 +91,7 @@ function BotMessage({ content, time }) {
             </span>
           ))}
         </div>
+        {productCard && <ProductCard product={productCard} />}
         {time && <span className="text-[10px] text-slate-400 pl-1">{time}</span>}
       </div>
     </div>
@@ -373,7 +400,7 @@ export default function Chatbot() {
       if (!response.ok) throw new Error(data.error || 'Server error');
 
       const reply = data.reply || 'Sorry, I could not get a response. Please try again.';
-      const botMsg = { role: 'bot', content: reply, time: getTime() };
+      const botMsg = { role: 'bot', content: reply, time: getTime(), productCard: data.productCard || null };
 
       const updatedMessages = [...newMessages, botMsg];
       setMessages(updatedMessages);
@@ -499,7 +526,7 @@ export default function Chatbot() {
                 <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 bg-slate-50/80 scroll-smooth">
                   {messages.map((msg, i) =>
                     msg.role === 'bot'
-                      ? <BotMessage key={i} content={msg.content} time={msg.time} />
+                      ? <BotMessage key={i} content={msg.content} time={msg.time} productCard={msg.productCard} />
                       : <UserMessage key={i} content={msg.content} time={msg.time} />
                   )}
                   {isLoading && <TypingDots />}
