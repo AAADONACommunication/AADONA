@@ -247,29 +247,29 @@ router.post('/chat', chatLimiter, async (req, res) => {
       return res.status(500).json({ success: false, error: 'AI service not configured.' });
     }
  
-    const genAI = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
+    const genAI = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-        model: 'meta-llama/llama-3.1-8b-instruct:free',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
         max_tokens: 600,
         messages: [
-        { role: 'system', content: buildSystemPrompt(userName || 'Guest', userPhone || '') },
-        ...recentMessages
+          { role: 'system', content: buildSystemPrompt(userName || 'Guest', userPhone || '') },
+          ...recentMessages
         ],
-    }),
+      }),
     });
 
     if (!genAI.ok) {
-    const errData = await genAI.json().catch(() => ({}));
-    console.error('OpenRouter API error:', genAI.status, errData);
-    return res.status(502).json({
+      const errData = await genAI.json().catch(() => ({}));
+      console.error('Groq API error:', genAI.status, errData);
+      return res.status(502).json({
         success: false,
         error: 'AI service temporarily unavailable. Please try again.',
-    });
+      });
     }
 
     const data = await genAI.json();
