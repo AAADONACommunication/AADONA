@@ -56,7 +56,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
   const basicCompleted =
     form.name && form.type && form.category &&
-    form.subCategory && form.description && (form.imageFile || form.image);
+    form.description && (form.imageFile || form.image);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(relatedSearch.toLowerCase())
@@ -201,7 +201,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
   // ── Save Product ──
   const save = async () => {
     const hasExtraOptions = extraOptions.length > 0;
-    if (!form.name || !form.type || !form.category || !form.subCategory ||
+    if (!form.name || !form.type || !form.category ||
       !form.description || (hasExtraOptions && !form.extraCategory)) {
       alert("Please fill all required fields");
       return;

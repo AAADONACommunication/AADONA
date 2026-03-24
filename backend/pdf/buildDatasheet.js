@@ -19,7 +19,7 @@ const buildDatasheetHTML = (product) => {
     .map(h => `
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
         <div style="width:7px;height:7px;min-width:7px;background:#25a86a;border-radius:50%;margin-top:5px;"></div>
-        <div style="font-size:13px;color:#444;line-height:1.7;">${h}</div>
+        <div style="font-size:13px;color:#444;line-height:1.7;text-align:justify;">${h}</div>
       </div>`)
     .join("");
 
@@ -154,7 +154,7 @@ const buildDatasheetHTML = (product) => {
         <div style="padding:36px 52px 20px 58px;">
           ${product.series ? `<div style="font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#25a86a;margin-bottom:12px;">${product.series}</div>` : ""}
           <div style="font-size:42px;font-weight:900;color:#ffffff;line-height:1.05;letter-spacing:-1px;">${product.model || product.name}</div>
-          ${product.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.45);margin-top:10px;line-height:1.5;">${product.description}</div>` : ""}
+          ${product.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.45);margin-top:10px;line-height:1.5;text-align:justify;">${product.description}</div>` : ""}
           <div style="display:flex;align-items:center;gap:10px;margin-top:18px;">
             <div style="width:40px;height:2.5px;background:#25a86a;border-radius:2px;"></div>
             <div style="width:10px;height:2.5px;background:rgba(37,168,106,0.4);border-radius:2px;"></div>
@@ -224,7 +224,7 @@ const buildDatasheetHTML = (product) => {
         <div style="width:4px;height:20px;background:linear-gradient(180deg,#25a86a,#1b7f4c);border-radius:2px;"></div>
         <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Product Overview</div>
       </div>
-      <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;border-left:2px solid #d8ead8;">${product.overview.content}</div>
+      <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;border-left:2px solid #d8ead8;text-align:justify;">${product.overview.content}</div>
     </div>` : ""}
 
     ${(product.highlights || []).length ? `

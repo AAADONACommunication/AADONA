@@ -327,7 +327,7 @@ const ProductSchema = new mongoose.Schema(
     datasheet: { type: String },
     type: { type: String, required: true },
     category: { type: String, required: true, index: true },
-    subCategory: { type: String, required: true, index: true },
+    subCategory: { type: String, default: null, index: true },
     extraCategory: { type: String, default: null },
     model: { type: String },
     fullName: { type: String },
@@ -351,8 +351,8 @@ const ProductSchema = new mongoose.Schema(
 );
 
 // Compound index for category filtering (very common query)
-ProductSchema.index({ category: 1, subCategory: 1 });
-ProductSchema.index({ category: 1, subCategory: 1, extraCategory: 1 });
+ProductSchema.index({ category: 1, subCategory: 1, sparse: true });
+ProductSchema.index({ category: 1, subCategory: 1, extraCategory: 1, sparse: true });
 
 const Product = mongoose.model("Product", ProductSchema);
 
@@ -360,7 +360,7 @@ const RelatedProductSchema = new mongoose.Schema(
   {
     type: { type: String, default: null },
     category: { type: String, required: true, index: true },
-    subCategory: { type: String, required: true, index: true },
+    subCategory: { type: String, default: null, index: true },
     extraCategory: { type: String, default: null },
     relatedProducts: { type: [String], default: [] },
   },
