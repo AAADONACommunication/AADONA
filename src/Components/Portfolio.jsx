@@ -1,137 +1,156 @@
-import React from 'react';
-import hero from '../assets/hero1.png'; // Local image used for all cards
-import switches from '../assets/switches.png'
-import industrial from '../assets/industrial.png'
-import wireless from '../assets/wireless.png'
-import cloud from '../assets/cloud.png'
-import firewall from '../assets/firewall.png'
-import fiber from '../assets/fiber.png'
+import { useState } from "react";
+import gov from '../assets/government.jpg'
+import retail from '../assets/retail.jpg'
+import hotel from '../assets/hotel.jpg'
+import healthcare from '../assets/healthcare.jpg'
+import citywifi from '../assets/city-wifi.png'
+import educationalinstitutes from '../assets/eductaional-institutes.jpg'
+import enterprise from '../assets/enterprise.jpg'
+import industries from '../assets/industries.jpg'
 
-// Product data (original 6 products)
-const originalProducts = [
+
+
+
+const cards = [
   {
     id: 1,
-    title: "Network Switches",
-    description: "Reliable and scalable switching solutions for SMB to Enterprise networks.",
-    imageUrl: switches,
+    name: "Enterprise",
+    category: "Key Markets",
+    image: enterprise,
+    tag: "Corporate",
   },
   {
     id: 2,
-    title: "Industrial & Rugged Switches",
-    description: "Durable, high-performance switches built for critical industrial environments.",
-    imageUrl: industrial,
+    name: "Government",
+    category: "Key Markets",
+    image: gov,
+    tag: "Public Sector",
   },
   {
     id: 3,
-    title: "Wireless Solutions",
-    description: "Secure and fast wireless networking for enterprises and smart cities.",
-    imageUrl: wireless,
+    name: "City-WiFi",
+    category: "Key Markets",
+    image: citywifi,
+    tag: "Smart City",
   },
   {
     id: 4,
-    title: "Cloud Management Platform",
-    description: "Centralized management and monitoring for all your network devices globally.",
-    imageUrl: cloud,
+    name: "Industries",
+    category: "Key Markets",
+    image: industries,
+    tag: "Manufacturing",
   },
   {
     id: 5,
-    title: "Security & Firewall Appliances",
-    description: "Next-generation security to protect your network from advanced threats and intrusions.",
-    imageUrl: firewall,
+    name: "Hotels",
+    category: "Key Markets",
+    image: hotel,
+    tag: "Hospitality",
   },
   {
     id: 6,
-    title: "Fiber Optic Modules",
-    description: "High-speed and reliable fiber transceivers for long-distance data transmission.",
-    imageUrl: fiber,
+    name: "Educational Institutes",
+    category: "Key Markets",
+    image:educationalinstitutes ,
+    tag: "Education",
+  },
+  {
+    id: 7,
+    name: "Health Care",
+    category: "Key Markets",
+    image: healthcare,
+    tag: "Medical",
+  },
+  {
+    id: 8,
+    name: "Retail",
+    category: "Key Markets",
+    image: retail,
+    tag: "Commerce",
   },
 ];
 
-// Duplicate and re-ID the products to create a total of 12
-const duplicatedProducts = originalProducts.map(p => ({
-    ...p,
-    id: p.id + 6, // Assign new ID
-    title: `${p.title} (2nd)`, // Optional: Mark as duplicate to distinguish them if needed
-}));
-
-// Combine the original and duplicated products
-const products = [...originalProducts, ...duplicatedProducts];
-
-
-// Inline SVG for arrow icon (kept for completeness, though commented out in usage)
-const RightArrowIcon = () => (
-  <svg
-    // xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-  >
-    <path d="M5 12h14" />
-    <path d="m12 5 7 7-7 7" />
-  </svg>
-);
-
-// Product card component
-const ProductCard = ({ product }) => {
-  const { title, description, imageUrl } = product;
+function Card({ card }) {
+  const [hovered, setHovered] = useState(false);
 
   return (
-    
-    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden flex flex-col">
-      <div className="w-full h-32 overflow-hidden"> {/* Reduced height for smaller cards in a 6-column layout */}
-        <img
-          src={imageUrl}
-          alt={title}
-          className="w-full h-full object-cover transition duration-300 hover:scale-[1.02]"
-        />
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`relative overflow-hidden rounded-2xl cursor-pointer aspect-[3/4] transition-all duration-500
+        ${hovered
+          ? "shadow-[0_32px_64px_rgba(0,0,0,0.6)] -translate-y-3 scale-[1.02]"
+          : "shadow-[0_8px_32px_rgba(0,0,0,0.4)] translate-y-0 scale-100"
+        }`}
+    >
+      {/* Image */}
+      <img
+        src={card.image}
+        alt={card.name}
+        className={`w-full h-full object-cover transition-transform duration-700 ease-out
+          ${hovered ? "scale-110" : "scale-100"}`}
+      />
+
+      {/* Top Tag Badge */}
+      <div
+        className={`absolute top-4 left-4 bg-white/20 backdrop-blur-md border border-white/30
+          rounded-full px-3 py-1 text-[10px] font-semibold tracking-widest text-white uppercase
+          transition-all duration-300
+          ${hovered ? "opacity-100 translate-y-0" : "opacity-70 -translate-y-0.5"}`}
+      >
+        {card.tag}
       </div>
-      <div className="p-4 flex flex-col justify-between grow"> {/* Reduced padding */}
-        <div>
-          <h3 className="text-base font-bold text-gray-900 mb-1">{title}</h3> {/* Reduced font size */}
-          <p className="text-gray-600 text-xs">{description}</p> {/* Reduced font size */}
-        </div>
-        <div className="mt-3">
-          <a
-            href="#"
-            className="text-green-600 hover:text-green-700 transition duration-150 text-xs font-semibold flex items-center group"
-            onClick={(e) => e.preventDefault()}
-          >
-            {/* Learn Explore Product
-            <RightArrowIcon /> */}
-          </a>
-        </div>
+
+      {/* Gradient Overlay */}
+      <div
+        className={`absolute inset-0 transition-all duration-500
+          ${hovered
+            ? "bg-gradient-to-t from-black/90 via-black/30 to-transparent"
+            : "bg-gradient-to-t from-black/70 via-black/10 to-transparent"
+          }`}
+      />
+
+      {/* Bottom Content */}
+      <div className="absolute bottom-0 left-0 right-0 p-5">
+        <h3
+          className={`text-xl font-bold text-white leading-tight tracking-tight
+            transition-all duration-300
+            ${hovered ? "translate-y-0" : "translate-y-1"}`}
+        >
+          {card.name}
+        </h3>
+      </div>
+
+      {/* Hover Border Glow */}
+      <div
+        className={`absolute inset-0 rounded-2xl border pointer-events-none transition-all duration-300
+          ${hovered ? "border-white/25" : "border-white/5"}`}
+      />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="min-h-screen px-4 sm:px-6 md:px-10 py-10 md:py-16 mb-10 bg-white">
+
+      {/* Header */}
+      <div className="bg-white px-8 mb-12 pb-6 text-center">
+        <h1 className="text-4xl font-extrabold text-green-700 m-0">
+          Verticals We Address
+        </h1>
+      </div>
+
+      {/* Responsive Grid:
+          mobile  → 2 columns
+          tablet  → 3 columns
+          desktop → 4 columns
+      */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 max-w-7xl mx-auto">
+        {cards.map((card) => (
+          <Card key={card.id} card={card} />
+        ))}
       </div>
     </div>
   );
-};
-
-// Main app component
-const App = () => {
-  return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8 font-sans mb-20">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-extrabold text-green-700 sm:text-4xl inline-block pb-1">
-            Our Solution Portfolio
-          </h2>
-        </div>
-        {/*
-          Modified grid classes:
-          - grid-cols-2 for small screens (sm:grid-cols-3)
-          - lg:grid-cols-6 to display 6 cards per row on large screens
-        */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default App;
+}

@@ -8,10 +8,10 @@ const MODEL_NAMES = [
   "ONVR-16F1-6", "ONVR-08F1-6", "OFL-3T-A", "OHD-2T-A", "OHD-2B-A"
 ];
 
-const AADONA_SALES_REPS = [
-  "Senthil VP Kumar", "Subroto Karmoka", "Govind Madhav",
-  "Pinaki Chatterjee", "Rashi Kher", "Jyotirmoy Paul"
-];
+// const AADONA_SALES_REPS = [
+//   "Senthil VP Kumar", "Subroto Karmoka", "Govind Madhav",
+//   "Pinaki Chatterjee", "Rashi Kher", "Jyotirmoy Paul"
+// ];
 
 const COUNTRIES = [
   "Afghanistan","Aland Islands","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antarctica",
@@ -203,13 +203,19 @@ export default function ProjectLocking() {
                   </div>
                 </div>
 
-                <div className="flex flex-col">
+                {/* <div className="flex flex-col">
                   <label className={labelClasses}>Select AADONA Sales <span className="text-red-500">*</span></label>
                   <select name="aadonaSales" value={form.aadonaSales} onChange={handleChange} required className={inputClasses + " cursor-pointer"}>
                     <option value="">Select AADONA Sales *</option>
                     {AADONA_SALES_REPS.map(rep => <option key={rep} value={rep}>{rep}</option>)}
                   </select>
+                </div> */}
+
+                <div className="flex flex-col">
+                  <label className={labelClasses}>Enter AADONA Sales <span className="text-red-500">*</span></label>
+                  <input name="streetAddress" value={form.streetAddress} onChange={handleChange} placeholder="Enter Sales Name *" required className={inputClasses} />
                 </div>
+                
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col">

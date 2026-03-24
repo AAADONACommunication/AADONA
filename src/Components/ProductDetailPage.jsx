@@ -155,17 +155,24 @@ const ProductDetailPage = () => {
             </div>
 
             {/* RIGHT: Content */}
-            <div className="lg:w-5/12 relative flex flex-col justify-center items-center lg:items-start bg-white p-12 lg:p-16 overflow-hidden text-center lg:text-left">
+            <div className="lg:w-5/12 relative flex flex-col justify-center items-center lg:items-start overflow-hidden text-center lg:text-left p-10 lg:p-14"
+              style={{ background: "linear-gradient(160deg, #f9fdf9 0%, #ffffff 50%, #f4faf6 100%)" }}
+            >
+              {/* Background decorative elements */}
+              <div style={{ position: "absolute", top: -60, right: -60, width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,168,89,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", bottom: -40, left: -40, width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,168,89,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 3, background: "linear-gradient(to bottom, transparent, #00A859 30%, #00d472 70%, transparent)" }} />
 
-              {/* Subtle ambient */}
-              <div style={{ position: "absolute", top: -80, right: -80, width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,168,89,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
-
-              {/* Eyebrow */}
-              <div className="flex items-center justify-center lg:justify-start gap-2.5 mb-5 anim-1">
-                <div style={{ width: 24, height: 1.5, background: "#00A859", borderRadius: 4 }} />
-                {/* <div style={{ width: 6, height: 1.5, background: "rgba(0,168,89,0.3)", borderRadius: 4 }} /> */}
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", color: "#00A859", textTransform: "uppercase" }}>
-                  Product Detail
+              {/* Category badge */}
+              <div className="anim-1 flex items-center justify-center lg:justify-start gap-2 mb-5">
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "5px 12px", borderRadius: 999,
+                  background: "rgba(0,168,89,0.08)", border: "1px solid rgba(0,168,89,0.18)",
+                  fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: "#00A859", textTransform: "uppercase"
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00A859", display: "inline-block" }} />
+                  {product.category || "Product Detail"}
                 </span>
               </div>
 
@@ -173,96 +180,83 @@ const ProductDetailPage = () => {
               <h1
                 className="anim-2"
                 style={{
-                  fontSize: "clamp(26px, 3vw, 38px)",
+                  fontSize: "clamp(24px, 2.8vw, 36px)",
                   fontWeight: 800,
-                  color: "#111111",
+                  color: "#0a0a0a",
                   lineHeight: 1.1,
-                  letterSpacing: "-0.01em",
+                  letterSpacing: "-0.02em",
                   textTransform: "uppercase",
-                  marginBottom: 10
+                  marginBottom: 16
                 }}
               >
                 {product.name}
               </h1>
 
-              {/* Thin divider */}
-              <div className="anim-3 flex items-center justify-center lg:justify-start" style={{ gap: 8, marginBottom: 20 }}>
-                <div style={{ height: 1, width: 40, background: "linear-gradient(to right, #00A859, rgba(0,168,89,0.15))" }} />
-                <div style={{ height: 3, width: 3, borderRadius: "50%", background: "rgba(0,168,89,0.35)" }} />
+              {/* Divider */}
+              <div className="anim-2 flex items-center justify-center lg:justify-start mb-5" style={{ gap: 6 }}>
+                <div style={{ height: 2, width: 32, background: "#00A859", borderRadius: 4 }} />
+                <div style={{ height: 2, width: 8, background: "rgba(0,168,89,0.3)", borderRadius: 4 }} />
+                <div style={{ height: 2, width: 4, background: "rgba(0,168,89,0.15)", borderRadius: 4 }} />
               </div>
 
               {/* Description */}
               <p
-                className="anim-4"
-                style={{ color: "#636363", fontSize: 16, lineHeight: 1.75, fontWeight: 400, marginBottom: 44 }}
+                className="anim-3"
+                style={{ color: "#555", fontSize: 15, lineHeight: 1.8, fontWeight: 400, marginBottom: 24 }}
               >
                 {product.description}
               </p>
 
-              {/* CTA */}
-              <div className="anim-5 w-full flex flex-col items-center lg:items-start" style={{ maxWidth: 370 }}>
-                {product.datasheet ? (
-                  <a
-                    href={product.datasheet}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="dl-btn"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      width: "100%",
-                      padding: "14px 16px",
-                      borderRadius: 12,
-                      background: "linear-gradient(135deg, #00c96e, #00A859 55%, #008f4c)",
-                      color: "#fff",
-                      fontWeight: 700,
-                      fontSize: "clamp(10px, 2.8vw, 13px)",
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      textDecoration: "none",
-                      whiteSpace: "nowrap",
-                      boxShadow: "0 6px 22px rgba(0,168,89,0.28), inset 0 1px 0 rgba(255,255,255,0.14)"
-                    }}
-                  >
-                    <Download size={17} strokeWidth={2.5} />
-                    Download Datasheet
-                  </a>
-                ) : (
-                  <button
-                    disabled
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 10,
-                      width: "100%",
-                      padding: "14px 24px",
-                      borderRadius: 12,
-                      background: "#f5f5f5",
-                      border: "1px solid #e8e8e8",
-                      color: "#bbb",
-                      fontWeight: 700,
-                      fontSize: 13,
-                      letterSpacing: "0.09em",
-                      textTransform: "uppercase",
-                      cursor: "not-allowed"
-                    }}
-                  >
-                    <Download size={17} strokeWidth={2} />
-                    Datasheet Not Available
-                  </button>
-                )}
-
-                {/* Sub label */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 16 }}>
-                  <div style={{ height: 1, width: 24, background: "#e0e0e0" }} />
-                  <p style={{ fontSize: 10, color: "#b8b8b8", fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase" }}>
-                    Inquire about volume pricing and availability
+              {/* Features */}
+              {product.features && product.features.length > 0 && (
+                <div className="anim-4 w-full mb-8" style={{
+                  background: "rgba(0,168,89,0.04)",
+                  border: "1px solid rgba(0,168,89,0.12)",
+                  borderRadius: 14,
+                  padding: "16px 18px",
+                  textAlign: "left"
+                }}>
+                  <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.18em", color: "#00A859", textTransform: "uppercase", marginBottom: 12 }}>
+                    Key Features
                   </p>
-                  <div style={{ height: 1, width: 24, background: "#e0e0e0" }} />
+                  <ul className="space-y-2.5">
+                    {product.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <div style={{
+                          width: 18, height: 18, borderRadius: "50%",
+                          background: "linear-gradient(135deg, #00c96e, #00A859)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0, marginTop: 1,
+                          boxShadow: "0 2px 6px rgba(0,168,89,0.3)"
+                        }}>
+                          <span style={{ color: "#fff", fontSize: 9, fontWeight: 900 }}>✓</span>
+                        </div>
+                        <span style={{ fontSize: 13.5, color: "#333", fontWeight: 500, lineHeight: 1.5 }}>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
+              )}
+
+              {/* Inquiry strip */}
+              <div className="anim-5 w-full" style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "12px 16px", borderRadius: 10,
+                background: "#fff",
+                border: "1px solid #e8e8e8",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.04)"
+              }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+                  background: "linear-gradient(135deg, #00c96e22, #00A85922)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid rgba(0,168,89,0.15)"
+                }}>
+                  <span style={{ fontSize: 15 }}>📦</span>
+                </div>
+                <p style={{ fontSize: 11, color: "#888", fontWeight: 500, letterSpacing: "0.04em", lineHeight: 1.4 }}>
+                  Inquire about <strong style={{ color: "#444" }}>volume pricing</strong> & availability
+                </p>
               </div>
 
             </div>
@@ -271,11 +265,43 @@ const ProductDetailPage = () => {
 
         {/* --- TABS SECTION --- */}
         <div className="mt-20">
-          <div className="flex gap-0 border-b border-gray-200 mb-12 overflow-x-auto no-scrollbar">
+
+          {/* Mobile: 2 per row grid */}
+          <div className="grid grid-cols-2 gap-2 mb-6 lg:hidden">
+            {[
+              { id: "overview", label: "Overview" },
+              { id: "features", label: "Features" },
+              { id: "specifications", label: "Specifications" },
+              { id: "download", label: "Download" }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: "9px 14px",
+                  borderRadius: 10,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  border: activeTab === tab.id ? "1.5px solid #00A859" : "1.5px solid #e0e0e0",
+                  background: activeTab === tab.id ? "linear-gradient(135deg, #00c96e15, #00A85915)" : "#fff",
+                  color: activeTab === tab.id ? "#00A859" : "#999",
+                  transition: "all 0.2s"
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop: horizontal tabs */}
+          <div className="hidden lg:flex gap-0 border-b border-gray-200 mb-12">
             {[
               { id: "overview", label: "1. Product Overview" },
               { id: "features", label: "2. Features" },
-              { id: "specifications", label: "3. Specifications" }
+              { id: "specifications", label: "3. Specifications" },
+              { id: "download", label: "4. Download" }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -292,7 +318,7 @@ const ProductDetailPage = () => {
             ))}
           </div>
 
-          <div className="bg-white border border-green-300 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-6">
+          <div className="bg-white border border-green-300 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-6 mb-12 lg:mb-0">
             {activeTab === "overview" && (
               <div className="max-w-4xl text-[16px] text-[#444] leading-[1.8]">
                 <p className="whitespace-pre-line">
@@ -351,6 +377,63 @@ const ProductDetailPage = () => {
                       </div>
                     </div>
                   ))}
+              </div>
+            )}
+
+            {activeTab === "download" && (
+              <div className="max-w-xl">
+                <h4 className="text-[15px] font-black text-[#111] uppercase tracking-[0.12em] mb-6 border-l-[3px] border-[#00A859] pl-4">
+                  Product Datasheet
+                </h4>
+                {product.datasheet ? (
+                  <a
+                    href={product.datasheet}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="dl-btn"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "14px 24px",
+                      borderRadius: 12,
+                      background: "linear-gradient(135deg, #00c96e, #00A859 55%, #008f4c)",
+                      color: "#fff",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      textDecoration: "none",
+                      whiteSpace: "nowrap",
+                      boxShadow: "0 6px 22px rgba(0,168,89,0.28), inset 0 1px 0 rgba(255,255,255,0.14)"
+                    }}
+                  >
+                    <Download size={16} strokeWidth={2.5} />
+                    Download Datasheet
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "14px 24px",
+                      borderRadius: 12,
+                      background: "#f5f5f5",
+                      border: "1px solid #e8e8e8",
+                      color: "#bbb",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      letterSpacing: "0.09em",
+                      textTransform: "uppercase",
+                      cursor: "not-allowed"
+                    }}
+                  >
+                    <Download size={16} strokeWidth={2} />
+                    Datasheet Not Available
+                  </button>
+                )}
               </div>
             )}
           </div>
