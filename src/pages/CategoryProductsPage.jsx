@@ -252,7 +252,7 @@ export default function CategoryProductsPage() {
             setActiveSubCategory(subsWithProducts[0] || "");
             setOrderedExtraCategories(categoryDoc.subCategories);
           } else {
-            const subCats = [...new Set(filtered.map(p => p.subCategory))];
+            const subCats = [...new Set(filtered.map(p => p.subCategory).filter(s => s && s.trim()))];
             setOrderedSubCategories(subCats);
             setActiveSubCategory(subCats[0] || "");
             setOrderedExtraCategories([]);
@@ -345,7 +345,7 @@ export default function CategoryProductsPage() {
     <SubCategorySkeleton />
   ) : (
     <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 sm:pt-4 md:gap-4 w-full max-w-5xl">
-      {orderedSubCategories.map((cat, index) => {
+      {orderedSubCategories.filter(cat => cat && cat.trim()).map((cat, index) => {
         const isOdd = orderedSubCategories.length % 2 !== 0;
         const isLast = index === orderedSubCategories.length - 1;
 
