@@ -356,7 +356,7 @@ const ProductDetailPage = () => {
             )}
 
             {activeTab === "specifications" && (
-              <div className="space-y-3">
+              <div className="space-y-6">
                 {product.specifications &&
                   Object.entries(product.specifications).map(([category, specs]) => (
                     <div key={category}>
@@ -364,16 +364,44 @@ const ProductDetailPage = () => {
                         {category}
                       </h3>
                       <div className="border border-gray-200 rounded-lg overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-                        {Object.entries(specs).map(([key, value]) => (
-                          <div key={key} className="grid grid-cols-1 md:grid-cols-3 text-[14.5px] border-b border-gray-200 last:border-0">
-                            <div className="p-2 px-[18px] font-semibold text-[#333] bg-[#fafafa] border-r border-gray-100 tracking-tight">
-                              {key}
+                        {Object.entries(specs).map(([key, value], rowIdx) => {
+                          const values = Array.isArray(value)
+                            ? value.filter(Boolean)
+                            : value
+                            ? [value]
+                            : [];
+                          const isMultiple = values.length > 1;
+
+                          return (
+                            <div
+                              key={key}
+                              className={`grid grid-cols-1 md:grid-cols-3 text-[14.5px] border-b border-gray-200 last:border-0 ${
+                                rowIdx % 2 === 0 ? "bg-white" : "bg-[#fafafa]"
+                              }`}
+                            >
+                              {/* KEY — always centered vertically */}
+                              <div className="p-3 px-[18px] font-semibold text-[#333] bg-[#fafafa] border-r border-gray-100 tracking-tight flex items-center justify-center text-center">
+                                {key}
+                              </div>
+
+                              {/* VALUE — single: plain text centered | multiple: bullet list */}
+                              <div className="md:col-span-2 p-3 px-[18px] text-[#555] leading-relaxed flex items-center">
+                                {isMultiple ? (
+                                  <ul className="space-y-1 w-full">
+                                    {values.map((point, pi) => (
+                                      <li key={pi} className="flex items-start gap-2">
+                                        <span className="text-green-500 text-xs mt-[5px] flex-shrink-0">•</span>
+                                        <span>{point}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <span>{values[0] ?? ""}</span>
+                                )}
+                              </div>
                             </div>
-                            <div className="md:col-span-2 p-2 px-[18px] text-[#555] leading-relaxed">
-                              {value}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

@@ -666,14 +666,58 @@ export default function Products({ products, setProducts, allCategories, reloadP
                           setForm({ ...form, specifications: newSpecs });
                         }}
                       />
-                      <input className="w-6/12 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                        placeholder="Value" value={value}
-                        onChange={(e) => {
+                      <div className="w-6/12 flex flex-col gap-1">
+                      {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
+                        <div key={vi} className="flex gap-1">
+                          <input
+                            className="flex-1 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                            placeholder={`Point ${vi + 1}`}
+                            value={val}
+                            onChange={(e) => {
+                              const newSpecs = { ...form.specifications };
+                              const arr = Array.isArray(newSpecs[category][key])
+                                ? [...newSpecs[category][key]]
+                                : [newSpecs[category][key] || ""];
+                              arr[vi] = e.target.value;
+                              newSpecs[category][key] = arr;
+                              setForm({ ...form, specifications: newSpecs });
+                            }}
+                          />
+                          {(Array.isArray(value) ? value : [value]).length > 1 && (
+                            <button
+                              type="button"
+                              className="text-red-400 hover:text-red-600 px-1"
+                              onClick={() => {
+                                const newSpecs = { ...form.specifications };
+                                const arr = Array.isArray(newSpecs[category][key])
+                                  ? [...newSpecs[category][key]]
+                                  : [newSpecs[category][key]];
+                                arr.splice(vi, 1);
+                                newSpecs[category][key] = arr.length === 1 ? arr : arr;
+                                setForm({ ...form, specifications: newSpecs });
+                              }}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        className="text-green-600 hover:text-green-800 text-xs font-semibold flex items-center gap-1 mt-0.5"
+                        onClick={() => {
                           const newSpecs = { ...form.specifications };
-                          newSpecs[category][key] = e.target.value;
+                          const arr = Array.isArray(newSpecs[category][key])
+                            ? [...newSpecs[category][key]]
+                            : [newSpecs[category][key] || ""];
+                          arr.push("");
+                          newSpecs[category][key] = arr;
                           setForm({ ...form, specifications: newSpecs });
                         }}
-                      />
+                      >
+                        <Plus size={12} /> Add point
+                      </button>
+                    </div>
                       <button type="button" className="text-red-400 hover:text-red-600 transition"
                         onClick={() => {
                           const newSpecs = { ...form.specifications };

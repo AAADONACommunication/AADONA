@@ -26,11 +26,29 @@ const buildDatasheetHTML = (product) => {
   const specsHTML = Object.entries(product.specifications || {})
     .map(([section, specs]) => {
       const rows = Object.entries(specs || {})
-        .map(([key, value], i) => `
+        .map(([key, value], i) => {
+          const values = Array.isArray(value)
+            ? value.filter(Boolean)
+            : value ? [value] : [];
+          const isMultiple = values.length > 1;
+
+          const valueCell = isMultiple
+            ? `<ul style="margin:0;padding:0;list-style:none;">${
+                values.map(point =>
+                  `<li style="display:flex;align-items:flex-start;gap:7px;margin-bottom:4px;">
+                    <span style="color:#25a86a;font-size:11px;margin-top:2px;flex-shrink:0;">•</span>
+                    <span>${point}</span>
+                  </li>`
+                ).join("")
+              }</ul>`
+            : `${values[0] ?? ""}`;
+
+          return `
           <tr>
-            <td style="padding:9px 14px;font-size:12px;font-weight:600;color:#2d4a2d;background:${i % 2 === 0 ? "#f3f8f3" : "#eaf2ea"};border:0.5px solid #dde8dd;width:38%;">${key}</td>
-            <td style="padding:9px 14px;font-size:12px;color:#444;background:${i % 2 === 0 ? "#fff" : "#fafffe"};border:0.5px solid #dde8dd;">${value}</td>
-          </tr>`)
+            <td style="padding:9px 14px;font-size:12px;font-weight:600;color:#2d4a2d;background:${i % 2 === 0 ? "#f3f8f3" : "#eaf2ea"};border:0.5px solid #dde8dd;width:38%;vertical-align:middle;text-align:center;">${key}</td>
+            <td style="padding:9px 14px;font-size:12px;color:#444;background:${i % 2 === 0 ? "#fff" : "#fafffe"};border:0.5px solid #dde8dd;vertical-align:middle;">${valueCell}</td>
+          </tr>`;
+        })
         .join("");
       return `
         <div style="margin-bottom:28px;page-break-inside:avoid;">
