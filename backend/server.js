@@ -982,7 +982,7 @@ app.get("/products/:slug", async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
 
     // SEO-friendly cache headers for product pages
-    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1458,7 +1458,7 @@ app.get("/blogs", async (req, res) => {
     const blogs = await Blog.find({ published: true })
       .sort({ createdAt: -1 })
       .select("-comments"); // Don't send comments in list view (faster)
-    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=30");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.json(blogs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1472,7 +1472,7 @@ app.get("/blogs/slug/:slug", async (req, res) => {
       published: true,
     });
     if (!blog) return res.status(404).json({ error: "Blog not found" });
-    res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=60");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.json(blog);
   } catch (err) {
     res.status(500).json({ error: err.message });
