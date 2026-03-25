@@ -90,10 +90,10 @@ const handleDownload = (docName) => {
 >
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div className="text-center">
-      <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
+      <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
         Warranty
       </h1>
-      <p className="mt-6 text-xl text-white max-w-3xl mx-auto">
+      <p className="mt-6 text-md text-white max-w-3xl mx-auto">
         Standard terms, claim process, and extended coverage.
       </p>
     </div>
