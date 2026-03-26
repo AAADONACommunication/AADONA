@@ -68,9 +68,9 @@ const buildDatasheetHTML = async (product) => {
         })
         .join("");
       return `
-        <div style="margin-bottom:28px;page-break-inside:avoid;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <div style="width:4px;height:16px;min-width:4px;background:linear-gradient(180deg,#25a86a,#1b7f4c);border-radius:2px;"></div>
+        <div style="margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:4px;height:16px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
             <div style="font-size:12px;font-weight:700;color:#1b7f4c;letter-spacing:0.8px;text-transform:uppercase;">${section}</div>
           </div>
           <table style="width:100%;border-collapse:collapse;">${rows}</table>
@@ -86,8 +86,6 @@ const buildDatasheetHTML = async (product) => {
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { width: 794px; margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
 
-  /* FIX: Removed min-height:1123px which forced blank extra pages.
-     page-break-after only on cover/back, NOT on content page. */
   .page-fixed {
     display: block;
     width: 794px;
@@ -98,7 +96,6 @@ const buildDatasheetHTML = async (product) => {
     overflow: hidden;
   }
 
-  /* FIX: Content page — auto height, NO forced page-break-after */
   .page-content {
     display: block;
     width: 794px;
@@ -116,9 +113,6 @@ const buildDatasheetHTML = async (product) => {
     object-fit: cover;
     display: block;
   }
-
-  table { page-break-inside: avoid; break-inside: avoid; }
-  tr { page-break-inside: avoid; break-inside: avoid; }
 </style>
 </head>
 <body>
@@ -131,23 +125,7 @@ const buildDatasheetHTML = async (product) => {
 
   <img class="page-bg" src="data:image/jpeg;base64,${bg}" />
 
-  <!-- FIX: Replaced heavy SVG dot-grid circles (200+ elements) with a single
-       lightweight radial-gradient overlay. Same visual effect, no render lag. -->
-  <svg style="position:absolute;top:0;left:0;width:794px;height:1123px;" viewBox="0 0 794 1123" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <radialGradient id="orb1" cx="75%" cy="20%" r="40%">
-        <stop offset="0%" stop-color="#1b4a7a" stop-opacity="0.35"/>
-        <stop offset="100%" stop-color="#07111f" stop-opacity="0"/>
-      </radialGradient>
-      <radialGradient id="orb2" cx="15%" cy="85%" r="35%">
-        <stop offset="0%" stop-color="#0d3d2a" stop-opacity="0.40"/>
-        <stop offset="100%" stop-color="#07111f" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <rect width="794" height="1123" fill="url(#orb1)"/>
-    <rect width="794" height="1123" fill="url(#orb2)"/>
-  </svg>
-
+  <!-- Single CSS overlay replaces all SVG + multiple gradient divs — no render lag -->
   <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(155deg,rgba(2,6,16,0.90) 0%,rgba(6,18,38,0.55) 40%,rgba(2,6,16,0.90) 100%);"></div>
   <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#25a86a 30%,#1b7f4c 70%,transparent);"></div>
   <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:linear-gradient(180deg,#1b7f4c 0%,#25a86a 40%,#2dca7e 60%,#1b7f4c 100%);"></div>
@@ -213,18 +191,18 @@ const buildDatasheetHTML = async (product) => {
   <div style="padding:40px 64px 80px 64px;">
 
     ${product.overview?.content ? `
-    <div style="margin-bottom:36px;page-break-inside:avoid;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <div style="width:4px;height:20px;min-width:4px;background:linear-gradient(180deg,#25a86a,#1b7f4c);border-radius:2px;"></div>
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
         <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Product Overview</div>
       </div>
       <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;border-left:2px solid #d8ead8;text-align:justify;">${product.overview.content}</div>
     </div>` : ""}
 
     ${(product.highlights || []).length ? `
-    <div style="margin-bottom:36px;page-break-inside:avoid;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <div style="width:4px;height:20px;min-width:4px;background:linear-gradient(180deg,#25a86a,#1b7f4c);border-radius:2px;"></div>
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
         <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Key Features</div>
       </div>
       <div style="padding-left:14px;">${highlightsHTML}</div>
@@ -232,8 +210,8 @@ const buildDatasheetHTML = async (product) => {
 
     ${Object.keys(product.specifications || {}).length ? `
     <div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-        <div style="width:4px;height:20px;min-width:4px;background:linear-gradient(180deg,#25a86a,#1b7f4c);border-radius:2px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
         <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Technical Specifications</div>
       </div>
       ${specsHTML}
@@ -253,17 +231,7 @@ const buildDatasheetHTML = async (product) => {
 
   <img class="page-bg" src="data:image/jpeg;base64,${bg}" />
 
-  <!-- FIX: Same dot-grid removal as cover page -->
-  <svg style="position:absolute;top:0;left:0;width:794px;height:1123px;" viewBox="0 0 794 1123" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <radialGradient id="orb3" cx="50%" cy="45%" r="45%">
-        <stop offset="0%" stop-color="#0d3d2a" stop-opacity="0.30"/>
-        <stop offset="100%" stop-color="#07111f" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <rect width="794" height="1123" fill="url(#orb3)"/>
-  </svg>
-
+  <!-- Single CSS overlay — no SVG, no lag -->
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,8,20,0.78) 0%,rgba(6,18,40,0.88) 55%,rgba(2,5,14,0.96) 100%);"></div>
   <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#25a86a 30%,#1b7f4c 70%,transparent);"></div>
   <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:linear-gradient(180deg,#1b7f4c 0%,#25a86a 40%,#2dca7e 60%,#1b7f4c 100%);"></div>
