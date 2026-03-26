@@ -62,7 +62,7 @@ const Hero = () => {
           src={hero}
           alt="AADONA – Empowering Bharat with Indian IT solutions"
           className="w-full h-full block object-cover absolute inset-0"
-          loading="eager"
+          loading="lazy"
           fetchpriority="high"
           draggable="false"
           onContextMenu={(e) => e.preventDefault()} // optional: blocks right-click save
