@@ -68,8 +68,8 @@ const buildDatasheetHTML = async (product) => {
         })
         .join("");
       return `
-        <div style="margin-bottom:24px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="margin-bottom:24px;padding-top:2px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-top:10px;">
             <div style="width:4px;height:16px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
             <div style="font-size:12px;font-weight:700;color:#1b7f4c;letter-spacing:0.8px;text-transform:uppercase;">${section}</div>
           </div>
@@ -82,10 +82,16 @@ const buildDatasheetHTML = async (product) => {
 <head>
 <meta charset="utf-8"/>
 <style>
-  @page { size: 794px 1123px; margin: 0; }
+  /* Global page size — content pages get 40px top/bottom margin for page-break breathing room */
+  @page { size: 794px 1123px; margin: 40px 0; }
+  /* First page (cover) and last page (back cover) bleed to full edge */
+  @page cover  { margin: 0; }
+  @page back   { margin: 0; }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { width: 794px; margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
 
+  /* Fixed-height pages (cover & back) use named page to get zero margin */
   .page-fixed {
     display: block;
     width: 794px;
@@ -95,7 +101,16 @@ const buildDatasheetHTML = async (product) => {
     position: relative;
     overflow: hidden;
   }
+  .cover-page  { page: cover; }
+  .back-cover  {
+    page: back;
+    page-break-before: always;
+    break-before: page;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
 
+  /* Content page — auto height, white bg */
   .page-content {
     display: block;
     width: 794px;
@@ -121,14 +136,14 @@ const buildDatasheetHTML = async (product) => {
 <!-- ═══════════════════════════════════════
      PAGE 1 — COVER
 ═══════════════════════════════════════ -->
-<div class="page-fixed">
+<div class="page-fixed cover-page">
 
   <img class="page-bg" src="data:image/jpeg;base64,${bg}" />
 
-  <!-- Single CSS overlay replaces all SVG + multiple gradient divs — no render lag -->
-  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(155deg,rgba(2,6,16,0.90) 0%,rgba(6,18,38,0.55) 40%,rgba(2,6,16,0.90) 100%);"></div>
-  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#25a86a 30%,#1b7f4c 70%,transparent);"></div>
-  <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:linear-gradient(180deg,#1b7f4c 0%,#25a86a 40%,#2dca7e 60%,#1b7f4c 100%);"></div>
+  <!-- Flat solid overlays — no gradients, no lag -->
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(4,10,24,0.88);"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#25a86a;"></div>
+  <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:#1b7f4c;"></div>
 
   <!-- FIX: Replaced display:table layout with position:absolute blocks for
        reliable alignment in PDF renderers — no more misaligned headings. -->
@@ -178,17 +193,17 @@ const buildDatasheetHTML = async (product) => {
 ═══════════════════════════════════════ -->
 <div class="page-content">
 
-  <div style="height:5px;background:linear-gradient(90deg,#1b7f4c,#25a86a 50%,#1b7f4c);"></div>
+  <div style="height:5px;background:#25a86a;"></div>
 
-  <!-- Sub-header -->
-  <div style="width:794px;height:52px;background:#f4f9f4;border-bottom:0.5px solid #d8ead8;display:flex;align-items:center;padding:0 64px;">
+  <!-- Sub-header — sticky at top of every content page -->
+  <div style="width:794px;height:52px;background:#f4f9f4;border-bottom:1px solid #d8ead8;display:flex;align-items:center;padding:0 64px;">
     <div style="flex:1;">
       <img src="data:image/jpeg;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
     </div>
     <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#1b7f4c;text-transform:uppercase;">${product.model || product.name}</div>
   </div>
 
-  <div style="padding:40px 64px 80px 64px;">
+  <div style="padding:40px 64px 60px 64px;">
 
     ${product.overview?.content ? `
     <div style="margin-bottom:32px;">
@@ -219,22 +234,25 @@ const buildDatasheetHTML = async (product) => {
 
   </div>
 
-  <div style="height:5px;background:linear-gradient(90deg,#1b7f4c,#25a86a 50%,#1b7f4c);"></div>
+  <!-- Bottom green bar with breathing room above it -->
+  <div style="height:40px;"></div>
+  <div style="height:5px;background:#25a86a;"></div>
 
 </div>
 
 
 <!-- ═══════════════════════════════════════
      LAST PAGE — BACK COVER
+     page-break-before forces a clean new page — fixes blue bleed into content
 ═══════════════════════════════════════ -->
-<div class="page-fixed" style="page-break-after:avoid;break-after:avoid;">
+<div class="page-fixed back-cover">
 
   <img class="page-bg" src="data:image/jpeg;base64,${bg}" />
 
-  <!-- Single CSS overlay — no SVG, no lag -->
-  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,8,20,0.78) 0%,rgba(6,18,40,0.88) 55%,rgba(2,5,14,0.96) 100%);"></div>
-  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#25a86a 30%,#1b7f4c 70%,transparent);"></div>
-  <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:linear-gradient(180deg,#1b7f4c 0%,#25a86a 40%,#2dca7e 60%,#1b7f4c 100%);"></div>
+  <!-- Flat solid overlays — no gradients, no lag -->
+  <div style="position:absolute;inset:0;background:rgba(4,10,24,0.92);"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#25a86a;"></div>
+  <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:#1b7f4c;"></div>
 
   <!-- Centred logo -->
   <div style="position:absolute;top:50%;left:5px;right:0;transform:translateY(-60%);text-align:center;">
