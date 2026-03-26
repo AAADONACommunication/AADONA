@@ -134,7 +134,7 @@ const CertificationsSection = () => {
   return (
     <>
       <Helmet>
-        <title>Our Certifications – AADONA ISO, MSME, Make in India & More</title>
+        <title>AADONA – Truly Indian IT Solutions Brand for Bharat</title>
         <meta
           name="description"
           content="AADONA holds certifications including ISO 9001, ISO 27001, ISO 14001, ISO 20000, DPIIT, Make in India, MSME, CE, RoHS, and Startup India recognition."

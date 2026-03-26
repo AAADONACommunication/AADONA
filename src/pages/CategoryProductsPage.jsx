@@ -1,15 +1,14 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import CheckCircle from "../assets/checkcircle.png";
-import banner_animation from '../assets/banner8.mp4'
+import banner_animation from "../assets/banner8.mp4";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;
 const CATEGORY_API = `${import.meta.env.VITE_API_URL}/categories`;
 
-// Convert any name to slug for comparison - KEEPING YOUR ORIGINAL LOGIC
 const nameToSlug = (name) =>
   name.trim().toLowerCase().replace(/\s+/g, "").replace(/[^\w]+/g, "");
 
@@ -42,8 +41,7 @@ const SubCategorySkeleton = () => (
 );
 
 /* -------------------- PRODUCT CARD -------------------- */
-const ProductCard = ({ product }) => {
-  // ✅ UPDATED URL: /categoryname/productslug
+const ProductCard = memo(({ product }) => {
   const categoryPath = nameToSlug(product.category);
   const detailUrl = `/${categoryPath}/${product.slug}`;
 
@@ -53,7 +51,13 @@ const ProductCard = ({ product }) => {
       className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group transform transition duration-300 ease-in-out hover:shadow-2xl hover:scale-[1.02] hover:border-green-500 border border-transparent"
     >
       <div className="h-48 flex items-center justify-center p-4 bg-gray-50 border-b border-gray-100">
-        <img className="max-h-full object-contain" src={product.image} alt={product.name} loading="lazy" />
+        <img
+          className="max-h-full object-contain"
+          src={product.image}
+          alt={product.name}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div className="p-4 sm:p-6 flex-grow flex flex-col justify-between text-left">
         <div>
@@ -64,7 +68,7 @@ const ProductCard = ({ product }) => {
           <ul className="text-gray-700 text-base mb-6 space-y-2">
             {product.features.map((feature, index) => (
               <li key={index} className="flex items-center">
-                <img src={CheckCircle} alt="Check" className="h-5 w-5 mr-2 flex-shrink-0" loading="lazy" />
+                <img src={CheckCircle} alt="" aria-hidden="true" className="h-5 w-5 mr-2 flex-shrink-0" loading="lazy" />
                 <span>{feature}</span>
               </li>
             ))}
@@ -78,10 +82,10 @@ const ProductCard = ({ product }) => {
       </div>
     </div>
   );
-};
+});
 
 /* -------------------- RELATED PRODUCTS -------------------- */
-const RelatedProducts = ({ relatedProducts }) => {
+const RelatedProducts = memo(({ relatedProducts }) => {
   const trackRef = useRef(null);
   const animationRef = useRef(null);
   const positionRef = useRef(0);
@@ -90,25 +94,20 @@ const RelatedProducts = ({ relatedProducts }) => {
   const startX = useRef(0);
   const startPos = useRef(0);
 
-  // Check if scrolling is needed
-  // Desktop par 4 se zyada, Mobile par 2 se zyada (ya aap apni marzi se limit set kar sakte hain)
   const shouldScroll = relatedProducts && relatedProducts.length > 4;
 
   useEffect(() => {
-    // Agar products nahi hain ya count kam hai, toh animation mat chalao
     if (!relatedProducts || !shouldScroll) return;
 
     const timeout = setTimeout(() => {
       const track = trackRef.current;
       if (!track) return;
-      
+
       const speed = 0.6;
       const animate = () => {
         if (!isPaused.current && !isDragging.current) {
           positionRef.current += speed;
-          // track.scrollWidth / 2 isliye kyunki humne items double kiye hain
           const totalWidth = track.scrollWidth / 2;
-          
           if (positionRef.current >= totalWidth) positionRef.current = 0;
           track.style.transform = `translateX(-${positionRef.current}px)`;
         }
@@ -121,18 +120,16 @@ const RelatedProducts = ({ relatedProducts }) => {
       clearTimeout(timeout);
       cancelAnimationFrame(animationRef.current);
     };
-  }, [relatedProducts, shouldScroll]); // Added shouldScroll to dependency
+  }, [relatedProducts, shouldScroll]);
 
   if (!relatedProducts || relatedProducts.length === 0) return null;
 
-  // Sirf tabhi double karein jab scroll karna ho
   const displayProducts = shouldScroll ? [...relatedProducts, ...relatedProducts] : relatedProducts;
 
   return (
-    <div className="mt-24  py-16  overflow-hidden">
+    <div className="mt-24 py-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-3xl font-bold text-center text-green-700 mb-10">Related Products</h2>
-        
         <div
           style={{ overflow: "hidden" }}
           onPointerEnter={() => (isPaused.current = true)}
@@ -157,8 +154,7 @@ const RelatedProducts = ({ relatedProducts }) => {
               display: "flex",
               gap: "3rem",
               width: "max-content",
-              // Jab items kam hon, toh screen ke center mein dikhane ke liye logic
-              margin: shouldScroll ? "0" : "0 auto", 
+              margin: shouldScroll ? "0" : "0 auto",
               justifyContent: shouldScroll ? "flex-start" : "center",
               cursor: shouldScroll ? "grab" : "default",
               userSelect: "none",
@@ -175,7 +171,11 @@ const RelatedProducts = ({ relatedProducts }) => {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div style={{ height: "160px", width: "160px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem" }}>
                     <img
-                      src={product.image} alt={product.name} draggable="false" loading="lazy"
+                      src={product.image}
+                      alt={product.name}
+                      draggable="false"
+                      loading="lazy"
+                      decoding="async"
                       style={{ objectFit: "contain", maxHeight: "100%", pointerEvents: "none" }}
                     />
                   </div>
@@ -190,9 +190,20 @@ const RelatedProducts = ({ relatedProducts }) => {
       </div>
     </div>
   );
-};
+});
 
 /* -------------------- MAIN PAGE -------------------- */
+const detailContent = {
+  "Business": { title: "Business Grade Solutions", para: "Optimized for Small to Medium Enterprises (SMEs). These solutions provide professional-grade reliability and performance for growing businesses." },
+  "Enterprise": { title: "Enterprise Infrastructure", para: "Designed for mission-critical deployments, high-density environments, and complex network architectures requiring the highest standards." },
+  "Web Smart POE": { title: "Web Smart POE", para: "Power over Ethernet switches with smart management features for enhanced network control." },
+  "Web Smart Non POE": { title: "Web Smart Non POE", para: "High-performance smart switches for data-only network requirements." },
+  "Managed POE": { title: "Managed POE", para: "Fully managed switches providing granular control and power delivery for networked devices." },
+  "Managed Non POE": { title: "Managed Non POE", para: "Advanced managed switches for secure, high-speed backbone connectivity." },
+  "POE Switches": { title: "POE Enabled", para: "Delivering both data and power through a single cable for simplified infrastructure." },
+  "Non POE Switches": { title: "Standard Connectivity", para: "Reliable, high-speed data switching for high-performance computing environments." }
+};
+
 export default function CategoryProductsPage() {
   const { categoryName: categorySlug } = useParams();
 
@@ -202,34 +213,42 @@ export default function CategoryProductsPage() {
   const [activeSubCategory, setActiveSubCategory] = useState("");
   const [activeDetail, setActiveDetail] = useState("");
   const [relatedProducts, setRelatedProducts] = useState([]);
-
   const [orderedSubCategories, setOrderedSubCategories] = useState([]);
   const [orderedExtraCategories, setOrderedExtraCategories] = useState([]);
 
-  const detailContent = {
-    "Business": {
-      title: "Business Grade Solutions",
-      para: "Optimized for Small to Medium Enterprises (SMEs). These solutions provide professional-grade reliability and performance for growing businesses."
-    },
-    "Enterprise": {
-      title: "Enterprise Infrastructure",
-      para: "Designed for mission-critical deployments, high-density environments, and complex network architectures requiring the highest standards."
-    },
-    "Web Smart POE": { title: "Web Smart POE", para: "Power over Ethernet switches with smart management features for enhanced network control." },
-    "Web Smart Non POE": { title: "Web Smart Non POE", para: "High-performance smart switches for data-only network requirements." },
-    "Managed POE": { title: "Managed POE", para: "Fully managed switches providing granular control and power delivery for networked devices." },
-    "Managed Non POE": { title: "Managed Non POE", para: "Advanced managed switches for secure, high-speed backbone connectivity." },
-    "POE Switches": { title: "POE Enabled", para: "Delivering both data and power through a single cable for simplified infrastructure." },
-    "Non POE Switches": { title: "Standard Connectivity", para: "Reliable, high-speed data switching for high-performance computing environments." }
-  };
+  // SEO: dynamic title + schema.org structured data
+  useEffect(() => {
+    if (!actualCategoryName) return;
+    const prev = document.title;
+    document.title = `${actualCategoryName} Products`;
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "cat-schema";
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: `${actualCategoryName} Products`,
+      description: `Browse all ${actualCategoryName} products`,
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      document.title = prev;
+      document.getElementById("cat-schema")?.remove();
+    };
+  }, [actualCategoryName]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     setLoading(true);
 
+    // AbortController: unmount pe fetch cancel — memory leak fix
+    const controller = new AbortController();
+
     Promise.all([
-      fetch(`${API}?sort=order`).then(r => r.json()),
-      fetch(CATEGORY_API).then(r => r.json()),
+      fetch(`${API}?sort=order`, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
+      fetch(CATEGORY_API, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
     ])
       .then(([productsData, categoriesData]) => {
         const filtered = productsData.filter(p => nameToSlug(p.category) === categorySlug);
@@ -239,15 +258,12 @@ export default function CategoryProductsPage() {
           const catName = filtered[0].category;
           setActualCategoryName(catName);
 
-          const categoryDoc = categoriesData.find(
-            c => nameToSlug(c.name) === categorySlug
-          );
+          const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
 
           if (categoryDoc && categoryDoc.subCategories?.length > 0) {
             const subsWithProducts = categoryDoc.subCategories
               .map(s => s.name)
               .filter(subName => filtered.some(p => p.subCategory === subName));
-
             setOrderedSubCategories(subsWithProducts);
             setActiveSubCategory(subsWithProducts[0] || "");
             setOrderedExtraCategories(categoryDoc.subCategories);
@@ -259,8 +275,10 @@ export default function CategoryProductsPage() {
           }
         }
       })
-      .catch(err => console.error("API Error:", err))
+      .catch(err => { if (err.name !== "AbortError") console.warn("Failed to load data"); })
       .finally(() => setLoading(false));
+
+    return () => controller.abort();
   }, [categorySlug]);
 
   useEffect(() => {
@@ -284,13 +302,17 @@ export default function CategoryProductsPage() {
 
   useEffect(() => {
     if (!actualCategoryName || !activeSubCategory) return;
+
+    const controller = new AbortController();
     const params = new URLSearchParams({ category: actualCategoryName, subCategory: activeSubCategory });
     if (activeDetail) params.append("extraCategory", activeDetail);
 
-    fetch(`${RELATED_API}?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => setRelatedProducts(data.relatedProducts || []))
-      .catch(() => setRelatedProducts([]));
+    fetch(`${RELATED_API}?${params.toString()}`, { signal: controller.signal, credentials: "same-origin" })
+      .then(res => res.json())
+      .then(data => setRelatedProducts(data.relatedProducts || []))
+      .catch(err => { if (err.name !== "AbortError") setRelatedProducts([]); });
+
+    return () => controller.abort();
   }, [actualCategoryName, activeSubCategory, activeDetail]);
 
   const detailOptions = (() => {
@@ -311,94 +333,90 @@ export default function CategoryProductsPage() {
     return matchesSub;
   });
 
-  
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-<div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden">
 
-  {/* Background Video */}
-<video
-  autoPlay
-  muted
-  loop
-  playsInline
-  preload="auto"
-  className="absolute inset-0 w-full h-full object-cover"
->
-  <source src={banner_animation} type="video/mp4" />
-</video>
+      <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden">
+        {/* preload="none" — video tab open pe load nahi hogi, sabse bada load time fix */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src={banner_animation} type="video/mp4" />
+        </video>
 
-
-  {/* Content */}
-  <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
-    <h1 className="text-4xl sm:text-4xl md:text-5xl font-extrabold text-white border-b-4 border-green-500 inline-block pb-1">
-      {actualCategoryName}
-    </h1>
-  </div>
-
-</div>
-
- <div className="max-w-7xl mx-auto px-6 mt-7 space-y-3 flex flex-col items-center">
-  {loading ? (
-    <SubCategorySkeleton />
-  ) : (
-    <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 sm:pt-4 md:gap-4 w-full max-w-5xl">
-      {orderedSubCategories.filter(cat => cat && cat.trim()).map((cat, index) => {
-        const isOdd = orderedSubCategories.length % 2 !== 0;
-        const isLast = index === orderedSubCategories.length - 1;
-
-        return (
-          <button
-            key={cat}
-            onClick={() => setActiveSubCategory(cat)}
-            className={`px-2 py-1 sm:px-8 sm:py-2 text-sm sm:text-base rounded-lg font-semibold transition-all duration-300 w-full sm:w-auto
-              min-w-0 break-words whitespace-normal text-center
-              ${isOdd && isLast ? "col-span-2 mx-auto" : ""}
-              ${
-                activeSubCategory === cat
-                  ? "bg-green-600 text-white shadow-md"
-                  : "bg-white text-gray-600 border hover:bg-gray-100"
-              }`}
-          >
-            {cat}
-          </button>
-        );
-      })}
-    </div>
-  )}
-  {!loading && detailOptions.length > 0 && (
-    <div className="flex flex-col items-center space-y-8 w-full">
-      <div className="flex items-center gap-2 bg-gray-200/60 p-1.5 rounded-full border border-gray-300 flex-wrap justify-center">
-        {detailOptions.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => setActiveDetail(opt)}
-            className={`px-10 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
-              activeDetail === opt
-                ? "bg-white text-green-700 shadow-md"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
+        <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
+          <h1 className="text-4xl sm:text-4xl md:text-5xl font-extrabold text-white border-b-4 border-green-500 inline-block pb-1">
+            {actualCategoryName}
+          </h1>
+        </div>
       </div>
 
-      {activeDetail && detailContent[activeDetail] && (
-        <div className="max-w-4xl w-full p-8 bg-white border-l-8 border-green-500 shadow-xl rounded-r-xl text-left">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            {detailContent[activeDetail].title}
-          </h2>
-          <p className="text-gray-600 italic leading-relaxed text-justify">
-            {detailContent[activeDetail].para}
-          </p>
-        </div>
-      )}
-    </div>
-  )}
-</div>
+      <div className="max-w-7xl mx-auto px-6 mt-7 space-y-3 flex flex-col items-center">
+        {loading ? (
+          <SubCategorySkeleton />
+        ) : (
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 sm:pt-4 md:gap-4 w-full max-w-5xl">
+            {orderedSubCategories.filter(cat => cat && cat.trim()).map((cat, index) => {
+              const isOdd = orderedSubCategories.length % 2 !== 0;
+              const isLast = index === orderedSubCategories.length - 1;
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveSubCategory(cat)}
+                  className={`px-2 py-1 sm:px-8 sm:py-2 text-sm sm:text-base rounded-lg font-semibold transition-all duration-300 w-full sm:w-auto
+                    min-w-0 break-words whitespace-normal text-center
+                    ${isOdd && isLast ? "col-span-2 mx-auto" : ""}
+                    ${activeSubCategory === cat
+                      ? "bg-green-600 text-white shadow-md"
+                      : "bg-white text-gray-600 border hover:bg-gray-100"
+                    }`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {!loading && detailOptions.length > 0 && (
+          <div className="flex flex-col items-center space-y-8 w-full">
+            <div className="flex items-center gap-2 bg-gray-200/60 p-1.5 rounded-full border border-gray-300 flex-wrap justify-center">
+              {detailOptions.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => setActiveDetail(opt)}
+                  className={`px-10 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+                    activeDetail === opt
+                      ? "bg-white text-green-700 shadow-md"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+
+            {activeDetail && detailContent[activeDetail] && (
+              <div className="max-w-4xl w-full p-8 bg-white border-l-8 border-green-500 shadow-xl rounded-r-xl text-left">
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                  {detailContent[activeDetail].title}
+                </h2>
+                <p className="text-gray-600 italic leading-relaxed text-justify">
+                  {detailContent[activeDetail].para}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="max-w-7xl mx-auto py-12 px-4 flex-grow w-full">
         {loading ? (
@@ -417,7 +435,6 @@ export default function CategoryProductsPage() {
       </div>
 
       <RelatedProducts relatedProducts={relatedProducts} />
-      {/* </div> */}
       <Footer />
     </div>
   );

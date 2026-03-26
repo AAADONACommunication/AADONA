@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { HelmetProvider } from 'react-helmet-async'
 import Navbar from '../Components/Navbar'
 import Hero from '../Components/Hero'
 import Counter from '../Components/Counter'
@@ -15,17 +16,19 @@ const Home = () => {
   }, [])
 
   return (
-    <div>
-      {/* <Chatbot /> */}
-      <Navbar />
-      <Hero />
-      <Counter />
-      <TimeLine />
-      <Customers />
-      <Verticals />
-      <Certifications />
-      <Footer />
-    </div>
+    <HelmetProvider>
+      <div>
+        {/* <Chatbot /> */}
+        <Navbar />
+        <Hero />
+        <Counter />
+        <TimeLine />
+        <Customers />
+        <Verticals />
+        <Certifications />
+        <Footer />
+      </div>
+    </HelmetProvider>
   )
 }
 
