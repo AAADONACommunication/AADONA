@@ -4,7 +4,7 @@ import Hero from '../Components/Hero'
 import Counter from '../Components/Counter'
 import TimeLine from '../Components/TimeLine'
 import Footer from '../Components/Footer'
-import Verticals from '../Components/Verticals'
+import Portfolio from '../Components/Portfolio'
 import Certifications from '../Components/Certifications'
 import Customers from '../Components/OurCustomers'
 import Chatbot from '../Components/Chatbot'
@@ -22,7 +22,7 @@ const Home = () => {
       <Counter />
       <TimeLine />
       <Customers />
-      <Verticals />
+      <Portfolio />
       <Certifications />
       <Footer />
     </div>

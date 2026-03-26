@@ -22,7 +22,6 @@
     "react": "^19.1.1",
     "react-chatbotify": "^2.4.1",
     "react-dom": "^19.1.1",
-    "react-helmet-async": "^3.0.0",
     "react-icons": "^5.6.0",
     "react-router-dom": "^7.9.4",
     "react-scripts": "^0.0.0"

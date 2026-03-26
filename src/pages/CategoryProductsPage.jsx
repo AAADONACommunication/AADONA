@@ -4,7 +4,6 @@ import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import CheckCircle from "../assets/checkcircle.png";
 import banner_animation from '../assets/banner8.mp4'
-import { Helmet } from "react-helmet-async";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;
@@ -54,7 +53,7 @@ const ProductCard = ({ product }) => {
       className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group transform transition duration-300 ease-in-out hover:shadow-2xl hover:scale-[1.02] hover:border-green-500 border border-transparent"
     >
       <div className="h-48 flex items-center justify-center p-4 bg-gray-50 border-b border-gray-100">
-        <img className="max-h-full object-contain" src={product.image} alt={`${product.name} by AADONA`} loading="lazy" />
+        <img className="max-h-full object-contain" src={product.image} alt={product.name} loading="lazy" />
       </div>
       <div className="p-4 sm:p-6 flex-grow flex flex-col justify-between text-left">
         <div>
@@ -65,7 +64,7 @@ const ProductCard = ({ product }) => {
           <ul className="text-gray-700 text-base mb-6 space-y-2">
             {product.features.map((feature, index) => (
               <li key={index} className="flex items-center">
-                <img src={CheckCircle} alt="feature check icon" className="h-5 w-5 mr-2 flex-shrink-0" loading="lazy" />
+                <img src={CheckCircle} alt="Check" className="h-5 w-5 mr-2 flex-shrink-0" loading="lazy" />
                 <span>{feature}</span>
               </li>
             ))}
@@ -176,7 +175,7 @@ const RelatedProducts = ({ relatedProducts }) => {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div style={{ height: "160px", width: "160px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem" }}>
                     <img
-                      src={product.image} alt={`${product.name} product`} draggable="false" loading="lazy"
+                      src={product.image} alt={product.name} draggable="false" loading="lazy"
                       style={{ objectFit: "contain", maxHeight: "100%", pointerEvents: "none" }}
                     />
                   </div>
@@ -315,29 +314,6 @@ export default function CategoryProductsPage() {
   
 
   return (
-    <>
-  <Helmet>
-    <title>
-      {actualCategoryName
-        ? `${actualCategoryName} Products | AADONA`
-        : "Products | AADONA"}
-    </title>
-
-    <meta
-      name="description"
-      content={`Explore ${
-        actualCategoryName || "IT"
-      } products by AADONA including networking and enterprise solutions.`}
-    />
-
-    <meta
-      name="keywords"
-      content={`${actualCategoryName}, AADONA products, IT solutions`}
-    />
-
-    <meta property="og:title" content={`${actualCategoryName} | AADONA`} />
-    <meta property="og:type" content="website" />
-  </Helmet>
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden">
@@ -444,6 +420,5 @@ export default function CategoryProductsPage() {
       {/* </div> */}
       <Footer />
     </div>
-    </>
   );
 }
