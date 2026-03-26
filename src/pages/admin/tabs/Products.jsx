@@ -228,7 +228,12 @@ export default function Products({ products, setProducts, allCategories, reloadP
         subCategory: form.subCategory.trim(),
         extraCategory: hasExtraOptions ? form.extraCategory.trim() : null,
         overview: form.overview || {},
-        featuresDetail: form.featuresDetail || [],
+        featuresDetail: (form.featuresDetail || []).map(item => ({
+          ...item,
+          itemType: item.itemType 
+            ? item.itemType 
+            : (item.title?.trim() ? "subheading" : "bullet"),
+        })),
         specifications: form.specifications || {},
         datasheet: datasheetUrl,
       };
@@ -282,7 +287,9 @@ export default function Products({ products, setProducts, allCategories, reloadP
       overview: p.overview || {},
       featuresDetail: (p.featuresDetail || []).map((item) => ({
         ...item,
-        itemType: item.itemType || (item.title ? "subheading" : "bullet"),
+        itemType: item.itemType 
+          ? item.itemType 
+          : (item.title && item.title.trim() !== "" ? "subheading" : "bullet"),
       })),
       specifications: p.specifications || {},
       datasheet: p.datasheet || "",
@@ -571,7 +578,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                     <X size={16} />
                   </button>
 
-                  {item.itemType === "subheading" && (
+                  {(item.itemType === "subheading" || (item.title && item.title.trim() !== "")) && (
                     <input
                       className={`${inputStyle} mb-2`}
                       placeholder="Subheading title"
