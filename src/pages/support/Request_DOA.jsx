@@ -3,6 +3,8 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { ClipboardList, FileWarning, CheckCircle2, UploadCloud, Calendar, Mail, Phone, MapPin, Hash, Send, X } from "lucide-react";
 import bg from "../../assets/bg.jpg";
+import rdoabanner from '../../assets/RequestDOABanner.png'
+
 
 const Reveal = ({ children, className = "" }) => {
   const ref = useRef(null);
@@ -149,16 +151,22 @@ const RequestDOA = () => {
       <Navbar />
 
       
-        <div className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16">
+         <div
+          className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${rdoabanner})` }}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">Request DOA</h1>
-              <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-                Raise a Dead-On-Arrival request & review our product return policies.
+              <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+                Request DOA
+              </h1>
+              <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+                Raise a Dead-On-Arrival request & review our product return policies
               </p>
             </div>
           </div>
         </div>
+        
 
           <div
                       className="bg-cover bg-fixed py-16"

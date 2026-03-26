@@ -2,6 +2,8 @@ import {React,useEffect} from "react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg"; // your downloaded bg
+import stbanner from '../../assets/SupportToolsBanner.png'
+
 
 const SupportTools = () => {
 
@@ -13,17 +15,23 @@ const SupportTools = () => {
     <div className="min-h-screen">
       <Navbar />
 
-        {/* HERO SECTION - matches CSR style */}
-        <div className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
-              Support Tools
-            </h1>
-            <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
+        
+                 <div
+                  className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${stbanner})` }}
+                >
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                      <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+                        Request DOA
+                      </h1>
+                      <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+                        Access comprehensive support tools and resources
+                      </p>
+                    </div>
+                  </div>
+                </div>
               Access comprehensive support tools and resources
-            </p>
-          </div>
-        </div>
 
           <div
                       className="bg-cover bg-fixed py-16"
