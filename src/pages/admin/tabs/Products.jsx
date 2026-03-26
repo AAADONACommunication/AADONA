@@ -280,7 +280,10 @@ export default function Products({ products, setProducts, allCategories, reloadP
       imageFile: null,
       features: p.features || [],
       overview: p.overview || {},
-      featuresDetail: p.featuresDetail || [],
+      featuresDetail: (p.featuresDetail || []).map((item) => ({
+        ...item,
+        itemType: item.itemType || (item.title ? "subheading" : "bullet"),
+      })),
       specifications: p.specifications || {},
       datasheet: p.datasheet || "",
       relatedType: "", relatedCategory: "", relatedSubCategory: "",
@@ -568,7 +571,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                     <X size={16} />
                   </button>
 
-                  {item._type === "subheading" && (
+                  {item.itemType === "subheading" && (
                     <input
                       className={`${inputStyle} mb-2`}
                       placeholder="Subheading title"
@@ -584,7 +587,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                   <textarea
                     className={inputStyle}
                     rows="2"
-                    placeholder={item._type === "subheading" ? "Description / paragraph under subheading" : "Bullet point text"}
+                    placeholder={item.itemType === "subheading" ? "Description / paragraph under subheading" : "Bullet point text"}
                     value={item.description || ""}
                     onChange={(e) => {
                       const updated = [...form.featuresDetail];
@@ -603,7 +606,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                   onClick={() =>
                     setForm({
                       ...form,
-                      featuresDetail: [...(form.featuresDetail || []), { _type: "bullet", title: "", description: "" }],
+                      featuresDetail: [...(form.featuresDetail || []), { itemType: "bullet", title: "", description: "" }],
                     })
                   }
                 >
@@ -616,7 +619,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                   onClick={() =>
                     setForm({
                       ...form,
-                      featuresDetail: [...(form.featuresDetail || []), { _type: "subheading", title: "New Subheading", description: "" }],
+                      featuresDetail: [...(form.featuresDetail || []), { itemType: "subheading", title: "New Subheading", description: "" }],
                     })
                   }
                 >

@@ -339,6 +339,7 @@ const ProductSchema = new mongoose.Schema(
     },
     featuresDetail: [
       {
+        itemType: { type: String, default: "bullet" },
         iconType: { type: String },
         title: { type: String },
         description: { type: String },
