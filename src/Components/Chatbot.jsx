@@ -251,9 +251,11 @@ export default function Chatbot() {
   const [quickReplies, setQuickReplies] = useState(QUICK_REPLY_MAP.default);
   const [hasUnread, setHasUnread] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [showCallDrawer, setShowCallDrawer] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const callDrawerRef = useRef(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -283,6 +285,18 @@ export default function Chatbot() {
       } catch { }
     }
   }, []);
+
+  // Close call drawer on outside click
+  useEffect(() => {
+    if (!showCallDrawer) return;
+    const handler = (e) => {
+      if (callDrawerRef.current && !callDrawerRef.current.contains(e.target)) {
+        setShowCallDrawer(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showCallDrawer]);
 
   const loadHistory = (phone) => {
     try {
@@ -424,14 +438,15 @@ export default function Chatbot() {
 
   const handleOpen = () => { setIsOpen(true); setHasUnread(false); };
   const [showBubble, setShowBubble] = useState(false);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    
   };
+
   useEffect(() => {
-  const timer = setTimeout(() => setShowBubble(true), 5000);
-  return () => clearTimeout(timer);
-}, []);
+    const timer = setTimeout(() => setShowBubble(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const winHeight = isRegistered ? 560 : 500;
   const winWidth = isMobile ? 'calc(100vw - 24px)' : '360px';
@@ -477,6 +492,11 @@ export default function Chatbot() {
           0%,100% { transform: translateX(-50%) translateY(0); }
           50%     { transform: translateX(-50%) translateY(-3px); }
         }
+        @keyframes drawerSlideUp {
+          from { opacity: 0; transform: translateY(8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .call-drawer-enter { animation: drawerSlideUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
 
         .notif-badge {
           position: absolute;
@@ -507,7 +527,6 @@ export default function Chatbot() {
           z-index: -1;
         }
 
-        /* ── UPDATED: Bubble now top-center ── */
         .notif-bubble {
           position: absolute;
           bottom: calc(100% + 10px);
@@ -536,7 +555,6 @@ export default function Chatbot() {
           border-top-color: #1e293b;
         }
 
-        /* ── Tooltip ── */
         .ac-btn-wrap { position: relative; display: flex; }
         .ac-tooltip {
           position: absolute;
@@ -568,6 +586,22 @@ export default function Chatbot() {
         .ac-btn-wrap:hover .ac-tooltip {
           opacity: 1;
           transform: translateY(-50%) translateX(0);
+        }
+
+        .call-number-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #f1faf7;
+          border-radius: 10px;
+          padding: 10px 12px;
+          text-decoration: none;
+          border: 1px solid #a7f3d0;
+          transition: background 0.15s, border-color 0.15s;
+        }
+        .call-number-row:hover {
+          background: #d1fae5;
+          border-color: #6ee7b7;
         }
       `}</style>
 
@@ -642,12 +676,16 @@ export default function Chatbot() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <a href={`tel:${TOLL_FREE}`} title={`Call ${TOLL_FREE_DISPLAY}`}
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white">
+                      {/* Phone icon — opens call drawer, does NOT dial */}
+                      <button
+                        onClick={() => setShowCallDrawer(prev => !prev)}
+                        title={`Call ${TOLL_FREE_DISPLAY}`}
+                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white"
+                      >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
                         </svg>
-                      </a>
+                      </button>
                       <button onClick={handleClearHistory} title="Clear chat"
                         className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/70 hover:text-white">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -727,17 +765,128 @@ export default function Chatbot() {
         )}
 
         {/* ── Launcher Cylinder ── */}
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div ref={callDrawerRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
           {/* ── Notification badge + bubble ── */}
-         {!isOpen && hasUnread && showBubble && (            <>
-              {/* Floating speech bubble — now TOP CENTER */}
+          {!isOpen && hasUnread && showBubble && (
+            <>
               <div className="notif-bubble">
                 👋 Hi! Got a question?
               </div>
-              {/* Red pulsing dot */}
               <span className="notif-badge">1</span>
             </>
+          )}
+
+          {/* ── Call Drawer ── */}
+          {showCallDrawer && (
+            <div
+              className="call-drawer-enter"
+              style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 12px)',
+                right: 0,
+                width: '240px',
+                background: '#ffffff',
+                border: '1px solid rgba(0,0,0,0.09)',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.13)',
+                zIndex: 100,
+              }}
+            >
+              {/* Drawer header */}
+              <div style={{
+                background: 'linear-gradient(135deg,#0d9488,#0f766e)',
+                padding: '10px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24">
+                    <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
+                  </svg>
+                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600, letterSpacing: '0.2px' }}>
+                    Contact Support
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowCallDrawer(false)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'rgba(255,255,255,0.75)', padding: '2px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: '4px', transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
+                >
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Drawer body */}
+              <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
+                <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                  Toll-Free Support Line
+                </p>
+
+                {/* Clickable number — the ONLY place that triggers a call */}
+                <a
+                  href={`tel:${TOLL_FREE}`}
+                  className="call-number-row"
+                  onClick={() => setShowCallDrawer(false)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                    <div style={{
+                      width: '30px', height: '30px', borderRadius: '50%',
+                      background: 'linear-gradient(135deg,#10b981,#0d9488)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24">
+                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
+                      </svg>
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>
+                      {TOLL_FREE_DISPLAY}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#0d9488', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                    Tap to call →
+                  </span>
+                </a>
+
+                {/* Hours */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                  padding: '4px 0 2px',
+                }}>
+                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/>
+                  </svg>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>
+                    Mon – Sat · 9 AM to 6 PM IST
+                  </span>
+                </div>
+
+                {/* Free badge */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  background: '#ecfdf5', borderRadius: '8px', padding: '6px 10px',
+                  border: '1px solid #a7f3d0',
+                }}>
+                  <svg width="11" height="11" fill="#10b981" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  <span style={{ fontSize: '10px', color: '#065f46', fontWeight: 500 }}>
+                    Free from all Indian networks
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Pill container */}
@@ -784,29 +933,28 @@ export default function Chatbot() {
             {/* Divider */}
             <div style={{ height: '1px', background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
 
-            {/* Call button */}
+            {/* Call button — opens drawer only, never dials directly */}
             <div className="ac-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
-              <span className="ac-tooltip">
-                📞 {TOLL_FREE_DISPLAY}
-              </span>
-              <a
-                href={`tel:${TOLL_FREE}`}
+              <span className="ac-tooltip">📞 {TOLL_FREE_DISPLAY}</span>
+              <button
+                onClick={() => setShowCallDrawer(prev => !prev)}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   height: '56px', width: '56px',
-                  background: 'linear-gradient(135deg,#0d9488,#0f766e)',
+                  background: showCallDrawer
+                    ? 'linear-gradient(135deg,#0f766e,#115e59)'
+                    : 'linear-gradient(135deg,#0d9488,#0f766e)',
+                  border: 'none', cursor: 'pointer',
                   transition: 'background 0.15s',
-                  textDecoration: 'none',
+                  outline: 'none',
                   borderRadius: '0 0 9999px 9999px',
                   overflow: 'hidden',
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg,#0f766e,#115e59)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg,#0d9488,#0f766e)'}
               >
                 <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
-                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
+                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
                 </svg>
-              </a>
+              </button>
             </div>
 
           </div>
