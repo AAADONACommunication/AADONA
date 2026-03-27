@@ -1,8 +1,8 @@
 import hero6 from '../assets/hero6.jpg'
-import vision1 from '../assets/vision1.png'
-import vision2 from '../assets/vision2.png'
-import vision3 from '../assets/vision3.png'
-import vision4 from '../assets/vision4.png'
+import vision1 from '../assets/vision1.jpeg'
+import vision2 from '../assets/vision2.jpeg'
+import vision3 from '../assets/vision3.jpeg'
+import vision4 from '../assets/vision4.jpeg'
 
 export const timelineData = [
   {
