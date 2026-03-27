@@ -10,6 +10,24 @@ import Certifications from '../Components/Certifications'
 import Customers from '../Components/OurCustomers'
 // import Chatbot from '../Components/Chatbot'
 
+/* -------- Structured Data (JSON-LD) for SEO -------- */
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "AADONA",
+  url: "https://www.aadona.com",
+  logo: "https://www.aadona.com/logo.png", // ← update with your actual logo URL
+  description:
+    "AADONA is India's premier IT networking solutions provider offering Wireless, Network Switches, Network Attached Storage, and more.",
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "IN",
+  },
+  sameAs: [
+    "https://in.linkedin.com/company/aadona", // ← update if different
+  ],
+};
+
 const Home = () => {
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -18,35 +36,47 @@ const Home = () => {
   return (
     <>
       <Helmet>
-        <title>Aadona - Web Development, SEO & Digital Solutions Company</title>
-
+        {/* Primary Meta */}
+        <title>AADONA | IT Networking Solutions – Wireless, Switches & Storage India</title>
         <meta
           name="description"
-          content="Aadona provides professional web development, SEO services, and digital solutions to grow your business online with modern and scalable technology."
+          content="AADONA is India's trusted IT networking solutions provider. We offer Wireless Solutions, Network Switches, Network Attached Storage, and more — built on integrity and innovation."
         />
-
         <meta
           name="keywords"
-          content="Aadona, web development, SEO services, digital solutions, IT services India"
+          content="AADONA, IT networking solutions India, wireless solutions, network switches, network attached storage, IT infrastructure India"
         />
-
-        <link rel="canonical" href="https://www.aadona.online/" />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="AADONA" />
+        <link rel="canonical" href="https://www.aadona.com/" /> {/* ← update */}
 
         {/* Open Graph */}
-        <meta property="og:title" content="Aadona - Digital Solutions Company" />
-        <meta property="og:description" content="Grow your business with Aadona's web development and SEO services." />
-        <meta property="og:url" content="https://www.aadona.online/" />
         <meta property="og:type" content="website" />
+        <meta property="og:title" content="AADONA | IT Networking Solutions India" />
+        <meta
+          property="og:description"
+          content="India's trusted IT networking solutions provider — Wireless, Switches, Storage & more. Building trust, delivering excellence."
+        />
+        <meta property="og:url" content="https://www.aadona.com/" /> {/* ← update */}
+        <meta property="og:site_name" content="AADONA" />
+        {/* <meta property="og:image" content="https://www.aadona.com/images/og-banner.jpg" /> */}
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="AADONA | IT Networking Solutions India" />
+        <meta
+          name="twitter:description"
+          content="AADONA — India's premier IT networking solutions provider. Wireless, Switches, Storage & more."
+        />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
       </Helmet>
 
       <div>
         <Navbar />
-
-        {/* 🔥 SEO H1 */}
-        <h1 style={{ textAlign: "center", marginTop: "20px" }}>
-          Best Web Development & Digital Solutions Company
-        </h1>
-
         <Hero />
         <Counter />
         <TimeLine />

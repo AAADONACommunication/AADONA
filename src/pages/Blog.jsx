@@ -1,11 +1,12 @@
 /* eslint-disable */
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Navigation ke liye import
+import React, { useState, useEffect, useCallback, memo } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import bg from "../assets/bg.jpg";
 
-// --- Icons (Same as before) ---
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
 const SearchIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"></circle>
@@ -43,45 +44,159 @@ const ClockIcon = (props) => (
   </svg>
 );
 
+// ─── Security Helper ──────────────────────────────────────────────────────────
+
+// Sanitize search input — prevent XSS if value is ever rendered as HTML
+const sanitizeText = (value) => {
+  if (typeof value !== "string") return "";
+  return value.replace(/[<>"'&]/g, "");
+};
+
+// Safe slug generator
+const generateSlug = (title) =>
+  title.toLowerCase().trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
+// ─── Blog Card ────────────────────────────────────────────────────────────────
+
+const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick }) => (
+  <article
+    onClick={onClick}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
+    className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
+    aria-label={`Read blog post: ${post.title}`}
+  >
+    <div className="relative overflow-hidden h-56">
+      <img
+        src={post.image}
+        alt={post.title}
+        className={`w-full h-full object-fill transition-transform duration-700 ${isHovered ? "scale-110" : "scale-100"}`}
+        loading="lazy"
+        decoding="async"
+        onError={(e) => {
+          e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Blog";
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+    </div>
+
+    <div className="p-7 flex flex-col flex-grow">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+          <UserIcon className="w-5 h-5 text-green-600" aria-hidden="true" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-gray-800 leading-none">{post.author}</p>
+          <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
+            <span className="flex items-center gap-1">
+              <CalendarIcon className="w-3 h-3" aria-hidden="true" />
+              <time>{post.date}</time>
+            </span>
+            <span className="flex items-center gap-1">
+              <ClockIcon className="w-3 h-3" aria-hidden="true" />
+              {post.readTime}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2 hover:text-green-600 transition-colors duration-300">
+        {post.title}
+      </h2>
+
+      <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
+        {post.excerpt}
+      </p>
+
+      <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-3 text-xs text-gray-400">
+          <span>{post.views || 0} views</span>
+          <span className="flex items-center gap-1 text-red-400 font-medium">
+            ❤️ {post.likes || 0}
+          </span>
+        </div>
+        <span className="text-green-600 font-bold text-sm flex items-center gap-1 group/btn">
+          Read More
+          <ArrowRightIcon className="w-5 h-5 transform group-hover/btn:translate-x-1 transition-transform" aria-hidden="true" />
+        </span>
+      </div>
+    </div>
+  </article>
+));
+BlogCard.displayName = "BlogCard";
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 const BlogPage = () => {
-  const navigate = useNavigate(); // Navigation hook initialize kiya
+  const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [blogPosts, setBlogPosts] = useState([]);
   const [blogsLoading, setBlogsLoading] = useState(true);
 
+  // SEO: dynamic title + schema
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/blogs`)
-      .then((res) => res.json())
-      .then((data) => {
-        setBlogPosts(Array.isArray(data) ? data : []);
-        setBlogsLoading(false);
-      })
-      .catch(() => setBlogsLoading(false));
-    window.scrollTo(0, 0);
+    const prev = document.title;
+    document.title = "Blog | Networking Insights & Articles";
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "blog-schema";
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: "Our Blog",
+      description: "Insights, stories, and expertise from the world of networking.",
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      document.title = prev;
+      document.getElementById("blog-schema")?.remove();
+    };
   }, []);
 
-  const filteredBlogPosts = blogPosts.filter(
-    (post) =>
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Fetch with AbortController — prevents memory leak on unmount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const controller = new AbortController();
 
-  const generateSlug = (title) => {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-  };
+    fetch(`${import.meta.env.VITE_API_URL}/blogs`, {
+      signal: controller.signal,
+      credentials: "same-origin",
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch blogs");
+        return res.json();
+      })
+      .then(data => setBlogPosts(Array.isArray(data) ? data : []))
+      .catch(err => { if (err.name !== "AbortError") setBlogPosts([]); })
+      .finally(() => setBlogsLoading(false));
 
-  const handleCardClick = (post) => {
+    return () => controller.abort();
+  }, []);
+
+  const handleCardClick = useCallback((post) => {
     const slug = post.slug || generateSlug(post.title);
-    // ✅ FIXED: Ab ye window.open ki jagah navigate use karega (Same tab navigation)
-    navigate(`/blog/${slug}`);
-  };
+    navigate(`/blog/${encodeURIComponent(slug)}`);
+  }, [navigate]);
+
+  const handleSearchChange = useCallback((e) => {
+    setSearchQuery(sanitizeText(e.target.value));
+  }, []);
+
+  // Search filter — safe toLowerCase comparison
+  const filteredBlogPosts = blogPosts.filter((post) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      post.title?.toLowerCase().includes(q) ||
+      post.excerpt?.toLowerCase().includes(q) ||
+      post.author?.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="min-h-screen font-sans bg-white">
@@ -98,24 +213,26 @@ const BlogPage = () => {
           </p>
           <div className="max-w-2xl mx-auto mt-12">
             <div className="relative group">
+              <label htmlFor="blog-search" className="sr-only">Search articles</label>
               <input
-                type="text"
+                id="blog-search"
+                type="search"
                 placeholder="Search articles..."
                 className="w-full px-6 py-4 rounded-full bg-white border border-green-200 text-gray-700 shadow-md focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 placeholder-gray-400"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
+                maxLength={100}
+                autoComplete="off"
+                aria-label="Search blog articles"
               />
-              <SearchIcon className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform" />
+              <SearchIcon className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform" aria-hidden="true" />
             </div>
           </div>
         </div>
       </div>
 
       {/* BLOG CARDS SECTION */}
-      <div
-        className="bg-cover bg-fixed py-16"
-        style={{ backgroundImage: `url(${bg})` }}
-      >
+      <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800">
@@ -123,91 +240,33 @@ const BlogPage = () => {
             </h2>
             <button className="text-green-600 hover:text-green-700 font-semibold flex items-center gap-2 transition-all duration-300 hover:gap-3">
               View All
-              <ArrowRightIcon className="w-5 h-5" />
+              <ArrowRightIcon className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
-          {/* Loading State */}
           {blogsLoading ? (
-            <div className="flex justify-center py-20">
+            <div className="flex justify-center py-20" aria-busy="true" aria-label="Loading articles">
               <div className="animate-spin w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full" />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredBlogPosts.length > 0 ? (
                 filteredBlogPosts.map((post) => (
-                  <div
+                  <BlogCard
                     key={post._id}
-                    onClick={() => handleCardClick(post)}
+                    post={post}
+                    isHovered={hoveredCard === post._id}
                     onMouseEnter={() => setHoveredCard(post._id)}
                     onMouseLeave={() => setHoveredCard(null)}
-                    className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
-                  >
-                    {/* Image Container */}
-                    <div className="relative overflow-hidden h-56">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className={`w-full h-full object-fill transition-transform duration-700 ${
-                          hoveredCard === post._id ? "scale-110" : "scale-100"
-                        }`}
-                        onError={(e) => {
-                          e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Blog";
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    </div>
-
-                    {/* Content Container */}
-                    <div className="p-7 flex flex-col flex-grow">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <UserIcon className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-800 leading-none">{post.author}</p>
-                          <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
-                            <span className="flex items-center gap-1">
-                              <CalendarIcon className="w-3 h-3" />
-                              {post.date}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <ClockIcon className="w-3 h-3" />
-                              {post.readTime}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2 hover:text-green-600 transition-colors duration-300">
-                        {post.title}
-                      </h3>
-
-                      <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
-                        {post.excerpt}
-                      </p>
-
-                      <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs text-gray-400">
-                          <span>{post.views || 0} views</span>
-                          <span className="flex items-center gap-1 text-red-400 font-medium">
-                            ❤️ {post.likes || 0}
-                          </span>
-                        </div>
-                        <button className="text-green-600 font-bold text-sm flex items-center gap-1 group/btn">
-                          Read More
-                          <ArrowRightIcon className="w-5 h-5 transform group-hover/btn:translate-x-1 transition-transform" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    onClick={() => handleCardClick(post)}
+                  />
                 ))
               ) : (
-                <div className="lg:col-span-3 text-center py-20 bg-white/80 backdrop-blur rounded-2xl shadow-inner border-2 border-dashed border-gray-300">
+                <div className="lg:col-span-3 text-center py-20 bg-white/80 backdrop-blur rounded-2xl shadow-inner border-2 border-dashed border-gray-300" role="status">
                   <p className="text-xl text-gray-600 font-medium">
                     No articles match "{searchQuery}"
                   </p>
-                  <button 
+                  <button
                     onClick={() => setSearchQuery("")}
                     className="mt-4 text-green-600 underline font-bold"
                   >
