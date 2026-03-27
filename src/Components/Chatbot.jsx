@@ -830,34 +830,58 @@ export default function Chatbot() {
               {/* Drawer body */}
               <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
                 <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Toll-Free Support Line
+                  Toll Free Support Line
                 </p>
 
                 {/* Clickable number — the ONLY place that triggers a call */}
-                <a
-                  href={`tel:${TOLL_FREE}`}
-                  className="call-number-row"
-                  onClick={() => setShowCallDrawer(false)}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                    <div style={{
-                      width: '30px', height: '30px', borderRadius: '50%',
-                      background: 'linear-gradient(135deg,#10b981,#0d9488)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24">
-                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
-                      </svg>
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>
-                      {TOLL_FREE_DISPLAY}
-                    </span>
-                  </div>
-                  <span style={{ fontSize: '10px', color: '#0d9488', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    Tap to call →
-                  </span>
-                </a>
+              <a
+  href={`tel:${TOLL_FREE}`}
+  className="call-number-row"
+  onClick={() => setShowCallDrawer(false)}
+>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+    
+    {/* Icon */}
+    <div style={{
+      width: '30px',
+      height: '30px',
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg,#10b981,#0d9488)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    }}>
+      <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24">
+        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
+      </svg>
+    </div>
+
+    {/* Text section */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      
+      {/* 👇 Pehle Tap to call */}
+      <span style={{
+        fontSize: '10px',
+        color: '#0d9488',
+        fontWeight: 600
+      }}>
+        Tap to call →
+      </span>
+
+      {/* 👇 Niche number */}
+      <span style={{
+        fontSize: '14px',
+        fontWeight: 700,
+        color: '#0f172a',
+        letterSpacing: '0.4px'
+      }}>
+        {TOLL_FREE_DISPLAY}
+      </span>
+
+    </div>
+  </div>
+</a>
 
                 {/* Hours */}
                 <div style={{
@@ -868,7 +892,7 @@ export default function Chatbot() {
                     <circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/>
                   </svg>
                   <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>
-                    Mon – Sat · 9 AM to 6 PM IST
+                    Mon – Sat· 10:30 AM to 6:30 PM IST
                   </span>
                 </div>
 
@@ -935,7 +959,7 @@ export default function Chatbot() {
 
             {/* Call button — opens drawer only, never dials directly */}
             <div className="ac-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
-              <span className="ac-tooltip">📞 {TOLL_FREE_DISPLAY}</span>
+              <span className="ac-tooltip">📞 Contact</span>
               <button
                 onClick={() => setShowCallDrawer(prev => !prev)}
                 style={{
