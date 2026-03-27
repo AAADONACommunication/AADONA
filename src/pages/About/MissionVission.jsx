@@ -4,14 +4,14 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import bg from '../../assets/bg.jpg';
 
-import customerCommitment from '../../assets/CustomerCoomitment.png';
-import quality from '../../assets/Quality.png';
-import integrity from '../../assets/Integrity.png';
-import teamwork from '../../assets/TeamWork.png';
-import goodCitizenship from '../../assets/GoodCitizenship.png';
-import respectPeople from '../../assets/Respect for People.png';
-import willToWin from '../../assets/A will to win.png';
-import accountability from '../../assets/PersonalAccountability.png';
+import customerCommitment from '../../assets/CustomerCoomitment.jpeg';
+import quality from '../../assets/Quality.jpeg';
+import integrity from '../../assets/Integrity.jpeg';
+import teamwork from '../../assets/TeamWork.jpeg';
+import goodCitizenship from '../../assets/GoodCitizenship.jpeg';
+import respectPeople from '../../assets/RespectforPeople.jpeg';
+import willToWin from '../../assets/Awilltowin.jpeg';
+import accountability from '../../assets/PersonalAccountability.jpeg';
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
