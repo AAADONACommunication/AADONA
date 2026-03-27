@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, memo } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import CheckCircle from "../assets/checkcircle.png";
-import banner_animation from "../assets/banner8.mp4";
+import banner from '../assets/productbanner.jpg'
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;
@@ -338,25 +338,23 @@ export default function CategoryProductsPage() {
       <Navbar />
 
       <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden">
-        {/* preload="none" — video tab open pe load nahi hogi, sabse bada load time fix */}
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src={banner_animation} type="video/mp4" />
-        </video>
+  
+  {/* Image */}
+  <img
+    src={banner} // 👈 apni image path
+    alt="banner"
+    className="absolute inset-0 w-full h-full object-cover"
+    loading="eager"
+    fetchPriority="high"
+  />
 
-        <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl sm:text-4xl md:text-5xl font-extrabold text-white border-b-4 border-green-500 inline-block pb-1">
-            {actualCategoryName}
-          </h1>
-        </div>
-      </div>
+  {/* Content */}
+  <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
+    <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold text-white border-b-4 border-green-500 inline-block pb-1">
+      {actualCategoryName}
+    </h1>
+  </div>
+</div>
 
       <div className="max-w-7xl mx-auto px-6 mt-7 space-y-3 flex flex-col items-center">
         {loading ? (
