@@ -352,8 +352,13 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
   // ── Save Related Products (MERGE with existing — purane nahi hatenge) ──
   const saveRelatedProducts = async () => {
-    if (!form.relatedCategory || !form.relatedSubCategory) {
-      alert("Please select category and subcategory");
+    const relSubCats = getSubCategories(form.relatedType, form.relatedCategory);
+    if (!form.relatedCategory) {
+      alert("Please select a category");
+      return;
+    }
+    if (relSubCats.length > 0 && !form.relatedSubCategory) {
+      alert("Please select a subcategory");
       return;
     }
     if (!form.relatedProducts || form.relatedProducts.length === 0) {
@@ -367,7 +372,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
       // ── Step 1: Fetch existing related products for this combo ──
       const params = new URLSearchParams({
         category: form.relatedCategory,
-        subCategory: form.relatedSubCategory,
+        ...(form.relatedSubCategory ? { subCategory: form.relatedSubCategory } : {}),
         ...(form.relatedExtraCategory ? { extraCategory: form.relatedExtraCategory } : {}),
         ...(form.relatedType ? { type: form.relatedType } : {}),
       });
@@ -413,11 +418,11 @@ export default function Products({ products, setProducts, allCategories, reloadP
     try {
       const token = await auth.currentUser.getIdToken();
       const params = new URLSearchParams({
-        category: combo.category,
-        subCategory: combo.subCategory,
-        ...(combo.extraCategory ? { extraCategory: combo.extraCategory } : {}),
-        ...(combo.type ? { type: combo.type } : {}),
-      });
+      category: combo.category,
+      ...(combo.subCategory ? { subCategory: combo.subCategory } : {}),
+      ...(combo.extraCategory ? { extraCategory: combo.extraCategory } : {}),
+      ...(combo.type ? { type: combo.type } : {}),
+    });
       const res = await fetch(`${import.meta.env.VITE_API_URL}/related-products/raw?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -921,7 +926,9 @@ export default function Products({ products, setProducts, allCategories, reloadP
           </div>
 
           <button type="button"
-            disabled={!viewRelatedFor?.category || !viewRelatedFor?.subCategory}
+            disabled={!viewRelatedFor?.category || 
+              (getSubCategories(viewRelatedFor?.type || "", viewRelatedFor?.category || "").length > 0 
+                && !viewRelatedFor?.subCategory)}
             onClick={() => loadSavedRelated(viewRelatedFor)}
             className="bg-green-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-800 transition disabled:bg-gray-300 disabled:cursor-not-allowed mb-6">
             Load Saved Related Products
@@ -961,7 +968,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
             </div>
           )}
 
-          {!savedRelatedLoading && viewRelatedFor?.category && viewRelatedFor?.subCategory && savedRelatedIds.length === 0 && (
+          {!savedRelatedLoading && viewRelatedFor?.category && savedRelatedIds.length === 0 && (
             <p className="text-sm text-gray-400 italic py-4">No saved products found for this combination.</p>
           )}
         </div>

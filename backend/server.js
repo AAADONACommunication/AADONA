@@ -1287,10 +1287,10 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
     const { type, category, subCategory, extraCategory, relatedProducts } =
       req.body;
 
-    if (!category || !subCategory)
+    if (!category)
       return res
-        .status(400)
-        .json({ message: "category and subCategory are required" });
+      .status(400)
+      .json({ message: "category is required" });
 
     if (!relatedProducts || relatedProducts.length === 0)
       return res
@@ -1351,9 +1351,9 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
 app.get("/related-products", async (req, res) => {
   try {
     const { category, subCategory, extraCategory, type } = req.query;
-    const query = { category, subCategory };
-    if (extraCategory) query.extraCategory = extraCategory;
-    if (type) query.type = type;
+    const query = { category };
+    if (subCategory) query.subCategory = subCategory;
+    else query.subCategory = null;
 
     const related = await RelatedProduct.findOne(query);
     if (!related) return res.json({ relatedProducts: [] });
@@ -1370,14 +1370,14 @@ app.get("/related-products", async (req, res) => {
 app.get("/related-products/raw", verifyToken, async (req, res) => {
   try {
     const { category, subCategory, extraCategory, type } = req.query;
-    if (!category || !subCategory)
+    if (!category)
       return res
-        .status(400)
-        .json({ message: "category and subCategory are required" });
+      .status(400)
+      .json({ message: "category is required" });
 
     const query = {
       category,
-      subCategory,
+      subCategory: subCategory || null,
       extraCategory: extraCategory || null,
       type: type || null,
     };
@@ -1391,10 +1391,10 @@ app.get("/related-products/raw", verifyToken, async (req, res) => {
 app.put("/related-products/remove", verifyToken, async (req, res) => {
   try {
     const { category, subCategory, extraCategory, type, productId } = req.body;
-    if (!category || !subCategory || !productId)
-      return res
-        .status(400)
-        .json({ message: "category, subCategory, and productId are required" });
+    if (!category || !productId)
+    return res
+      .status(400)
+      .json({ message: "category and productId are required" });
 
     const filter = {
       category,
