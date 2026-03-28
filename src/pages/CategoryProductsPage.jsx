@@ -301,10 +301,16 @@ export default function CategoryProductsPage() {
   }, [activeSubCategory, products, orderedExtraCategories]);
 
   useEffect(() => {
-    if (!actualCategoryName || !activeSubCategory) return;
+    console.log("Related fetch trigger:", actualCategoryName, activeSubCategory, activeDetail);
+    if (!actualCategoryName || loading) return;
 
     const controller = new AbortController();
-    const params = new URLSearchParams({ category: actualCategoryName, subCategory: activeSubCategory });
+    const params = new URLSearchParams({ category: actualCategoryName });
+    if (activeSubCategory) {
+      params.set("subCategory", activeSubCategory);
+    } else {
+      params.set("subCategory", "null");
+    }
     if (activeDetail) params.append("extraCategory", activeDetail);
 
     fetch(`${RELATED_API}?${params.toString()}`, { signal: controller.signal, credentials: "same-origin" })
@@ -313,7 +319,7 @@ export default function CategoryProductsPage() {
       .catch(err => { if (err.name !== "AbortError") setRelatedProducts([]); });
 
     return () => controller.abort();
-  }, [actualCategoryName, activeSubCategory, activeDetail]);
+  }, [actualCategoryName, activeSubCategory, activeDetail, loading]);
 
   const detailOptions = (() => {
     const subDoc = orderedExtraCategories.find(s => s.name === activeSubCategory);
@@ -328,7 +334,9 @@ export default function CategoryProductsPage() {
   })();
 
   const filteredProducts = products.filter((p) => {
-    const matchesSub = p.subCategory === activeSubCategory;
+    const matchesSub = activeSubCategory
+      ? p.subCategory === activeSubCategory
+      : !p.subCategory;
     if (detailOptions.length > 0) return matchesSub && p.extraCategory === activeDetail;
     return matchesSub;
   });
