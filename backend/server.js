@@ -1,6 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require("helmet");                         // NEW: HTTP security headers
+const mongoSanitize = require("express-mongo-sanitize"); // NEW: NoSQL injection prevent
+const xss = require("xss");                              // NEW: XSS sanitization
 const admin = require("./firebaseAdmin");
 const multer = require("multer");
 const crypto = require("crypto");
@@ -45,6 +48,15 @@ const pdfLimiter = rateLimit({
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 60,
+});
+
+// NEW: OTP brute force protection — 5 attempts per 5 min
+const otpLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many OTP attempts. Please try again after 5 minutes." },
 });
 
 /* =============================
@@ -265,6 +277,16 @@ const verifyToken = async (req, res, next) => {
    MIDDLEWARE
 ============================= */
 
+// NEW: helmet — secure HTTP headers (CSP, HSTS, X-Frame-Options etc.)
+app.use(
+  helmet({
+    frameguard: { action: "deny" },
+    contentSecurityPolicy: false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    xContentTypeOptions: true,
+    xXssProtection: false,
+  })
+);
 app.use(
   cors({
     origin: [
@@ -278,21 +300,20 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+
+// NEW: body size limit — prevents large payload attacks
+app.use(express.json({ limit: "10kb" }));
+
+// NEW: mongoSanitize — strips $ and . from req.body/params/query (NoSQL injection prevent)
+app.use(mongoSanitize());
+
 app.use("/assets", express.static("assets"));
 
 // Chatbot route
 const chatbotRoute = require('./routes/chatbot');
 app.use(chatbotRoute);
 
-// SEO / Security headers for all responses
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  next();
-});
+
 
 /* =============================
    DATABASE CONNECTION
@@ -503,6 +524,9 @@ const generateSlug = (name) =>
     .trim()
     .replace(/\s+/g, "-")
     .replace(/[^\w-]+/g, "");
+
+// NEW: slug validator — only alphanumeric + hyphens
+const isValidSlug = (slug) => /^[a-zA-Z0-9\-]+$/.test(slug);
 
 /* =============================
    ROUTES
@@ -978,6 +1002,11 @@ app.get("/products", async (req, res) => {
 
 app.get("/products/:slug", async (req, res) => {
   try {
+    // NEW: slug validation
+    if (!isValidSlug(req.params.slug)) {
+      return res.status(400).json({ message: "Invalid product identifier" });
+    }
+
     const product = await Product.findOne({ slug: req.params.slug });
     if (!product)
       return res.status(404).json({ message: "Product not found" });
@@ -996,6 +1025,11 @@ app.get("/products/:slug", async (req, res) => {
 
 app.get("/products/:slug/datasheet", pdfLimiter, async (req, res) => {
   try {
+    // NEW: slug validation
+    if (!isValidSlug(req.params.slug)) {
+      return res.status(400).json({ message: "Invalid product identifier" });
+    }
+
     const product = await Product.findOne({ slug: req.params.slug });
     if (!product)
       return res.status(404).json({ message: "Product not found" });
@@ -1180,7 +1214,8 @@ app.post("/send-otp", verifyToken, async (req, res) => {
   }
 });
 
-app.post("/verify-otp", verifyToken, async (req, res) => {
+// NEW: otpLimiter added — 5 attempts per 5 min, brute force prevent
+app.post("/verify-otp", verifyToken, otpLimiter, async (req, res) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp)
@@ -1468,6 +1503,11 @@ app.get("/blogs", async (req, res) => {
 
 app.get("/blogs/slug/:slug", async (req, res) => {
   try {
+    // NEW: slug validation
+    if (!isValidSlug(req.params.slug)) {
+      return res.status(400).json({ error: "Invalid blog identifier" });
+    }
+
     const blog = await Blog.findOne({
       slug: req.params.slug,
       published: true,
@@ -1482,6 +1522,11 @@ app.get("/blogs/slug/:slug", async (req, res) => {
 
 app.post("/blogs/slug/:slug/view", async (req, res) => {
   try {
+    // NEW: slug validation
+    if (!isValidSlug(req.params.slug)) {
+      return res.status(400).json({ error: "Invalid blog identifier" });
+    }
+
     const blog = await Blog.findOneAndUpdate(
       { slug: req.params.slug, published: true },
       { $inc: { views: 1 } },
@@ -1496,6 +1541,11 @@ app.post("/blogs/slug/:slug/view", async (req, res) => {
 
 app.post("/blogs/slug/:slug/like", async (req, res) => {
   try {
+    // NEW: slug validation
+    if (!isValidSlug(req.params.slug)) {
+      return res.status(400).json({ error: "Invalid blog identifier" });
+    }
+
     const blog = await Blog.findOneAndUpdate(
       { slug: req.params.slug, published: true },
       { $inc: { likes: 1 } },
@@ -1520,13 +1570,22 @@ app.post("/blogs/slug/:slug/like", async (req, res) => {
 
 app.post("/blogs/slug/:slug/comment", async (req, res) => {
   try {
+    // NEW: slug validation
+    if (!isValidSlug(req.params.slug)) {
+      return res.status(400).json({ error: "Invalid blog identifier" });
+    }
+
     const { name, text } = req.body;
     if (!name || !text)
       return res.status(400).json({ error: "Name and text required" });
 
+    // NEW: xss() — sanitize comment before saving and emailing
+    const safeName = xss(name.trim().slice(0, 100));
+    const safeText = xss(text.trim().slice(0, 1000));
+
     const blog = await Blog.findOneAndUpdate(
       { slug: req.params.slug, published: true },
-      { $push: { comments: { name, text, createdAt: new Date() } } },
+      { $push: { comments: { name: safeName, text: safeText, createdAt: new Date() } } },
       { new: true }
     );
     if (!blog) return res.status(404).json({ error: "Blog not found" });
@@ -1538,8 +1597,8 @@ app.post("/blogs/slug/:slug/comment", async (req, res) => {
         subject: `New Comment on: "${blog.title}"`,
         html: `
         <h3>New comment on <b>"${blog.title}"</b></h3>
-        <p><b>From:</b> ${name}</p>
-        <p><b>Comment:</b> ${text}</p>
+        <p><b>From:</b> ${safeName}</p>
+        <p><b>Comment:</b> ${safeText}</p>
         <p><small>Total comments: ${blog.comments.length}</small></p>
       `,
       })
@@ -1703,6 +1762,9 @@ app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
     if (!inquiry.customerEmail)
       return res.status(400).json({ message: "No customer email found" });
 
+    // NEW: xss() on reply message before sending email and saving
+    const safeMessage = xss(message);
+
     await transporter.sendMail({
       from: `"AADONA Support" <${process.env.EMAIL_USER}>`,
       to: inquiry.customerEmail,
@@ -1712,7 +1774,7 @@ app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
           <h2 style="color:#166534">AADONA Response</h2>
           <p>Dear ${inquiry.customerName},</p>
           <div style="background:#f0fdf4;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #16a34a">
-            ${message}
+            ${safeMessage}
           </div>
           <p style="color:#6b7280;font-size:13px">This is regarding your <b>${inquiry.formType}</b> inquiry submitted on ${new Date(inquiry.createdAt).toDateString()}.</p>
           <p style="color:#166534;font-weight:bold">Team AADONA</p>
@@ -1721,7 +1783,7 @@ app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
     });
 
     inquiry.replies.push({
-      message,
+      message: safeMessage,
       sentBy: req.user.email,
       sentAt: new Date(),
     });
