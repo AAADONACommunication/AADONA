@@ -304,7 +304,12 @@ export default function CategoryProductsPage() {
     if (!actualCategoryName || !activeSubCategory) return;
 
     const controller = new AbortController();
-    const params = new URLSearchParams({ category: actualCategoryName, subCategory: activeSubCategory });
+    const params = new URLSearchParams({ category: actualCategoryName });
+    if (activeSubCategory) {
+      params.set("subCategory", activeSubCategory);
+    } else {
+      params.set("subCategory", "null");
+    }
     if (activeDetail) params.append("extraCategory", activeDetail);
 
     fetch(`${RELATED_API}?${params.toString()}`, { signal: controller.signal, credentials: "same-origin" })
