@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg";
+import bapbanner from "../../assets/BecomePartnerBanner.jpeg";
 
 // ─── Reveal Animation ─────────────────────────────────────────────────────────
 
@@ -333,16 +334,20 @@ export default function BecomePartner() {
       <Navbar />
 
       {/* ─── Hero ───────────────────────────────────────────────────────── */}
-      <header className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16" role="banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
-            Become a Partner
-          </h1>
-          <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-            Join our success story with a low risk, rapidly expanding business
-          </p>
-        </div>
-      </header>
+         <header
+                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${bapbanner})` }}
+                      aria-label="Become Partner herbanner"
+                    >
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+                          Become a Partner
+                        </h1>
+                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+                           Join our success story with a low risk, rapidly expanding business
+                              </p>
+                      </div>
+                    </header>
 
       {/* ─── Body ───────────────────────────────────────────────────────── */}
       <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>

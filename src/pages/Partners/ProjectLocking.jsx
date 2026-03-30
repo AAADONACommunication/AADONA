@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg";
+import plbanner from "../../assets/ProjectLockBanner.jpeg";
 
 const MODEL_NAMES = [
   "DMS-8GP-2F", "ODR-16F-16", "ODR-8F-14", "ODR-4F-14",
@@ -155,16 +156,20 @@ export default function ProjectLocking() {
       <Navbar />
 
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
+         <header
+                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${plbanner})` }}
+                      aria-label="Project Locking herbanner"
+                    >
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
             Project Locking
-          </h1>
-          <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
+                        </h1>
+                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
             Submit project details to lock inventory / create quotations — our team will contact you
-          </p>
-        </div>
-      </div>
+                              </p>
+                      </div>
+                    </header>
 
       {/* Form Section */}
       <div

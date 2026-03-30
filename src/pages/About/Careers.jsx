@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg";
+import careerbanner from "../../assets/CareersBanner.jpeg";
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -92,20 +93,20 @@ const Careers = () => {
       <Navbar />
 
       {/* ── HERO ── */}
-      <header
-        className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16"
-        role="banner"
-        aria-label="Careers Hero Section"
-      >
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
-            Careers
-          </h1>
-          <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-            Here's why you should join us!
-          </p>
-        </div>
-      </header>
+        <header
+                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${careerbanner})` }}
+                      aria-label="Career herbanner"
+                    >
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+                          Careers
+                        </h1>
+                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+                             Here's why you should join us!                       
+                              </p>
+                      </div>
+                    </header>
 
       {/* ── MAIN ── */}
       <main

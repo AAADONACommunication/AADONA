@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import bg from "../assets/bg.jpg";
+import blogbanner from "../assets/BlogBanner.jpeg";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -203,33 +204,49 @@ const BlogPage = () => {
       <Navbar />
 
       {/* HERO SECTION */}
-      <div className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl animate-fade-in-down">
-            Our Blog
-          </h1>
-          <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto opacity-90">
-            Insights, stories, and expertise from the world of networking.
-          </p>
-          <div className="max-w-2xl mx-auto mt-12">
-            <div className="relative group">
-              <label htmlFor="blog-search" className="sr-only">Search articles</label>
-              <input
-                id="blog-search"
-                type="search"
-                placeholder="Search articles..."
-                className="w-full px-6 py-4 rounded-full bg-white border border-green-200 text-gray-700 shadow-md focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 placeholder-gray-400"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                maxLength={100}
-                autoComplete="off"
-                aria-label="Search blog articles"
-              />
-              <SearchIcon className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform" aria-hidden="true" />
-            </div>
-          </div>
-        </div>
+      <div
+  className="relative pt-32 pb-24 bg-cover bg-center"
+  style={{ backgroundImage: `url(${blogbanner})` }}
+>
+
+  <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    
+    <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl animate-fade-in-down">
+      Our Blog
+    </h1>
+
+    <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto opacity-90">
+      Insights, stories, and expertise from the world of networking.
+    </p>
+
+    <div className="max-w-2xl mx-auto mt-12">
+      <div className="relative group">
+        
+        <label htmlFor="blog-search" className="sr-only">
+          Search articles
+        </label>
+
+        <input
+          id="blog-search"
+          type="search"
+          placeholder="Search articles..."
+          className="w-full px-6 py-4 rounded-full bg-white border border-green-200 text-gray-700 shadow-md focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 placeholder-gray-400"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          maxLength={100}
+          autoComplete="off"
+          aria-label="Search blog articles"
+        />
+
+        <SearchIcon
+          className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform"
+          aria-hidden="true"
+        />
       </div>
+    </div>
+
+  </div>
+</div>
 
       {/* BLOG CARDS SECTION */}
       <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>

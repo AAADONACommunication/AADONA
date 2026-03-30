@@ -9,6 +9,7 @@ import Govind from "../../assets/Govind_Madhav.avif";
 import Chandan from "../../assets/Chandan_Sharma.avif";
 import bg from "../../assets/bg.jpg";
 import linkedin from "../../assets/linkedin.png";
+import leadershipbanner from "../../assets/LeadershipBanner.jpeg";
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -142,19 +143,18 @@ const LeadershipTeam = () => {
 
       {/* ── HERO ── */}
       <header
-        className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16"
-        role="banner"
-        aria-label="Leadership Team Hero Section"
-      >
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
-            Leadership Team
-          </h1>
-          <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-            Guiding AADONA&apos;s Vision &amp; Strategy
-          </p>
-        </div>
-      </header>
+                     className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+                     style={{ backgroundImage: `url(${leadershipbanner})` }}
+                     aria-label="Leadership herbanner"
+                   >
+                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                       <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+                          Leadership Team
+                       </h1>
+                       <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+                            Guiding AADONA&apos;s Vision &amp; Strategy                       </p>
+                     </div>
+                   </header>
 
       {/* ── MAIN ── */}
       <main
