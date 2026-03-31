@@ -205,7 +205,7 @@ const SupportTools = () => {
         <header
           className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
             style={{
-              backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75), transparent), url(${stbanner})`
+              backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${stbanner})`
             }}
           aria-label="Support Tools hero banner"
         >

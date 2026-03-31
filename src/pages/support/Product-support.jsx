@@ -191,7 +191,7 @@ const ProductSupport = () => {
         <header
           className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
             style={{
-              backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75), transparent), url(${psbanner})` }}
+              backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${psbanner})` }}
           aria-label="Product Support hero banner"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

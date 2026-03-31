@@ -320,7 +320,7 @@ const TechSquad = () => {
    <header
   className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
   style={{
-    backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75), transparent), url(${tsbanner})`
+    backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${tsbanner})`
   }}
   aria-label="Tech Squad hero banner"
 >

@@ -305,7 +305,7 @@ const RequestDOA = () => {
         <header
          className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
            style={{
-             backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75), transparent), url(${rdoabanner})`
+             backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${rdoabanner})`
            }}
           aria-label="Request DOA hero banner"
         >
