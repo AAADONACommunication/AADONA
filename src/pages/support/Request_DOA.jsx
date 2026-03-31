@@ -303,10 +303,13 @@ const RequestDOA = () => {
 
         {/* ── Hero Banner ──────────────────────────────────────────────────── */}
         <header
-          className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${rdoabanner})` }}
+         className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
+           style={{
+             backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75), transparent), url(${rdoabanner})`
+           }}
           aria-label="Request DOA hero banner"
         >
+
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
               Request DOA

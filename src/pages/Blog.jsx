@@ -205,7 +205,7 @@ const BlogPage = () => {
 
       {/* HERO SECTION */}
       <div
-  className="relative pt-32 pb-24 bg-cover bg-center"
+  className="relative pt-32 pb-24 bg-cover sm:bg-center bg-right"
   style={{ backgroundImage: `url(${blogbanner})` }}
 >
 
@@ -215,7 +215,7 @@ const BlogPage = () => {
       Our Blog
     </h1>
 
-    <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto opacity-90">
+    <p className="mt-6 text-xl text-white max-w-3xl mx-auto opacity-90">
       Insights, stories, and expertise from the world of networking.
     </p>
 

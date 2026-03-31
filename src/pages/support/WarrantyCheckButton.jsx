@@ -119,8 +119,9 @@ const WarrantyCheckButton = () => {
       >
        
        <div
-         className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-         style={{ backgroundImage: `url(${warrantybanner})` }}
+        className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75), transparent), url(${warrantybanner})`}}
        >
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
            <div className="text-center">

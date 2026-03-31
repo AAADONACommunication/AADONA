@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg";
+import careerbanner from "../../assets/CareersBanner.jpeg";
+
 
 // Added Info icon for the notice box
 const InfoIcon = () => (
@@ -130,16 +132,20 @@ const ApplyNow = () => {
     <>
       <Navbar />
 
-        <div className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16 text-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-5xl font-bold text-white sm:text-6xl">
-              Careers
-            </h1>
-            <p className="mt-3 text-green-100 text-lg md:text-xl max-w-3xl mx-auto">
+         <header
+                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${careerbanner})` }}
+                      aria-label="Career herbanner"
+                    >
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+                          Careers
+                        </h1>
+                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
               Join our growing team — fill in your details and attach your resume below.
-            </p>
-          </div>
-        </div>
+                              </p>
+                      </div>
+                    </header>
 
           <div
                       className="bg-cover bg-fixed py-16"

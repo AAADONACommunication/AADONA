@@ -122,10 +122,10 @@ const MissionVision = () => {
                           aria-label="Mission herbanner"
                         >
                           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                            <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+                            <h1 className="text-5xl font-bold text-gray-white sm:text-5xl md:text-6xl">
                              Mission &amp; Vision
                             </h1>
-                            <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+                            <p className="mt-6 text-md text-gray-white max-w-3xl mx-auto">
                             Empowering Your IT Networking Solutions with Integrity and Innovation
                             </p>
                           </div>

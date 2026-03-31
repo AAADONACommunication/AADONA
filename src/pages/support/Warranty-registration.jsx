@@ -290,8 +290,9 @@ const ProductRegistration = () => {
 
       {/* ── HERO ── */}
       <header
-        className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${wrbanner})` }}
+       className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
+         style={{
+           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75), transparent), url(${wrbanner})` }}
         role="banner"
         aria-label="Product Registration Hero"
       >
