@@ -281,12 +281,12 @@ router.post('/chat', chatLimiter, async (req, res) => {
     
     if (!genAI.ok) {
       const errData = await genAI.json().catch(() => ({}));
-      console.error('Gemini API error:', genAI.status, errData);
+      console.error('OpenRouter API error:', genAI.status, errData);
       return res.status(502).json({ success: false, error: 'AI service temporarily unavailable. Please try again.' });
     }
 
     const data = await genAI.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const reply = data?.choices?.[0]?.message?.content;
 
     if (!reply)
       return res.status(502).json({ success: false, error: 'Empty response from AI service.' });
