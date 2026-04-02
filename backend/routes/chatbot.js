@@ -251,17 +251,16 @@ router.post('/chat', chatLimiter, async (req, res) => {
     const recentMessages = sanitized.slice(-10);
     const lastUserMessage = [...sanitized].reverse().find(m => m.role === 'user')?.content || '';
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY not set');
+      console.error('GEMINI_API_KEY not set');
       return res.status(500).json({ success: false, error: 'AI service not configured.' });
     }
 
     const { context: productsContext, products } = await getProductsContext();
 
     const genAI = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`,      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
