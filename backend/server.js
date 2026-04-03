@@ -2632,59 +2632,177 @@ app.post("/submit-whistleblower", formLimiter, upload.single("attachmentFile"), 
   }
 });
 
+// ── SUBSCRIBER MODEL ──────────────────────────────────────────────
+const SubscriberSchema = new mongoose.Schema(
+  {
+    email: { 
+      type: String, 
+      required: true, 
+      unique: true, 
+      index: true,
+      lowercase: true,
+      trim: true,
+    },
+    status: { 
+      type: String, 
+      enum: ["active", "unsubscribed"], 
+      default: "active",
+      index: true,
+    },
+  },
+  { timestamps: true }
+);
+
+// Auto-delete unsubscribed after 90 days
+SubscriberSchema.index(
+  { updatedAt: 1 }, 
+  { expireAfterSeconds: 90 * 24 * 60 * 60, 
+    partialFilterExpression: { status: "unsubscribed" } 
+  }
+);
+
+const Subscriber = mongoose.model("Subscriber", SubscriberSchema);
+
+// ── NEWSLETTER SUBSCRIBE (Public) ─────────────────────────────────
 app.post("/newsletter-subscribe", formLimiter, async (req, res) => {
   const { email } = req.body;
-
-  // Basic validation
-  if (!email) {
+  if (!email)
     return res.status(400).json({ success: false, message: "Email is required" });
-  }
 
-  // MX domain check (already tera helper exist karta hai)
   const emailValid = await isEmailDomainValid(email);
-  if (!emailValid) {
+  if (!emailValid)
     return res.status(400).json({ 
       success: false, 
       message: "Invalid email address. Please enter a real email." 
     });
-  }
 
   try {
-    // DB mein save karo as inquiry
-    await Inquiry.create({
-      formType: "Newsletter",
-      customerName: "Subscriber",
-      customerEmail: email,
-      formData: { email },
-    });
+    const cleanEmail = email.toLowerCase().trim();
 
-    // Tujhe mail aaye ki koi subscribe kiya
-    await transporter.sendMail({
+    // Agar pehle se exist karta hai
+    const existing = await Subscriber.findOne({ email: cleanEmail });
+    if (existing) {
+      if (existing.status === "unsubscribed") {
+        existing.status = "active";
+        await existing.save();
+        // Company ko notify karo
+        transporter.sendMail({
+          from: `"AADONA Newsletter" <${process.env.EMAIL_USER}>`,
+          to: process.env.COMPANY_EMAIL,
+          subject: `Newsletter Re-Subscription: ${cleanEmail}`,
+          html: `<p><b>${cleanEmail}</b> has re-subscribed to the newsletter.</p>`,
+        }).catch(() => {});
+        return res.json({ success: true, message: "Welcome back! You're subscribed again." });
+      }
+      return res.json({ success: true, message: "You're already subscribed!" });
+    }
+
+    // Naya subscriber save karo
+    await Subscriber.create({ email: cleanEmail });
+
+    // Company ko notify karo
+    transporter.sendMail({
       from: `"AADONA Newsletter" <${process.env.EMAIL_USER}>`,
       to: process.env.COMPANY_EMAIL,
-      subject: `New Newsletter Subscriber - ${email}`,
+      subject: `New Newsletter Subscriber 🎉`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;
-        padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534">New Newsletter Subscriber 🎉</h2>
-          <p style="color:#374151">Someone just subscribed to your newsletter!</p>
+          padding:30px;border:1px solid #e5e7eb;border-radius:12px">
+          <h2 style="color:#166534">New Subscriber 🎉</h2>
           <div style="background:#f0fdf4;padding:16px;border-radius:8px;
-          border-left:4px solid #16a34a;margin:20px 0">
-            <b>Email:</b> ${email}<br/>
+            border-left:4px solid #16a34a;margin:20px 0">
+            <b>Email:</b> ${cleanEmail}<br/>
             <b>Time:</b> ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
           </div>
-          <p style="color:#6b7280;font-size:13px">
-            This subscriber has been saved in your Inquiries dashboard.
-          </p>
         </div>
       `,
-    });
+    }).catch(() => {});
 
-    res.json({ success: true, message: "Subscribed successfully" });
+    res.json({ success: true, message: "Subscribed successfully!" });
 
   } catch (err) {
-    console.error("[Newsletter] Error:", err.message);
+    console.error("[Newsletter Subscribe]", err.message);
     res.status(500).json({ success: false, message: "Failed to subscribe. Try again." });
+  }
+});
+
+// ── SUBSCRIBERS LIST (Admin only) ─────────────────────────────────
+app.get("/subscribers", verifyToken, adminLimiter, async (req, res) => {
+  try {
+    const { status } = req.query;
+    const query = status ? { status } : {};
+    const subscribers = await Subscriber.find(query).sort({ createdAt: -1 });
+    res.json(subscribers);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── UNSUBSCRIBE single (Admin) ─────────────────────────────────────
+app.delete("/subscribers/:id", verifyToken, async (req, res) => {
+  try {
+    const sub = await Subscriber.findById(req.params.id);
+    if (!sub) return res.status(404).json({ message: "Subscriber not found" });
+    await Subscriber.findByIdAndDelete(req.params.id);
+    logAction(req.user.email, "DELETE", "Subscriber", sub.email, {});
+    res.json({ message: "Subscriber removed" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── BROADCAST EMAIL (Admin) ────────────────────────────────────────
+app.post("/subscribers/broadcast", verifyToken, adminLimiter, async (req, res) => {
+  const { subject, html, selectedIds } = req.body;
+
+  if (!subject?.trim() || !html?.trim())
+    return res.status(400).json({ message: "Subject and content are required" });
+
+  try {
+    // selectedIds array aaya toh sirf unhe, nahi toh sab active ko
+    const query = selectedIds?.length
+      ? { _id: { $in: selectedIds }, status: "active" }
+      : { status: "active" };
+
+    const subscribers = await Subscriber.find(query);
+    if (subscribers.length === 0)
+      return res.status(400).json({ message: "No active subscribers found" });
+
+    // Batch mein bhejo — 50 ek baar (Gmail limit safe)
+    const BATCH_SIZE = 50;
+    let sent = 0;
+    let failed = 0;
+
+    for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
+      const batch = subscribers.slice(i, i + BATCH_SIZE);
+      const bccList = batch.map((s) => s.email).join(",");
+      try {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: process.env.EMAIL_USER, // to: apna hi email, bcc mein sab
+          bcc: bccList,
+          subject: subject.trim(),
+          html: html,
+        });
+        sent += batch.length;
+      } catch (err) {
+        console.error(`Batch ${i / BATCH_SIZE + 1} failed:`, err.message);
+        failed += batch.length;
+      }
+    }
+
+    logAction(req.user.email, "BROADCAST", "Newsletter", subject, {
+      changes: { sent: { new: sent }, failed: { new: failed } },
+    });
+
+    res.json({ 
+      success: true, 
+      message: `Newsletter sent to ${sent} subscribers${failed > 0 ? `, ${failed} failed` : ""}.` 
+    });
+
+  } catch (err) {
+    console.error("[Broadcast]", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 

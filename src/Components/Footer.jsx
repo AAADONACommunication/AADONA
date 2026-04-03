@@ -148,7 +148,7 @@ const NewsletterForm = () => {
 
       {status === 'success' ? (
         <p role="status" className="text-green-300 font-semibold text-sm py-2">
-          ✅ Thank you for subscribing!
+          Thank you for subscribing!
         </p>
       ) : (
         <>
