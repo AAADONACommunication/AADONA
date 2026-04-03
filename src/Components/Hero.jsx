@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async'; // npm i react-helmet-async
+import { Helmet } from 'react-helmet-async';
 import hero from '../assets/hero.jpg';
 import { Link } from 'react-router-dom';
+import govmarketplace from '../assets/govmarketplace.jpeg';
+import madeinindia from '../assets/madeinindia.jpeg';
 
 const Hero = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -31,24 +33,14 @@ const Hero = () => {
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://www.aadona.in/" />
-
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.aadona.in/" />
         <meta property="og:title" content="AADONA – Truly Indian IT Solutions Brand for Bharat" />
-        <meta
-          property="og:description"
-          content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values."
-        />
+        <meta property="og:description" content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values." />
         <meta property="og:image" content="https://www.aadona.in/og-hero.jpg" />
-
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AADONA – Truly Indian IT Solutions for Bharat" />
-        <meta
-          name="twitter:description"
-          content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values."
-        />
+        <meta name="twitter:description" content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values." />
         <meta name="twitter:image" content="https://www.aadona.in/og-hero.jpg" />
       </Helmet>
 
@@ -65,7 +57,7 @@ const Hero = () => {
           loading="lazy"
           fetchpriority="high"
           draggable="false"
-          onContextMenu={(e) => e.preventDefault()} // optional: blocks right-click save
+          onContextMenu={(e) => e.preventDefault()}
         />
 
         {/* Overlay */}
@@ -85,7 +77,68 @@ const Hero = () => {
               – Join Our Journey Towards Excellence!
             </p>
 
-            
+            {/* ── Certificate Badges ── */}
+            <div className="flex items-end gap-6 mt-6">
+
+              {/* Made in India Badge */}
+              <div className="group flex flex-col items-center gap-2">
+                <div className="
+                  w-24 h-24 sm:w-28 sm:h-28
+                  rounded-full overflow-hidden
+                  bg-white/20 backdrop-blur-md
+                  border-2 border-white/60
+                  ring-2 ring-white/20 ring-offset-2 ring-offset-transparent
+                  shadow-[0_4px_24px_rgba(255,255,255,0.15)]
+                  flex items-center justify-center
+                  transition-all duration-300
+                  group-hover:scale-110
+                  group-hover:border-white
+                  group-hover:shadow-[0_4px_32px_rgba(255,255,255,0.35)]
+                  group-hover:ring-white/40
+                ">
+                  <img
+                    src={madeinindia}
+                    alt="Made in India"
+                    className="w-full h-full object-cover"
+                    draggable="false"
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                </div>
+                
+              </div>
+
+              {/* Subtle vertical divider */}
+
+              {/* GeM / Gov Marketplace Badge */}
+              <div className="group flex flex-col items-center gap-2">
+                <div className="
+                  w-24 h-24 sm:w-28 sm:h-28
+                  rounded-full overflow-hidden
+                  bg-white/20 backdrop-blur-md
+                  border-2 border-white/60
+                  ring-2 ring-white/20 ring-offset-2 ring-offset-transparent
+                  shadow-[0_4px_24px_rgba(255,255,255,0.15)]
+                  flex items-center justify-center
+                  transition-all duration-300
+                  group-hover:scale-110
+                  group-hover:border-white
+                  group-hover:shadow-[0_4px_32px_rgba(255,255,255,0.35)]
+                  group-hover:ring-white/40
+                ">
+                  <img
+                    src={govmarketplace}
+                    alt="Government e-Marketplace"
+                    className="w-full h-full object-cover"
+                    draggable="false"
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                </div>
+              
+              </div>
+
+            </div>
+            {/* ── End Certificate Badges ── */}
+
           </div>
         </div>
       </section>
