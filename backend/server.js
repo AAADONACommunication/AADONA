@@ -2632,6 +2632,62 @@ app.post("/submit-whistleblower", formLimiter, upload.single("attachmentFile"), 
   }
 });
 
+app.post("/newsletter-subscribe", formLimiter, async (req, res) => {
+  const { email } = req.body;
+
+  // Basic validation
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+
+  // MX domain check (already tera helper exist karta hai)
+  const emailValid = await isEmailDomainValid(email);
+  if (!emailValid) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "Invalid email address. Please enter a real email." 
+    });
+  }
+
+  try {
+    // DB mein save karo as inquiry
+    await Inquiry.create({
+      formType: "Newsletter",
+      customerName: "Subscriber",
+      customerEmail: email,
+      formData: { email },
+    });
+
+    // Tujhe mail aaye ki koi subscribe kiya
+    await transporter.sendMail({
+      from: `"AADONA Newsletter" <${process.env.EMAIL_USER}>`,
+      to: process.env.COMPANY_EMAIL,
+      subject: `New Newsletter Subscriber - ${email}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;
+        padding:30px;border:1px solid #e5e7eb;border-radius:12px">
+          <h2 style="color:#166534">New Newsletter Subscriber 🎉</h2>
+          <p style="color:#374151">Someone just subscribed to your newsletter!</p>
+          <div style="background:#f0fdf4;padding:16px;border-radius:8px;
+          border-left:4px solid #16a34a;margin:20px 0">
+            <b>Email:</b> ${email}<br/>
+            <b>Time:</b> ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
+          </div>
+          <p style="color:#6b7280;font-size:13px">
+            This subscriber has been saved in your Inquiries dashboard.
+          </p>
+        </div>
+      `,
+    });
+
+    res.json({ success: true, message: "Subscribed successfully" });
+
+  } catch (err) {
+    console.error("[Newsletter] Error:", err.message);
+    res.status(500).json({ success: false, message: "Failed to subscribe. Try again." });
+  }
+});
+
 /* =============================
    GRACEFUL SHUTDOWN
 ============================= */

@@ -1,7 +1,7 @@
 /**
  * Footer.jsx
- * ✅ SEO Optimized  — semantic HTML, structured nav, aria labels, rel attributes on external links
- * ✅ Security Hardened — sanitized newsletter input, honeypot, rate-limit guard, safe external link attrs
+ * SEO Optimized  — semantic HTML, structured nav, aria labels, rel attributes on external links
+ * Security Hardened — sanitized newsletter input, honeypot, rate-limit guard, safe external link attrs
  */
 
 import { useState, useRef, useCallback } from 'react';
