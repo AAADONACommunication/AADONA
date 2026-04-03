@@ -264,7 +264,7 @@ const ApplyNow = () => {
                 </div>
               </div>
 
-              {/* ✅ Applying As → Single Select Radio */}
+              {/* Applying As → Single Select Radio */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Applying as:
@@ -286,7 +286,7 @@ const ApplyNow = () => {
                 </div>
               </div>
 
-              {/* ✅ Availability → NEW FIELD */}
+              {/* Availability → NEW FIELD */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Availability:
