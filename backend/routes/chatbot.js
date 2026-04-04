@@ -14,53 +14,51 @@ const chatLimiter = rateLimit({
   message: { success: false, error: 'Too many messages. Please wait a moment before sending more.' },
 });
 
-// ─── Products from DB ──────────────────────────────────────────────────────
+// ─── Products from DB (overview + features for better training) ────────────
 const getProductsContext = async () => {
   try {
     const Product = mongoose.model('Product');
     const products = await Product.find(
       {},
-      'name fullName model category subCategory description image slug'
+      'name fullName model category subCategory description overview features image slug'
     ).limit(80);
     if (!products.length) return { context: '', products: [] };
-    const list = products.map(p =>
-      `- ${p.fullName || p.name} (Model: ${p.model || 'N/A'}) | Category: ${p.category} | Slug: ${p.slug} | Desc: ${p.description?.slice(0, 80) || ''}`
-    ).join('\n');
+
+    const list = products.map(p => {
+      const features = (p.features || []).slice(0, 3).join(' | ');
+      const overview = p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '';
+      return `- ${p.fullName || p.name} (Model: ${p.model || 'N/A'}) | Category: ${p.category} | Slug: ${p.slug} | Overview: ${overview} | Features: ${features}`;
+    }).join('\n');
+
     return { context: `\n\nLIVE PRODUCT DATABASE:\n${list}`, products };
   } catch { return { context: '', products: [] }; }
 };
 
 // ─── Smart Intent Detection ────────────────────────────────────────────────
-// Returns array of action buttons relevant to the user's message + AI reply
 const detectActionButtons = (userMessage, aiReply, products) => {
   const msg = (userMessage + ' ' + aiReply).toLowerCase();
   const buttons = [];
 
-  // Support intents
   if (/warranty|वारंटी/.test(msg))
     buttons.push({ label: '🛡️ Check Warranty', url: `${BASE_URL}/warranty` });
   if (/tech squad|on.?site|technician|visit|तकनीशियन/.test(msg))
-    buttons.push({ label: '🔧 Tech Squad', url: `${BASE_URL}/tech-squad` });
+    buttons.push({ label: '🔧 Tech Squad', url: `${BASE_URL}/techSquad` });
   if (/doa|dead on arrival|replacement|replace/.test(msg))
-    buttons.push({ label: '🔄 Request DOA', url: `${BASE_URL}/request-doa` });
+    buttons.push({ label: '🔄 Request DOA', url: `${BASE_URL}/requestDoa` });
   if (/register product|product registration|रजिस्टर/.test(msg))
-    buttons.push({ label: '📋 Register Product', url: `${BASE_URL}/product-registration` });
+    buttons.push({ label: '📋 Register Product', url: `${BASE_URL}/warrantyRegistration` });
   if (/support tool|diagnostic/.test(msg))
-    buttons.push({ label: '🛠️ Support Tools', url: `${BASE_URL}/support-tools` });
+    buttons.push({ label: '🛠️ Support Tools', url: `${BASE_URL}/supportTools` });
   if (/product support|technical help|tech help|help with product/.test(msg))
-    buttons.push({ label: '💬 Product Support', url: `${BASE_URL}/product-support` });
-
-  // Partner intents
+    buttons.push({ label: '💬 Product Support', url: `${BASE_URL}/productSupport` });
   if (/partner|reseller|distributor|system integrator|पार्टनर/.test(msg))
-    buttons.push({ label: '🤝 Become a Partner', url: `${BASE_URL}/become-a-partner` });
+    buttons.push({ label: '🤝 Become a Partner', url: `${BASE_URL}/becomePartner` });
   if (/project lock|tender|project register/.test(msg))
-    buttons.push({ label: '🔒 Project Locking', url: `${BASE_URL}/project-locking` });
+    buttons.push({ label: '🔒 Project Locking', url: `${BASE_URL}/projectLocking` });
   if (/demo|demonstration|डेमो/.test(msg))
-    buttons.push({ label: '🎯 Request a Demo', url: `${BASE_URL}/request-a-demo-1` });
+    buttons.push({ label: '🎯 Request a Demo', url: `${BASE_URL}/requestDemo` });
   if (/training|train|ट्रेनिंग/.test(msg))
-    buttons.push({ label: '📚 Request Training', url: `${BASE_URL}/request-training` });
-
-  // Company intents
+    buttons.push({ label: '📚 Request Training', url: `${BASE_URL}/requestTraining` });
   if (/career|job|hiring|vacancy|नौकरी/.test(msg))
     buttons.push({ label: '💼 Careers', url: `${BASE_URL}/careers` });
   if (/csr|social responsibility/.test(msg))
@@ -68,13 +66,19 @@ const detectActionButtons = (userMessage, aiReply, products) => {
   if (/blog|article|news|insight/.test(msg))
     buttons.push({ label: '📰 Blog', url: `${BASE_URL}/blog` });
   if (/customer|client|who uses|हमारे ग्राहक/.test(msg))
-    buttons.push({ label: '🏢 Our Customers', url: `${BASE_URL}/our-customers` });
+    buttons.push({ label: '🏢 Our Customers', url: `${BASE_URL}/customers` });
   if (/media|press|announcement/.test(msg))
-    buttons.push({ label: '📢 Media Center', url: `${BASE_URL}/media-center` });
+    buttons.push({ label: '📢 Media Center', url: `${BASE_URL}/mediaCenter` });
   if (/contact|reach|call|email|संपर्क/.test(msg))
-    buttons.push({ label: '📞 Contact Us', url: `${BASE_URL}/contact` });
-
-  // Product category intents — browse category pages
+    buttons.push({ label: '📞 Contact Us', url: `${BASE_URL}/contactUs` });
+  if (/about|company|aadona kya|who are/.test(msg))
+    buttons.push({ label: 'ℹ️ About Us', url: `${BASE_URL}/about` });
+  if (/mission|vision|goal/.test(msg))
+    buttons.push({ label: '🎯 Mission & Vision', url: `${BASE_URL}/missionVision` });
+  if (/leader|team|founder|management/.test(msg))
+    buttons.push({ label: '👥 Leadership Team', url: `${BASE_URL}/leadershipTeam` });
+  if (/whistle|complaint|report|misconduct/.test(msg))
+    buttons.push({ label: '📣 Whistleblower', url: `${BASE_URL}/whistleBlower` });
   if (/wireless|wifi|wi-fi|access point|वायरलेस/.test(msg))
     buttons.push({ label: '📡 Browse Wireless', url: `${BASE_URL}/wireless` });
   if (/surveillance|camera|cctv|nvr|dvr|सर्विलांस/.test(msg))
@@ -90,16 +94,15 @@ const detectActionButtons = (userMessage, aiReply, products) => {
   if (/passive|cable|fiber|cabling/.test(msg))
     buttons.push({ label: '🔌 Passive Networking', url: `${BASE_URL}/passive-networking` });
 
-  // Deduplicate by URL
   const seen = new Set();
   return buttons.filter(b => {
     if (seen.has(b.url)) return false;
     seen.add(b.url);
     return true;
-  }).slice(0, 4); // max 4 buttons per message
+  }).slice(0, 4);
 };
 
-// ─── Multiple product cards detection ─────────────────────────────────────
+// ─── Product Cards Detection ───────────────────────────────────────────────
 const detectProductCards = (reply, products) => {
   if (!products?.length) return [];
   const replyLower = reply.toLowerCase();
@@ -110,38 +113,44 @@ const detectProductCards = (reply, products) => {
     return modelMatch || nameMatch;
   });
 
-  // Return max 4 product cards
   return matched.slice(0, 4).map(p => ({
     name: p.fullName || p.name,
     model: p.model,
     image: p.image,
     slug: p.slug,
     category: p.category,
+    overview: p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '',
+    features: (p.features || []).slice(0, 3),
     url: `${BASE_URL}/${(p.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${p.slug}`,
   }));
 };
 
 // ─── System Prompt ─────────────────────────────────────────────────────────
-const buildSystemPrompt = (userName, userPhone) => `
+const buildSystemPrompt = (userName, userPhone, userCity) => `
 You are AADONA's friendly and knowledgeable AI assistant. Your name is "AADONA Assistant".
 
 CRITICAL INSTRUCTIONS:
 - LANGUAGE: Detect language from user's LAST message only.
-  * Single English words (Products, Support, About, Wireless, etc.) → reply in English.
+  * Single English words → reply in English.
   * Full Hindi sentence → reply in Hindi.
   * Hinglish → reply in Hinglish.
   * NEVER mix Hindi and English randomly in the same sentence.
-- Be concise and professional. Use **bold** for key info only.
-- NEVER make up information. If unsure, give contact: 1800-202-6599 or contact@aadona.com
+- RESPONSE STYLE: Reply naturally and conversationally — like a helpful human. Do NOT dump everything at once. Build the answer gradually.
+- Be warm, concise, professional. Use **bold** for key info only.
+- NEVER make up information. If unsure: 1800-202-6599 or contact@aadona.com
 - You ONLY answer AADONA-related questions. Politely decline unrelated topics.
 - For product queries, ALWAYS use the LIVE PRODUCT DATABASE. Mention exact model numbers.
-- If user asks to "show all [category] products", list ALL matching products from the database with their model numbers.
-- Address user by first name occasionally.
-- Keep responses SHORT. No filler sentences.
+- When user asks about a specific product → give brief overview + 2-3 key features only. Let them ask for more.
+- When user asks to show all products in a category → list ALL matching models from DB.
+- Address user by first name occasionally — not every message.
+- For static pages → mention them naturally in conversation. Do NOT list all URLs at once. Only share what's relevant to the question.
+- Guide users step by step. Ask follow-up questions if needed.
+- Keep responses SHORT. Max 4-5 lines per reply unless user specifically asks for details.
 
 USER INFO:
 - Name: ${userName}
 - Phone: ${userPhone}
+- City: ${userCity || 'Not provided'}
 
 ═══════════════════════════════════════
 AADONA KNOWLEDGE BASE
@@ -157,9 +166,9 @@ COMPANY:
 
 CONTACT:
 - HQ: 1st Floor, Phoenix Tech Tower, Plot 14/46, IDA–Uppal, Hyderabad, Telangana 500039
+- Production & Billing: 7, SBI Colony, Mohaba Bazar, Hirapur Road, Raipur, CG — 492099
 - Toll-Free: 1800-202-6599 | Email: contact@aadona.com
 - Hours: Mon–Fri, 10:30 AM – 6:30 PM IST
-- Social: facebook.com/aadonacomm | @aadonacommunication | linkedin.com/company/aadona
 
 PRODUCTS (use LIVE DATABASE for exact models):
 1. Wireless — Enterprise WiFi APs, indoor/outdoor
@@ -170,32 +179,37 @@ PRODUCTS (use LIVE DATABASE for exact models):
 6. Industrial & Rugged Switches — DIN-rail, harsh environments
 7. Passive — Cat6/6A/7, fiber, patch panels, cable management
 
+STATIC PAGES (mention naturally only when relevant):
+- About Us: aadona.online/about
+- Mission & Vision: aadona.online/missionVision
+- Leadership Team: aadona.online/leadershipTeam
+- CSR: aadona.online/csr
+- Careers: aadona.online/careers
+- Blog: aadona.online/blog
+- Media Center: aadona.online/mediaCenter
+- Our Customers: aadona.online/customers
+- Contact Us: aadona.online/contactUs
+- Whistleblower: aadona.online/whistleBlower
+
 SUPPORT PAGES:
-- Warranty: aadona.online/warranty
-- Tech Squad (on-site): aadona.online/tech-squad
-- Request DOA: aadona.online/request-doa
-- Support Tools: aadona.online/support-tools
-- Product Support: aadona.online/product-support
-- Product Registration: aadona.online/product-registration
+- Warranty Check: aadona.online/warranty
+- Tech Squad (on-site): aadona.online/techSquad
+- Request DOA: aadona.online/requestDoa
+- Support Tools: aadona.online/supportTools
+- Product Support: aadona.online/productSupport
+- Product Registration: aadona.online/warrantyRegistration
 
 PARTNER PAGES:
-- Become a Partner: aadona.online/become-a-partner
-- Project Locking: aadona.online/project-locking
-- Request a Demo: aadona.online/request-a-demo-1
-- Request Training: aadona.online/request-training
-
-OTHER PAGES:
-- Careers: aadona.online/careers
-- CSR: aadona.online/csr
-- Blog: aadona.online/blog
-- Our Customers: aadona.online/our-customers
-- Media Center: aadona.online/media-center
+- Become a Partner: aadona.online/becomePartner
+- Project Locking: aadona.online/projectLocking
+- Request a Demo: aadona.online/requestDemo
+- Request Training: aadona.online/requestTraining
 `.trim();
 
 // ─── POST /chat/register ───────────────────────────────────────────────────
 router.post('/chat/register', async (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, city } = req.body;
     if (!name || !phone)
       return res.status(400).json({ success: false, error: 'Name and phone required.' });
 
@@ -218,6 +232,10 @@ router.post('/chat/register', async (req, res) => {
               <td style="border:1px solid #d1fae5;color:#111827">+91 ${phone}</td>
             </tr>
             <tr style="background:#f0fdf4">
+              <td style="border:1px solid #d1fae5;font-weight:600;color:#374151">City</td>
+              <td style="border:1px solid #d1fae5;color:#111827">${city || '-'}</td>
+            </tr>
+            <tr>
               <td style="border:1px solid #d1fae5;font-weight:600;color:#374151">Time</td>
               <td style="border:1px solid #d1fae5;color:#111827">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</td>
             </tr>
@@ -229,14 +247,14 @@ router.post('/chat/register', async (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     console.error('Chat register error:', err.message);
-    return res.json({ success: true }); // don't block user if mail fails
+    return res.json({ success: true });
   }
 });
 
-// ─── POST /chat ────────────────────────────────────────────────────────────
+// ─── POST /chat (Streaming) ────────────────────────────────────────────────
 router.post('/chat', chatLimiter, async (req, res) => {
   try {
-    const { messages, userName, userPhone } = req.body;
+    const { messages, userName, userPhone, userCity } = req.body;
 
     if (!Array.isArray(messages) || messages.length === 0)
       return res.status(400).json({ success: false, error: 'Messages array is required.' });
@@ -251,67 +269,91 @@ router.post('/chat', chatLimiter, async (req, res) => {
     const recentMessages = sanitized.slice(-10);
     const lastUserMessage = [...sanitized].reverse().find(m => m.role === 'user')?.content || '';
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error('OPENROUTER_API_KEY not set');
+      console.error('GEMINI_API_KEY not set');
       return res.status(500).json({ success: false, error: 'AI service not configured.' });
     }
 
     const { context: productsContext, products } = await getProductsContext();
+    const systemContent = buildSystemPrompt(userName || 'Guest', userPhone || '', userCity || '') + productsContext;
 
+    const geminiMessages = recentMessages.map((m, i) => {
+      if (i === 0 && m.role === 'user') {
+        return { role: 'user', parts: [{ text: systemContent + '\n\nUser: ' + m.content }] };
+      }
+      return {
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      };
+    });
+
+    // ── Streaming Gemini call ──
     const genAI = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-001',
-          messages: [
-            { role: 'system', content: buildSystemPrompt(userName || 'Guest', userPhone || '') + productsContext },
-            ...recentMessages,
-          ],
-          max_tokens: 700,
-          temperature: 0.7,
+          contents: geminiMessages,
+          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 },
+          systemInstruction: { parts: [{ text: systemContent }] }
         }),
       }
     );
-    
+
     if (!genAI.ok) {
       const errData = await genAI.json().catch(() => ({}));
-      console.error('OpenRouter API error:', genAI.status, errData);
+      console.error('Gemini API error:', genAI.status, errData);
       return res.status(502).json({ success: false, error: 'AI service temporarily unavailable. Please try again.' });
     }
 
-    const data = await genAI.json();
-    const reply = data?.choices?.[0]?.message?.content;
+    // SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
 
-    if (!reply)
-      return res.status(502).json({ success: false, error: 'Empty response from AI service.' });
+    let fullReply = '';
+    const reader = genAI.body.getReader();
+    const decoder = new TextDecoder();
 
-    // Detect product cards (multiple)
-    const productCards = detectProductCards(reply, products);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    // Detect action buttons
-    const actionButtons = detectActionButtons(lastUserMessage, reply, products);
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
 
-    return res.json({
-      success: true,
-      reply,
-      productCards: productCards.length ? productCards : null,  // array of cards
-      actionButtons: actionButtons.length ? actionButtons : null, // array of buttons
-      // keep single productCard for backward compat
-      productCard: productCards[0] || null,
-    });
+      for (const line of lines) {
+        try {
+          const json = JSON.parse(line.replace('data: ', ''));
+          const token = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (token) {
+            fullReply += token;
+            res.write(`data: ${JSON.stringify({ token })}\n\n`);
+          }
+        } catch { }
+      }
+    }
+
+    const productCards = detectProductCards(fullReply, products);
+    const actionButtons = detectActionButtons(lastUserMessage, fullReply, products);
+
+    res.write(`data: ${JSON.stringify({
+      done: true,
+      productCards: productCards.length ? productCards : null,
+      actionButtons: actionButtons.length ? actionButtons : null,
+    })}\n\n`);
+    res.end();
 
   } catch (err) {
     console.error('Chatbot route error:', err.message);
-    return res.status(500).json({ success: false, error: 'Internal server error. Please try again.' });
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, error: 'Internal server error. Please try again.' });
+    }
+    res.write(`data: ${JSON.stringify({ done: true, error: 'Something went wrong.' })}\n\n`);
+    res.end();
   }
 });
 
 module.exports = router;
-
-/* */

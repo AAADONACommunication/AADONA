@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const STORAGE_KEY_USER = 'aadona_chat_user';
+const STORAGE_KEY_USER = 'aadona_chat_user_v2'; // v2 — city add hone se fresh start
 const STORAGE_KEY_HISTORY = (phone) => `aadona_chat_history_${phone}`;
 const MAX_HISTORY = 40;
 const TOLL_FREE = '18002026599';
@@ -28,11 +28,12 @@ function getTime() {
   return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
+// ─── Product Card ──────────────────────────────────────────────────────────
 function ProductCard({ product }) {
   if (!product) return null;
   const url = product.url || `https://aadona.online/${(product.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${product.slug}`;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden w-[175px] flex-shrink-0">
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden w-[185px] flex-shrink-0">
       {product.image ? (
         <img src={product.image} alt={product.name} className="w-full h-28 object-contain bg-slate-50 p-2" />
       ) : (
@@ -44,9 +45,22 @@ function ProductCard({ product }) {
       )}
       <div className="p-2.5">
         <p className="text-[11px] font-semibold text-slate-800 leading-tight line-clamp-2">{product.name}</p>
-        {product.model && <p className="text-[10px] text-slate-400 mt-0.5 mb-2">{product.model}</p>}
+        {product.model && <p className="text-[10px] text-slate-400 mt-0.5">{product.model}</p>}
+        {product.overview && (
+          <p className="text-[10px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{product.overview}</p>
+        )}
+        {product.features?.length > 0 && (
+          <ul className="mt-1 mb-1.5 flex flex-col gap-0.5">
+            {product.features.map((f, i) => (
+              <li key={i} className="flex items-start gap-1 text-[10px] text-slate-500">
+                <span className="text-emerald-500 mt-0.5 flex-shrink-0">•</span>
+                <span className="line-clamp-1">{f}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         <a href={url} target="_blank" rel="noopener noreferrer"
-          className="block text-center text-[10.5px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-1.5 rounded-lg hover:opacity-90 transition">
+          className="block text-center text-[10.5px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-1.5 rounded-lg hover:opacity-90 transition mt-1">
           View Product →
         </a>
       </div>
@@ -54,6 +68,7 @@ function ProductCard({ product }) {
   );
 }
 
+// ─── Action Buttons ────────────────────────────────────────────────────────
 function ActionButtons({ buttons }) {
   if (!buttons?.length) return null;
   return (
@@ -68,6 +83,7 @@ function ActionButtons({ buttons }) {
   );
 }
 
+// ─── Typing Dots ───────────────────────────────────────────────────────────
 function TypingDots() {
   return (
     <div className="flex items-end gap-1 px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm">
@@ -79,7 +95,8 @@ function TypingDots() {
   );
 }
 
-function BotMessage({ content, time, productCards, actionButtons }) {
+// ─── Bot Message ───────────────────────────────────────────────────────────
+function BotMessage({ content, time, productCards, actionButtons, isStreaming }) {
   return (
     <div className="flex items-end gap-2 animate-fadeIn">
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 mb-1 shadow">
@@ -99,19 +116,23 @@ function BotMessage({ content, time, productCards, actionButtons }) {
               {i < content.split('\n').length - 1 && <br />}
             </span>
           ))}
+          {isStreaming && (
+            <span className="inline-block w-1 h-3.5 bg-emerald-400 ml-0.5 animate-pulse rounded-sm" />
+          )}
         </div>
-        {productCards?.length > 0 && (
+        {!isStreaming && productCards?.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5" style={{ scrollbarWidth: 'none' }}>
             {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
           </div>
         )}
-        <ActionButtons buttons={actionButtons} />
-        {time && <span className="text-[10px] text-slate-400 pl-1">{time}</span>}
+        {!isStreaming && <ActionButtons buttons={actionButtons} />}
+        {!isStreaming && time && <span className="text-[10px] text-slate-400 pl-1">{time}</span>}
       </div>
     </div>
   );
 }
 
+// ─── User Message ──────────────────────────────────────────────────────────
 function UserMessage({ content, time }) {
   return (
     <div className="flex items-end justify-end gap-2 animate-fadeIn">
@@ -125,6 +146,7 @@ function UserMessage({ content, time }) {
   );
 }
 
+// ─── Quick Replies ─────────────────────────────────────────────────────────
 function QuickReplies({ options, onSelect }) {
   if (!options?.length) return null;
   return (
@@ -139,9 +161,11 @@ function QuickReplies({ options, onSelect }) {
   );
 }
 
+// ─── Registration Form ─────────────────────────────────────────────────────
 function RegistrationForm({ onStart }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [city, setCity] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -149,10 +173,11 @@ function RegistrationForm({ onStart }) {
     setError('');
     if (!name.trim()) { setError('Please enter your name.'); return; }
     if (!/^\d{10}$/.test(phone)) { setError('Please enter a valid 10-digit mobile number.'); return; }
+    if (!city.trim()) { setError('Please enter your city.'); return; }
     setLoading(true);
     await new Promise(r => setTimeout(r, 400));
     setLoading(false);
-    onStart(name.trim(), phone.trim());
+    onStart(name.trim(), phone.trim(), city.trim());
   };
 
   return (
@@ -193,6 +218,13 @@ function RegistrationForm({ onStart }) {
                   placeholder="10-digit number"
                   className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
               </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">City *</label>
+              <input type="text" value={city} onChange={e => setCity(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                placeholder="Enter your city"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
             </div>
           </div>
           {error && (
@@ -240,6 +272,7 @@ function RegistrationForm({ onStart }) {
   );
 }
 
+// ─── Main Chatbot Component ────────────────────────────────────────────────
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -252,6 +285,7 @@ export default function Chatbot() {
   const [hasUnread, setHasUnread] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showCallDrawer, setShowCallDrawer] = useState(false);
+  const [showBubble, setShowBubble] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -286,7 +320,6 @@ export default function Chatbot() {
     }
   }, []);
 
-  // Close call drawer on outside click
   useEffect(() => {
     if (!showCallDrawer) return;
     const handler = (e) => {
@@ -297,6 +330,11 @@ export default function Chatbot() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showCallDrawer]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowBubble(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const loadHistory = (phone) => {
     try {
@@ -332,13 +370,13 @@ export default function Chatbot() {
     } catch { }
   }, []);
 
-  const handleStart = async (name, phone) => {
-    const userData = { name, phone, joinedAt: new Date().toISOString() };
+  const handleStart = async (name, phone, city) => {
+    const userData = { name, phone, city, joinedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
     fetch(`${API_BASE}/chat/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone }),
+      body: JSON.stringify({ name, phone, city }),
     }).catch(() => { });
     setUser(userData);
     setIsRegistered(true);
@@ -359,7 +397,7 @@ export default function Chatbot() {
     } else {
       const greeting = {
         role: 'bot',
-        content: `Namaste **${name} ji**! 🙏 Welcome to **AADONA** — India's premium networking brand!\n\nI can help you with products, support, partnerships, and everything about us. What would you like to know?`,
+        content: `Namaste **${name} ji**! 🙏 Welcome to **AADONA** — India's premium networking brand!\n\nI can help you with products, support, partnerships, and more. What would you like to know?`,
         time: getTime(),
       };
       setMessages([greeting]);
@@ -368,6 +406,7 @@ export default function Chatbot() {
     setQuickReplies(QUICK_REPLY_MAP.default);
   };
 
+  // ── Streaming sendMessage ──────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || isLoading) return;
@@ -381,6 +420,11 @@ export default function Chatbot() {
     setApiHistory(newApiHistory);
     setIsLoading(true);
 
+    // Add empty streaming bot message
+    const streamingMsg = { role: 'bot', content: '', time: getTime(), isStreaming: true, productCards: null, actionButtons: null };
+    setMessages(prev => [...prev, streamingMsg]);
+    const botIndex = newMessages.length; // index of the streaming message
+
     try {
       const response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
@@ -389,32 +433,82 @@ export default function Chatbot() {
           messages: newApiHistory,
           userName: user?.name || 'Guest',
           userPhone: user?.phone || '',
+          userCity: user?.city || '',
         }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Server error');
 
-      const reply = data.reply || 'Sorry, I could not get a response. Please try again.';
-      const productCards = data.productCards || (data.productCard ? [data.productCard] : null);
-      const actionButtons = data.actionButtons || null;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Server error');
+      }
 
-      const botMsg = { role: 'bot', content: reply, time: getTime(), productCards, actionButtons };
-      const updatedMessages = [...newMessages, botMsg];
-      setMessages(updatedMessages);
-      setApiHistory(prev => [...prev, { role: 'assistant', content: reply }]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let streamedText = '';
+      let productCards = null;
+      let actionButtons = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line.replace('data: ', ''));
+
+            if (json.token) {
+              streamedText += json.token;
+              setMessages(prev => {
+                const updated = [...prev];
+                if (updated[botIndex]) {
+                  updated[botIndex] = { ...updated[botIndex], content: streamedText, isStreaming: true };
+                }
+                return updated;
+              });
+            }
+
+            if (json.done) {
+              productCards = json.productCards || null;
+              actionButtons = json.actionButtons || null;
+              setMessages(prev => {
+                const updated = [...prev];
+                if (updated[botIndex]) {
+                  updated[botIndex] = {
+                    ...updated[botIndex],
+                    content: streamedText,
+                    isStreaming: false,
+                    productCards,
+                    actionButtons,
+                  };
+                }
+                return updated;
+              });
+            }
+          } catch { }
+        }
+      }
+
+      const finalMessages = [...newMessages, {
+        role: 'bot', content: streamedText, time: getTime(), productCards, actionButtons, isStreaming: false
+      }];
+      setApiHistory(prev => [...prev, { role: 'assistant', content: streamedText }]);
       setQuickReplies(getQuickReplies(trimmed));
-      saveHistory(user?.phone, updatedMessages);
+      saveHistory(user?.phone, finalMessages);
 
     } catch (err) {
       console.error('Chat error:', err);
-      const errMsg = {
-        role: 'bot',
-        content: `Oops! Something went wrong. Please check your connection and try again.\n\nFor urgent help, call us at **${TOLL_FREE_DISPLAY}** (Toll Free).`,
-        time: getTime(),
-      };
       setMessages(prev => {
-        const updated = [...newMessages, errMsg];
-        saveHistory(user?.phone, updated);
+        const updated = [...prev];
+        if (updated[botIndex]) {
+          updated[botIndex] = {
+            ...updated[botIndex],
+            content: `Oops! Something went wrong. Please try again.\n\nFor urgent help, call us at **${TOLL_FREE_DISPLAY}** (Toll Free).`,
+            isStreaming: false,
+          };
+        }
         return updated;
       });
       setQuickReplies(QUICK_REPLY_MAP.default);
@@ -436,33 +530,23 @@ export default function Chatbot() {
     setQuickReplies(QUICK_REPLY_MAP.default);
   };
 
-  // ── Opens chat and closes the call drawer ──
   const handleOpen = () => {
     setIsOpen(true);
     setHasUnread(false);
     setShowCallDrawer(false);
   };
 
-  // ── Closes chat and opens the call drawer (or toggles it) ──
   const handleCallDrawerToggle = () => {
     setShowCallDrawer(prev => !prev);
     setIsOpen(false);
   };
 
-  const [showBubble, setShowBubble] = useState(false);
-
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowBubble(true), 5000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const winHeight = isRegistered ? 560 : 500;
-  const winWidth = isMobile ? 'calc(100vw - 24px)' : '360px';
-  const winRight = isMobile ? '0px' : '0px';
+  const winHeight = isRegistered ? 580 : 540;
+  const winWidth = isMobile ? 'calc(100vw - 24px)' : '368px';
 
   return (
     <>
@@ -511,166 +595,78 @@ export default function Chatbot() {
         .call-drawer-enter { animation: drawerSlideUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
 
         .notif-badge {
-          position: absolute;
-          top: -6px;
-          right: -6px;
-          width: 20px;
-          height: 20px;
-          background: #ef4444;
-          border-radius: 50%;
+          position: absolute; top: -6px; right: -6px;
+          width: 20px; height: 20px;
+          background: #ef4444; border-radius: 50%;
           border: 2px solid #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 9px;
-          font-weight: 800;
-          color: #fff;
-          z-index: 10;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 9px; font-weight: 800; color: #fff; z-index: 10;
           animation: notif-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards,
                      notif-glow 1.5s ease-in-out 0.4s infinite;
         }
         .notif-badge::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
+          content: ''; position: absolute; inset: 0; border-radius: 50%;
           background: #ef4444;
-          animation: notif-ping 1.5s ease-out infinite;
-          z-index: -1;
+          animation: notif-ping 1.5s ease-out infinite; z-index: -1;
         }
-
         .notif-bubble {
-          position: absolute;
-          bottom: calc(100% + 10px);
-          left: 5%;
+          position: absolute; bottom: calc(100% + 10px); left: 5%;
           transform: translateX(-50%);
-          background: #1e293b;
-          color: #f8fafc;
-          font-size: 11px;
-          font-weight: 500;
-          padding: 7px 12px;
-          border-radius: 10px 10px 10px 10px;
-          white-space: nowrap;
-          pointer-events: none;
+          background: #1e293b; color: #f8fafc;
+          font-size: 11px; font-weight: 500;
+          padding: 7px 12px; border-radius: 10px;
+          white-space: nowrap; pointer-events: none;
           animation: notif-bubble-in 0.4s 0.6s ease both,
                      notif-bubble-bounce 2s 1.2s ease-in-out infinite;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-          line-height: 1.4;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.18); line-height: 1.4;
         }
         .notif-bubble::after {
-          content: '';
-          position: absolute;
-          top: 100%;
-          left: 50%;
+          content: ''; position: absolute; top: 100%; left: 50%;
           transform: translateX(-50%);
-          border: 6px solid transparent;
-          border-top-color: #1e293b;
+          border: 6px solid transparent; border-top-color: #1e293b;
         }
-
         .ac-btn-wrap { position: relative; display: flex; }
         .ac-tooltip {
-          position: absolute;
-          right: calc(100% + 10px);
-          top: 50%;
+          position: absolute; right: calc(100% + 10px); top: 50%;
           transform: translateY(-50%) translateX(4px);
-          background: #1e293b;
-          color: #f8fafc;
-          font-size: 11px;
-          font-weight: 500;
-          padding: 5px 11px;
-          border-radius: 8px;
-          white-space: nowrap;
-          pointer-events: none;
-          opacity: 0;
-          transition: opacity 0.18s ease, transform 0.18s ease;
-          z-index: 99999;
-          line-height: 1.4;
+          background: #1e293b; color: #f8fafc;
+          font-size: 11px; font-weight: 500; padding: 5px 11px;
+          border-radius: 8px; white-space: nowrap; pointer-events: none;
+          opacity: 0; transition: opacity 0.18s ease, transform 0.18s ease;
+          z-index: 99999; line-height: 1.4;
         }
         .ac-tooltip::after {
-          content: '';
-          position: absolute;
-          left: 100%;
-          top: 50%;
+          content: ''; position: absolute; left: 100%; top: 50%;
           transform: translateY(-50%);
-          border: 5px solid transparent;
-          border-left-color: #1e293b;
+          border: 5px solid transparent; border-left-color: #1e293b;
         }
-        .ac-btn-wrap:hover .ac-tooltip {
-          opacity: 1;
-          transform: translateY(-50%) translateX(0);
-        }
-
+        .ac-btn-wrap:hover .ac-tooltip { opacity: 1; transform: translateY(-50%) translateX(0); }
         .call-number-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: #f1faf7;
-          border-radius: 10px;
-          padding: 10px 12px;
-          text-decoration: none;
-          border: 1px solid #a7f3d0;
+          display: flex; align-items: center; justify-content: space-between;
+          background: #f1faf7; border-radius: 10px; padding: 10px 12px;
+          text-decoration: none; border: 1px solid #a7f3d0;
           transition: background 0.15s, border-color 0.15s;
         }
-        .call-number-row:hover {
-          background: #d1fae5;
-          border-color: #6ee7b7;
-        }
+        .call-number-row:hover { background: #d1fae5; border-color: #6ee7b7; }
       `}</style>
 
-      {/* ── Root fixed container ── */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '16px',
-        zIndex: 99999,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: '12px',
-      }}>
+      <div style={{ position: 'fixed', bottom: '20px', right: '16px', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
 
-        {/* ── Chat Window ── */}
+        {/* Chat Window */}
         {isOpen && (
           <div style={{ position: 'relative' }}>
-            {/* Floating × close button */}
-            <button
-              onClick={() => setIsOpen(false)}
-              title="Close"
-              style={{
-                position: 'absolute',
-                top: '-11px',
-                right: '-11px',
-                width: '26px',
-                height: '26px',
-                borderRadius: '50%',
-                background: '#ef4444',
-                border: '2.5px solid #fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                zIndex: 20,
-                boxShadow: '0 2px 10px rgba(239,68,68,0.55)',
-                transition: 'transform 0.15s, background 0.15s',
-                outline: 'none',
-              }}
+            <button onClick={() => setIsOpen(false)} title="Close"
+              style={{ position: 'absolute', top: '-11px', right: '-11px', width: '26px', height: '26px', borderRadius: '50%', background: '#ef4444', border: '2.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 2px 10px rgba(239,68,68,0.55)', transition: 'transform 0.15s, background 0.15s', outline: 'none' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.18)'; e.currentTarget.style.background = '#dc2626'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)';    e.currentTarget.style.background = '#ef4444'; }}
-            >
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = '#ef4444'; }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
 
-            <div
-              className="chat-window-enter bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
-              style={{
-                width: winWidth,
-                right: winRight,
-                maxHeight: 'calc(100dvh - 110px)',
-                height: `min(${winHeight}px, calc(100dvh - 110px))`,
-              }}
-            >
+            <div className="chat-window-enter bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+              style={{ width: winWidth, maxHeight: 'calc(100dvh - 110px)', height: `min(${winHeight}px, calc(100dvh - 110px))` }}>
+
               {isRegistered ? (
                 <>
                   {/* Header */}
@@ -688,12 +684,8 @@ export default function Chatbot() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      {/* Phone icon in header — opens call drawer and closes chat */}
-                      <button
-                        onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }}
-                        title={`Call ${TOLL_FREE_DISPLAY}`}
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white"
-                      >
+                      <button onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }} title={`Call ${TOLL_FREE_DISPLAY}`}
+                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
                         </svg>
@@ -718,10 +710,11 @@ export default function Chatbot() {
                     {messages.map((msg, i) =>
                       msg.role === 'bot'
                         ? <BotMessage key={i} content={msg.content} time={msg.time}
-                          productCards={msg.productCards} actionButtons={msg.actionButtons} />
+                            productCards={msg.productCards} actionButtons={msg.actionButtons}
+                            isStreaming={msg.isStreaming} />
                         : <UserMessage key={i} content={msg.content} time={msg.time} />
                     )}
-                    {isLoading && (
+                    {isLoading && messages[messages.length - 1]?.role !== 'bot' && (
                       <div className="flex items-end gap-2 animate-fadeIn">
                         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 mb-1 shadow">
                           <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -776,204 +769,78 @@ export default function Chatbot() {
           </div>
         )}
 
-        {/* ── Launcher Cylinder ── */}
+        {/* Launcher */}
         <div ref={callDrawerRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-          {/* ── Notification badge + bubble ── */}
           {!isOpen && hasUnread && showBubble && (
             <>
-              <div className="notif-bubble">
-                👋 Hi! Got a question?
-              </div>
+              <div className="notif-bubble">👋 Hi! Got a question?</div>
               <span className="notif-badge">1</span>
             </>
           )}
 
-          {/* ── Call Drawer ── */}
+          {/* Call Drawer */}
           {showCallDrawer && (
-            <div
-              className="call-drawer-enter"
-              style={{
-                position: 'absolute',
-                bottom: 'calc(100% + 12px)',
-                right: 0,
-                width: '240px',
-                background: '#ffffff',
-                border: '1px solid rgba(0,0,0,0.09)',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.13)',
-                zIndex: 100,
-              }}
-            >
-              {/* Drawer header */}
-              <div style={{
-                background: 'linear-gradient(135deg,#0d9488,#0f766e)',
-                padding: '10px 14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
+            <div className="call-drawer-enter" style={{ position: 'absolute', bottom: 'calc(100% + 12px)', right: 0, width: '240px', background: '#ffffff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.13)', zIndex: 100 }}>
+              <div style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                  <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24">
-                    <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
-                  </svg>
-                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600, letterSpacing: '0.2px' }}>
-                    Contact Support
-                  </span>
+                  <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
+                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600 }}>Contact Support</span>
                 </div>
-                <button
-                  onClick={() => setShowCallDrawer(false)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'rgba(255,255,255,0.75)', padding: '2px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: '4px', transition: 'color 0.15s',
-                  }}
+                <button onClick={() => setShowCallDrawer(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.75)', padding: '2px', display: 'flex', alignItems: 'center', borderRadius: '4px', transition: 'color 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
-                >
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
-
-              {/* Drawer body */}
               <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
-                <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Toll Free Support Line
-                </p>
-
-                {/* Clickable number — the ONLY place that triggers a call */}
-                <a
-                  href={`tel:${TOLL_FREE}`}
-                  className="call-number-row"
-                  onClick={() => setShowCallDrawer(false)}
-                >
+                <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Toll Free Support Line</p>
+                <a href={`tel:${TOLL_FREE}`} className="call-number-row" onClick={() => setShowCallDrawer(false)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                    <div style={{
-                      width: '30px', height: '30px', borderRadius: '50%',
-                      background: 'linear-gradient(135deg,#10b981,#0d9488)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24">
-                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
-                      </svg>
+                    <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#0d9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '10px', color: '#0d9488', fontWeight: 600 }}>
-                        Tap to call →
-                      </span>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>
-                        {TOLL_FREE_DISPLAY}
-                      </span>
+                      <span style={{ fontSize: '10px', color: '#0d9488', fontWeight: 600 }}>Tap to call →</span>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>{TOLL_FREE_DISPLAY}</span>
                     </div>
                   </div>
                 </a>
-
-                {/* Hours */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  padding: '4px 0 2px',
-                }}>
-                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}>
-                    <circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/>
-                  </svg>
-                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>
-                    Mon – Sat · 10:30 AM to 6:30 PM IST
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '4px 0 2px' }}>
+                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/></svg>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Mon – Sat · 10:30 AM to 6:30 PM IST</span>
                 </div>
-
-                {/* Free badge */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '5px',
-                  background: '#ecfdf5', borderRadius: '8px', padding: '6px 10px',
-                  border: '1px solid #a7f3d0',
-                }}>
-                  <svg width="11" height="11" fill="#10b981" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                  </svg>
-                  <span style={{ fontSize: '10px', color: '#065f46', fontWeight: 500 }}>
-                    Free from all Indian networks
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#ecfdf5', borderRadius: '8px', padding: '6px 10px', border: '1px solid #a7f3d0' }}>
+                  <svg width="11" height="11" fill="#10b981" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                  <span style={{ fontSize: '10px', color: '#065f46', fontWeight: 500 }}>Free from all Indian networks</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Pill container */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            borderRadius: '9999px',
-            overflow: 'visible',
-            border: '1px solid rgba(5,150,105,0.3)',
-            boxShadow: '0 4px 20px rgba(16,185,129,0.35)',
-            width: '56px',
-          }}>
-
-            {/* Chat button — closes call drawer when opening chat */}
+          {/* Pill Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', borderRadius: '9999px', overflow: 'visible', border: '1px solid rgba(5,150,105,0.3)', boxShadow: '0 4px 20px rgba(16,185,129,0.35)', width: '56px' }}>
             <div className="ac-btn-wrap" style={{ borderRadius: '9999px 9999px 0 0', overflow: 'visible' }}>
               <span className="ac-tooltip">{isOpen ? 'Minimise' : 'Chat with us'}</span>
-              <button
-                onClick={isOpen ? () => setIsOpen(false) : handleOpen}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: '56px', width: '56px',
-                  background: isOpen
-                    ? 'linear-gradient(135deg,#059669,#047857)'
-                    : 'linear-gradient(135deg,#10b981,#059669)',
-                  border: 'none', cursor: 'pointer',
-                  transition: 'background 0.15s',
-                  outline: 'none',
-                  borderRadius: '9999px 9999px 0 0',
-                  overflow: 'hidden',
-                }}
-              >
+              <button onClick={isOpen ? () => setIsOpen(false) : handleOpen}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden' }}>
                 {isOpen ? (
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 ) : (
-                  <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-                  </svg>
+                  <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
                 )}
               </button>
             </div>
-
-            {/* Divider */}
             <div style={{ height: '1px', background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
-
-            {/* Call button — closes chat when opening drawer */}
             <div className="ac-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
               <span className="ac-tooltip">📞 Contact</span>
-              <button
-                onClick={handleCallDrawerToggle}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: '56px', width: '56px',
-                  background: showCallDrawer
-                    ? 'linear-gradient(135deg,#0f766e,#115e59)'
-                    : 'linear-gradient(135deg,#0d9488,#0f766e)',
-                  border: 'none', cursor: 'pointer',
-                  transition: 'background 0.15s',
-                  outline: 'none',
-                  borderRadius: '0 0 9999px 9999px',
-                  overflow: 'hidden',
-                }}
-              >
-                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
-                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/>
-                </svg>
+              <button onClick={handleCallDrawerToggle}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden' }}>
+                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
               </button>
             </div>
-
           </div>
         </div>
-
       </div>
     </>
   );
