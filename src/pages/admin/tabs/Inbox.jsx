@@ -128,6 +128,10 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
   return (
     <div className="space-y-6">
 
+    <h1 className="text-2xl font-extrabold text-green-800">
+      Inbox – AADONA Admin Inquiries Management
+    </h1>
+
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5 flex items-center gap-4">

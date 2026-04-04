@@ -61,6 +61,10 @@ export default function History() {
   return (
     <div className="space-y-6">
 
+      <h1 className="text-2xl font-extrabold text-green-800">
+        Activity History – AADONA Admin Panel
+      </h1>
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {["CREATE", "UPDATE", "DELETE"].map(action => {

@@ -113,7 +113,9 @@ export default function Insights() {
       <div className="bg-white rounded-3xl shadow-xl border border-green-100 p-6 md:p-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-green-800 mb-1">📊 Website Insights</h2>
+            <h1 className="text-2xl font-bold text-green-800 mb-1">
+              Website Insights – AADONA Analytics Dashboard
+            </h1>
             <p className="text-gray-500 text-sm">Real-time analytics · Property ID: 524687355</p>
             {lastUpdated && (
               <p className="text-gray-400 text-xs mt-1">Updated: {lastUpdated.toLocaleTimeString()}</p>
