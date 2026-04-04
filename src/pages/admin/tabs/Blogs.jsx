@@ -87,10 +87,8 @@ export default function Blogs({ blogs, reloadBlogs }) {
   const [editingIsDraft, setEditingIsDraft] = useState(false);
   const [drafts, setDrafts] = useState([]);
   const [draftsLoading, setDraftsLoading] = useState(false);
-  
-  useEffect(() => {
-    loadDrafts();
-  }, []);
+
+  useEffect(() => { loadDrafts(); }, []);
 
   const addTextBlock = () =>
     setBlogForm((prev) => ({ ...prev, blocks: [...prev.blocks, { type: "text", content: "" }] }));
@@ -223,303 +221,464 @@ export default function Blogs({ blogs, reloadBlogs }) {
   };
 
   return (
-    <div className="space-y-8">
+    <>
+      <style>{`
+        .bl * { box-sizing: border-box; }
+        .bl {
+          padding: 16px;
+          max-width: 100%;
+        }
 
-      <h1 className="text-2xl font-extrabold text-green-800">
-        Manage Blogs – AADONA Admin Panel
-      </h1>
+        /* Page title */
+        .bl-title {
+          font-size: clamp(18px, 5vw, 24px);
+          font-weight: 800;
+          color: #166534;
+          margin: 0 0 20px;
+        }
 
-      {/* Blog Form */}
-      <div className="bg-white p-8 rounded-3xl shadow-xl border border-green-100">
-        <h2 className="text-xl font-bold text-green-800 mb-6">
-          {editingBlogId ? "✏️ Edit Blog" : "✍️ Create New Blog"}
-        </h2>
+        /* Form card */
+        .bl-card {
+          background: #fff;
+          border-radius: 24px;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+          border: 1px solid #dcfce7;
+          overflow: hidden;
+          margin-bottom: 24px;
+        }
+        .bl-card-inner { padding: clamp(16px, 4vw, 32px); }
 
-        <form onSubmit={handleBlogSubmit} className="space-y-6">
+        .bl-section-title {
+          font-size: clamp(15px, 3vw, 20px);
+          font-weight: 700;
+          color: #166534;
+          margin: 0 0 20px;
+        }
 
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-semibold text-green-700 mb-2">Blog Title</label>
-            <input type="text" value={blogForm.title}
-              onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
-              className={inputStyle} placeholder="Enter blog title" required />
-            {blogForm.title && (
-              <p className="mt-2 text-xs text-gray-400">URL: /blog/{generateSlug(blogForm.title)}</p>
-            )}
-          </div>
+        /* Author + readtime grid */
+        .bl-2col {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
 
-          {/* Excerpt */}
-          <div>
-            <label className="block text-sm font-semibold text-green-700 mb-2">Excerpt</label>
-            <textarea value={blogForm.excerpt}
-              onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
-              className={`${inputStyle} h-24 resize-none`} placeholder="Brief summary shown on blog listing" required />
-          </div>
+        /* Block actions */
+        .bl-block-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 12px;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .bl-block-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: #166534;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .bl-block-actions { display: flex; gap: 6px; }
 
-          {/* Hero Image */}
-          <div>
-            <label className="block text-sm font-semibold text-green-700 mb-2">Hero Image</label>
-            <input type="file" id="blog-hero-img" accept="image/*" className="hidden" onChange={uploadHeroImage} />
-            <label htmlFor="blog-hero-img"
-              className={`flex items-center justify-between w-full border-2 border-dashed rounded-2xl px-5 py-4 cursor-pointer transition-all ${blogForm.image ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"}`}>
-              <div className="flex items-center gap-3">
-                {blogForm.image ? <CheckCircle2 className="text-green-600" /> : <Upload className="text-gray-400" />}
-                <span className={blogForm.image ? "text-green-800 font-semibold text-sm" : "text-gray-400 text-sm"}>
-                  {blogForm.image ? "Hero image uploaded ✓" : "Click to upload hero image"}
-                </span>
+        /* Add block buttons */
+        .bl-add-btns {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        /* Submit row */
+        .bl-submit-row {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          align-items: center;
+          padding-top: 20px;
+          border-top: 1px solid #f0fdf4;
+        }
+        .bl-submit-row button {
+          white-space: nowrap;
+        }
+
+        /* List header */
+        .bl-list-head {
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        /* Blog list item */
+        .bl-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+          padding: 14px 20px;
+          transition: background 0.15s;
+        }
+        .bl-item:hover { background: rgba(240,253,244,0.5); }
+
+        .bl-item-thumb {
+          width: 72px;
+          height: 72px;
+          object-fit: cover;
+          border-radius: 12px;
+          flex-shrink: 0;
+          border: 1px solid #dcfce7;
+        }
+        .bl-item-thumb-placeholder {
+          width: 72px;
+          height: 72px;
+          border-radius: 12px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+        }
+
+        .bl-item-body { flex: 1; min-width: 0; }
+        .bl-item-title {
+          font-weight: 700;
+          color: #1f2937;
+          font-size: clamp(13px, 2.5vw, 15px);
+          margin-bottom: 4px;
+          transition: color 0.15s;
+        }
+        .bl-item:hover .bl-item-title { color: #16a34a; }
+        .bl-item-excerpt {
+          font-size: 13px;
+          color: #6b7280;
+          margin-bottom: 6px;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+        }
+        .bl-item-meta {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          color: #9ca3af;
+        }
+
+        .bl-item-btns {
+          display: flex;
+          gap: 6px;
+          flex-shrink: 0;
+          align-items: flex-start;
+        }
+
+        /* Empty state */
+        .bl-empty {
+          padding: 40px 20px;
+          text-align: center;
+          color: #9ca3af;
+          font-style: italic;
+          font-size: 14px;
+        }
+
+        /* Responsive breakpoints */
+        @media (max-width: 540px) {
+          .bl-2col { grid-template-columns: 1fr; }
+          .bl-item { gap: 10px; padding: 12px 14px; }
+          .bl-item-thumb, .bl-item-thumb-placeholder { width: 56px; height: 56px; }
+          .bl-add-btns { flex-direction: column; }
+          .bl-add-btns button { width: 100%; justify-content: center; }
+          .bl-submit-row { flex-direction: column; align-items: stretch; }
+          .bl-submit-row button { width: 100%; text-align: center; justify-content: center; }
+          .bl-card-inner { padding: 16px; }
+        }
+      `}</style>
+
+      <div className="bl space-y-0">
+        <h1 className="bl-title">Manage Blogs – AADONA Admin Panel</h1>
+
+        {/* ── Blog Form ── */}
+        <div className="bl-card">
+          <div className="bl-card-inner">
+            <h2 className="bl-section-title">
+              {editingBlogId ? "✏️ Edit Blog" : "✍️ Create New Blog"}
+            </h2>
+
+            <form onSubmit={handleBlogSubmit} className="space-y-6">
+
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-semibold text-green-700 mb-2">Blog Title</label>
+                <input type="text" value={blogForm.title}
+                  onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
+                  className={inputStyle} placeholder="Enter blog title" required />
+                {blogForm.title && (
+                  <p className="mt-2 text-xs text-gray-400 break-all">URL: /blog/{generateSlug(blogForm.title)}</p>
+                )}
               </div>
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md">Browse</span>
-            </label>
-            {blogForm.image && (
-              <img src={blogForm.image} alt="Hero preview" className="mt-4 w-full h-52 object-cover rounded-2xl shadow-md" />
-            )}
-          </div>
 
-          {/* Author + Read Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-green-700 mb-2">Author</label>
-              <input type="text" value={blogForm.author}
-                onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
-                className={inputStyle} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-green-700 mb-2">Read Time</label>
-              <input type="text" value={blogForm.readTime}
-                onChange={(e) => setBlogForm({ ...blogForm, readTime: e.target.value })}
-                className={inputStyle} />
-            </div>
-          </div>
+              {/* Excerpt */}
+              <div>
+                <label className="block text-sm font-semibold text-green-700 mb-2">Excerpt</label>
+                <textarea value={blogForm.excerpt}
+                  onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
+                  className={`${inputStyle} h-24 resize-none`}
+                  placeholder="Brief summary shown on blog listing" required />
+              </div>
 
-          {/* Content Blocks */}
-          <div className="border-t border-green-100 pt-6">
-            <h3 className="text-base font-bold text-green-800 mb-5">Blog Content Blocks</h3>
-
-            <div className="space-y-4 mb-6">
-              {blogForm.blocks.length === 0 && (
-                <div className="text-center py-10 text-gray-400 border-2 border-dashed border-green-200 rounded-2xl bg-green-50/30">
-                  No content blocks yet. Use the buttons below to add text or images.
-                </div>
-              )}
-
-              {blogForm.blocks.map((block, index) => (
-                <div key={index} className="border border-green-200 rounded-2xl p-5 bg-green-50/40 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
-                      {block.type === "text" ? "📝" : "🖼️"}
-                      {block.type === "text" ? `Text Block #${index + 1}` : `Image Block #${index + 1}`}
+              {/* Hero Image */}
+              <div>
+                <label className="block text-sm font-semibold text-green-700 mb-2">Hero Image</label>
+                <input type="file" id="blog-hero-img" accept="image/*" className="hidden" onChange={uploadHeroImage} />
+                <label htmlFor="blog-hero-img"
+                  className={`flex items-center justify-between w-full border-2 border-dashed rounded-2xl px-4 py-4 cursor-pointer transition-all ${blogForm.image ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"}`}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    {blogForm.image ? <CheckCircle2 className="text-green-600 flex-shrink-0" /> : <Upload className="text-gray-400 flex-shrink-0" />}
+                    <span className={`text-sm truncate ${blogForm.image ? "text-green-800 font-semibold" : "text-gray-400"}`}>
+                      {blogForm.image ? "Hero image uploaded ✓" : "Click to upload hero image"}
                     </span>
-                    <div className="flex gap-2">
-                      <button type="button" onClick={() => moveBlock(index, "up")} disabled={index === 0}
-                        className="p-1.5 rounded-lg bg-white border border-green-200 hover:bg-green-100 disabled:opacity-30 transition text-green-700">
-                        <ChevronUp size={14} />
-                      </button>
-                      <button type="button" onClick={() => moveBlock(index, "down")} disabled={index === blogForm.blocks.length - 1}
-                        className="p-1.5 rounded-lg bg-white border border-green-200 hover:bg-green-100 disabled:opacity-30 transition text-green-700">
-                        <ChevronDown size={14} />
-                      </button>
-                      <button type="button" onClick={() => deleteBlock(index)}
-                        className="p-1.5 rounded-lg bg-red-50 border border-red-200 hover:bg-red-500 hover:text-white text-red-400 transition">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
                   </div>
+                  <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md flex-shrink-0 ml-2">Browse</span>
+                </label>
+                {blogForm.image && (
+                  <img src={blogForm.image} alt="Hero preview"
+                    className="mt-4 w-full h-48 object-cover rounded-2xl shadow-md" />
+                )}
+              </div>
 
-                  {block.type === "text" && (
-                    <RichTextEditor
-                      value={block.content}
-                      onChange={(html) => updateBlock(index, "content", html)}
-                      placeholder="Write your content here..."
-                    />
-                  )}
+              {/* Author + Read Time */}
+              <div className="bl-2col">
+                <div>
+                  <label className="block text-sm font-semibold text-green-700 mb-2">Author</label>
+                  <input type="text" value={blogForm.author}
+                    onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
+                    className={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-green-700 mb-2">Read Time</label>
+                  <input type="text" value={blogForm.readTime}
+                    onChange={(e) => setBlogForm({ ...blogForm, readTime: e.target.value })}
+                    className={inputStyle} />
+                </div>
+              </div>
 
-                  {block.type === "image" && (
-                    <div>
-                      <input type="file" id={`block-img-${index}`} accept="image/*" className="hidden"
-                        onChange={(e) => uploadBlockImage(e, index)} />
-                      <label htmlFor={`block-img-${index}`}
-                        className={`flex items-center justify-between w-full border-2 border-dashed rounded-xl px-4 py-3 cursor-pointer transition-all mb-3 ${block.url ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"}`}>
-                        <div className="flex items-center gap-2">
-                          {block.url ? <CheckCircle2 size={16} className="text-green-600" /> : <Upload size={16} className="text-gray-400" />}
-                          <span className={`text-sm ${block.url ? "text-green-800 font-semibold" : "text-gray-400"}`}>
-                            {block.url ? "Image uploaded ✓" : "Click to upload image"}
-                          </span>
-                        </div>
-                        <span className="text-xs font-bold text-green-600 uppercase bg-green-100 px-2 py-0.5 rounded">Browse</span>
-                      </label>
-                      {block.url && (
-                        <img src={block.url} alt="Block preview" className="w-full h-48 object-cover rounded-xl mb-3 shadow-sm" />
-                      )}
-                      <input type="text" value={block.caption || ""}
-                        onChange={(e) => updateBlock(index, "caption", e.target.value)}
-                        className={inputStyle} placeholder="Optional caption..." />
+              {/* Content Blocks */}
+              <div className="border-t border-green-100 pt-6">
+                <h3 className="text-base font-bold text-green-800 mb-5">Blog Content Blocks</h3>
+
+                <div className="space-y-4 mb-6">
+                  {blogForm.blocks.length === 0 && (
+                    <div className="text-center py-10 text-gray-400 border-2 border-dashed border-green-200 rounded-2xl bg-green-50/30 text-sm px-4">
+                      No content blocks yet. Use the buttons below to add text or images.
                     </div>
                   )}
+
+                  {blogForm.blocks.map((block, index) => (
+                    <div key={index} className="border border-green-200 rounded-2xl p-4 bg-green-50/40 shadow-sm">
+                      <div className="bl-block-head">
+                        <span className="bl-block-label">
+                          {block.type === "text" ? "📝" : "🖼️"}
+                          {block.type === "text" ? `Text Block #${index + 1}` : `Image Block #${index + 1}`}
+                        </span>
+                        <div className="bl-block-actions">
+                          <button type="button" onClick={() => moveBlock(index, "up")} disabled={index === 0}
+                            className="p-1.5 rounded-lg bg-white border border-green-200 hover:bg-green-100 disabled:opacity-30 transition text-green-700">
+                            <ChevronUp size={14} />
+                          </button>
+                          <button type="button" onClick={() => moveBlock(index, "down")} disabled={index === blogForm.blocks.length - 1}
+                            className="p-1.5 rounded-lg bg-white border border-green-200 hover:bg-green-100 disabled:opacity-30 transition text-green-700">
+                            <ChevronDown size={14} />
+                          </button>
+                          <button type="button" onClick={() => deleteBlock(index)}
+                            className="p-1.5 rounded-lg bg-red-50 border border-red-200 hover:bg-red-500 hover:text-white text-red-400 transition">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {block.type === "text" && (
+                        <RichTextEditor
+                          value={block.content}
+                          onChange={(html) => updateBlock(index, "content", html)}
+                          placeholder="Write your content here..."
+                        />
+                      )}
+
+                      {block.type === "image" && (
+                        <div>
+                          <input type="file" id={`block-img-${index}`} accept="image/*" className="hidden"
+                            onChange={(e) => uploadBlockImage(e, index)} />
+                          <label htmlFor={`block-img-${index}`}
+                            className={`flex items-center justify-between w-full border-2 border-dashed rounded-xl px-4 py-3 cursor-pointer transition-all mb-3 ${block.url ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"}`}>
+                            <div className="flex items-center gap-2 min-w-0">
+                              {block.url ? <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" /> : <Upload size={16} className="text-gray-400 flex-shrink-0" />}
+                              <span className={`text-sm truncate ${block.url ? "text-green-800 font-semibold" : "text-gray-400"}`}>
+                                {block.url ? "Image uploaded ✓" : "Click to upload image"}
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold text-green-600 uppercase bg-green-100 px-2 py-0.5 rounded flex-shrink-0 ml-2">Browse</span>
+                          </label>
+                          {block.url && (
+                            <img src={block.url} alt="Block preview"
+                              className="w-full h-48 object-cover rounded-xl mb-3 shadow-sm" />
+                          )}
+                          <input type="text" value={block.caption || ""}
+                            onChange={(e) => updateBlock(index, "caption", e.target.value)}
+                            className={inputStyle} placeholder="Optional caption..." />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bl-add-btns">
+                  <button type="button" onClick={addTextBlock}
+                    className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 text-sm font-semibold shadow-sm transition">
+                    <Plus size={16} /> Add Text Block
+                  </button>
+                  <button type="button" onClick={addImageBlock}
+                    className="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 text-sm font-semibold shadow-sm transition">
+                    <Plus size={16} /> Add Image Block
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <div className="bl-submit-row">
+                <button type="submit"
+                  className="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition font-bold shadow-lg">
+                  {editingBlogId && !editingIsDraft ? "Update Blog" : "Publish Blog"}
+                </button>
+                {(!editingBlogId || editingIsDraft) && (
+                  <button type="button" onClick={(e) => handleBlogSubmit(e, true)}
+                    className="bg-gray-100 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-200 transition font-bold border border-gray-300">
+                    💾 Save as Draft
+                  </button>
+                )}
+                {editingBlogId && (
+                  <button type="button" onClick={resetBlogForm}
+                    className="text-gray-400 font-medium hover:text-red-500 transition px-2 py-3">
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* ── Published Blogs ── */}
+        <div className="bl-card">
+          <div className="bl-list-head" style={{ background: "#15803d" }}>
+            <div>
+              <h2 className="text-lg font-bold text-white">Published Blogs</h2>
+              <p className="text-green-200 text-sm mt-0.5">
+                {blogs.length} blog{blogs.length !== 1 ? "s" : ""} published
+              </p>
+            </div>
+          </div>
+
+          {blogs.length === 0 ? (
+            <div className="bl-empty">No blogs published yet.</div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {blogs.map((blog) => (
+                <div key={blog._id} className="bl-item group">
+                  <img src={blog.image} alt={blog.title} className="bl-item-thumb" />
+                  <div className="bl-item-body">
+                    <div className="bl-item-title">{blog.title}</div>
+                    <div className="bl-item-excerpt">{blog.excerpt}</div>
+                    <div className="bl-item-meta">
+                      <span className="font-medium text-gray-500">{blog.author}</span>
+                      <span>•</span>
+                      <span>{blog.date}</span>
+                      <span>•</span>
+                      <span>{blog.views || 0} views</span>
+                      {blog.blocks?.length > 0 && (
+                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                          {blog.blocks.length} blocks
+                        </span>
+                      )}
+                    </div>
+                    {blog.slug && (
+                      <p className="text-xs text-blue-500 mt-1 truncate">/blog/{blog.slug}</p>
+                    )}
+                  </div>
+                  <div className="bl-item-btns">
+                    <button onClick={() => editBlog(blog)}
+                      className="p-2 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition shadow-sm">
+                      <Edit size={15} />
+                    </button>
+                    <button onClick={() => deleteBlog(blog._id)}
+                      className="p-2 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
+          )}
+        </div>
 
-            <div className="flex gap-3">
-              <button type="button" onClick={addTextBlock}
-                className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 text-sm font-semibold shadow-sm transition">
-                <Plus size={16} /> Add Text Block
-              </button>
-              <button type="button" onClick={addImageBlock}
-                className="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 text-sm font-semibold shadow-sm transition">
-                <Plus size={16} /> Add Image Block
-              </button>
+        {/* ── Drafts ── */}
+        <div className="bl-card" style={{ borderColor: "#fef9c3" }}>
+          <div className="bl-list-head" style={{ background: "#eab308" }}>
+            <div>
+              <h2 className="text-lg font-bold text-white">📝 Drafts</h2>
+              <p className="text-yellow-100 text-sm mt-0.5">
+                {drafts.length} draft{drafts.length !== 1 ? "s" : ""} saved
+              </p>
             </div>
-          </div>
-
-          {/* Submit */}
-          <div className="flex gap-4 pt-6 border-t border-green-100">
-            <button type="submit"
-              className="bg-green-600 text-white px-10 py-3 rounded-full hover:bg-green-700 transition font-bold shadow-lg">
-              {editingBlogId && !editingIsDraft ? "Update Blog" : "Publish Blog"}
+            <button onClick={loadDrafts} disabled={draftsLoading}
+              className="bg-white text-yellow-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-yellow-50 transition disabled:opacity-50 flex-shrink-0">
+              {draftsLoading ? "Loading..." : "🔄 Load Drafts"}
             </button>
-            {(!editingBlogId || editingIsDraft) && (
-              <button
-                type="button"
-                onClick={(e) => handleBlogSubmit(e, true)}
-                className="bg-gray-100 text-gray-700 px-8 py-3 rounded-full hover:bg-gray-200 transition font-bold border border-gray-300"
-              >
-                💾 Save as Draft
-              </button>
-            )}
-            {editingBlogId && (
-              <button type="button" onClick={resetBlogForm}
-                className="text-gray-400 font-medium hover:text-red-500 transition">
-                Cancel
-              </button>
-            )}
           </div>
-        </form>
-      </div>
 
-      {/* Published Blogs List */}
-      <div className="bg-white rounded-3xl shadow-xl border border-green-100 overflow-hidden">
-        <div className="p-6 border-b border-green-100 bg-green-700">
-          <h2 className="text-xl font-bold text-white">Published Blogs</h2>
-          <p className="text-green-200 text-sm mt-1">
-            {blogs.length} blog{blogs.length !== 1 ? "s" : ""} published
-          </p>
-        </div>
-
-        {blogs.length === 0 ? (
-          <div className="p-10 text-center text-gray-400 italic">No blogs published yet.</div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {blogs.map((blog) => (
-              <div key={blog._id} className="flex items-start gap-5 px-6 py-5 hover:bg-green-50/40 transition group">
-                <img src={blog.image} alt={blog.title}
-                  className="w-20 h-20 object-cover rounded-xl flex-shrink-0 shadow-sm border border-green-100" />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-gray-800 text-base group-hover:text-green-700 transition mb-1">
-                    {blog.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 line-clamp-1 mb-2">{blog.excerpt}</p>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
-                    <span className="font-medium text-gray-500">{blog.author}</span>
-                    <span>•</span>
-                    <span>{blog.date}</span>
-                    <span>•</span>
-                    <span>{blog.views || 0} views</span>
-                    {blog.blocks?.length > 0 && (
-                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-                        {blog.blocks.length} blocks
-                      </span>
-                    )}
-                  </div>
-                  {blog.slug && (
-                    <p className="text-xs text-blue-500 mt-1">/blog/{blog.slug}</p>
+          {drafts.length === 0 ? (
+            <div className="bl-empty">No drafts yet. Click "Load Drafts" to fetch saved drafts.</div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {drafts.map((draft) => (
+                <div key={draft._id} className="bl-item group">
+                  {draft.image ? (
+                    <img src={draft.image} alt={draft.title}
+                      className="bl-item-thumb" style={{ borderColor: "#fef9c3" }} />
+                  ) : (
+                    <div className="bl-item-thumb-placeholder" style={{ background: "#fef9c3" }}>📝</div>
                   )}
+                  <div className="bl-item-body">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="bl-item-title" style={{ marginBottom: 0 }}>{draft.title}</span>
+                      <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                        DRAFT
+                      </span>
+                    </div>
+                    <div className="bl-item-excerpt">{draft.excerpt || "No excerpt"}</div>
+                    <div className="bl-item-meta">
+                      <span className="font-medium text-gray-500">{draft.author}</span>
+                      <span>•</span>
+                      <span>Last updated: {new Date(draft.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="bl-item-btns">
+                    <button onClick={() => editBlog(draft, true)}
+                      className="p-2 bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white rounded-xl transition shadow-sm"
+                      title="Edit & Publish">
+                      <Edit size={15} />
+                    </button>
+                    <button onClick={() => deleteBlog(draft._id, true)}
+                      className="p-2 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={() => editBlog(blog)}
-                    className="p-2.5 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition shadow-sm">
-                    <Edit size={16} />
-                  </button>
-                  <button onClick={() => deleteBlog(blog._id)}
-                    className="p-2.5 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-        {/* ── DRAFTS SECTION ── */}
-      <div className="bg-white rounded-3xl shadow-xl border border-yellow-100 overflow-hidden">
-        <div className="p-6 border-b border-yellow-100 bg-yellow-500 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-white">📝 Drafts</h2>
-            <p className="text-yellow-100 text-sm mt-1">
-              {drafts.length} draft{drafts.length !== 1 ? "s" : ""} saved
-            </p>
-          </div>
-          <button
-            onClick={loadDrafts}
-            disabled={draftsLoading}
-            className="bg-white text-yellow-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-yellow-50 transition disabled:opacity-50"
-          >
-            {draftsLoading ? "Loading..." : "🔄 Load Drafts"}
-          </button>
+              ))}
+            </div>
+          )}
         </div>
-
-        {drafts.length === 0 ? (
-          <div className="p-10 text-center text-gray-400 italic">
-            No drafts yet. Click "Load Drafts" to fetch saved drafts.
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {drafts.map((draft) => (
-              <div key={draft._id} className="flex items-start gap-5 px-6 py-5 hover:bg-yellow-50/40 transition group">
-                {draft.image ? (
-                  <img src={draft.image} alt={draft.title}
-                    className="w-20 h-20 object-cover rounded-xl flex-shrink-0 shadow-sm border border-yellow-100" />
-                ) : (
-                  <div className="w-20 h-20 rounded-xl flex-shrink-0 bg-yellow-100 flex items-center justify-center text-2xl">
-                    📝
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-gray-800 text-base group-hover:text-yellow-700 transition">
-                      {draft.title}
-                    </h3>
-                    <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                      DRAFT
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 line-clamp-1 mb-2">{draft.excerpt || "No excerpt"}</p>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
-                    <span className="font-medium text-gray-500">{draft.author}</span>
-                    <span>•</span>
-                    <span>Last updated: {new Date(draft.updatedAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => editBlog(draft, true)}
-                    className="p-2.5 bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white rounded-xl transition shadow-sm"
-                    title="Edit & Publish"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => deleteBlog(draft._id, true)}
-                    className="p-2.5 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 }

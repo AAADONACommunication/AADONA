@@ -1,36 +1,33 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { auth } from "../../../firebase";
-import { Trash2, Send, Users, CheckSquare, Square, Eye, EyeOff, Image, FileText, X } from "lucide-react";
+import { Trash2, Send, Users, Eye, EyeOff, Image, FileText, X, RefreshCw, CheckSquare, Square, Search } from "lucide-react";
 
 const SUB_API = `${import.meta.env.VITE_API_URL}/subscribers`;
 
 export default function Newsletter() {
   const [subscribers, setSubscribers] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [selected, setSelected]       = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(new Set());
   const [deleteLoading, setDeleteLoading] = useState(null);
-  const [search, setSearch]           = useState("");
+  const [search, setSearch] = useState("");
 
-  // Template builder state
-  const [subject, setSubject]         = useState("");
-  const [heading, setHeading]         = useState("");
-  const [bodyText, setBodyText]       = useState("");
-  const [buttonText, setButtonText]   = useState("");
-  const [buttonUrl, setButtonUrl]     = useState("");
-  const [footerText, setFooterText]   = useState("© 2025 AADONA Communication. All rights reserved.");
+  const [subject, setSubject] = useState("");
+  const [heading, setHeading] = useState("");
+  const [bodyText, setBodyText] = useState("");
+  const [buttonText, setButtonText] = useState("");
+  const [buttonUrl, setButtonUrl] = useState("");
+  const [footerText, setFooterText] = useState("© 2025 AADONA Communication. All rights reserved.");
 
-  // File states
-  const [bannerFile, setBannerFile]   = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
-  const [pdfFile, setPdfFile]         = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
 
-  // UI state
   const [showPreview, setShowPreview] = useState(false);
-  const [sending, setSending]         = useState(false);
-  const [sendResult, setSendResult]   = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState("");
 
   const bannerRef = useRef();
-  const pdfRef    = useRef();
+  const pdfRef = useRef();
 
   const getToken = () => auth.currentUser?.getIdToken();
 
@@ -103,38 +100,30 @@ export default function Newsletter() {
   const handleSend = async () => {
     if (!subject.trim() || !bodyText.trim())
       return alert("Subject and content are required!");
-
     const targetIds = selected.size > 0 ? [...selected] : [];
     const count = targetIds.length || subscribers.length;
-
     if (!window.confirm(`Send newsletter to ${count} subscriber${count !== 1 ? "s" : ""}?`)) return;
-
     setSending(true);
     setSendResult("");
-
     try {
       const token = await getToken();
-
       const formData = new FormData();
-      formData.append("subject",    subject.trim());
-      formData.append("heading",    heading.trim());
-      formData.append("bodyText",   bodyText.trim());
+      formData.append("subject", subject.trim());
+      formData.append("heading", heading.trim());
+      formData.append("bodyText", bodyText.trim());
       formData.append("buttonText", buttonText.trim());
-      formData.append("buttonUrl",  buttonUrl.trim());
+      formData.append("buttonUrl", buttonUrl.trim());
       formData.append("footerText", footerText.trim());
       formData.append("selectedIds", JSON.stringify(targetIds));
-      if (bannerFile)  formData.append("bannerImage",    bannerFile);
-      if (pdfFile)     formData.append("pdfAttachment",  pdfFile);
-
+      if (bannerFile) formData.append("bannerImage", bannerFile);
+      if (pdfFile) formData.append("pdfAttachment", pdfFile);
       const res = await fetch(`${SUB_API}/broadcast`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
       const data = await res.json();
       setSendResult(data.message || (res.ok ? "Sent!" : "Failed"));
-
       if (res.ok) {
         setSubject(""); setHeading(""); setBodyText("");
         setButtonText(""); setButtonUrl("");
@@ -149,7 +138,6 @@ export default function Newsletter() {
     }
   };
 
-  // Live preview HTML
   const previewHtml = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f3f4f6;padding:24px">
       <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
@@ -164,13 +152,10 @@ export default function Newsletter() {
         </div>
         ${buttonText && buttonUrl ? `
           <div style="padding:0 32px 28px;text-align:center">
-            <span style="display:inline-block;background:#16a34a;color:#fff;font-weight:700;
-              font-size:14px;padding:12px 28px;border-radius:10px">${buttonText}</span>
+            <span style="display:inline-block;background:#16a34a;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">${buttonText}</span>
           </div>` : ""}
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 32px"/>
-        <div style="padding:20px 32px;text-align:center;color:#6b7280;font-size:11px">
-          ${footerText}
-        </div>
+        <div style="padding:20px 32px;text-align:center;color:#6b7280;font-size:11px">${footerText}</div>
       </div>
     </div>
   `;
@@ -178,103 +163,361 @@ export default function Newsletter() {
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
+  const willReceive = selected.size > 0 ? selected.size : subscribers.length;
+
   return (
-    <div className="space-y-6">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+        .nl * { box-sizing: border-box; }
+        .nl {
+          font-family: 'DM Sans', sans-serif;
+          padding: 24px 20px;
+          color: #1a2e1a;
+        }
 
-      <h1 className="text-2xl font-extrabold text-green-800">
-        Newsletter Management – AADONA Admin Panel
-      </h1>
+        .nl-page-title {
+          font-size: clamp(18px, 4vw, 24px);
+          font-weight: 800; color: #166534;
+          margin: 0 0 20px;
+        }
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center">
-            <Users size={20} className="text-green-700" />
+        /* Stats */
+        .nl-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px; margin-bottom: 20px;
+        }
+        .nl-stat {
+          background: #fff;
+          border: 1px solid #dcfce7;
+          border-radius: 16px;
+          padding: 16px 18px;
+          display: flex; align-items: center; gap: 14px;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .nl-stat-icon {
+          width: 42px; height: 42px; border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0; font-size: 20px;
+        }
+        .nl-stat-num { font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+        .nl-stat-label { font-size: 11px; color: #6b7280; font-weight: 500; }
+
+        /* Card */
+        .nl-card {
+          background: #fff;
+          border: 1px solid #dcfce7;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          margin-bottom: 20px;
+        }
+        .nl-card-head {
+          background: linear-gradient(135deg, #166534, #16a34a);
+          padding: 16px 20px;
+          display: flex; align-items: center; justify-content: space-between;
+        }
+        .nl-card-head-title { color: #fff; font-size: 15px; font-weight: 700; margin: 0; }
+        .nl-card-head-sub { color: #bbf7d0; font-size: 11px; margin: 3px 0 0; }
+
+        /* Subscriber list */
+        .nl-search-wrap {
+          padding: 12px 16px;
+          border-bottom: 1px solid #f0fdf4;
+          display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+        }
+        .nl-search-box { position: relative; flex: 1; min-width: 160px; }
+        .nl-search-box svg {
+          position: absolute; left: 10px; top: 50%;
+          transform: translateY(-50%); color: #9ca3af; pointer-events: none;
+        }
+        .nl-search-input {
+          width: 100%;
+          border: 1px solid #d1fae5; border-radius: 10px;
+          padding: 8px 12px 8px 32px;
+          font-size: 13px; font-family: 'DM Sans', sans-serif;
+          color: #1a2e1a; outline: none; transition: border-color 0.15s;
+        }
+        .nl-search-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+
+        .nl-sel-all {
+          background: none; border: none; cursor: pointer;
+          font-size: 12px; color: #16a34a; font-weight: 600;
+          font-family: 'DM Sans', sans-serif;
+          display: flex; align-items: center; gap: 5px;
+          white-space: nowrap; padding: 0;
+        }
+        .nl-sel-all:hover { color: #166534; }
+
+        /* Subscriber grid — horizontal wrapping list */
+        .nl-sub-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          max-height: 300px; overflow-y: auto;
+          border-top: 1px solid #f0fdf4;
+        }
+        .nl-sub-item {
+          padding: 10px 14px;
+          display: flex; align-items: center;
+          justify-content: space-between;
+          cursor: pointer;
+          border-bottom: 1px solid #f7fdf7;
+          transition: background 0.1s; gap: 10px;
+        }
+        .nl-sub-item:hover { background: #f0fdf4; }
+        .nl-sub-item.sel { background: #f0fdf4; border-left: 3px solid #16a34a; padding-left: 11px; }
+
+        .nl-chk {
+          width: 16px; height: 16px; border-radius: 4px;
+          border: 2px solid #d1d5db; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.15s;
+        }
+        .nl-chk.on { background: #16a34a; border-color: #16a34a; }
+
+        .nl-sub-email {
+          font-size: 13px; font-weight: 500; color: #1a2e1a;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          max-width: 170px;
+        }
+        .nl-sub-date { font-size: 10px; color: #9ca3af; margin-top: 1px; }
+
+        .nl-del {
+          background: none; border: none; cursor: pointer;
+          padding: 5px; color: #d1d5db; border-radius: 6px;
+          transition: all 0.15s; flex-shrink: 0; display: flex; align-items: center;
+        }
+        .nl-del:hover { color: #ef4444; background: #fef2f2; }
+
+        .nl-empty {
+          grid-column: 1 / -1;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          padding: 40px; color: #9ca3af; font-size: 13px; gap: 8px;
+        }
+
+        /* Builder */
+        .nl-builder-body { display: flex; }
+        .nl-form {
+          padding: 20px; display: flex; flex-direction: column; gap: 16px;
+          overflow-y: auto;
+        }
+        .nl-form.half { width: 50%; border-right: 1px solid #f0fdf4; }
+        .nl-form.full { width: 100%; }
+
+        .nl-field label {
+          display: block; font-size: 10px; font-weight: 700;
+          color: #6b7280; letter-spacing: 0.8px;
+          text-transform: uppercase; margin-bottom: 6px;
+        }
+        .nl-input, .nl-textarea {
+          width: 100%; border: 1px solid #d1fae5; border-radius: 12px;
+          padding: 10px 14px; font-size: 13px;
+          font-family: 'DM Sans', sans-serif; color: #1a2e1a; outline: none;
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nl-input:focus, .nl-textarea:focus {
+          border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+        }
+        .nl-textarea { resize: none; line-height: 1.75; }
+
+        .nl-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .nl-upload {
+          width: 100%; border: 2px dashed #bbf7d0; border-radius: 12px;
+          padding: 20px; display: flex; flex-direction: column;
+          align-items: center; gap: 6px; cursor: pointer;
+          background: none; color: #16a34a;
+          transition: background 0.15s; font-family: 'DM Sans', sans-serif;
+        }
+        .nl-upload:hover { background: #f0fdf4; }
+        .nl-upload-lbl { font-size: 12px; font-weight: 600; }
+        .nl-upload-hint { font-size: 11px; color: #9ca3af; }
+
+        .nl-file-tag {
+          display: flex; align-items: center; gap: 10px;
+          background: #f0fdf4; border: 1px solid #bbf7d0;
+          border-radius: 12px; padding: 10px 14px;
+        }
+        .nl-file-name {
+          flex: 1; font-size: 13px; color: #166534; font-weight: 500;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .nl-file-rm { background: none; border: none; cursor: pointer; color: #f87171; line-height: 0; }
+        .nl-file-rm:hover { color: #ef4444; }
+
+        .nl-banner-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #d1fae5; }
+        .nl-banner-wrap img { width: 100%; height: 110px; object-fit: cover; display: block; }
+        .nl-banner-rm {
+          position: absolute; top: 8px; right: 8px;
+          background: rgba(0,0,0,0.5); border: none; border-radius: 50%;
+          width: 24px; height: 24px; display: flex;
+          align-items: center; justify-content: center;
+          cursor: pointer; color: #fff;
+        }
+        .nl-banner-rm:hover { background: rgba(239,68,68,0.85); }
+
+        .nl-result {
+          padding: 11px 14px; border-radius: 12px;
+          font-size: 13px; font-weight: 500;
+        }
+        .nl-result.ok { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .nl-result.err { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        .nl-send {
+          width: 100%;
+          background: linear-gradient(135deg, #166534, #16a34a);
+          color: #fff; border: none; border-radius: 12px;
+          padding: 14px 20px; font-size: 14px; font-weight: 700;
+          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          transition: opacity 0.15s, transform 0.1s;
+          box-shadow: 0 4px 12px rgba(22,163,74,0.25);
+        }
+        .nl-send:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
+        .nl-send:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        .nl-spin {
+          width: 14px; height: 14px;
+          border: 2px solid rgba(255,255,255,0.35);
+          border-top-color: #fff; border-radius: 50%;
+          animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .nl-preview-panel {
+          width: 50%; background: #f3f4f6; overflow-y: auto; padding: 16px;
+        }
+        .nl-preview-lbl {
+          font-size: 10px; font-weight: 700; color: #9ca3af;
+          text-transform: uppercase; letter-spacing: 0.8px;
+          text-align: center; margin-bottom: 12px;
+        }
+
+        .nl-refresh {
+          background: none; border: none; cursor: pointer;
+          color: #bbf7d0; font-size: 12px; font-family: 'DM Sans', sans-serif;
+          display: flex; align-items: center; gap: 5px;
+        }
+        .nl-refresh:hover { color: #fff; }
+
+        .nl-eye {
+          background: rgba(255,255,255,0.2); border: none; border-radius: 8px;
+          padding: 6px 12px; color: #fff; font-size: 12px; font-weight: 600;
+          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          display: flex; align-items: center; gap: 5px;
+          transition: background 0.15s; flex-shrink: 0;
+        }
+        .nl-eye:hover { background: rgba(255,255,255,0.3); }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+          .nl-stats { grid-template-columns: 1fr 1fr; }
+          .nl-stats .nl-stat:last-child { grid-column: span 2; }
+          .nl-sub-grid { grid-template-columns: 1fr; }
+          .nl-2col { grid-template-columns: 1fr; }
+          .nl-builder-body { flex-direction: column; }
+          .nl-form.half { width: 100%; border-right: none; border-bottom: 1px solid #f0fdf4; }
+          .nl-preview-panel { width: 100%; }
+        }
+        @media (max-width: 420px) {
+          .nl-stats { grid-template-columns: 1fr; }
+          .nl-stats .nl-stat:last-child { grid-column: span 1; }
+        }
+      `}</style>
+
+      <div className="nl">
+        <h1 className="nl-page-title">Newsletter Management – AADONA Admin Panel</h1>
+
+        {/* Stats */}
+        <div className="nl-stats">
+          <div className="nl-stat">
+            <div className="nl-stat-icon" style={{ background: "#dcfce7" }}>
+              <Users size={20} color="#166534" />
+            </div>
+            <div>
+              <div className="nl-stat-num" style={{ color: "#166534" }}>{subscribers.length}</div>
+              <div className="nl-stat-label">Total Subscribers</div>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-extrabold text-green-800">{subscribers.length}</p>
-            <p className="text-xs text-gray-400 font-medium">Total Subscribers</p>
+          <div className="nl-stat">
+            <div className="nl-stat-icon" style={{ background: "#dbeafe" }}>✅</div>
+            <div>
+              <div className="nl-stat-num" style={{ color: "#1d4ed8" }}>{selected.size}</div>
+              <div className="nl-stat-label">Selected</div>
+            </div>
+          </div>
+          <div className="nl-stat">
+            <div className="nl-stat-icon" style={{ background: "#ede9fe" }}>📧</div>
+            <div>
+              <div className="nl-stat-num" style={{ color: "#7c3aed" }}>{willReceive}</div>
+              <div className="nl-stat-label">Will Receive</div>
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-xl">✅</div>
-          <div>
-            <p className="text-2xl font-extrabold text-blue-700">{selected.size}</p>
-            <p className="text-xs text-gray-400 font-medium">Selected</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-purple-100 flex items-center justify-center text-xl">📧</div>
-          <div>
-            <p className="text-2xl font-extrabold text-purple-700">
-              {selected.size > 0 ? selected.size : subscribers.length}
-            </p>
-            <p className="text-xs text-gray-400 font-medium">Will Receive</p>
-          </div>
-        </div>
-      </div>
 
-      <div className="flex gap-5 items-start">
-
-        {/* Left — Subscriber List */}
-        <div className="w-[38%] bg-white rounded-2xl border border-green-100 shadow-sm flex flex-col overflow-hidden">
-          <div className="px-5 py-4 bg-green-700 flex items-center justify-between">
-            <h3 className="font-bold text-white text-sm">Subscribers</h3>
-            <button onClick={loadSubscribers} className="text-xs text-green-200 hover:text-white transition">
-              🔄 Refresh
+        {/* ── TOP: Subscribers ── */}
+        <div className="nl-card">
+          <div className="nl-card-head">
+            <h3 className="nl-card-head-title">Subscribers</h3>
+            <button className="nl-refresh" onClick={loadSubscribers}>
+              <RefreshCw size={12} /> Refresh
             </button>
           </div>
 
-          <div className="px-4 py-3 border-b border-gray-100 space-y-2">
-            <input
-              type="text"
-              placeholder="Search email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full border border-green-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-300"
-            />
-            <button onClick={toggleAll} className="flex items-center gap-2 text-xs font-semibold text-green-700 hover:text-green-900">
-              {allSelected ? <CheckSquare size={14} /> : <Square size={14} />}
+          <div className="nl-search-wrap">
+            <div className="nl-search-box">
+              <Search size={13} />
+              <input
+                type="text"
+                placeholder="Search email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="nl-search-input"
+              />
+            </div>
+            <button className="nl-sel-all" onClick={toggleAll}>
+              {allSelected ? <CheckSquare size={13} /> : <Square size={13} />}
               {allSelected ? "Deselect All" : `Select All (${filtered.length})`}
             </button>
           </div>
 
-          <div className="overflow-y-auto divide-y divide-gray-100" style={{ maxHeight: "520px" }}>
+          <div className="nl-sub-grid">
             {loading ? (
-              <div className="flex items-center justify-center h-40 text-gray-400 italic text-sm animate-pulse">Loading...</div>
+              <div className="nl-empty">
+                <div className="nl-spin" style={{ borderColor: "#d1fae5", borderTopColor: "#16a34a" }} />
+                <span>Loading...</span>
+              </div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 text-gray-400 gap-2">
-                <span className="text-3xl">📭</span>
-                <p className="text-sm italic">No subscribers yet</p>
+              <div className="nl-empty">
+                <span style={{ fontSize: 32 }}>📭</span>
+                <span>No subscribers yet</span>
               </div>
             ) : (
               filtered.map((sub) => (
                 <div
                   key={sub._id}
+                  className={`nl-sub-item${selected.has(sub._id) ? " sel" : ""}`}
                   onClick={() => toggleOne(sub._id)}
-                  className={`flex items-center justify-between px-4 py-3 cursor-pointer transition hover:bg-green-50 ${
-                    selected.has(sub._id) ? "bg-green-50 border-l-4 border-green-500" : ""
-                  }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center ${
-                      selected.has(sub._id) ? "bg-green-600 border-green-600" : "border-gray-300"
-                    }`}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                    <div className={`nl-chk${selected.has(sub._id) ? " on" : ""}`}>
                       {selected.has(sub._id) && (
-                        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{sub.email}</p>
-                      <p className="text-[10px] text-gray-400">{formatDate(sub.createdAt)}</p>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="nl-sub-email">{sub.email}</div>
+                      <div className="nl-sub-date">{formatDate(sub.createdAt)}</div>
                     </div>
                   </div>
                   <button
+                    className="nl-del"
                     onClick={(e) => { e.stopPropagation(); handleDelete(sub._id); }}
                     disabled={deleteLoading === sub._id}
-                    className="ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition flex-shrink-0"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -284,192 +527,134 @@ export default function Newsletter() {
           </div>
         </div>
 
-        {/* Right — Template Builder */}
-        <div className="flex-1 bg-white rounded-2xl border border-green-100 shadow-sm flex flex-col overflow-hidden">
-
-          {/* Header */}
-          <div className="px-6 py-4 bg-green-700 flex items-center justify-between">
+        {/* ── BOTTOM: Newsletter Builder ── */}
+        <div className="nl-card">
+          <div className="nl-card-head">
             <div>
-              <h3 className="font-bold text-white">📨 Newsletter Builder</h3>
-              <p className="text-green-200 text-xs mt-0.5">
+              <h3 className="nl-card-head-title">📨 Newsletter Builder</h3>
+              <p className="nl-card-head-sub">
                 {selected.size > 0
                   ? `Sending to ${selected.size} selected subscriber${selected.size !== 1 ? "s" : ""}`
                   : `Sending to all ${subscribers.length} active subscribers`}
               </p>
             </div>
-            <button
-              onClick={() => setShowPreview((p) => !p)}
-              className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
-            >
+            <button className="nl-eye" onClick={() => setShowPreview((p) => !p)}>
               {showPreview ? <EyeOff size={13} /> : <Eye size={13} />}
               {showPreview ? "Hide Preview" : "Preview"}
             </button>
           </div>
 
-          <div className="flex flex-1 overflow-hidden">
+          <div className="nl-builder-body">
+            <div className={`nl-form ${showPreview ? "half" : "full"}`}>
 
-            {/* Form */}
-            <div className={`p-6 space-y-4 overflow-y-auto ${showPreview ? "w-1/2 border-r border-gray-100" : "w-full"}`}>
-
-              {/* Subject */}
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Subject *</label>
+              <div className="nl-field">
+                <label>Subject *</label>
                 <input
-                  type="text"
-                  value={subject}
+                  type="text" value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="e.g. New Product Launch — AADONA WiFi 6E"
-                  className="w-full border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300"
+                  className="nl-input"
                 />
               </div>
 
-              {/* Banner Image */}
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Banner Image</label>
+              <div className="nl-field">
+                <label>Banner Image</label>
                 {bannerPreview ? (
-                  <div className="relative rounded-xl overflow-hidden border border-green-200">
-                    <img src={bannerPreview} alt="Banner" className="w-full h-32 object-cover" />
-                    <button
-                      onClick={() => { setBannerFile(null); setBannerPreview(null); }}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    >
+                  <div className="nl-banner-wrap">
+                    <img src={bannerPreview} alt="Banner" />
+                    <button className="nl-banner-rm" onClick={() => { setBannerFile(null); setBannerPreview(null); }}>
                       <X size={12} />
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => bannerRef.current.click()}
-                    className="w-full border-2 border-dashed border-green-200 rounded-xl py-6 flex flex-col items-center gap-2 text-green-600 hover:bg-green-50 transition"
-                  >
+                  <button className="nl-upload" onClick={() => bannerRef.current.click()}>
                     <Image size={22} />
-                    <span className="text-xs font-semibold">Click to upload banner image</span>
-                    <span className="text-[10px] text-gray-400">PNG, JPG, WEBP — max 15MB</span>
+                    <span className="nl-upload-lbl">Click to upload banner image</span>
+                    <span className="nl-upload-hint">PNG, JPG, WEBP — max 15MB</span>
                   </button>
                 )}
-                <input ref={bannerRef} type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
+                <input ref={bannerRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleBannerChange} />
               </div>
 
-              {/* Heading */}
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Heading</label>
+              <div className="nl-field">
+                <label>Heading</label>
                 <input
-                  type="text"
-                  value={heading}
+                  type="text" value={heading}
                   onChange={(e) => setHeading(e.target.value)}
                   placeholder="e.g. Exciting News from AADONA!"
-                  className="w-full border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300"
+                  className="nl-input"
                 />
               </div>
 
-              {/* Body */}
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Content *</label>
+              <div className="nl-field">
+                <label>Content *</label>
                 <textarea
-                  rows={7}
-                  value={bodyText}
+                  rows={7} value={bodyText}
                   onChange={(e) => setBodyText(e.target.value)}
                   placeholder={"Dear Subscriber,\n\nWe're excited to share..."}
-                  className="w-full border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300 resize-none font-mono"
+                  className="nl-textarea"
                 />
               </div>
 
-              {/* CTA Button */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Button Text</label>
-                  <input
-                    type="text"
-                    value={buttonText}
-                    onChange={(e) => setButtonText(e.target.value)}
-                    placeholder="e.g. Shop Now"
-                    className="w-full border border-green-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300"
-                  />
+              <div className="nl-2col">
+                <div className="nl-field">
+                  <label>Button Text</label>
+                  <input type="text" value={buttonText} onChange={(e) => setButtonText(e.target.value)} placeholder="e.g. Shop Now" className="nl-input" />
                 </div>
-                <div>
-                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Button URL</label>
-                  <input
-                    type="url"
-                    value={buttonUrl}
-                    onChange={(e) => setButtonUrl(e.target.value)}
-                    placeholder="https://aadona.com"
-                    className="w-full border border-green-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300"
-                  />
+                <div className="nl-field">
+                  <label>Button URL</label>
+                  <input type="url" value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} placeholder="https://aadona.com" className="nl-input" />
                 </div>
               </div>
 
-              {/* PDF Attachment */}
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">PDF Attachment</label>
+              <div className="nl-field">
+                <label>PDF Attachment</label>
                 {pdfFile ? (
-                  <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                    <FileText size={18} className="text-green-600 flex-shrink-0" />
-                    <p className="text-sm text-green-800 font-medium truncate flex-1">{pdfFile.name}</p>
-                    <button onClick={() => { setPdfFile(null); pdfRef.current.value = ""; }} className="text-red-400 hover:text-red-600">
-                      <X size={15} />
-                    </button>
+                  <div className="nl-file-tag">
+                    <FileText size={17} color="#16a34a" />
+                    <span className="nl-file-name">{pdfFile.name}</span>
+                    <button className="nl-file-rm" onClick={() => { setPdfFile(null); pdfRef.current.value = ""; }}><X size={14} /></button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => pdfRef.current.click()}
-                    className="w-full border-2 border-dashed border-green-200 rounded-xl py-4 flex items-center justify-center gap-2 text-green-600 hover:bg-green-50 transition"
-                  >
-                    <FileText size={18} />
-                    <span className="text-xs font-semibold">Click to attach PDF</span>
+                  <button className="nl-upload" style={{ padding: "14px 20px" }} onClick={() => pdfRef.current.click()}>
+                    <FileText size={20} />
+                    <span className="nl-upload-lbl">Click to attach PDF</span>
                   </button>
                 )}
-                <input ref={pdfRef} type="file" accept="application/pdf" className="hidden" onChange={handlePdfChange} />
+                <input ref={pdfRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={handlePdfChange} />
               </div>
 
-              {/* Footer Text */}
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Footer Text</label>
-                <input
-                  type="text"
-                  value={footerText}
-                  onChange={(e) => setFooterText(e.target.value)}
-                  className="w-full border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300"
-                />
+              <div className="nl-field">
+                <label>Footer Text</label>
+                <input type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} className="nl-input" />
               </div>
 
-              {/* Send Result */}
               {sendResult && (
-                <div className={`px-4 py-3 rounded-xl text-sm font-semibold ${
-                  sendResult.toLowerCase().includes("fail") || sendResult.toLowerCase().includes("error")
-                    ? "bg-red-50 text-red-700 border border-red-200"
-                    : "bg-green-50 text-green-700 border border-green-200"
-                }`}>
+                <div className={`nl-result ${sendResult.toLowerCase().includes("fail") || sendResult.toLowerCase().includes("error") ? "err" : "ok"}`}>
                   {sendResult}
                 </div>
               )}
 
-              {/* Send Button */}
-              <button
-                onClick={handleSend}
-                disabled={sending || !subject.trim() || !bodyText.trim()}
-                className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 transition shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
+              <button className="nl-send" onClick={handleSend} disabled={sending || !subject.trim() || !bodyText.trim()}>
                 {sending
-                  ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Sending...</>
-                  : <><Send size={16} /> Send Newsletter</>
+                  ? <><div className="nl-spin" /> Sending...</>
+                  : <><Send size={15} /> Send Newsletter</>
                 }
               </button>
-
             </div>
 
-            {/* Live Preview Panel */}
             {showPreview && (
-              <div className="w-1/2 overflow-y-auto bg-gray-50 p-4">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 text-center">Live Preview</p>
+              <div className="nl-preview-panel">
+                <p className="nl-preview-lbl">Live Preview</p>
                 <div
-                  className="rounded-xl overflow-hidden shadow-sm scale-90 origin-top"
+                  style={{ borderRadius: 12, overflow: "hidden", transform: "scale(0.88)", transformOrigin: "top center" }}
                   dangerouslySetInnerHTML={{ __html: previewHtml }}
                 />
               </div>
             )}
-
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

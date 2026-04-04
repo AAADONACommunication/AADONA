@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { auth } from "../../../firebase";
-import { Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, X, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 
 const INQUIRY_API = `${import.meta.env.VITE_API_URL}/inquiries`;
 
@@ -126,85 +126,99 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
   const inboxReplied = inquiries.filter((i) => i.status === "replied").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
 
-    <h1 className="text-2xl font-extrabold text-green-800">
-      Inbox – AADONA Admin Inquiries Management
-    </h1>
+      <h1 className="text-xl sm:text-2xl font-extrabold text-green-800">
+        Inbox – AADONA Admin Inquiries Management
+      </h1>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center text-lg">📬</div>
-          <div>
-            <p className="text-2xl font-extrabold text-green-800">{inquiries.length}</p>
-            <p className="text-xs text-gray-400 font-medium">Total Inquiries</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-3 sm:p-5 flex items-center gap-2 sm:gap-4">
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-green-100 flex items-center justify-center text-base sm:text-lg flex-shrink-0">📬</div>
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl font-extrabold text-green-800">{inquiries.length}</p>
+            <p className="text-[10px] sm:text-xs text-gray-400 font-medium leading-tight">Total Inquiries</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center text-lg">🔴</div>
-          <div>
-            <p className="text-2xl font-extrabold text-red-600">{inboxUnread}</p>
-            <p className="text-xs text-gray-400 font-medium">Unread</p>
+        <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-3 sm:p-5 flex items-center gap-2 sm:gap-4">
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-red-100 flex items-center justify-center text-base sm:text-lg flex-shrink-0">🔴</div>
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl font-extrabold text-red-600">{inboxUnread}</p>
+            <p className="text-[10px] sm:text-xs text-gray-400 font-medium leading-tight">Unread</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-lg">✅</div>
-          <div>
-            <p className="text-2xl font-extrabold text-blue-600">{inboxReplied}</p>
-            <p className="text-xs text-gray-400 font-medium">Replied</p>
+        <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-3 sm:p-5 flex items-center gap-2 sm:gap-4">
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-blue-100 flex items-center justify-center text-base sm:text-lg flex-shrink-0">✅</div>
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl font-extrabold text-blue-600">{inboxReplied}</p>
+            <p className="text-[10px] sm:text-xs text-gray-400 font-medium leading-tight">Replied</p>
           </div>
         </div>
       </div>
 
       {/* Filters + Refresh */}
-      <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5">
-        <div className="flex flex-wrap gap-3 items-center">
+      <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-3 sm:p-5">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 items-stretch sm:items-center">
           <input
             type="text"
             placeholder="Search by name, email, type..."
             value={inboxSearch}
             onChange={(e) => setInboxSearch(e.target.value)}
-            className="flex-1 min-w-[200px] border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300"
+            className="flex-1 min-w-0 sm:min-w-[200px] border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300"
           />
-          <select
-            className="border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300 bg-white"
-            value={inboxFilterStatus}
-            onChange={(e) => setInboxFilterStatus(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="new">🔴 New</option>
-            <option value="read">👁️ Read</option>
-            <option value="replied">✅ Replied</option>
-          </select>
-          <select
-            className="border border-green-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300 bg-white"
-            value={inboxFilterType}
-            onChange={(e) => setInboxFilterType(e.target.value)}
-          >
-            <option value="">All Types</option>
-            {[...new Set(inquiries.map((i) => i.formType).filter(Boolean))].map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-          <button
-            onClick={() => loadInquiries(true, setInboxRefreshing, null)}
-            disabled={inboxRefreshing}
-            className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition disabled:opacity-60"
-          >
-            {inboxRefreshing ? (
-              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Refreshing...</>
-            ) : "🔄 Refresh"}
-          </button>
+          <div className="flex gap-2 flex-wrap">
+            <select
+              className="flex-1 sm:flex-none border border-green-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300 bg-white"
+              value={inboxFilterStatus}
+              onChange={(e) => setInboxFilterStatus(e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="new">🔴 New</option>
+              <option value="read">👁️ Read</option>
+              <option value="replied">✅ Replied</option>
+            </select>
+            <select
+              className="flex-1 sm:flex-none border border-green-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-300 bg-white"
+              value={inboxFilterType}
+              onChange={(e) => setInboxFilterType(e.target.value)}
+            >
+              <option value="">All Types</option>
+              {[...new Set(inquiries.map((i) => i.formType).filter(Boolean))].map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => loadInquiries(true, setInboxRefreshing, null)}
+              disabled={inboxRefreshing}
+              className="flex items-center gap-2 bg-green-600 text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition disabled:opacity-60 whitespace-nowrap"
+            >
+              {inboxRefreshing ? (
+                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Refreshing...</>
+              ) : "🔄 Refresh"}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Main Inbox Layout */}
-      <div className="flex gap-5 h-[680px]">
+      {/* 
+        Mobile: Show list OR detail (one at a time)
+        Desktop (lg+): Show both side by side
+      */}
+      <div className="flex gap-5" style={{ minHeight: "0" }}>
 
-        {/* Left: Inquiry List */}
-        <div className={`flex flex-col bg-white rounded-2xl border border-green-100 shadow-sm overflow-hidden ${selectedInquiry ? "w-[38%]" : "w-full"}`}>
-          <div className="px-5 py-4 border-b border-gray-100 bg-green-700 flex items-center justify-between">
+        {/* Left: Inquiry List — hidden on mobile when detail is open */}
+        <div className={`
+          flex flex-col bg-white rounded-2xl border border-green-100 shadow-sm overflow-hidden
+          ${selectedInquiry
+            ? "hidden lg:flex lg:w-[38%]"
+            : "flex w-full"
+          }
+        `}
+          style={{ height: "clamp(400px, 68vh, 680px)" }}
+        >
+          <div className="px-5 py-4 border-b border-gray-100 bg-green-700 flex items-center justify-between flex-shrink-0">
             <h3 className="font-bold text-white text-sm">
               {filteredInquiries.length} Inquir{filteredInquiries.length !== 1 ? "ies" : "y"}
             </h3>
@@ -230,7 +244,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                 <div
                   key={inq._id}
                   onClick={() => openInquiry(inq)}
-                  className={`px-5 py-4 cursor-pointer transition hover:bg-green-50/60 ${
+                  className={`px-4 sm:px-5 py-3 sm:py-4 cursor-pointer transition hover:bg-green-50/60 ${
                     selectedInquiry?._id === inq._id ? "bg-green-50 border-l-4 border-green-600" : ""
                   } ${inq.status === "new" ? "bg-red-50/30" : ""}`}
                 >
@@ -246,7 +260,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                     <span className="text-[10px] text-gray-400 flex-shrink-0">{inboxFormatDate(inq.createdAt)}</span>
                   </div>
                   <p className="text-xs text-gray-500 truncate mb-1.5">{inq.customerEmail}</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {inq.formType && (
                       <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
                         {inq.formType}
@@ -268,16 +282,31 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
 
         {/* Right: Inquiry Detail */}
         {selectedInquiry && (
-          <div className="flex-1 flex flex-col bg-white rounded-2xl border border-green-100 shadow-sm overflow-hidden">
+          <div className={`
+            flex flex-col bg-white rounded-2xl border border-green-100 shadow-sm overflow-hidden
+            w-full lg:flex-1
+          `}
+            style={{ height: "clamp(400px, 68vh, 680px)" }}
+          >
 
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-green-700 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-white">{selectedInquiry.customerName || "Anonymous"}</h3>
-                <p className="text-green-200 text-xs">{selectedInquiry.customerEmail}</p>
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-green-700 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                {/* Back button — only on mobile */}
+                <button
+                  onClick={() => setSelectedInquiry(null)}
+                  className="lg:hidden p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition flex-shrink-0"
+                  aria-label="Back to list"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-white text-sm sm:text-base truncate">{selectedInquiry.customerName || "Anonymous"}</h3>
+                  <p className="text-green-200 text-xs truncate">{selectedInquiry.customerEmail}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                <span className={`hidden sm:inline text-[10px] px-2.5 py-1 rounded-full font-bold ${
                   selectedInquiry.status === "new" ? "bg-red-500 text-white" :
                   selectedInquiry.status === "replied" ? "bg-blue-500 text-white" :
                   "bg-white/20 text-white"
@@ -286,21 +315,22 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                 </span>
                 <button onClick={() => deleteInquiry(selectedInquiry._id)}
                   disabled={inboxDeleteLoading === selectedInquiry._id}
-                  className="p-2 bg-white/10 hover:bg-red-500 text-white rounded-xl transition">
+                  className="p-1.5 sm:p-2 bg-white/10 hover:bg-red-500 text-white rounded-xl transition">
                   <Trash2 size={14} />
                 </button>
+                {/* X button — only on desktop (mobile uses back arrow) */}
                 <button onClick={() => setSelectedInquiry(null)}
-                  className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition">
+                  className="hidden lg:flex p-1.5 sm:p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition">
                   <X size={14} />
                 </button>
               </div>
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
 
               {/* Meta Info */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
                 <div className="bg-gray-50 rounded-xl px-4 py-3">
                   <p className="text-gray-400 mb-1">Form Type</p>
                   <p className="font-semibold text-gray-700">{selectedInquiry.formType || "—"}</p>
@@ -335,7 +365,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                   <div className="mt-3 bg-gray-50 rounded-xl p-4 space-y-2">
                     {Object.entries(selectedInquiry.formData).map(([key, val]) => (
                       <div key={key} className="flex gap-3 text-xs">
-                        <span className="font-semibold text-gray-500 w-28 flex-shrink-0 capitalize">
+                        <span className="font-semibold text-gray-500 w-24 sm:w-28 flex-shrink-0 capitalize">
                           {key.replace(/_/g, " ")}
                         </span>
                         <span className="text-gray-700 break-words">{String(val)}</span>
@@ -370,7 +400,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                             <img
                               src={url}
                               alt="Attachment"
-                              className="w-full max-h-64 object-contain rounded-lg border border-gray-200 bg-white mb-3"
+                              className="w-full max-h-48 sm:max-h-64 object-contain rounded-lg border border-gray-200 bg-white mb-3"
                             />
                             <a href={url} target="_blank" rel="noopener noreferrer"
                               className="flex items-center gap-2 text-xs text-green-700 font-semibold hover:underline">
@@ -420,7 +450,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                   <div className="space-y-3">
                     {selectedInquiry.replies.map((reply, i) => (
                       <div key={i} className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <div className="flex justify-between items-center mb-2">
+                        <div className="flex justify-between items-center mb-2 gap-2">
                           <span className="text-xs font-bold text-blue-700">Admin Reply</span>
                           <span className="text-[10px] text-gray-400">{inboxFormatDateFull(reply.sentAt)}</span>
                         </div>
@@ -433,7 +463,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
             </div>
 
             {/* Reply Box — pinned bottom */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-gray-50 flex-shrink-0">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                 Reply to {selectedInquiry.customerEmail}
               </p>
@@ -444,11 +474,11 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                 placeholder="Type your reply here..."
                 className="w-full border border-green-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-green-300 resize-none bg-white"
               />
-              <div className="flex justify-end mt-3">
+              <div className="flex justify-end mt-2 sm:mt-3">
                 <button
                   onClick={sendInboxReply}
                   disabled={inboxReplyLoading || !inboxReplyText.trim()}
-                  className="flex items-center gap-2 bg-green-600 text-white px-7 py-2.5 rounded-xl text-sm font-bold hover:bg-green-700 transition shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 bg-green-600 text-white px-5 sm:px-7 py-2.5 rounded-xl text-sm font-bold hover:bg-green-700 transition shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   {inboxReplyLoading ? (
                     <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Sending...</>
