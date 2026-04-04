@@ -1,60 +1,17 @@
 const fs = require("fs");
 const path = require("path");
-const { fromPath } = require("pdf2pic");
-const os = require("os");
 
-// ─── Static PDF path ───────────────────────────────────────────────────────
-const STATIC_PDF_PATH = path.resolve(__dirname, "../assets/Datasheet background.pdf");
+// ─── Static PNG backgrounds (loaded once at startup) ────────────────────────
+const coverBase64 = fs.readFileSync(
+  path.resolve(__dirname, "../assets/cover.png")
+).toString("base64");
 
-// ─── In-memory cache ────────────────────────────────────────────────────────
-let cachedCoverBase64 = null;
-let cachedBackBase64  = null;
-
-const getStaticPages = async () => {
-  if (cachedCoverBase64 && cachedBackBase64) {
-    console.log("✅ Cache hit — returning cached pages");
-    return { cover: cachedCoverBase64, back: cachedBackBase64 };
-  }
-
-  const tmpDir = os.tmpdir();
-
-  console.log("📄 PDF Path:", STATIC_PDF_PATH);
-  console.log("📁 PDF exists:", fs.existsSync(STATIC_PDF_PATH));
-  console.log("📂 TmpDir:", tmpDir);
-
-  const converter = fromPath(STATIC_PDF_PATH, {
-    density: 150,
-    saveFilename: "aadona_ds_bg",
-    savePath: tmpDir,
-    format: "png",
-    width: 794,
-    height: 1123,
-    quality: 100,
-  });
-
-  const results = await Promise.allSettled([
-    converter(1, { responseType: "base64" }),
-    converter(2, { responseType: "base64" }),
-  ]);
-
-  const page1 = results[0].status === "fulfilled" ? results[0].value : null;
-  const page2 = results[1].status === "fulfilled" ? results[1].value : null;
-
-  console.log("🖼️ Page1 base64 length:", page1?.base64?.length ?? "UNDEFINED/NULL");
-  console.log("🖼️ Page2 base64 length:", page2?.base64?.length ?? "UNDEFINED/NULL");
-
-  cachedCoverBase64 = page1?.base64 || "";
-  cachedBackBase64  = page2?.base64 || page1?.base64 || "";
-
-  console.log("✅ Static PDF pages converted and cached");
-
-  return { cover: cachedCoverBase64, back: cachedBackBase64 };
-};
+const backBase64 = fs.readFileSync(
+  path.resolve(__dirname, "../assets/back.png")
+).toString("base64");
 
 // ──────────────────────────────────────────────────────────────────────────
 const buildDatasheetHTML = async (product) => {
-
-  const { cover: coverBase64, back: backBase64 } = await getStaticPages();
 
   const logo = fs.readFileSync(
     path.resolve(__dirname, "../assets/logo.png")
@@ -76,20 +33,6 @@ const buildDatasheetHTML = async (product) => {
   const productImageBase64 = product.image
     ? await fetchImageAsBase64(product.image)
     : "";
-
-  // ─── Reusable header HTML — sirf content pages pe manually lagayenge ───
-  const pageHeaderHTML = `
-    <div style="width:794px;background:#f4f9f4;border-bottom:1px solid #d8ead8;
-      border-top:5px solid #25a86a;display:flex;align-items:center;
-      padding:12px 64px;box-sizing:border-box;">
-      <div style="flex:1;">
-        <img src="data:image/png;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
-      </div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:2px;
-        color:#1b7f4c;text-transform:uppercase;">
-        ${product.model || product.name}
-      </div>
-    </div>`;
 
   // ─── Highlights HTML ───────────────────────────────────────────────────
   const highlightsHTML = (product.features || [])
@@ -189,16 +132,6 @@ const buildDatasheetHTML = async (product) => {
     break-after: avoid;
   }
 
-  /* Content page — auto height */
-  .page-content {
-    display: block;
-    width: 794px;
-    height: auto;
-    position: relative;
-    overflow: visible;
-    background: #ffffff;
-  }
-
   .page-bg {
     position: absolute;
     top: 0; left: 0;
@@ -208,20 +141,11 @@ const buildDatasheetHTML = async (product) => {
     display: block;
   }
 
-  /* 
-    Puppeteer mein content jo ek page se zyada ho jaye toh
-    nayi page pe header repeat karne ke liye — 
-    header ko table thead trick se repeat karte hain 
-  */
-  table.repeating-header {
+  /* Content section — auto height, no repeat header */
+  .content-section {
+    display: block;
     width: 794px;
-    border-collapse: collapse;
-  }
-  table.repeating-header thead {
-    display: table-header-group;
-  }
-  table.repeating-header tbody {
-    display: table-row-group;
+    background: #ffffff;
   }
 </style>
 </head>
@@ -272,85 +196,71 @@ const buildDatasheetHTML = async (product) => {
 
 
 <!-- ═══════════════════════════════════════
-     CONTENT — Table thead trick for repeating header
-     thead automatically repeats on every new page in Puppeteer
+     CONTENT — Header sirf yahan (1st content page pe ek baar)
+     Baaki pages pe header repeat NAHI hoga
 ═══════════════════════════════════════ -->
-<table class="repeating-header">
+<div class="content-section">
 
-  <!-- HEADER — repeats on every page automatically -->
-  <thead>
-    <tr>
-      <td style="padding:0;">
-        <div style="width:794px;background:#f4f9f4;border-bottom:1px solid #d8ead8;
-          border-top:5px solid #25a86a;display:flex;align-items:center;
-          padding:12px 64px;box-sizing:border-box;">
-          <div style="flex:1;">
-            <img src="data:image/png;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
-          </div>
-          <div style="font-size:9px;font-weight:700;letter-spacing:2px;
-            color:#1b7f4c;text-transform:uppercase;">
-            ${product.model || product.name}
-          </div>
-        </div>
-      </td>
-    </tr>
-  </thead>
+  <!-- ✅ Header — sirf 1st content page pe, ek baar -->
+  <div style="width:794px;background:#f4f9f4;border-bottom:1px solid #d8ead8;
+    border-top:5px solid #25a86a;display:flex;align-items:center;
+    padding:12px 64px;box-sizing:border-box;">
+    <div style="flex:1;">
+      <img src="data:image/png;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
+    </div>
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;
+      color:#1b7f4c;text-transform:uppercase;">
+      ${product.model || product.name}
+    </div>
+  </div>
 
-  <!-- BODY — actual content -->
-  <tbody>
-    <tr>
-      <td style="padding:0;">
+  <!-- ✅ Main content -->
+  <div style="padding:32px 64px 60px 64px;background:#fff;">
 
-        <div style="padding:32px 64px 60px 64px;background:#fff;">
+    ${product.overview?.content ? `
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
+        <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Product Overview</div>
+      </div>
+      <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;
+        border-left:2px solid #d8ead8;text-align:justify;">
+        ${product.overview.content}
+      </div>
+    </div>` : ""}
 
-          ${product.overview?.content ? `
-          <div style="margin-bottom:32px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
-              <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Product Overview</div>
-            </div>
-            <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;
-              border-left:2px solid #d8ead8;text-align:justify;">
-              ${product.overview.content}
-            </div>
-          </div>` : ""}
+    ${(product.features || []).length ? `
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
+        <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Key Features</div>
+      </div>
+      <div style="padding-left:14px;">${highlightsHTML}</div>
+    </div>` : ""}
 
-          ${(product.features || []).length ? `
-          <div style="margin-bottom:32px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
-              <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Key Features</div>
-            </div>
-            <div style="padding-left:14px;">${highlightsHTML}</div>
-          </div>` : ""}
+    ${(product.featuresDetail || []).length ? `
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
+        <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Features</div>
+      </div>
+      <div style="padding-left:14px;">${featuresDetailHTML}</div>
+    </div>` : ""}
 
-          ${(product.featuresDetail || []).length ? `
-          <div style="margin-bottom:32px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
-              <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Features</div>
-            </div>
-            <div style="padding-left:14px;">${featuresDetailHTML}</div>
-          </div>` : ""}
+    ${Object.keys(product.specifications || {}).length ? `
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
+        <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Technical Specifications</div>
+      </div>
+      ${specsHTML}
+    </div>` : ""}
 
-          ${Object.keys(product.specifications || {}).length ? `
-          <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-              <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
-              <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Technical Specifications</div>
-            </div>
-            ${specsHTML}
-          </div>` : ""}
+  </div>
 
-        </div>
+  <div style="height:40px;"></div>
 
-        <div style="height:40px;"></div>
-
-      </td>
-    </tr>
-  </tbody>
-
-</table>
+</div>
 
 
 <!-- ═══════════════════════════════════════
@@ -366,5 +276,3 @@ const buildDatasheetHTML = async (product) => {
 };
 
 module.exports = buildDatasheetHTML;
-
-/* */
