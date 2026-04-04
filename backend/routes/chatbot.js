@@ -39,67 +39,97 @@ const detectActionButtons = (userMessage, aiReply, products) => {
   const msg = (userMessage + ' ' + aiReply).toLowerCase();
   const buttons = [];
 
-  if (/warranty|वारंटी/.test(msg))
-    buttons.push({ label: 'Check Warranty', url: `${BASE_URL}/warranty` });
-  if (/tech squad|on.?site|technician|visit|तकनीशियन/.test(msg))
-    buttons.push({ label: 'Tech Squad', url: `${BASE_URL}/techSquad` });
-  if (/doa|dead on arrival|replacement|replace/.test(msg))
-    buttons.push({ label: 'Request DOA', url: `${BASE_URL}/requestDoa` });
-  if (/register product|product registration|रजिस्टर/.test(msg))
-    buttons.push({ label: 'Register Product', url: `${BASE_URL}/warrantyRegistration` });
-  if (/support tool|diagnostic/.test(msg))
-    buttons.push({ label: 'Support Tools', url: `${BASE_URL}/supportTools` });
-  if (/product support|technical help|tech help|help with product/.test(msg))
-    buttons.push({ label: 'Product Support', url: `${BASE_URL}/productSupport` });
-  if (/partner|reseller|distributor|system integrator|पार्टनर/.test(msg))
-    buttons.push({ label: 'Become a Partner', url: `${BASE_URL}/becomePartner` });
-  if (/project lock|tender|project register/.test(msg))
-    buttons.push({ label: 'Project Locking', url: `${BASE_URL}/projectLocking` });
-  if (/demo|demonstration|डेमो/.test(msg))
-    buttons.push({ label: 'Request a Demo', url: `${BASE_URL}/requestDemo` });
-  if (/training|train|ट्रेनिंग/.test(msg))
-    buttons.push({ label: 'Request Training', url: `${BASE_URL}/requestTraining` });
-  if (/career|job|hiring|vacancy|नौकरी/.test(msg))
-    buttons.push({ label: 'Careers', url: `${BASE_URL}/careers` });
-  if (/csr|social responsibility/.test(msg))
-    buttons.push({ label: 'CSR', url: `${BASE_URL}/csr` });
-  if (/blog|article|news|insight/.test(msg))
-    buttons.push({ label: 'Blog', url: `${BASE_URL}/blog` });
-  if (/customer|client|who uses|हमारे ग्राहक/.test(msg))
-    buttons.push({ label: 'Our Customers', url: `${BASE_URL}/customers` });
-  if (/media|press|announcement/.test(msg))
-    buttons.push({ label: 'Media Center', url: `${BASE_URL}/mediaCenter` });
-  if (/contact|reach|call|email|संपर्क/.test(msg))
-    buttons.push({ label: 'Contact Us', url: `${BASE_URL}/contactUs` });
-  if (/about|company|aadona kya|who are/.test(msg))
-    buttons.push({ label: 'About Us', url: `${BASE_URL}/about` });
-  if (/mission|vision|goal/.test(msg))
-    buttons.push({ label: 'Mission & Vision', url: `${BASE_URL}/missionVision` });
-  if (/leader|team|founder|management/.test(msg))
-    buttons.push({ label: 'Leadership Team', url: `${BASE_URL}/leadershipTeam` });
-  if (/whistle|complaint|report|misconduct/.test(msg))
-    buttons.push({ label: 'Whistleblower', url: `${BASE_URL}/whistleBlower` });
-  if (/wireless|wifi|wi-fi|access point|वायरलेस/.test(msg))
-    buttons.push({ label: 'Browse Wireless', url: `${BASE_URL}/wireless` });
-  if (/surveillance|camera|cctv|nvr|dvr|सर्विलांस/.test(msg))
-    buttons.push({ label: 'Browse Surveillance', url: `${BASE_URL}/surveillance` });
-  if (/switch|स्विच/.test(msg))
-    buttons.push({ label: 'Browse Switches', url: `${BASE_URL}/switches` });
-  if (/server|workstation|सर्वर/.test(msg))
-    buttons.push({ label: 'Browse Servers', url: `${BASE_URL}/servers` });
-  if (/nas|storage|स्टोरेज/.test(msg))
-    buttons.push({ label: 'Browse NAS', url: `${BASE_URL}/nas` });
-  if (/industrial|rugged|harsh/.test(msg))
-    buttons.push({ label: 'Industrial Switches', url: `${BASE_URL}/industrial-switches` });
-  if (/passive|cable|fiber|cabling/.test(msg))
-    buttons.push({ label: 'Passive Networking', url: `${BASE_URL}/passive-networking` });
+  // Confusion Detection
+  const isConfused = /not understand|confuse|samajh nahi|kya karu|help|issue|problem|kaise|how|unable|nahi ho raha|error|fail/.test(msg);
+
+  // ONLY show buttons if confused
+  if (isConfused && /warranty|वारंटी/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/warranty` });
+
+  if (isConfused && /tech squad|on.?site|technician|visit|तकनीशियन/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/techSquad` });
+
+  if (isConfused && /doa|dead on arrival|replacement|replace/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/requestDoa` });
+
+  if (isConfused && /register product|product registration|रजिस्टर/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/warrantyRegistration` });
+
+  if (isConfused && /support tool|diagnostic/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/supportTools` });
+
+  if (isConfused && /product support|technical help|tech help|help with product/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/productSupport` });
+
+  if (isConfused && /partner|reseller|distributor|system integrator|पार्टनर/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/becomePartner` });
+
+  if (isConfused && /project lock|tender|project register/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/projectLocking` });
+
+  if (isConfused && /demo|demonstration|डेमो/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/requestDemo` });
+
+  if (isConfused && /training|train|ट्रेनिंग/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/requestTraining` });
+
+  if (isConfused && /career|job|hiring|vacancy|नौकरी/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/careers` });
+
+  if (isConfused && /csr|social responsibility/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/csr` });
+
+  if (isConfused && /blog|article|news|insight/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/blog` });
+
+  if (isConfused && /customer|client|who uses|हमारे ग्राहक/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/customers` });
+
+  if (isConfused && /media|press|announcement/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/mediaCenter` });
+
+  if (isConfused && /contact|reach|call|email|संपर्क/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/contactUs` });
+
+  if (isConfused && /about|company|aadona kya|who are/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/about` });
+
+  if (isConfused && /mission|vision|goal/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/missionVision` });
+
+  if (isConfused && /leader|team|founder|management/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/leadershipTeam` });
+
+  if (isConfused && /whistle|complaint|report|misconduct/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/whistleBlower` });
+
+  if (isConfused && /wireless|wifi|wi-fi|access point|वायरलेस/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/wireless` });
+
+  if (isConfused && /surveillance|camera|cctv|nvr|dvr|सर्विलांस/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/surveillance` });
+
+  if (isConfused && /switch|स्विच/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/switches` });
+
+  if (isConfused && /server|workstation|सर्वर/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/servers` });
+
+  if (isConfused && /nas|storage|स्टोरेज/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/nas` });
+
+  if (isConfused && /industrial|rugged|harsh/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/industrial-switches` });
+
+  if (isConfused && /passive|cable|fiber|cabling/.test(msg))
+    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/passive-networking` });
 
   const seen = new Set();
   return buttons.filter(b => {
     if (seen.has(b.url)) return false;
     seen.add(b.url);
     return true;
-  }).slice(0, 4);
+  }).slice(0, 3);
 };
 
 // ─── Product Cards Detection ───────────────────────────────────────────────
@@ -108,9 +138,11 @@ const detectProductCards = (reply, products) => {
   const replyLower = reply.toLowerCase();
 
   const matched = products.filter(p => {
-    const modelMatch = p.model && p.model.length > 2 && replyLower.includes(p.model.toLowerCase());
-    const nameMatch = p.fullName && p.fullName.length > 3 && replyLower.includes(p.fullName.toLowerCase());
-    return modelMatch || nameMatch;
+    const combined = `${p.fullName} ${p.name} ${p.model} ${p.category}`.toLowerCase();
+
+    return combined.split(' ').some(word =>
+      word.length > 3 && replyLower.includes(word)
+    );
   });
 
   return matched.slice(0, 4).map(p => ({
@@ -146,6 +178,24 @@ CRITICAL INSTRUCTIONS:
 - Mention page links naturally only when directly relevant. Never dump all URLs at once.
 - Guide users step by step. Ask one follow-up question at a time if clarification is needed.
 - GREETING: Keep it brief and professional. No enthusiasm overload.
+- When describing a product:
+  * Do NOT copy raw database text.
+  * Rephrase naturally like a human sales expert.
+  * Highlight use-case + benefit (not just specs).
+  * Keep it short but impactful.
+- If a product exists in database:
+  * ALWAYS mention its model number clearly in **bold**
+  * Give 1 short benefit line + 2 key specs
+- NEVER show raw URLs in chat responses.
+- Always try to solve the user's query directly in chat first.
+- ONLY if the user seems confused, unsure, or asks for help repeatedly:
+  * Then suggest a button (NOT a link)
+  * Say something like: "You can also use the option below if needed."
+- Do NOT say "visit this page" or paste URLs.
+- Let frontend buttons handle navigation.
+- If a button is available:
+  * Do NOT mention link in text
+  * Just guide user and let button appear below
 
 USER INFO:
 - Name: ${userName}
@@ -336,6 +386,9 @@ router.post('/chat', chatLimiter, async (req, res) => {
         } catch { }
       }
     }
+
+    // REMOVE ANY URL FROM AI RESPONSE
+     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
 
     const productCards = detectProductCards(fullReply, products);
     const actionButtons = detectActionButtons(lastUserMessage, fullReply, products);
