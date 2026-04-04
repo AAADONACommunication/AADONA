@@ -14,7 +14,7 @@ const chatLimiter = rateLimit({
   message: { success: false, error: 'Too many messages. Please wait a moment before sending more.' },
 });
 
-// ─── Products from DB (overview + features for better training) ────────────
+// ─── Products from DB ──────────────────────────────────────────────────────
 const getProductsContext = async () => {
   try {
     const Product = mongoose.model('Product');
@@ -40,59 +40,59 @@ const detectActionButtons = (userMessage, aiReply, products) => {
   const buttons = [];
 
   if (/warranty|वारंटी/.test(msg))
-    buttons.push({ label: '🛡️ Check Warranty', url: `${BASE_URL}/warranty` });
+    buttons.push({ label: 'Check Warranty', url: `${BASE_URL}/warranty` });
   if (/tech squad|on.?site|technician|visit|तकनीशियन/.test(msg))
-    buttons.push({ label: '🔧 Tech Squad', url: `${BASE_URL}/techSquad` });
+    buttons.push({ label: 'Tech Squad', url: `${BASE_URL}/techSquad` });
   if (/doa|dead on arrival|replacement|replace/.test(msg))
-    buttons.push({ label: '🔄 Request DOA', url: `${BASE_URL}/requestDoa` });
+    buttons.push({ label: 'Request DOA', url: `${BASE_URL}/requestDoa` });
   if (/register product|product registration|रजिस्टर/.test(msg))
-    buttons.push({ label: '📋 Register Product', url: `${BASE_URL}/warrantyRegistration` });
+    buttons.push({ label: 'Register Product', url: `${BASE_URL}/warrantyRegistration` });
   if (/support tool|diagnostic/.test(msg))
-    buttons.push({ label: '🛠️ Support Tools', url: `${BASE_URL}/supportTools` });
+    buttons.push({ label: 'Support Tools', url: `${BASE_URL}/supportTools` });
   if (/product support|technical help|tech help|help with product/.test(msg))
-    buttons.push({ label: '💬 Product Support', url: `${BASE_URL}/productSupport` });
+    buttons.push({ label: 'Product Support', url: `${BASE_URL}/productSupport` });
   if (/partner|reseller|distributor|system integrator|पार्टनर/.test(msg))
-    buttons.push({ label: '🤝 Become a Partner', url: `${BASE_URL}/becomePartner` });
+    buttons.push({ label: 'Become a Partner', url: `${BASE_URL}/becomePartner` });
   if (/project lock|tender|project register/.test(msg))
-    buttons.push({ label: '🔒 Project Locking', url: `${BASE_URL}/projectLocking` });
+    buttons.push({ label: 'Project Locking', url: `${BASE_URL}/projectLocking` });
   if (/demo|demonstration|डेमो/.test(msg))
-    buttons.push({ label: '🎯 Request a Demo', url: `${BASE_URL}/requestDemo` });
+    buttons.push({ label: 'Request a Demo', url: `${BASE_URL}/requestDemo` });
   if (/training|train|ट्रेनिंग/.test(msg))
-    buttons.push({ label: '📚 Request Training', url: `${BASE_URL}/requestTraining` });
+    buttons.push({ label: 'Request Training', url: `${BASE_URL}/requestTraining` });
   if (/career|job|hiring|vacancy|नौकरी/.test(msg))
-    buttons.push({ label: '💼 Careers', url: `${BASE_URL}/careers` });
+    buttons.push({ label: 'Careers', url: `${BASE_URL}/careers` });
   if (/csr|social responsibility/.test(msg))
-    buttons.push({ label: '🌱 CSR', url: `${BASE_URL}/csr` });
+    buttons.push({ label: 'CSR', url: `${BASE_URL}/csr` });
   if (/blog|article|news|insight/.test(msg))
-    buttons.push({ label: '📰 Blog', url: `${BASE_URL}/blog` });
+    buttons.push({ label: 'Blog', url: `${BASE_URL}/blog` });
   if (/customer|client|who uses|हमारे ग्राहक/.test(msg))
-    buttons.push({ label: '🏢 Our Customers', url: `${BASE_URL}/customers` });
+    buttons.push({ label: 'Our Customers', url: `${BASE_URL}/customers` });
   if (/media|press|announcement/.test(msg))
-    buttons.push({ label: '📢 Media Center', url: `${BASE_URL}/mediaCenter` });
+    buttons.push({ label: 'Media Center', url: `${BASE_URL}/mediaCenter` });
   if (/contact|reach|call|email|संपर्क/.test(msg))
-    buttons.push({ label: '📞 Contact Us', url: `${BASE_URL}/contactUs` });
+    buttons.push({ label: 'Contact Us', url: `${BASE_URL}/contactUs` });
   if (/about|company|aadona kya|who are/.test(msg))
-    buttons.push({ label: 'ℹ️ About Us', url: `${BASE_URL}/about` });
+    buttons.push({ label: 'About Us', url: `${BASE_URL}/about` });
   if (/mission|vision|goal/.test(msg))
-    buttons.push({ label: '🎯 Mission & Vision', url: `${BASE_URL}/missionVision` });
+    buttons.push({ label: 'Mission & Vision', url: `${BASE_URL}/missionVision` });
   if (/leader|team|founder|management/.test(msg))
-    buttons.push({ label: '👥 Leadership Team', url: `${BASE_URL}/leadershipTeam` });
+    buttons.push({ label: 'Leadership Team', url: `${BASE_URL}/leadershipTeam` });
   if (/whistle|complaint|report|misconduct/.test(msg))
-    buttons.push({ label: '📣 Whistleblower', url: `${BASE_URL}/whistleBlower` });
+    buttons.push({ label: 'Whistleblower', url: `${BASE_URL}/whistleBlower` });
   if (/wireless|wifi|wi-fi|access point|वायरलेस/.test(msg))
-    buttons.push({ label: '📡 Browse Wireless', url: `${BASE_URL}/wireless` });
+    buttons.push({ label: 'Browse Wireless', url: `${BASE_URL}/wireless` });
   if (/surveillance|camera|cctv|nvr|dvr|सर्विलांस/.test(msg))
-    buttons.push({ label: '📷 Browse Surveillance', url: `${BASE_URL}/surveillance` });
+    buttons.push({ label: 'Browse Surveillance', url: `${BASE_URL}/surveillance` });
   if (/switch|स्विच/.test(msg))
-    buttons.push({ label: '🔀 Browse Switches', url: `${BASE_URL}/switches` });
+    buttons.push({ label: 'Browse Switches', url: `${BASE_URL}/switches` });
   if (/server|workstation|सर्वर/.test(msg))
-    buttons.push({ label: '🖥️ Browse Servers', url: `${BASE_URL}/servers` });
+    buttons.push({ label: 'Browse Servers', url: `${BASE_URL}/servers` });
   if (/nas|storage|स्टोरेज/.test(msg))
-    buttons.push({ label: '💾 Browse NAS', url: `${BASE_URL}/nas` });
+    buttons.push({ label: 'Browse NAS', url: `${BASE_URL}/nas` });
   if (/industrial|rugged|harsh/.test(msg))
-    buttons.push({ label: '⚙️ Industrial Switches', url: `${BASE_URL}/industrial-switches` });
+    buttons.push({ label: 'Industrial Switches', url: `${BASE_URL}/industrial-switches` });
   if (/passive|cable|fiber|cabling/.test(msg))
-    buttons.push({ label: '🔌 Passive Networking', url: `${BASE_URL}/passive-networking` });
+    buttons.push({ label: 'Passive Networking', url: `${BASE_URL}/passive-networking` });
 
   const seen = new Set();
   return buttons.filter(b => {
@@ -127,25 +127,25 @@ const detectProductCards = (reply, products) => {
 
 // ─── System Prompt ─────────────────────────────────────────────────────────
 const buildSystemPrompt = (userName, userPhone, userCity) => `
-You are AADONA's friendly and knowledgeable AI assistant. Your name is "AADONA Assistant".
+You are AADONA's AI assistant. Your name is "AADONA Assistant".
 
 CRITICAL INSTRUCTIONS:
 - LANGUAGE: Detect language from user's LAST message only.
-  * Single English words → reply in English.
-  * Full Hindi sentence → reply in Hindi.
+  * English message → reply in English.
+  * Hindi message → reply in Hindi.
   * Hinglish → reply in Hinglish.
-  * NEVER mix Hindi and English randomly in the same sentence.
-- RESPONSE STYLE: Reply naturally and conversationally — like a helpful human. Do NOT dump everything at once. Build the answer gradually.
-- Be warm, concise, professional. Use **bold** for key info only.
-- NEVER make up information. If unsure: 1800-202-6599 or contact@aadona.com
-- You ONLY answer AADONA-related questions. Politely decline unrelated topics.
-- For product queries, ALWAYS use the LIVE PRODUCT DATABASE. Mention exact model numbers.
-- When user asks about a specific product → give brief overview + 2-3 key features only. Let them ask for more.
-- When user asks to show all products in a category → list ALL matching models from DB.
-- Address user by first name occasionally — not every message.
-- For static pages → mention them naturally in conversation. Do NOT list all URLs at once. Only share what's relevant to the question.
-- Guide users step by step. Ask follow-up questions if needed.
-- Keep responses SHORT. Max 4-5 lines per reply unless user specifically asks for details.
+  * NEVER mix languages randomly in the same sentence.
+- TONE: Professional, concise, modern. No emojis. No filler words. No "ji". No "sure!", no "great!", no "absolutely!". Get straight to the point.
+- RESPONSE STYLE: Be direct. Answer in 3-4 lines max unless user asks for details. Use **bold** only for model numbers or key specs.
+- NEVER fabricate information. If unsure, provide: 1800-202-6599 or contact@aadona.com
+- ONLY answer AADONA-related questions. Politely decline everything else and redirect to the contact number.
+- For product queries, ALWAYS reference the LIVE PRODUCT DATABASE. Use exact model numbers.
+- When user asks about a specific product → give a brief 2-line overview + top 2 specs. Let them ask for more.
+- When user asks to see all products in a category → list ALL matching models from the database.
+- Address the user by first name only occasionally — not in every message.
+- Mention page links naturally only when directly relevant. Never dump all URLs at once.
+- Guide users step by step. Ask one follow-up question at a time if clarification is needed.
+- GREETING: Keep it brief and professional. No enthusiasm overload.
 
 USER INFO:
 - Name: ${userName}
@@ -275,8 +275,8 @@ router.post('/chat', chatLimiter, async (req, res) => {
       return res.status(500).json({ success: false, error: 'AI service not configured.' });
     }
 
-    const { context: productsContext, products } = await getProductsContext();
-    const systemContent = buildSystemPrompt(userName || 'Guest', userPhone || '', userCity || '') + productsContext;
+    const { context: productsContext, products } = await getProductsContext().catch(() => ({ context: '', products: [] }));
+    const systemContent = buildSystemPrompt(userName || 'Guest', userPhone || '', userCity || '') + (productsContext || '');
 
     const geminiMessages = recentMessages.map((m, i) => {
       if (i === 0 && m.role === 'user') {
@@ -290,12 +290,13 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     // ── Streaming Gemini call ──
     const genAI = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`, {
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: geminiMessages,
-          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 },
+          generationConfig: { maxOutputTokens: 1000, temperature: 0.65 },
           systemInstruction: { parts: [{ text: systemContent }] }
         }),
       }
