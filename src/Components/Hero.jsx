@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import hero from '../assets/hero6.jpg';
-import govmarketplace from '../assets/govmarketplace.jpeg';
-import madeinindia from '../assets/madeinindia.jpeg';
+import hero from '../assets/hero6.avif';
+import govmarketplace from '../assets/govmarketplace.avif';
+import madeinindia from '../assets/madeinindia.avif';
 
 const Hero = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -88,7 +88,7 @@ const Hero = () => {
 
   {/* Badge 1 — Made in India */}
   <div className="group flex items-center gap-3 w-[220px] sm:w-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-3 py-3 sm:px-5 sm:py-3 md:px-6 md:py-4 transition-all duration-300 hover:bg-white/18 hover:border-white/35">
-<div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/50 ring-1 ring-orange-400/40 transition-all duration-300 group-hover:ring-orange-400/80 group-hover:border-white/70">      <img
+<div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden shrink-0 border-2 border-white/50 ring-1 ring-orange-400/40 transition-all duration-300 group-hover:ring-orange-400/80 group-hover:border-white/70">      <img
         src={madeinindia}
         alt="Made in India"
         className="w-full h-full object-cover"
