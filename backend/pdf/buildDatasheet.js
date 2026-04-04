@@ -186,7 +186,7 @@ const buildDatasheetHTML = async (product) => {
     </div>
   </div>
 
-  <div style="position:absolute;top:390px;left:0;right:0;bottom:140px;
+  <div style="position:absolute;top:300px;left:0;right:0;bottom:140px;
     display:flex;align-items:center;justify-content:center;">
     <img src="${productImageBase64}"
       style="max-width:480px;max-height:360px;width:auto;height:auto;object-fit:contain;" />
