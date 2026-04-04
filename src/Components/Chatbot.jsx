@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const STORAGE_KEY_USER = 'aadona_chat_user_v2'; // v2 — city add hone se fresh start
+const STORAGE_KEY_USER = 'aadona_chat_user_v2';
 const STORAGE_KEY_HISTORY = (phone) => `aadona_chat_history_${phone}`;
 const MAX_HISTORY = 40;
 const TOLL_FREE = '18002026599';
@@ -33,35 +33,51 @@ function ProductCard({ product }) {
   if (!product) return null;
   const url = product.url || `https://aadona.online/${(product.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${product.slug}`;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden w-[185px] flex-shrink-0">
+    <div style={{ fontFamily: "'DM Sans', sans-serif" }} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden w-[180px] flex-shrink-0">
       {product.image ? (
-        <img src={product.image} alt={product.name} className="w-full h-28 object-contain bg-slate-50 p-2" />
+        <div className="w-full h-28 bg-slate-50 flex items-center justify-center overflow-hidden">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-contain p-2"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.parentElement.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f1f5f9"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg></div>`;
+            }}
+          />
+        </div>
       ) : (
         <div className="w-full h-28 bg-slate-100 flex items-center justify-center">
-          <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+          <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
           </svg>
         </div>
       )}
       <div className="p-2.5">
-        <p className="text-[11px] font-semibold text-slate-800 leading-tight line-clamp-2">{product.name}</p>
-        {product.model && <p className="text-[10px] text-slate-400 mt-0.5">{product.model}</p>}
+        <p className="text-[11.5px] font-semibold text-slate-800 leading-snug line-clamp-2 tracking-tight">{product.name}</p>
+        {product.model && (
+          <p className="text-[10px] text-slate-400 mt-0.5 font-mono tracking-wide">{product.model}</p>
+        )}
         {product.overview && (
           <p className="text-[10px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{product.overview}</p>
         )}
         {product.features?.length > 0 && (
-          <ul className="mt-1 mb-1.5 flex flex-col gap-0.5">
-            {product.features.map((f, i) => (
+          <ul className="mt-1.5 mb-2 flex flex-col gap-0.5">
+            {product.features.slice(0, 2).map((f, i) => (
               <li key={i} className="flex items-start gap-1 text-[10px] text-slate-500">
-                <span className="text-emerald-500 mt-0.5 flex-shrink-0">•</span>
+                <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
                 <span className="line-clamp-1">{f}</span>
               </li>
             ))}
           </ul>
         )}
-        <a href={url} target="_blank" rel="noopener noreferrer"
-          className="block text-center text-[10.5px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-1.5 rounded-lg hover:opacity-90 transition mt-1">
-          View Product →
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-center text-[10.5px] font-semibold bg-emerald-600 text-white py-1.5 rounded-lg hover:bg-emerald-600 transition-colors duration-150 mt-1 tracking-wide"
+        >
+          View Details
         </a>
       </div>
     </div>
@@ -74,8 +90,14 @@ function ActionButtons({ buttons }) {
   return (
     <div className="flex flex-wrap gap-1.5 mt-2">
       {buttons.map((btn, i) => (
-        <a key={i} href={btn.url} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1.5 rounded-full bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-150 shadow-sm">
+        <a
+          key={i}
+          href={btn.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-emerald-600 hover:text-white hover:border-slate-900 transition-all duration-150"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
           {btn.label}
         </a>
       ))}
@@ -86,10 +108,13 @@ function ActionButtons({ buttons }) {
 // ─── Typing Dots ───────────────────────────────────────────────────────────
 function TypingDots() {
   return (
-    <div className="flex items-end gap-1 px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm">
+    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce"
-          style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.8s' }} />
+        <span
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
+          style={{ animationDelay: `${i * 0.18}s`, animationDuration: '0.9s' }}
+        />
       ))}
     </div>
   );
@@ -99,34 +124,45 @@ function TypingDots() {
 function BotMessage({ content, time, productCards, actionButtons, isStreaming }) {
   return (
     <div className="flex items-end gap-2 animate-fadeIn">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 mb-1 shadow">
-        <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+      <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mb-1">
+        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
         </svg>
       </div>
-      <div className="flex flex-col gap-1 max-w-[82%]">
-        <div className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[13px] leading-relaxed">
-          {content.split('\n').map((line, i) => (
+      <div className="flex flex-col gap-1 max-w-[84%]">
+        <div
+          className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[12.5px] leading-relaxed"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
+          {content.split('\n').map((line, i, arr) => (
             <span key={i}>
               {line.split(/(\*\*.*?\*\*)/g).map((part, j) =>
                 part.startsWith('**') && part.endsWith('**')
                   ? <strong key={j} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>
                   : part
               )}
-              {i < content.split('\n').length - 1 && <br />}
+              {i < arr.length - 1 && <br />}
             </span>
           ))}
           {isStreaming && (
-            <span className="inline-block w-1 h-3.5 bg-emerald-400 ml-0.5 animate-pulse rounded-sm" />
+            <span className="inline-block w-0.5 h-3.5 bg-slate-400 ml-0.5 animate-pulse rounded-sm" />
           )}
         </div>
+
         {!isStreaming && productCards?.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5" style={{ scrollbarWidth: 'none' }}>
             {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
           </div>
         )}
         {!isStreaming && <ActionButtons buttons={actionButtons} />}
-        {!isStreaming && time && <span className="text-[10px] text-slate-400 pl-1">{time}</span>}
+        {!isStreaming && time && (
+          <span
+            className="text-[9.5px] text-slate-400 pl-1 tracking-wide"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            {time}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -137,10 +173,17 @@ function UserMessage({ content, time }) {
   return (
     <div className="flex items-end justify-end gap-2 animate-fadeIn">
       <div className="flex flex-col items-end gap-0.5 max-w-[78%]">
-        <div className="px-3.5 py-2.5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl rounded-br-sm shadow-sm text-white text-[13px] leading-relaxed">
+        <div
+          className="px-3.5 py-2.5 bg-emerald-600 rounded-2xl rounded-br-sm text-white text-[12.5px] leading-relaxed"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
           {content}
         </div>
-        {time && <span className="text-[10px] text-slate-400 pr-1">{time}</span>}
+        {time && (
+          <span className="text-[9.5px] text-slate-400 pr-1 tracking-wide" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            {time}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -152,8 +195,12 @@ function QuickReplies({ options, onSelect }) {
   return (
     <div className="flex flex-wrap gap-1.5 px-3 pb-2 pt-1">
       {options.map((opt) => (
-        <button key={opt} onClick={() => onSelect(opt)}
-          className="text-[11px] px-3 py-1.5 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-150 font-medium">
+        <button
+          key={opt}
+          onClick={() => onSelect(opt)}
+          className="text-[11px] px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 bg-white hover:bg-emerald-600 hover:text-white hover:border-slate-900 transition-all duration-150 font-medium"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
           {opt}
         </button>
       ))}
@@ -181,54 +228,76 @@ function RegistrationForm({ onStart }) {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-5 flex-shrink-0">
+    <div className="flex flex-col h-full" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      {/* Header */}
+      <div className="bg-emerald-600 px-5 py-5 flex-shrink-0">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+            <svg className="w-4.5 h-4.5 text-white" fill="currentColor" viewBox="0 0 24 24" width="18" height="18">
               <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
             </svg>
           </div>
           <div>
-            <h2 className="text-white font-bold text-base tracking-wide">AADONA Assistant</h2>
-            <p className="text-emerald-100 text-xs">Powered by AI · Always Online</p>
+            <h2 className="text-white font-semibold text-[14px] tracking-tight">AADONA Assistant</h2>
+            <p className="text-slate-400 text-[11px] tracking-wide">Powered by AI</p>
           </div>
         </div>
-        <p className="text-white/80 text-xs leading-relaxed">Get instant answers about products, support, partnerships &amp; more.</p>
+        <p className="text-slate-400 text-[11.5px] leading-relaxed">
+          Get instant answers about products, support, and partnerships.
+        </p>
       </div>
 
+      {/* Form */}
       <div className="flex-1 px-5 py-5 flex flex-col gap-4 bg-slate-50 overflow-y-auto">
         <div>
-          <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-3">Quick intro before we chat</p>
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Your Details</p>
           <div className="flex flex-col gap-3">
+            {[
+              { label: 'Full Name', value: name, setter: setName, type: 'text', placeholder: 'Enter your name' },
+            ].map(({ label, value, setter, type, placeholder }) => (
+              <div key={label}>
+                <label className="block text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">{label}</label>
+                <input
+                  type={type}
+                  value={value}
+                  onChange={e => setter(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                  placeholder={placeholder}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition"
+                />
+              </div>
+            ))}
+
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Your Name *</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                placeholder="Enter your name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Mobile Number *</label>
+              <label className="block text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Mobile Number</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">+91</span>
-                <input type="tel" value={phone}
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-[13px] font-medium">+91</span>
+                <input
+                  type="tel"
+                  value={phone}
                   onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                   placeholder="10-digit number"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition"
+                />
               </div>
             </div>
+
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">City *</label>
-              <input type="text" value={city} onChange={e => setCity(e.target.value)}
+              <label className="block text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">City</label>
+              <input
+                type="text"
+                value={city}
+                onChange={e => setCity(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                 placeholder="Enter your city"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition"
+              />
             </div>
           </div>
+
           {error && (
-            <p className="mt-2 text-xs text-red-500 flex items-center gap-1">
+            <p className="mt-2 text-[11px] text-red-500 flex items-center gap-1">
               <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
@@ -238,27 +307,30 @@ function RegistrationForm({ onStart }) {
         </div>
 
         <div className="bg-white rounded-xl p-3 border border-slate-200">
-          <p className="text-xs text-slate-500 mb-2 font-medium">What I can help you with:</p>
+          <p className="text-[10px] font-semibold text-slate-400 mb-2 uppercase tracking-wider">I can help with</p>
           <div className="grid grid-cols-2 gap-1.5">
-            {['📡 Products & Specs', '🛡️ Warranty & Support', '🤝 Become a Partner', '📞 Contact & Location'].map(item => (
-              <div key={item} className="text-[11px] text-slate-600">{item}</div>
+            {['Products & Specs', 'Warranty & Support', 'Partner Programs', 'Contact & Location'].map(item => (
+              <div key={item} className="text-[11px] text-slate-600 font-medium">{item}</div>
             ))}
           </div>
         </div>
 
-        <button onClick={handleSubmit} disabled={loading}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow-lg shadow-emerald-200 hover:shadow-emerald-300 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold text-[13px] hover:bg-emerald-600 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
+        >
           {loading ? (
             <>
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Starting chat...
+              Starting...
             </>
           ) : (
             <>
-              Start Chat
+              Start Conversation
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
@@ -266,7 +338,7 @@ function RegistrationForm({ onStart }) {
           )}
         </button>
 
-        <p className="text-center text-[10.5px] text-slate-400">🔒 Your details are safe · AADONA Communication Pvt Ltd</p>
+        <p className="text-center text-[10px] text-slate-400 tracking-wide">Your details are kept private · AADONA Communication Pvt Ltd</p>
       </div>
     </div>
   );
@@ -386,7 +458,7 @@ export default function Chatbot() {
       loadHistory(phone);
       const welcomeBack = {
         role: 'bot',
-        content: `Welcome back, **${name}**! 👋 Great to see you again. How can I help you today?`,
+        content: `Welcome back, **${name}**. How can I assist you today?`,
         time: getTime(),
       };
       setMessages(prev => {
@@ -397,7 +469,7 @@ export default function Chatbot() {
     } else {
       const greeting = {
         role: 'bot',
-        content: `Namaste **${name} ji**! 🙏 Welcome to **AADONA** — India's premium networking brand!\n\nI can help you with products, support, partnerships, and more. What would you like to know?`,
+        content: `Hello **${name}**, welcome to AADONA — India's premier networking brand.\n\nI can assist with products, support, and partnership queries. What would you like to know?`,
         time: getTime(),
       };
       setMessages([greeting]);
@@ -420,10 +492,9 @@ export default function Chatbot() {
     setApiHistory(newApiHistory);
     setIsLoading(true);
 
-    // Add empty streaming bot message
     const streamingMsg = { role: 'bot', content: '', time: getTime(), isStreaming: true, productCards: null, actionButtons: null };
     setMessages(prev => [...prev, streamingMsg]);
-    const botIndex = newMessages.length; // index of the streaming message
+    const botIndex = newMessages.length;
 
     try {
       const response = await fetch(`${API_BASE}/chat`, {
@@ -458,7 +529,6 @@ export default function Chatbot() {
         for (const line of lines) {
           try {
             const json = JSON.parse(line.replace('data: ', ''));
-
             if (json.token) {
               streamedText += json.token;
               setMessages(prev => {
@@ -469,20 +539,13 @@ export default function Chatbot() {
                 return updated;
               });
             }
-
             if (json.done) {
               productCards = json.productCards || null;
               actionButtons = json.actionButtons || null;
               setMessages(prev => {
                 const updated = [...prev];
                 if (updated[botIndex]) {
-                  updated[botIndex] = {
-                    ...updated[botIndex],
-                    content: streamedText,
-                    isStreaming: false,
-                    productCards,
-                    actionButtons,
-                  };
+                  updated[botIndex] = { ...updated[botIndex], content: streamedText, isStreaming: false, productCards, actionButtons };
                 }
                 return updated;
               });
@@ -505,7 +568,7 @@ export default function Chatbot() {
         if (updated[botIndex]) {
           updated[botIndex] = {
             ...updated[botIndex],
-            content: `Oops! Something went wrong. Please try again.\n\nFor urgent help, call us at **${TOLL_FREE_DISPLAY}** (Toll Free).`,
+            content: `Something went wrong. For immediate assistance, please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`,
             isStreaming: false,
           };
         }
@@ -522,7 +585,7 @@ export default function Chatbot() {
     localStorage.removeItem(STORAGE_KEY_HISTORY(user.phone));
     const greeting = {
       role: 'bot',
-      content: `Chat cleared! How can I help you, **${user.name}**? 😊`,
+      content: `Conversation cleared. How can I assist you, **${user.name}**?`,
       time: getTime(),
     };
     setMessages([greeting]);
@@ -546,297 +609,355 @@ export default function Chatbot() {
   };
 
   const winHeight = isRegistered ? 580 : 540;
-  const winWidth = isMobile ? 'calc(100vw - 24px)' : '368px';
+  const winWidth = isMobile ? 'calc(100vw - 24px)' : '360px';
 
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(6px); }
+          from { opacity: 0; transform: translateY(5px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn { animation: fadeIn 0.22s ease forwards; }
+        .animate-fadeIn { animation: fadeIn 0.2s ease forwards; }
 
         @keyframes slideUp {
-          from { opacity: 0; transform: scale(0.95) translateY(20px); }
+          from { opacity: 0; transform: scale(0.96) translateY(16px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
         }
-        .chat-window-enter { animation: slideUp 0.28s cubic-bezier(0.34,1.18,0.64,1) forwards; }
+        .chat-window-enter { animation: slideUp 0.25s cubic-bezier(0.34,1.1,0.64,1) forwards; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        @keyframes notif-ping {
-          0%   { transform: scale(1);   opacity: 1; }
-          70%  { transform: scale(2.2); opacity: 0; }
-          100% { transform: scale(2.2); opacity: 0; }
-        }
-        @keyframes notif-pop {
-          0%   { transform: scale(0); opacity: 0; }
-          60%  { transform: scale(1.25); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes notif-glow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
-          50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
-        }
         @keyframes notif-bubble-in {
           0%   { opacity: 0; transform: translateX(-50%) scale(0.9); }
           100% { opacity: 1; transform: translateX(-50%) scale(1); }
-        }
-        @keyframes notif-bubble-bounce {
-          0%,100% { transform: translateX(-50%) translateY(0); }
-          50%     { transform: translateX(-50%) translateY(-3px); }
         }
         @keyframes drawerSlideUp {
           from { opacity: 0; transform: translateY(8px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .call-drawer-enter { animation: drawerSlideUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
+        .call-drawer-enter { animation: drawerSlideUp 0.2s cubic-bezier(0.34,1.1,0.64,1) forwards; }
 
-        .notif-badge {
-          position: absolute; top: -6px; right: -6px;
-          width: 20px; height: 20px;
-          background: #ef4444; border-radius: 50%;
-          border: 2px solid #fff;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 9px; font-weight: 800; color: #fff; z-index: 10;
-          animation: notif-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards,
-                     notif-glow 1.5s ease-in-out 0.4s infinite;
-        }
-        .notif-badge::before {
-          content: ''; position: absolute; inset: 0; border-radius: 50%;
-          background: #ef4444;
-          animation: notif-ping 1.5s ease-out infinite; z-index: -1;
-        }
         .notif-bubble {
-          position: absolute; bottom: calc(100% + 10px); left: 5%;
+          position: absolute;
+          bottom: calc(100% + 10px);
+          left: 50%;
           transform: translateX(-50%);
-          background: #1e293b; color: #f8fafc;
-          font-size: 11px; font-weight: 500;
-          padding: 7px 12px; border-radius: 10px;
-          white-space: nowrap; pointer-events: none;
-          animation: notif-bubble-in 0.4s 0.6s ease both,
-                     notif-bubble-bounce 2s 1.2s ease-in-out infinite;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.18); line-height: 1.4;
+          background: #0f172a;
+          color: #f8fafc;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 11px;
+          font-weight: 500;
+          padding: 6px 12px;
+          border-radius: 8px;
+          white-space: nowrap;
+          pointer-events: none;
+          animation: notif-bubble-in 0.35s 0.5s ease both;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
         }
         .notif-bubble::after {
-          content: ''; position: absolute; top: 100%; left: 50%;
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
           transform: translateX(-50%);
-          border: 6px solid transparent; border-top-color: #1e293b;
+          border: 5px solid transparent;
+          border-top-color: #0f172a;
         }
-        .ac-btn-wrap { position: relative; display: flex; }
+
         .ac-tooltip {
-          position: absolute; right: calc(100% + 10px); top: 50%;
+          position: absolute;
+          right: calc(100% + 10px);
+          top: 50%;
           transform: translateY(-50%) translateX(4px);
-          background: #1e293b; color: #f8fafc;
-          font-size: 11px; font-weight: 500; padding: 5px 11px;
-          border-radius: 8px; white-space: nowrap; pointer-events: none;
-          opacity: 0; transition: opacity 0.18s ease, transform 0.18s ease;
-          z-index: 99999; line-height: 1.4;
+          background: #0f172a;
+          color: #f8fafc;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 11px;
+          font-weight: 500;
+          padding: 5px 10px;
+          border-radius: 7px;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.15s ease, transform 0.15s ease;
+          z-index: 99999;
         }
         .ac-tooltip::after {
-          content: ''; position: absolute; left: 100%; top: 50%;
+          content: '';
+          position: absolute;
+          left: 100%;
+          top: 50%;
           transform: translateY(-50%);
-          border: 5px solid transparent; border-left-color: #1e293b;
+          border: 4px solid transparent;
+          border-left-color: #0f172a;
         }
         .ac-btn-wrap:hover .ac-tooltip { opacity: 1; transform: translateY(-50%) translateX(0); }
+        .ac-btn-wrap { position: relative; display: flex; }
+
         .call-number-row {
-          display: flex; align-items: center; justify-content: space-between;
-          background: #f1faf7; border-radius: 10px; padding: 10px 12px;
-          text-decoration: none; border: 1px solid #a7f3d0;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #f8fafc;
+          border-radius: 10px;
+          padding: 10px 12px;
+          text-decoration: none;
+          border: 1px solid #e2e8f0;
           transition: background 0.15s, border-color 0.15s;
         }
-        .call-number-row:hover { background: #d1fae5; border-color: #6ee7b7; }
+        .call-number-row:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+        .notif-dot {
+          position: absolute;
+          top: -3px;
+          right: -3px;
+          width: 10px;
+          height: 10px;
+          background: #ef4444;
+          border-radius: 50%;
+          border: 2px solid #fff;
+        }
       `}</style>
 
-      <div style={{ position: 'fixed', bottom: '20px', right: '16px', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
+      <div style={{
+        position: 'fixed', bottom: '20px', right: '16px', zIndex: 99999,
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px',
+        fontFamily: "'DM Sans', sans-serif"
+      }}>
 
         {/* Chat Window */}
         {isOpen && (
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => setIsOpen(false)} title="Close"
-              style={{ position: 'absolute', top: '-11px', right: '-11px', width: '26px', height: '26px', borderRadius: '50%', background: '#ef4444', border: '2.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, boxShadow: '0 2px 10px rgba(239,68,68,0.55)', transition: 'transform 0.15s, background 0.15s', outline: 'none' }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.18)'; e.currentTarget.style.background = '#dc2626'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = '#ef4444'; }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round">
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
+          <div className="chat-window-enter bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+            style={{ width: winWidth, maxHeight: 'calc(100dvh - 100px)', height: `min(${winHeight}px, calc(100dvh - 100px))` }}>
 
-            <div className="chat-window-enter bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
-              style={{ width: winWidth, maxHeight: 'calc(100dvh - 110px)', height: `min(${winHeight}px, calc(100dvh - 110px))` }}>
+            {isRegistered ? (
+              <>
+                {/* Header */}
+                <div
+                  className="bg-emerald-600 px-4 py-3 flex items-center gap-3 flex-shrink-0"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-semibold text-[13px] tracking-tight truncate">AADONA Assistant</h3>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                      <span className="text-slate-400 text-[10.5px] truncate tracking-wide">
+                        {user?.name}
+                      </span>
+                    </div>
+                  </div>
 
-              {isRegistered ? (
-                <>
-                  {/* Header */}
-                  <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 flex items-center gap-3 flex-shrink-0">
-                    <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                  {/* Header actions — shifted right with ml-auto */}
+                  <div className="flex items-center gap-0.5 ml-auto">
+                    <button
+                      onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }}
+                      title={`Call ${TOLL_FREE_DISPLAY}`}
+                      className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
                       </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-bold text-sm truncate">AADONA Assistant</h3>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse flex-shrink-0" />
-                        <span className="text-emerald-100 text-xs truncate">Chatting as {user?.name}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }} title={`Call ${TOLL_FREE_DISPLAY}`}
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
-                        </svg>
-                      </button>
-                      <button onClick={handleClearHistory} title="Clear chat"
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/70 hover:text-white">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                      <button onClick={() => setIsOpen(false)}
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/70 hover:text-white">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Messages */}
-                  <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 bg-slate-50/80 no-scrollbar">
-                    {messages.map((msg, i) =>
-                      msg.role === 'bot'
-                        ? <BotMessage key={i} content={msg.content} time={msg.time}
-                            productCards={msg.productCards} actionButtons={msg.actionButtons}
-                            isStreaming={msg.isStreaming} />
-                        : <UserMessage key={i} content={msg.content} time={msg.time} />
-                    )}
-                    {isLoading && messages[messages.length - 1]?.role !== 'bot' && (
-                      <div className="flex items-end gap-2 animate-fadeIn">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 mb-1 shadow">
-                          <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-                          </svg>
-                        </div>
-                        <TypingDots />
-                      </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  {/* Quick Replies */}
-                  {!isLoading && quickReplies.length > 0 && (
-                    <QuickReplies options={quickReplies} onSelect={(opt) => { setQuickReplies([]); sendMessage(opt); }} />
-                  )}
-
-                  {/* Input */}
-                  <div className="flex items-end gap-2 px-3 py-3 bg-white border-t border-slate-100 flex-shrink-0">
-                    <textarea ref={inputRef} value={input}
-                      onChange={e => {
-                        setInput(e.target.value);
-                        e.target.style.height = 'auto';
-                        e.target.style.height = Math.min(e.target.scrollHeight, 90) + 'px';
-                      }}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Ask anything about AADONA..."
-                      rows={1}
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition leading-snug"
-                      style={{ minHeight: '40px', maxHeight: '90px', overflow: 'hidden' }}
-                      disabled={isLoading}
-                    />
-                    <button onClick={() => sendMessage()} disabled={!input.trim() || isLoading}
-                      className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-emerald-200 hover:shadow-emerald-300 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </button>
+                    <button
+                      onClick={handleClearHistory}
+                      title="Clear conversation"
+                      className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
+                </div>
 
-                  {/* Footer */}
-                  <div className="text-center py-1.5 bg-white border-t border-slate-100 flex-shrink-0">
-                    <span className="text-[9.5px] text-slate-400 tracking-wide">
-                      AADONA Communication · {TOLL_FREE_DISPLAY} · contact@aadona.com
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <RegistrationForm onStart={handleStart} />
-              )}
-            </div>
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 bg-slate-50 no-scrollbar">
+                  {messages.map((msg, i) =>
+                    msg.role === 'bot'
+                      ? <BotMessage key={i} content={msg.content} time={msg.time}
+                          productCards={msg.productCards} actionButtons={msg.actionButtons}
+                          isStreaming={msg.isStreaming} />
+                      : <UserMessage key={i} content={msg.content} time={msg.time} />
+                  )}
+                  {isLoading && messages[messages.length - 1]?.role !== 'bot' && (
+                    <div className="flex items-end gap-2 animate-fadeIn">
+                      <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mb-1">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                        </svg>
+                      </div>
+                      <TypingDots />
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Quick Replies */}
+                {!isLoading && quickReplies.length > 0 && (
+                  <QuickReplies options={quickReplies} onSelect={(opt) => { setQuickReplies([]); sendMessage(opt); }} />
+                )}
+
+                {/* Input */}
+                <div className="flex items-end gap-2 px-3 py-3 bg-white border-t border-slate-100 flex-shrink-0">
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={e => {
+                      setInput(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = Math.min(e.target.scrollHeight, 88) + 'px';
+                    }}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask anything about AADONA..."
+                    rows={1}
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-[12.5px] resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition leading-snug"
+                    style={{
+                      minHeight: '40px', maxHeight: '88px', overflow: 'hidden',
+                      fontFamily: "'DM Sans', sans-serif"
+                    }}
+                    disabled={isLoading}
+                  />
+                  <button
+                    onClick={() => sendMessage()}
+                    disabled={!input.trim() || isLoading}
+                    className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0 hover:bg-emerald-600 transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Footer */}
+                <div className="text-center py-1.5 bg-white border-t border-slate-100 flex-shrink-0">
+                  <span className="text-[9px] text-slate-400 tracking-widest uppercase" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                    AADONA Communication · {TOLL_FREE_DISPLAY}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <RegistrationForm onStart={handleStart} />
+            )}
           </div>
         )}
 
         {/* Launcher */}
         <div ref={callDrawerRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
+          {/* Notification bubble */}
           {!isOpen && hasUnread && showBubble && (
-            <>
-              <div className="notif-bubble">👋 Hi! Got a question?</div>
-              <span className="notif-badge">1</span>
-            </>
+            <div className="notif-bubble">Need help? Ask us anything.</div>
           )}
 
           {/* Call Drawer */}
           {showCallDrawer && (
-            <div className="call-drawer-enter" style={{ position: 'absolute', bottom: 'calc(100% + 12px)', right: 0, width: '240px', background: '#ffffff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.13)', zIndex: 100 }}>
-              <div style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                  <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
-                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600 }}>Contact Support</span>
-                </div>
-                <button onClick={() => setShowCallDrawer(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.75)', padding: '2px', display: 'flex', alignItems: 'center', borderRadius: '4px', transition: 'color 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}>
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            <div
+              className="call-drawer-enter"
+              style={{
+                position: 'absolute', bottom: 'calc(100% + 12px)', right: 0,
+                width: '232px', background: '#ffffff',
+                border: '1px solid #e2e8f0', borderRadius: '14px', overflow: 'hidden',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 100,
+                fontFamily: "'DM Sans', sans-serif"
+              }}
+            >
+              <div style={{ background: '#0f172a', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600, letterSpacing: '-0.2px' }}>Contact Support</span>
+                <button onClick={() => setShowCallDrawer(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', padding: '2px', display: 'flex', alignItems: 'center' }}>
+                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
-              <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
-                <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Toll Free Support Line</p>
+              <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: '#f8fafc' }}>
+                <p style={{ margin: 0, fontSize: '10px', color: '#94a3b8', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase' }}>Toll Free</p>
                 <a href={`tel:${TOLL_FREE}`} className="call-number-row" onClick={() => setShowCallDrawer(false)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                    <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#0d9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '10px', color: '#0d9488', fontWeight: 600 }}>Tap to call →</span>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>{TOLL_FREE_DISPLAY}</span>
-                    </div>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="13" height="13" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '9.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.4px' }}>TAP TO CALL</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '-0.2px' }}>{TOLL_FREE_DISPLAY}</div>
                   </div>
                 </a>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '4px 0 2px' }}>
-                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/></svg>
-                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Mon – Sat · 10:30 AM to 6:30 PM IST</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 0' }}>
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}><circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M12 6v6l4 2" /></svg>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Mon – Fri · 10:30 AM – 6:30 PM IST</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#ecfdf5', borderRadius: '8px', padding: '6px 10px', border: '1px solid #a7f3d0' }}>
-                  <svg width="11" height="11" fill="#10b981" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                  <span style={{ fontSize: '10px', color: '#065f46', fontWeight: 500 }}>Free from all Indian networks</span>
+                <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 500, padding: '5px 8px', background: '#f0fdf4', borderRadius: '7px', border: '1px solid #d1fae5' }}>
+                  Free from all Indian networks
                 </div>
               </div>
             </div>
           )}
 
-          {/* Pill Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', borderRadius: '9999px', overflow: 'visible', border: '1px solid rgba(5,150,105,0.3)', boxShadow: '0 4px 20px rgba(16,185,129,0.35)', width: '56px' }}>
+          {/* Pill launcher buttons */}
+          <div style={{
+            display: 'flex', flexDirection: 'column',
+            borderRadius: '9999px', overflow: 'visible',
+            border: '1px solid rgba(15,23,42,0.2)',
+            boxShadow: '0 4px 20px rgba(15,23,42,0.25)',
+            width: '50px'
+          }}>
+            {/* Chat button */}
             <div className="ac-btn-wrap" style={{ borderRadius: '9999px 9999px 0 0', overflow: 'visible' }}>
               <span className="ac-tooltip">{isOpen ? 'Minimise' : 'Chat with us'}</span>
-              <button onClick={isOpen ? () => setIsOpen(false) : handleOpen}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden' }}>
+              {!isOpen && hasUnread && <span className="notif-dot" />}
+              <button
+                onClick={isOpen ? () => setIsOpen(false) : handleOpen}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  height: '50px', width: '50px',
+                  background: isOpen ? '#1e293b' : '#0f172a',
+                  border: 'none', cursor: 'pointer', transition: 'background 0.15s',
+                  outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden'
+                }}
+              >
                 {isOpen ? (
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 ) : (
-                  <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
+                  <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                  </svg>
                 )}
               </button>
             </div>
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+
+            {/* Divider */}
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.12)', flexShrink: 0 }} />
+
+            {/* Call button */}
             <div className="ac-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
-              <span className="ac-tooltip">📞 Contact</span>
-              <button onClick={handleCallDrawerToggle}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden' }}>
-                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
+              <span className="ac-tooltip">Call us</span>
+              <button
+                onClick={handleCallDrawerToggle}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  height: '50px', width: '50px',
+                  background: showCallDrawer ? '#1e293b' : '#334155',
+                  border: 'none', cursor: 'pointer', transition: 'background 0.15s',
+                  outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden'
+                }}
+              >
+                <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24">
+                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
+                </svg>
               </button>
             </div>
           </div>
@@ -845,3 +966,5 @@ export default function Chatbot() {
     </>
   );
 }
+
+/* */
