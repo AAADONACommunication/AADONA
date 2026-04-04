@@ -2,9 +2,6 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const mongoose = require('mongoose');
-const Product = mongoose.models.Product || mongoose.model('Product');
-const Category = mongoose.models.Category || mongoose.model('Category');
-let cachedCategories = null;
 
 const BASE_URL = 'https://aadona.online';
 
@@ -18,58 +15,36 @@ const chatLimiter = rateLimit({
 });
 
 // ─── Products from DB ──────────────────────────────────────────────────────
-const getProductsContext = async (query = '') => {
+const getProductsContext = async () => {
   try {
-    const words = query.toLowerCase().split(' ').filter(w => w.length > 2);
-
-    let products;
-    if (words.length === 0) {
-      // fallback: top products
-      products = await Product.find().limit(20);
-    } else {
-      products = await Product.find({
-        $or: words.map(w => ({
-          $or: [
-            { name: new RegExp(w, 'i') },
-            { fullName: new RegExp(w, 'i') },
-            { model: new RegExp(w, 'i') },
-            { category: new RegExp(w, 'i') }
-          ]
-        }))
-      }).limit(50);
-    }
-
+    const Product = mongoose.model('Product');
+    const products = await Product.find(
+      {},
+      'name fullName model category subCategory description overview features image slug'
+    ).limit(80);
     if (!products.length) return { context: '', products: [] };
 
     const list = products.map(p => {
-      const features = (p.features || []).slice(0, 2).join(' | ');
-      const overview = p.overview?.content?.slice(0, 100) || p.description?.slice(0, 100) || '';
-
-      return `- ${p.fullName || p.name} (Model: ${p.model}) | ${p.category} | ${overview} | ${features}`;
+      const features = (p.features || []).slice(0, 3).join(' | ');
+      const overview = p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '';
+      return `- ${p.fullName || p.name} (Model: ${p.model || 'N/A'}) | Category: ${p.category} | Slug: ${p.slug} | Overview: ${overview} | Features: ${features}`;
     }).join('\n');
 
-    return {
-      context: `\n\nLIVE PRODUCT DATABASE:\n${list}`,
-      products
-    };
-  } catch (err) {
-    console.log("Product fetch error:", err.message);
-    return { context: '', products: [] };
-  }
+    return { context: `\n\nLIVE PRODUCT DATABASE:\n${list}`, products };
+  } catch { return { context: '', products: [] }; }
 };
 
 const getCategoryMap = async () => {
-  if (cachedCategories) return cachedCategories;
-
   try {
+    const Category = mongoose.model('Category');
     const categories = await Category.find({}, 'name');
 
-    cachedCategories = categories.map(c => ({
+    const map = categories.map(c => ({
       name: c.name,
       slug: c.name.toLowerCase().replace(/\s+/g, '-')
     }));
 
-    return cachedCategories;
+    return map;
   } catch {
     return [];
   }
@@ -87,11 +62,7 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
     for (const cat of categories) {
       const name = cat.name.toLowerCase();
 
-      if (
-        msg.includes(name) ||
-        name.includes(msg) ||
-        msg.split(' ').some(w => name.includes(w))
-      ) {
+      if (msg.includes(name)) {
         buttons.push({
           label: `Go to ${cat.name}`,
           url: `${BASE_URL}/${cat.slug}`
@@ -200,8 +171,7 @@ const detectProductCards = (reply, products) => {
     const combined = `${p.fullName} ${p.name} ${p.model} ${p.category}`.toLowerCase();
 
     return combined.split(' ').some(word =>
-      word.length > 3 &&
-      (replyLower.includes(word) || word.includes(replyLower))
+      word.length > 3 && replyLower.includes(word)
     );
   });
 
@@ -229,18 +199,12 @@ CRITICAL INSTRUCTIONS:
   * NEVER mix languages randomly in the same sentence.
 - TONE: Professional, concise, modern. No emojis. No filler words. No "ji". No "sure!", no "great!", no "absolutely!". Get straight to the point.
 - RESPONSE STYLE: Be direct. Answer in 3-4 lines max unless user asks for details. Use **bold** only for model numbers or key specs.
-- ALWAYS use the LIVE PRODUCT DATABASE when answering product or category queries.
-- NEVER say "not available in database" unless the database is completely empty.
-- If products exist in database:
-  * You MUST mention at least 1–2 model names.
-  * NEVER redirect to contact unless user explicitly asks.
+- NEVER fabricate information. If unsure, provide: 1800-202-6599 or contact@aadona.com
 - ONLY answer AADONA-related questions. Politely decline everything else and redirect to the contact number.
 - For product queries, ALWAYS reference the LIVE PRODUCT DATABASE. Use exact model numbers.
 - When user asks about a specific product → give a brief 2-line overview + top 2 specs. Let them ask for more.
 - When user asks to see all products in a category → list ALL matching models from the database.
-- Address the user by name ONLY in the first message.
-- After that, DO NOT use the name in every response.
-- You may use the name again only after 4–5 messages if needed.
+- Address the user by first name only occasionally — not in every message.
 - Mention page links naturally only when directly relevant. Never dump all URLs at once.
 - Guide users step by step. Ask one follow-up question at a time if clarification is needed.
 - GREETING: Keep it brief and professional. No enthusiasm overload.
@@ -262,18 +226,6 @@ CRITICAL INSTRUCTIONS:
 - If a button is available:
   * Do NOT mention link in text
   * Just guide user and let button appear below
-- When user asks for a category (e.g., "servers", "switches"):
-  * Do NOT give generic company description.
-  * Instead:
-    1. Mention 2–3 actual models from database
-    2. Give 1-line benefit
-    3. Keep it conversational
-- NEVER respond like a brochure or company description.
-- Respond like a human sales expert helping a customer.
-- Keep responses natural, short, and useful.
-- Vary sentence structure.
-- Avoid repeating same pattern.
-- Sound like a human, not a system.
 
 USER INFO:
 - Name: ${userName}
@@ -403,7 +355,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
       return res.status(500).json({ success: false, error: 'AI service not configured.' });
     }
 
-    const { context: productsContext, products } = await getProductsContext(lastUserMessage).catch(() => ({ context: '', products: [] }));
+    const { context: productsContext, products } = await getProductsContext().catch(() => ({ context: '', products: [] }));
     const systemContent = buildSystemPrompt(userName || 'Guest', userPhone || '', userCity || '') + (productsContext || '');
 
     const geminiMessages = recentMessages.map((m, i) => {
