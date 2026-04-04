@@ -75,7 +75,7 @@ function ProductCard({ product }) {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-center text-[10.5px] font-semibold bg-slate-900 text-white py-1.5 rounded-lg hover:bg-emerald-600 transition-colors duration-150 mt-1 tracking-wide"
+          className="block text-center text-[10.5px] font-semibold bg-emerald-600 text-white py-1.5 rounded-lg hover:bg-emerald-600 transition-colors duration-150 mt-1 tracking-wide"
         >
           View Details
         </a>
@@ -95,7 +95,7 @@ function ActionButtons({ buttons }) {
           href={btn.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-150"
+          className="inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-emerald-600 hover:text-white hover:border-slate-900 transition-all duration-150"
           style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
           {btn.label}
@@ -124,7 +124,7 @@ function TypingDots() {
 function BotMessage({ content, time, productCards, actionButtons, isStreaming }) {
   return (
     <div className="flex items-end gap-2 animate-fadeIn">
-      <div className="w-6 h-6 rounded-full bg-slate-900 flex items-center justify-center flex-shrink-0 mb-1">
+      <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mb-1">
         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
         </svg>
@@ -174,7 +174,7 @@ function UserMessage({ content, time }) {
     <div className="flex items-end justify-end gap-2 animate-fadeIn">
       <div className="flex flex-col items-end gap-0.5 max-w-[78%]">
         <div
-          className="px-3.5 py-2.5 bg-slate-900 rounded-2xl rounded-br-sm text-white text-[12.5px] leading-relaxed"
+          className="px-3.5 py-2.5 bg-emerald-600 rounded-2xl rounded-br-sm text-white text-[12.5px] leading-relaxed"
           style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
           {content}
@@ -198,7 +198,7 @@ function QuickReplies({ options, onSelect }) {
         <button
           key={opt}
           onClick={() => onSelect(opt)}
-          className="text-[11px] px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 bg-white hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-150 font-medium"
+          className="text-[11px] px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 bg-white hover:bg-emerald-600 hover:text-white hover:border-slate-900 transition-all duration-150 font-medium"
           style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
           {opt}
@@ -230,7 +230,7 @@ function RegistrationForm({ onStart }) {
   return (
     <div className="flex flex-col h-full" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header */}
-      <div className="bg-slate-900 px-5 py-5 flex-shrink-0">
+      <div className="bg-emerald-600 px-5 py-5 flex-shrink-0">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
             <svg className="w-4.5 h-4.5 text-white" fill="currentColor" viewBox="0 0 24 24" width="18" height="18">
@@ -263,7 +263,7 @@ function RegistrationForm({ onStart }) {
                   onChange={e => setter(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                   placeholder={placeholder}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent placeholder:text-slate-400 transition"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition"
                 />
               </div>
             ))}
@@ -278,7 +278,7 @@ function RegistrationForm({ onStart }) {
                   onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                   placeholder="10-digit number"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent placeholder:text-slate-400 transition"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition"
                 />
               </div>
             </div>
@@ -291,7 +291,7 @@ function RegistrationForm({ onStart }) {
                 onChange={e => setCity(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                 placeholder="Enter your city"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent placeholder:text-slate-400 transition"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition"
               />
             </div>
           </div>
@@ -318,7 +318,7 @@ function RegistrationForm({ onStart }) {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full py-3 rounded-xl bg-slate-900 text-white font-semibold text-[13px] hover:bg-emerald-600 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
+          className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold text-[13px] hover:bg-emerald-600 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
         >
           {loading ? (
             <>
@@ -738,7 +738,7 @@ export default function Chatbot() {
               <>
                 {/* Header */}
                 <div
-                  className="bg-slate-900 px-4 py-3 flex items-center gap-3 flex-shrink-0"
+                  className="bg-emerald-600 px-4 py-3 flex items-center gap-3 flex-shrink-0"
                 >
                   <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -797,7 +797,7 @@ export default function Chatbot() {
                   )}
                   {isLoading && messages[messages.length - 1]?.role !== 'bot' && (
                     <div className="flex items-end gap-2 animate-fadeIn">
-                      <div className="w-6 h-6 rounded-full bg-slate-900 flex items-center justify-center flex-shrink-0 mb-1">
+                      <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mb-1">
                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
                         </svg>
@@ -826,7 +826,7 @@ export default function Chatbot() {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask anything about AADONA..."
                     rows={1}
-                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-[12.5px] resize-none focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent placeholder:text-slate-400 transition leading-snug"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-[12.5px] resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition leading-snug"
                     style={{
                       minHeight: '40px', maxHeight: '88px', overflow: 'hidden',
                       fontFamily: "'DM Sans', sans-serif"
@@ -836,7 +836,7 @@ export default function Chatbot() {
                   <button
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading}
-                    className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center flex-shrink-0 hover:bg-emerald-600 transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0 hover:bg-emerald-600 transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
