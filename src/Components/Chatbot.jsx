@@ -506,13 +506,6 @@ export default function Chatbot() {
         .notif-dot { position:absolute; top:-3px; right:-3px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid #fff; }
         .chat-close-btn { position:absolute; top:-11px; right:-11px; width:26px; height:26px; border-radius:50%; background:#ef4444; border:2.5px solid #fff; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:20; box-shadow:0 2px 10px rgba(239,68,68,0.55); transition:transform 0.15s,background 0.15s; outline:none; }
         .chat-close-btn:hover { transform:scale(1.18); background:#dc2626; }
-        @keyframes launcher-entry {
-          from { opacity:0; transform:translateY(20px) scale(0.88); }
-          to   { opacity:1; transform:translateY(0px) scale(1); }
-        }
-        .launcher-mount {
-          animation: launcher-entry 0.65s cubic-bezier(0.34,1.18,0.64,1) forwards;
-        }
       `}</style>
 
       <div style={{ position:'fixed', bottom:'20px', right:'16px', zIndex:99999, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'12px', fontFamily:"'DM Sans',sans-serif" }}>
@@ -619,9 +612,9 @@ export default function Chatbot() {
             </div>
           </div>
         )}
-        
+
         {/* Launcher */}
-<div ref={callDrawerRef} className="launcher-mount" style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center' }}>
+        <div ref={callDrawerRef} style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center' }}>
           {!isOpen && hasUnread && showBubble && <div className="notif-bubble">Need help? Ask us anything.</div>}
 
           {/* Call Drawer */}
