@@ -65,7 +65,7 @@ const Hero = () => {
             <div className="inline-flex items-center gap-2 mb-3 sm:mb-4">
               <span className="block w-5 h-px bg-orange-400" />
               <span className="text-orange-400 text-[14px] sm:text-xl font-semibold tracking-[0.2em] uppercase">
-                Truly Indian Brand
+                Truly Indian 
               </span>
             </div>
 
