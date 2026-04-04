@@ -18,6 +18,7 @@
     "mongoose": "^8.5.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^8.0.1",
+    "pdf2pic": "^3.2.0",
     "pdfkit": "^0.17.2",
     "puppeteer-core": "^24.39.1",
     "react-helmet-async": "^3.0.0"
