@@ -14,20 +14,21 @@ export default function ProtectedRoute({ children }) {
     return () => unsubscribe();
   }, []);
 
-  // ⏳ While checking auth
+  // While checking auth
   if (user === undefined) {
     return (
-      <div className="flex justify-center items-center h-screen text-green-700 font-semibold">
-        Checking Authentication...
-      </div>
+      <div className="flex flex-col justify-center items-center h-screen text-green-700 font-semibold">
+      <h1>Checking Authentication...</h1>
+      <p>Please wait while we verify your access.</p>
+    </div>
     );
   }
 
-  // ❌ Not logged in
+  // Not logged in
   if (!user) {
     return <Navigate to="/admin-login" replace />;
   }
 
-  // ✅ Logged in
+  // Logged in
   return children;
 }

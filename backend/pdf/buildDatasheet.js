@@ -1,25 +1,27 @@
 const fs = require("fs");
 const path = require("path");
 
+// ─── Static PNG backgrounds (loaded once at startup) ────────────────────────
+const coverBase64 = fs.readFileSync(
+  path.resolve(__dirname, "../assets/cover.png")
+).toString("base64");
+
+const backBase64 = fs.readFileSync(
+  path.resolve(__dirname, "../assets/back.png")
+).toString("base64");
+
+// ──────────────────────────────────────────────────────────────────────────
 const buildDatasheetHTML = async (product) => {
 
   const logo = fs.readFileSync(
     path.resolve(__dirname, "../assets/logo.png")
   ).toString("base64");
 
-  const bg = fs.readFileSync(
-    path.resolve(__dirname, "../assets/bg.jpeg")
-  ).toString("base64");
-
-  const makeIndia = fs.readFileSync(
-    path.resolve(__dirname, "../assets/MakeIndia.png")
-  ).toString("base64");
-
   const fetchImageAsBase64 = async (imageUrl) => {
     try {
       const response = await fetch(imageUrl);
-      const buffer = await response.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString("base64");
+      const buffer   = await response.arrayBuffer();
+      const base64   = Buffer.from(buffer).toString("base64");
       const mimeType = response.headers.get("content-type") || "image/jpeg";
       return `data:${mimeType};base64,${base64}`;
     } catch (err) {
@@ -32,6 +34,7 @@ const buildDatasheetHTML = async (product) => {
     ? await fetchImageAsBase64(product.image)
     : "";
 
+  // ─── Highlights HTML ───────────────────────────────────────────────────
   const highlightsHTML = (product.features || [])
     .map(h => `
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
@@ -40,6 +43,7 @@ const buildDatasheetHTML = async (product) => {
       </div>`)
     .join("");
 
+  // ─── Features Detail HTML ──────────────────────────────────────────────
   const featuresDetailHTML = (product.featuresDetail || [])
     .map(item => {
       if (item._type === "subheading" || item.title) {
@@ -56,6 +60,7 @@ const buildDatasheetHTML = async (product) => {
         </div>`;
     }).join("");
 
+  // ─── Specs HTML ────────────────────────────────────────────────────────
   const specsHTML = Object.entries(product.specifications || {})
     .map(([section, specs]) => {
       const rows = Object.entries(specs || {})
@@ -83,6 +88,7 @@ const buildDatasheetHTML = async (product) => {
           </tr>`;
         })
         .join("");
+
       return `
         <div style="margin-bottom:24px;padding-top:2px;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-top:10px;">
@@ -93,21 +99,21 @@ const buildDatasheetHTML = async (product) => {
         </div>`;
     }).join("");
 
+  // ══════════════════════════════════════════════════════════════════════
   return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8"/>
 <style>
-  /* Global page size — content pages get 40px top/bottom margin for page-break breathing room */
-  @page { size: 794px 1123px; margin: 40px 0; }
-  /* First page (cover) and last page (back cover) bleed to full edge */
+  @page        { size: 794px 1123px; margin: 40px 0; }
   @page cover  { margin: 0; }
   @page back   { margin: 0; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  html, body { width: 794px; margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
+  * { box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { width: 794px; margin: 0; padding: 0;
+               font-family: Arial, sans-serif; background: #fff; }
 
-  /* Fixed-height pages (cover & back) use named page to get zero margin */
   .page-fixed {
     display: block;
     width: 794px;
@@ -117,23 +123,13 @@ const buildDatasheetHTML = async (product) => {
     position: relative;
     overflow: hidden;
   }
-  .cover-page  { page: cover; }
-  .back-cover  {
+  .cover-page { page: cover; }
+  .back-cover {
     page: back;
     page-break-before: always;
     break-before: page;
     page-break-after: avoid;
     break-after: avoid;
-  }
-
-  /* Content page — auto height, white bg */
-  .page-content {
-    display: block;
-    width: 794px;
-    height: auto;
-    position: relative;
-    overflow: visible;
-    background: #ffffff;
   }
 
   .page-bg {
@@ -143,6 +139,13 @@ const buildDatasheetHTML = async (product) => {
     height: 1123px;
     object-fit: cover;
     display: block;
+  }
+
+  /* Content section — auto height, no repeat header */
+  .content-section {
+    display: block;
+    width: 794px;
+    background: #ffffff;
   }
 </style>
 </head>
@@ -154,51 +157,39 @@ const buildDatasheetHTML = async (product) => {
 ═══════════════════════════════════════ -->
 <div class="page-fixed cover-page">
 
-  <img class="page-bg" src="data:image/jpeg;base64,${bg}" />
+  <img class="page-bg" src="data:image/png;base64,${coverBase64}" />
 
-  <!-- Flat solid overlays — no gradients, no lag -->
-  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(4,10,24,0.88);"></div>
-  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#25a86a;"></div>
-  <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:#1b7f4c;"></div>
+  ${product.series ? `
+  <div style="position:absolute;top:240px;left:58px;right:60px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:4px;
+      text-transform:uppercase;color:#25a86a;">
+      ${product.series}
+    </div>
+  </div>` : ""}
 
-  <!-- FIX: Replaced display:table layout with position:absolute blocks for
-       reliable alignment in PDF renderers — no more misaligned headings. -->
+  <div style="position:absolute;top:${product.series ? "262px" : "240px"};left:58px;right:60px;">
+    <div style="font-size:34px;font-weight:900;color:#1b7f4c;
+      line-height:1.05;letter-spacing:-1px;">
+      ${product.model || product.name}
+    </div>
 
-  <!-- Header bar -->
-  <div style="position:absolute;top:0;left:5px;right:0;height:88px;border-bottom:0.5px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);display:flex;align-items:center;padding:0 48px;">
-    <img src="data:image/jpeg;base64,${logo}" style="height:46px;width:auto;" />
-  </div>
+    ${product.description ? `
+    <div style="font-size:14.5px;color:#2d4a2d;margin-top:10px;
+      line-height:1.6;max-width:520px;">
+      ${product.description}
+    </div>` : ""}
 
-  <!-- Model / title block -->
-  <div style="position:absolute;top:108px;left:5px;right:0;padding:0 52px 0 58px;">
-    ${product.series ? `<div style="font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#25a86a;margin-bottom:12px;">${product.series}</div>` : ""}
-    <div style="font-size:42px;font-weight:900;color:#ffffff;line-height:1.05;letter-spacing:-1px;">${product.model || product.name}</div>
-    ${product.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.45);margin-top:10px;line-height:1.5;text-align:justify;">${product.description}</div>` : ""}
-    <div style="display:flex;align-items:center;gap:10px;margin-top:18px;">
-      <div style="width:40px;height:2.5px;background:#25a86a;border-radius:2px;"></div>
-      <div style="width:10px;height:2.5px;background:rgba(37,168,106,0.4);border-radius:2px;"></div>
-      <div style="width:5px;height:2.5px;background:rgba(37,168,106,0.2);border-radius:2px;"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+      <div style="width:52px;height:3px;background:#25a86a;border-radius:2px;"></div>
+      <div style="width:14px;height:3px;background:rgba(37,168,106,0.4);border-radius:2px;"></div>
+      <div style="width:7px;height:3px;background:rgba(37,168,106,0.2);border-radius:2px;"></div>
     </div>
   </div>
 
-  <!-- Product image — centred in the middle band -->
-  <div style="position:absolute;top:260px;left:5px;right:0;bottom:160px;display:flex;align-items:center;justify-content:center;">
-    <img src="${productImageBase64}" style="max-width:500px;max-height:380px;width:auto;height:auto;object-fit:contain;" />
-  </div>
-
-  <!-- MakeInIndia badge -->
-  <div style="position:absolute;bottom:90px;left:5px;right:52px;text-align:right;">
-    <img src="data:image/png;base64,${makeIndia}" style="width:100px;opacity:0.85;" />
-  </div>
-
-  <!-- Footer bar -->
-  <div style="position:absolute;bottom:0;left:5px;right:0;height:68px;background:rgba(0,0,0,0.55);border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;padding:0 48px;">
-    <div style="flex:1;">
-      <div style="font-size:9.5px;color:rgba(245,245,245,1);letter-spacing:0.3px;">© 2024 AADONA Communication Pvt Ltd. All rights reserved.</div>
-    </div>
-    <div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:2.5px;color:rgba(37,168,106,0.60);text-transform:uppercase;">Product Datasheet</div>
-    </div>
+  <div style="position:absolute;top:390px;left:0;right:0;bottom:140px;
+    display:flex;align-items:center;justify-content:center;">
+    <img src="${productImageBase64}"
+      style="max-width:480px;max-height:360px;width:auto;height:auto;object-fit:contain;" />
   </div>
 
 </div>
@@ -208,9 +199,7 @@ const buildDatasheetHTML = async (product) => {
      PAGE 2 — CONTENT (auto height, no forced page break)
 ═══════════════════════════════════════ -->
 <div class="page-content">
-
   <div style="height:5px;background:#25a86a;"></div>
-
   <!-- Sub-header — sticky at top of every content page -->
   <div style="width:794px;height:52px;background:#f4f9f4;border-bottom:1px solid #d8ead8;display:flex;align-items:center;padding:0 64px;">
     <div style="flex:1;">
@@ -218,9 +207,7 @@ const buildDatasheetHTML = async (product) => {
     </div>
     <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#1b7f4c;text-transform:uppercase;">${product.model || product.name}</div>
   </div>
-
   <div style="padding:40px 64px 60px 64px;">
-
     ${product.overview?.content ? `
     <div style="margin-bottom:32px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -229,7 +216,6 @@ const buildDatasheetHTML = async (product) => {
       </div>
       <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;border-left:2px solid #d8ead8;text-align:justify;">${product.overview.content}</div>
     </div>` : ""}
-
     ${(product.features || []).length ? `
     <div style="margin-bottom:32px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -238,7 +224,6 @@ const buildDatasheetHTML = async (product) => {
       </div>
       <div style="padding-left:14px;">${highlightsHTML}</div>
     </div>` : ""}
-
     ${(product.featuresDetail || []).length ? `
       <div style="margin-bottom:32px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -247,7 +232,6 @@ const buildDatasheetHTML = async (product) => {
         </div>
         <div style="padding-left:14px;">${featuresDetailHTML}</div>
       </div>` : ""}
-
     ${Object.keys(product.specifications || {}).length ? `
     <div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
@@ -256,90 +240,18 @@ const buildDatasheetHTML = async (product) => {
       </div>
       ${specsHTML}
     </div>` : ""}
-
   </div>
-
   <!-- Bottom green bar with breathing room above it -->
   <div style="height:40px;"></div>
-  
-
 </div>
-
 
 <!-- ═══════════════════════════════════════
      LAST PAGE — BACK COVER
-     page-break-before forces a clean new page — fixes blue bleed into content
 ═══════════════════════════════════════ -->
 <div class="page-fixed back-cover">
-
-  <img class="page-bg" src="data:image/jpeg;base64,${bg}" />
-
-  <!-- Flat solid overlays — no gradients, no lag -->
-  <div style="position:absolute;inset:0;background:rgba(4,10,24,0.92);"></div>
-  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#25a86a;"></div>
-  <div style="position:absolute;top:3px;left:0;width:5px;height:1120px;background:#1b7f4c;"></div>
-
-  <!-- Centred logo -->
-  <div style="position:absolute;top:50%;left:5px;right:0;transform:translateY(-60%);text-align:center;">
-    <img src="data:image/jpeg;base64,${logo}" style="width:260px;opacity:0.90;" />
-    <div style="display:flex;align-items:center;justify-content:center;margin-top:20px;">
-      <div style="width:100px;height:0.5px;background:linear-gradient(90deg,transparent,rgba(37,168,106,0.50));"></div>
-      <div style="width:6px;height:6px;background:#25a86a;border-radius:50%;margin:0 10px;flex-shrink:0;"></div>
-      <div style="width:100px;height:0.5px;background:linear-gradient(90deg,rgba(37,168,106,0.50),transparent);"></div>
-    </div>
-  </div>
-
-  <!-- Address block -->
-  <div style="position:absolute;bottom:110px;left:5px;right:0;border-top:0.5px solid rgba(255,255,255,0.10);padding:28px 54px 0 54px;">
-    <div style="display:flex;gap:0;">
-
-      <div style="flex:1;vertical-align:top;">
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.85);margin-bottom:3px;">AADONA Communication Pvt Ltd</div>
-        <div style="font-size:9px;font-weight:600;color:#25a86a;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Corporate Headquarters</div>
-        <div style="font-size:11.5px;color:rgba(255,255,255,0.48);line-height:1.95;">
-          1st Floor, Phoenix Tech Tower, Plot No.14/46,<br/>
-          IDA-Uppal, Hyderabad, Telangana 500039<br/>
-          <span style="color:rgba(37,168,106,0.75);">www.aadona.com</span><br/>
-          Toll Free: 1800 202 6599<br/>
-          contact@aadona.com
-        </div>
-      </div>
-
-      <div style="width:1px;background:rgba(255,255,255,0.10);margin:0 24px;"></div>
-
-      <div style="flex:1;vertical-align:top;">
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.85);margin-bottom:3px;">AADONA Communication Pvt Ltd</div>
-        <div style="font-size:9px;font-weight:600;color:#25a86a;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Production, Warehousing &amp; Billing</div>
-        <div style="font-size:11.5px;color:rgba(255,255,255,0.48);line-height:1.95;">
-          7, SBI Colony, Mohaba Bazar, Hirapur Road,<br/>
-          Raipur, Chhattisgarh — 492099<br/>
-          <span style="color:rgba(37,168,106,0.75);">www.aadona.com</span><br/>
-          Toll Free: 1800 202 6599<br/>
-          contact@aadona.com
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Trademark line -->
-  <div style="position:absolute;bottom:68px;left:5px;right:0;text-align:center;padding:0 54px 12px 54px;border-top:0.5px solid rgba(255,255,255,0.06);">
-    <div style="font-size:9px;color:rgba(255,255,255,0.18);letter-spacing:0.5px;padding-top:10px;">
-      AADONA and AADONA logo are trademarks of AADONA Communication Pvt Ltd &nbsp;·&nbsp; Printed in India
-    </div>
-  </div>
-
-  <!-- Footer bar -->
-  <div style="position:absolute;bottom:0;left:5px;right:0;height:68px;background:rgba(0,0,0,0.55);border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;padding:0 54px;">
-    <div style="flex:1;">
-      <div style="font-size:9.5px;color:rgba(255,255,255,0.20);letter-spacing:0.3px;">© 2024 AADONA Communication Pvt Ltd. All rights reserved.</div>
-    </div>
-    <div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:2.5px;color:rgba(37,168,106,0.55);text-transform:uppercase;">www.aadona.com</div>
-    </div>
-  </div>
-
+  <img class="page-bg" src="data:image/png;base64,${backBase64}" />
 </div>
+
 
 </body>
 </html>`;

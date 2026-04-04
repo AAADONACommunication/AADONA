@@ -181,6 +181,10 @@ export default function Newsletter() {
   return (
     <div className="space-y-6">
 
+      <h1 className="text-2xl font-extrabold text-green-800">
+        Newsletter Management – AADONA Admin Panel
+      </h1>
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5 flex items-center gap-4">

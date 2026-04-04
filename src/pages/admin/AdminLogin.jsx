@@ -72,9 +72,9 @@ const AdminLogin = () => {
             <div className="bg-green-100 p-4 rounded-full mb-4">
               <LogIn className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-3xl font-extrabold text-center text-green-900">
+            <h1 className="text-3xl font-extrabold text-center text-green-900">
               Admin Portal
-            </h2>
+            </h1>
             <p className="text-green-700 text-sm mt-2">Please sign in to continue</p>
           </div>
 

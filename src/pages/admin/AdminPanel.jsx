@@ -145,11 +145,12 @@ export default function AdminPanel() {
   }, [navigate]);
 
   if (loading)
-    return (
-      <div className="h-screen flex items-center justify-center text-green-700 font-bold italic">
-        Verifying Admin Access...
-      </div>
-    );
+  return (
+    <div className="h-screen flex flex-col items-center justify-center text-green-700 font-bold italic">
+      <h1>Verifying Admin Access...</h1>
+      <p>Please wait while we authenticate your session.</p>
+    </div>
+  );
 
   return (
     <>

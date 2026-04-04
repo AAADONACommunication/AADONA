@@ -225,6 +225,10 @@ export default function Blogs({ blogs, reloadBlogs }) {
   return (
     <div className="space-y-8">
 
+      <h1 className="text-2xl font-extrabold text-green-800">
+        Manage Blogs – AADONA Admin Panel
+      </h1>
+
       {/* Blog Form */}
       <div className="bg-white p-8 rounded-3xl shadow-xl border border-green-100">
         <h2 className="text-xl font-bold text-green-800 mb-6">

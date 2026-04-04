@@ -77,6 +77,7 @@ const Home = () => {
 
       <div>
         <Navbar />
+        <h1>Made in India Networking & IT Solutions by AADONA</h1>
         <Hero />
         <Counter />
         <TimeLine />

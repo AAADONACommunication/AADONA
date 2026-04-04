@@ -178,6 +178,11 @@ export default function ManageAdmin({
 
   return (
     <>
+
+      <h1 className="text-2xl font-extrabold text-green-800 mb-4">
+        Manage Admins – AADONA Admin Panel
+      </h1>
+
       {/* ── Create Admin Form ── */}
       {showAdminForm && (
         <div className="bg-white p-6 rounded-3xl shadow-xl border border-green-100 mb-8">

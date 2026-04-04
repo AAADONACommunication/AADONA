@@ -34,7 +34,7 @@ const LOCATIONS = [
     phone: '1800-202-6599',
     phoneLabel: 'Toll Free',
     hours: 'Monday to Friday, 10:30 AM – 06:00 PM',
-    mapSrc: 'https://maps.google.com/maps?q=17.393409,78.562722&z=16&output=embed',
+    mapSrc: 'https://maps.google.com/maps?q=17.410560, 78.549006&z=16&output=embed',
     mapTitle: 'AADONA Global Head Office – Hyderabad',
     schema: {
       streetAddress: '1st Floor, Phoenix Tech Tower, Plot No. 14/46, IDA – Uppal',
@@ -54,7 +54,7 @@ const LOCATIONS = [
     phoneLabel: 'Phone',
     tollFree: '1800-202-6599',
     hours: 'Monday to Friday, 10:30 AM – 06:00 PM',
-    mapSrc: 'https://maps.google.com/maps?q=21.243362,81.659324&z=16&output=embed',
+    mapSrc: 'https://maps.google.com/maps?q=AADONA%20Communication%20Pvt%20Ltd%2021.259760,81.588616&z=18&output=embed',
     mapTitle: 'AADONA Raipur Production Center',
     schema: {
       streetAddress: '7, SBI Colony, Mohaba Bazar, Hirapur Road',
@@ -72,7 +72,7 @@ const LOCATIONS = [
     addressLine2: 'Uttar Pradesh, 201307',
     phone: '1800-202-6599',
     phoneLabel: 'Toll Free',
-    mapSrc: 'https://maps.google.com/maps?q=28.668389,77.373598&z=16&output=embed',
+    mapSrc: 'https://maps.google.com/maps?q=28.624080, 77.394341&z=16&output=embed',
     mapTitle: 'AADONA Noida Authorised Service Centre',
     schema: {
       streetAddress: 'D171, 1st Floor, Sector-63',
@@ -506,7 +506,7 @@ export default function ContactPage() {
   <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     
     <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
-      Contact Us
+      Contact AADONA
     </h1>
 
     <p className="mt-6 text-md text-white max-w-3xl mx-auto">

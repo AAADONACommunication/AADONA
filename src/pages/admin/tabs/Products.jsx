@@ -463,6 +463,11 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
   return (
     <>
+
+      <h1 className="text-2xl font-extrabold text-green-800 mb-6">
+        Manage Products – AADONA Admin Panel
+      </h1>
+
       {/* ══════════════════════════════════════
           PRODUCT FORM
       ══════════════════════════════════════ */}
@@ -648,9 +653,9 @@ export default function Products({ products, setProducts, allCategories, reloadP
                   <div className="flex items-center gap-3 mb-4">
                     <input
                       className="flex-1 font-bold text-green-800 bg-white border border-green-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300"
-                      defaultValue={category}        // ← value की जगह defaultValue
+                      defaultValue={category}
                       placeholder="Category Name"
-                      onBlur={(e) => {               // ← onChange की जगह onBlur
+                      onBlur={(e) => {               
                         const entries = Object.entries(form.specifications || {});
                         const rebuilt = {};
                         entries.forEach(([k, v]) => {
