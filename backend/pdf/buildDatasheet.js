@@ -160,21 +160,21 @@ const buildDatasheetHTML = async (product) => {
   <img class="page-bg" src="data:image/png;base64,${coverBase64}" />
 
   ${product.series ? `
-  <div style="position:absolute;top:155px;left:58px;right:60px;">
+  <div style="position:absolute;top:240px;left:58px;right:60px;">
     <div style="font-size:11px;font-weight:700;letter-spacing:4px;
-      text-transform:uppercase;color:#1b7f4c;">
+      text-transform:uppercase;color:#25a86a;">
       ${product.series}
     </div>
   </div>` : ""}
 
-  <div style="position:absolute;top:${product.series ? "178px" : "155px"};left:58px;right:60px;">
-    <div style="font-size:38px;font-weight:900;color:#1a3a2a;
+  <div style="position:absolute;top:${product.series ? "262px" : "240px"};left:58px;right:60px;">
+    <div style="font-size:28px;font-weight:800;color:#1b7f4c;
       line-height:1.05;letter-spacing:-1px;">
       ${product.model || product.name}
     </div>
 
     ${product.description ? `
-    <div style="font-size:13px;color:#444;margin-top:10px;
+    <div style="font-size:13px;color:#2d4a2d;margin-top:10px;
       line-height:1.6;max-width:520px;">
       ${product.description}
     </div>` : ""}
@@ -186,49 +186,36 @@ const buildDatasheetHTML = async (product) => {
     </div>
   </div>
 
-  <div style="position:absolute;top:320px;left:0;right:0;bottom:140px;
+  <div style="position:absolute;top:390px;left:0;right:0;bottom:140px;
     display:flex;align-items:center;justify-content:center;">
     <img src="${productImageBase64}"
-      style="max-width:480px;max-height:380px;width:auto;height:auto;object-fit:contain;" />
+      style="max-width:480px;max-height:360px;width:auto;height:auto;object-fit:contain;" />
   </div>
 
 </div>
 
 
 <!-- ═══════════════════════════════════════
-     CONTENT — Header sirf yahan (1st content page pe ek baar)
-     Baaki pages pe header repeat NAHI hoga
+     PAGE 2 — CONTENT (auto height, no forced page break)
 ═══════════════════════════════════════ -->
-<div class="content-section">
-
-  <!-- ✅ Header — sirf 1st content page pe, ek baar -->
-  <div style="width:794px;background:#f4f9f4;border-bottom:1px solid #d8ead8;
-    border-top:5px solid #25a86a;display:flex;align-items:center;
-    padding:12px 64px;box-sizing:border-box;">
+<div class="page-content">
+  <div style="height:5px;background:#25a86a;"></div>
+  <!-- Sub-header — sticky at top of every content page -->
+  <div style="width:794px;height:52px;background:#f4f9f4;border-bottom:1px solid #d8ead8;display:flex;align-items:center;padding:0 64px;">
     <div style="flex:1;">
-      <img src="data:image/png;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
+      <img src="data:image/jpeg;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
     </div>
-    <div style="font-size:9px;font-weight:700;letter-spacing:2px;
-      color:#1b7f4c;text-transform:uppercase;">
-      ${product.model || product.name}
-    </div>
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#1b7f4c;text-transform:uppercase;">${product.model || product.name}</div>
   </div>
-
-  <!-- ✅ Main content -->
-  <div style="padding:32px 64px 60px 64px;background:#fff;">
-
+  <div style="padding:40px 64px 60px 64px;">
     ${product.overview?.content ? `
     <div style="margin-bottom:32px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
         <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
         <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Product Overview</div>
       </div>
-      <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;
-        border-left:2px solid #d8ead8;text-align:justify;">
-        ${product.overview.content}
-      </div>
+      <div style="font-size:13.5px;line-height:1.9;color:#444;padding-left:14px;border-left:2px solid #d8ead8;text-align:justify;">${product.overview.content}</div>
     </div>` : ""}
-
     ${(product.features || []).length ? `
     <div style="margin-bottom:32px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -237,16 +224,14 @@ const buildDatasheetHTML = async (product) => {
       </div>
       <div style="padding-left:14px;">${highlightsHTML}</div>
     </div>` : ""}
-
     ${(product.featuresDetail || []).length ? `
-    <div style="margin-bottom:32px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
-        <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Features</div>
-      </div>
-      <div style="padding-left:14px;">${featuresDetailHTML}</div>
-    </div>` : ""}
-
+      <div style="margin-bottom:32px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
+          <div style="font-size:16px;font-weight:800;color:#1b7f4c;">Features</div>
+        </div>
+        <div style="padding-left:14px;">${featuresDetailHTML}</div>
+      </div>` : ""}
     ${Object.keys(product.specifications || {}).length ? `
     <div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
@@ -255,12 +240,11 @@ const buildDatasheetHTML = async (product) => {
       </div>
       ${specsHTML}
     </div>` : ""}
-
   </div>
-
+  <!-- Bottom green bar with breathing room above it -->
   <div style="height:40px;"></div>
-
 </div>
+
 
 
 <!-- ═══════════════════════════════════════

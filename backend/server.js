@@ -210,7 +210,7 @@ const generateAndUploadDatasheet = async (product) => {
     await page.close();
 
     const bucket = admin.storage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
-    const fileName = `datasheets/${product.slug}-${Date.now()}.pdf`;
+    const fileName = `datasheets/${product.slug}.pdf`;
     const fileUpload = bucket.file(fileName);
 
     await fileUpload.save(pdfBuffer, {
