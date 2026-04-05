@@ -24,11 +24,11 @@ const Hero = () => {
         <meta property="og:url" content="https://www.aadona.online/" />
         <meta property="og:title" content="AADONA – Truly Indian IT Solutions Brand for Bharat" />
         <meta property="og:description" content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values." />
-        <meta property="og:image" content="https://www.aadona.online/og-hero.jpg" />
+        <meta property="og:image" content="https://www.aadona.online/linkLogo.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AADONA – Truly Indian IT Solutions for Bharat" />
         <meta name="twitter:description" content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values." />
-        <meta name="twitter:image" content="https://www.aadona.online/og-hero.jpg" />
+        <meta name="twitter:image" content="https://www.aadona.online/linkLogo.jpg" />
       </Helmet>
 
       <section
