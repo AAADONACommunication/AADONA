@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 // LAZY IMPORTS
@@ -35,17 +35,32 @@ const ProtectedRoute = lazy(() => import("./pages/admin/ProtectedRoute"));
 const ProductDetailPage = lazy(() => import("./Components/ProductDetailPage"));
 const BlogDetail = lazy(() => import("./pages/Blogdetail"));
 
-// Global components (optional lazy bhi kar sakte ho)
+// Global components
 import Breadcrumbs from "./BreadCrumbs";
-import Chatbot from "./Components/Chatbot";
+const Chatbot = lazy(() => import("./Components/Chatbot"));
 
 const App = () => {
+
+  const [showChatbot, setShowChatbot] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowChatbot(true);
+    }, 3000); // 3 sec delay
+
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <Router>
 
       {/* Global */}
       <Breadcrumbs />
-      <Chatbot />
+
+      {showChatbot && (
+        <Suspense fallback={null}>
+          <Chatbot />
+        </Suspense>
+      )}
 
       {/* Suspense wrapper */}
       <Suspense fallback={<div>Loading...</div>}>
