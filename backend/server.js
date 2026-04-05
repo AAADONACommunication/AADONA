@@ -1017,9 +1017,15 @@ app.put("/products/reorder", verifyToken, async (req, res) => {
 
 app.get("/products", async (req, res) => {
   try {
-    const { sort } = req.query;
+    const { sort, fields } = req.query;
     const sortOption = sort === "order" ? { order: 1 } : { createdAt: -1 };
-    const products = await Product.find().sort(sortOption);
+
+    const projection = fields === "list"
+      ? { name: 1, description: 1, features: 1, slug: 1, image: 1,
+          category: 1, subCategory: 1, extraCategory: 1, order: 1 }
+      : {};
+
+    const products = await Product.find({}, projection).sort(sortOption);
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -192,10 +192,13 @@ const RelatedProducts = memo(({ relatedProducts }) => {
 });
 
 /* -------------------- BANNER COMPONENT -------------------- */
-// Dynamic banner — DB se aata hai; fallback: green gradient
-const CategoryBanner = memo(({ categoryName, bannerUrl }) => (
-  <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden bg-green-900">
-    {bannerUrl ? (
+// Dynamic banner
+const CategoryBanner = memo(({ categoryName, bannerUrl, bannerLoading }) => (
+  <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden bg-gray-900">
+    {bannerLoading ? (
+      /* Jab tak fetch ho raha hai — dark skeleton, koi green nahi */
+      <div className="absolute inset-0 bg-gray-800 animate-pulse" />
+    ) : bannerUrl ? (
       <img
         src={bannerUrl}
         alt={`${categoryName} banner`}
@@ -205,15 +208,15 @@ const CategoryBanner = memo(({ categoryName, bannerUrl }) => (
         decoding="async"
       />
     ) : (
-      /* Fallback gradient jab tak banner set na ho */
       <div className="absolute inset-0 bg-gradient-to-br from-green-800 via-green-700 to-teal-600" />
     )}
-    {/* Overlay for readability */}
     <div className="absolute inset-0 bg-black/35" />
     <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
-      <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold text-white border-b-4 border-green-500 inline-block pb-1">
-        {categoryName}
-      </h1>
+      {categoryName && (
+        <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold text-white border-b-4 border-green-500 inline-block pb-1">
+          {categoryName}
+        </h1>
+      )}
     </div>
   </div>
 ));
@@ -236,7 +239,8 @@ export default function CategoryProductsPage() {
 
   const [products, setProducts] = useState([]);
   const [actualCategoryName, setActualCategoryName] = useState("");
-  const [categoryBanner, setCategoryBanner] = useState(null); // 👈 banner URL
+  const [categoryBanner, setCategoryBanner] = useState(null);
+  const [bannerLoading, setBannerLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [activeSubCategory, setActiveSubCategory] = useState("");
   const [activeDetail, setActiveDetail] = useState("");
@@ -270,12 +274,13 @@ export default function CategoryProductsPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     setLoading(true);
-    setCategoryBanner(null); // reset on slug change
+    setCategoryBanner(null);
+    setBannerLoading(true);
 
     const controller = new AbortController();
 
     Promise.all([
-      fetch(`${API}?sort=order`, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
+      fetch(`${API}?sort=order&fields=list`, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
       fetch(CATEGORY_API, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
     ])
       .then(([productsData, categoriesData]) => {
@@ -292,6 +297,7 @@ export default function CategoryProductsPage() {
           if (categoryDoc?.banner) {
             setCategoryBanner(categoryDoc.banner);
           }
+          setBannerLoading(false); // 👈 dono cases mein
 
           if (categoryDoc && categoryDoc.subCategories?.length > 0) {
             const subsWithProducts = categoryDoc.subCategories
@@ -307,16 +313,19 @@ export default function CategoryProductsPage() {
             setOrderedExtraCategories([]);
           }
         } else {
-          // Products nahi mile — phir bhi category doc se banner try karo
           const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
           if (categoryDoc) {
             setActualCategoryName(categoryDoc.name);
             if (categoryDoc.banner) setCategoryBanner(categoryDoc.banner);
           }
+          setBannerLoading(false);
         }
       })
       .catch(err => { if (err.name !== "AbortError") console.warn("Failed to load data"); })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setBannerLoading(false);
+      });
 
     return () => controller.abort();
   }, [categorySlug]);
@@ -388,6 +397,7 @@ export default function CategoryProductsPage() {
       <CategoryBanner
         categoryName={actualCategoryName || ""}
         bannerUrl={categoryBanner}
+        bannerLoading={bannerLoading}
       />
 
       <div className="max-w-7xl mx-auto px-6 mt-7 space-y-3 flex flex-col items-center">
