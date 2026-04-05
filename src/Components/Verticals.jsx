@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import gov from '../assets/government.jpg';
-import retail from '../assets/retail.jpg';
-import hotel from '../assets/hotel.jpg';
-import healthcare from '../assets/healthcare.jpg';
-import citywifi from '../assets/city-wifi.jpeg';
-import educationalinstitutes from '../assets/eductaional-institutes.jpg';
-import enterprise from '../assets/enterprise.jpg';
-import industries from '../assets/industries.jpg';
+import gov from '../assets/government.avif';
+import retail from '../assets/retail.avif';
+import hotel from '../assets/hotel.avif';
+import healthcare from '../assets/healthcare.avif';
+import citywifi from '../assets/city-wifi.avif';
+import educationalinstitutes from '../assets/eductaional-institutes.avif';
+import enterprise from '../assets/enterprise.avif';
+import industries from '../assets/industries.avif';
 
 const cards = [
   { id: 1, name: "Enterprise", category: "Key Markets", image: enterprise, tag: "Corporate" },
