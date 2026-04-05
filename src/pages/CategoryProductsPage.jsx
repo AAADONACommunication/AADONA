@@ -3,7 +3,6 @@ import { useEffect, useState, useRef, memo } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import CheckCircle from "../assets/checkcircle.png";
-import banner from '../assets/productBanner.avif';
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;
@@ -192,7 +191,34 @@ const RelatedProducts = memo(({ relatedProducts }) => {
   );
 });
 
-/* -------------------- MAIN PAGE -------------------- */
+/* -------------------- BANNER COMPONENT -------------------- */
+// Dynamic banner — DB se aata hai; fallback: green gradient
+const CategoryBanner = memo(({ categoryName, bannerUrl }) => (
+  <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden bg-green-900">
+    {bannerUrl ? (
+      <img
+        src={bannerUrl}
+        alt={`${categoryName} banner`}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+      />
+    ) : (
+      /* Fallback gradient jab tak banner set na ho */
+      <div className="absolute inset-0 bg-gradient-to-br from-green-800 via-green-700 to-teal-600" />
+    )}
+    {/* Overlay for readability */}
+    <div className="absolute inset-0 bg-black/35" />
+    <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
+      <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold text-white border-b-4 border-green-500 inline-block pb-1">
+        {categoryName}
+      </h1>
+    </div>
+  </div>
+));
+
+/* -------------------- DETAIL CONTENT -------------------- */
 const detailContent = {
   "Business": { title: "Business Grade Solutions", para: "Optimized for Small to Medium Enterprises (SMEs). These solutions provide professional-grade reliability and performance for growing businesses." },
   "Enterprise": { title: "Enterprise Infrastructure", para: "Designed for mission-critical deployments, high-density environments, and complex network architectures requiring the highest standards." },
@@ -204,11 +230,13 @@ const detailContent = {
   "Non POE Switches": { title: "Standard Connectivity", para: "Reliable, high-speed data switching for high-performance computing environments." }
 };
 
+/* -------------------- MAIN PAGE -------------------- */
 export default function CategoryProductsPage() {
   const { categoryName: categorySlug } = useParams();
 
   const [products, setProducts] = useState([]);
   const [actualCategoryName, setActualCategoryName] = useState("");
+  const [categoryBanner, setCategoryBanner] = useState(null); // 👈 banner URL
   const [loading, setLoading] = useState(true);
   const [activeSubCategory, setActiveSubCategory] = useState("");
   const [activeDetail, setActiveDetail] = useState("");
@@ -242,8 +270,8 @@ export default function CategoryProductsPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     setLoading(true);
+    setCategoryBanner(null); // reset on slug change
 
-    // AbortController: unmount pe fetch cancel — memory leak fix
     const controller = new AbortController();
 
     Promise.all([
@@ -260,6 +288,11 @@ export default function CategoryProductsPage() {
 
           const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
 
+          // ── Set banner from DB ──
+          if (categoryDoc?.banner) {
+            setCategoryBanner(categoryDoc.banner);
+          }
+
           if (categoryDoc && categoryDoc.subCategories?.length > 0) {
             const subsWithProducts = categoryDoc.subCategories
               .map(s => s.name)
@@ -272,6 +305,13 @@ export default function CategoryProductsPage() {
             setOrderedSubCategories(subCats);
             setActiveSubCategory(subCats[0] || "");
             setOrderedExtraCategories([]);
+          }
+        } else {
+          // Products nahi mile — phir bhi category doc se banner try karo
+          const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
+          if (categoryDoc) {
+            setActualCategoryName(categoryDoc.name);
+            if (categoryDoc.banner) setCategoryBanner(categoryDoc.banner);
           }
         }
       })
@@ -301,7 +341,6 @@ export default function CategoryProductsPage() {
   }, [activeSubCategory, products, orderedExtraCategories]);
 
   useEffect(() => {
-    console.log("Related fetch trigger:", actualCategoryName, activeSubCategory, activeDetail);
     if (!actualCategoryName || loading) return;
 
     const controller = new AbortController();
@@ -345,24 +384,11 @@ export default function CategoryProductsPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden">
-  
-  {/* Image */}
-  <img
-    src={banner} // 👈 apni image path
-    alt="banner"
-    className="absolute inset-0 w-full h-full object-cover"
-    loading="eager"
-    fetchPriority="high"
-  />
-
-  {/* Content */}
-  <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
-    <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold text-white border-b-4 border-green-500 inline-block pb-1">
-      {actualCategoryName}
-    </h1>
-  </div>
-</div>
+      {/* ── Dynamic Banner ── */}
+      <CategoryBanner
+        categoryName={actualCategoryName || ""}
+        bannerUrl={categoryBanner}
+      />
 
       <div className="max-w-7xl mx-auto px-6 mt-7 space-y-3 flex flex-col items-center">
         {loading ? (

@@ -52,6 +52,8 @@ const adminLimiter = rateLimit({
 ============================= */
 
 const storage = multer.memoryStorage();
+
+// General upload — forms, mail attachments ke liye (PDF + sabhi images)
 const upload = multer({
   storage,
   limits: { fileSize: 15 * 1024 * 1024 },
@@ -61,11 +63,27 @@ const upload = multer({
       "image/png",
       "image/jpeg",
       "image/webp",
+      "image/gif",
+      "image/bmp",
+      "image/tiff",
     ];
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only PDF, PNG, JPEG, WEBP allowed."), false);
+      cb(new Error("Invalid file type. Only PDF and images allowed."), false);
+    }
+  },
+});
+
+const uploadBanner = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max — banner 100-200KB hoga
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/avif", "image/webp"];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only AVIF/WebP allowed."), false);
     }
   },
 });
@@ -382,6 +400,7 @@ const CategorySchema = new mongoose.Schema(
       },
     ],
     order: { type: Number, default: 0 },
+    banner: { type: String, default: null },
   },
   { timestamps: true }
 );
@@ -739,6 +758,35 @@ app.put("/categories/:id", verifyToken, async (req, res) => {
   }
 });
 
+// ── CATEGORY BANNER UPLOAD ──────────────────────────────────────
+app.put("/categories/:id/banner", verifyToken, uploadBanner.single("bannerImage"), async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) return res.status(404).json({ message: "Category not found" });
+
+    // Old banner Firebase se delete karo
+    if (category.banner) {
+      await deleteFromFirebase(category.banner);
+    }
+
+    let bannerUrl = null;
+    if (req.file) {
+      bannerUrl = await uploadToFirebase(req.file, "category-banners");
+    }
+
+    category.banner = bannerUrl;
+    await category.save();
+
+    logAction(req.user.email, "UPDATE", "Category", category.name, {
+      changes: { banner: { new: bannerUrl ? "uploaded" : "removed" } },
+    });
+
+    res.json({ message: "Banner updated", banner: bannerUrl, category });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const deleteProductsCascade = async (query) => {
   const products = await Product.find(query);
   for (const product of products) {
@@ -758,6 +806,7 @@ app.delete("/categories/:id", verifyToken, async (req, res) => {
       return res.status(404).json({ message: "Category not found" });
 
     await deleteProductsCascade({ category: category.name });
+    if (category.banner) await deleteFromFirebase(category.banner);
     await Category.findByIdAndDelete(req.params.id);
 
     logAction(req.user.email, "DELETE", "Category", category.name, {
