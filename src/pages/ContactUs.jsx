@@ -451,7 +451,7 @@ export default function ContactPage() {
   // ── Shared input class ──
   const inputBase = useMemo(
     () =>
-      'mt-1 block w-full px-4 py-3 border rounded-lg shadow-sm text-green-800 bg-green-50/50 ' +
+      'mt-1 block w-full px-4 py-3 border rounded-lg shadow-sm text-green-800 bg-white ' +
       'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none ' +
       'transition duration-150 ease-in-out border-green-200',
     []
@@ -510,7 +510,7 @@ export default function ContactPage() {
 
       {/* ── Hero ── */}
       <header
-        className="relative pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+        className="relative pt-32 pb-16 sm:pt-44 sm:pb-32 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${contactusbanner})` }}
         aria-label="Contact us hero banner"
       >
