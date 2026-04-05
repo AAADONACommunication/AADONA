@@ -111,8 +111,8 @@ const BannerPreviewModal = ({ cat, previewUrl, onClose }) => {
         </div>
 
         <div className="px-5 py-3 bg-gray-50 text-xs text-gray-400 text-center">
-          Yeh exactly aisa dikhega jab user category page khol‌e •{" "}
-          {bannerSrc ? "Banner set hai ✅" : "Abhi koi banner nahi set"}
+          This will exactly look like this in the specific product page •{" "}
+          {bannerSrc ? "The banner is set ✅" : "No banner set yet"}
         </div>
       </div>
     </div>
@@ -164,7 +164,7 @@ const BannerCell = ({ cat, onBannerSaved }) => {
       const data = await res.json();
       if (res.ok) {
         onBannerSaved(cat._id, data.banner);
-        alert(`Banner upload ho gaya ✅ (${kb} KB)`);
+        alert(`Banner uploaded ✅ (${kb} KB)`);
       } else {
         alert(data.message || "Upload failed");
         setPreviewUrl(null);
