@@ -18,16 +18,17 @@ const Hero = () => {
         <title>AADONA – Truly Indian IT Solutions Brand for Bharat</title>
         <meta name="description" content="AADONA is a truly Indian IT solutions brand transforming technology with integrity, innovation, and customer-centric values." />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://www.aadona.in/" />
+        <link rel="preload" as="image" href={hero} />
+        <link rel="canonical" href="https://www.aadona.online/" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.aadona.in/" />
+        <meta property="og:url" content="https://www.aadona.online/" />
         <meta property="og:title" content="AADONA – Truly Indian IT Solutions Brand for Bharat" />
         <meta property="og:description" content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values." />
-        <meta property="og:image" content="https://www.aadona.in/og-hero.jpg" />
+        <meta property="og:image" content="https://www.aadona.online/og-hero.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AADONA – Truly Indian IT Solutions for Bharat" />
         <meta name="twitter:description" content="Transforming IT Solutions with Integrity, Innovation, and Customer-Centric Values." />
-        <meta name="twitter:image" content="https://www.aadona.in/og-hero.jpg" />
+        <meta name="twitter:image" content="https://www.aadona.online/og-hero.jpg" />
       </Helmet>
 
       <section
@@ -40,6 +41,8 @@ const Hero = () => {
           alt="AADONA – Empowering Bharat with Indian IT solutions"
           className="absolute inset-0 w-full h-full object-cover object-center"
           fetchpriority="high"
+          decoding="async"
+          loading="eager"
           draggable="false"
           onContextMenu={(e) => e.preventDefault()}
         />
