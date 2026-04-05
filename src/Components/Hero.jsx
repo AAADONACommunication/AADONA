@@ -34,7 +34,7 @@ const Hero = () => {
         aria-label="AADONA hero banner"
         className="relative w-full overflow-hidden h-[90svh] md:h-[100vh] lg:h-[110vh]"
       >
-        {/* Background */}
+        {/*Background*/}
         <img
           src={hero}
           alt="AADONA – Empowering Bharat with Indian IT solutions"
