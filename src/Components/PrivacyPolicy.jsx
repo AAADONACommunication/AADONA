@@ -291,37 +291,11 @@ const PrivacyPolicy = () => {
             </p>
 
             {/* Breadcrumb — visible + crawlable (matches JSON-LD BreadcrumbList above) */}
-            <nav aria-label="Breadcrumb" className="mt-4">
-              <ol className="flex justify-center gap-2 text-sm text-white/80">
-                <li>
-                  <Link to="/" className="hover:text-white underline underline-offset-2">
-                    Home
-                  </Link>
-                </li>
-                <li aria-hidden="true">/</li>
-                <li aria-current="page" className="text-white font-medium">
-                  Privacy Policy
-                </li>
-              </ol>
-            </nav>
+            
           </div>
         </section>
 
-        {/* Effective Date — important for legal pages (Google uses it for freshness) */}
-        <div className="max-w-5xl mx-auto px-6 sm:px-8 pt-10">
-          <p className="text-sm text-gray-500">
-            <strong>Effective Date:</strong>{" "}
-            <time dateTime="2024-01-01">January 1, 2024</time>
-            {" "}· Last updated:{" "}
-            <time dateTime={new Date().toISOString().split("T")[0]}>
-              {new Date().toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </time>
-          </p>
-        </div>
+        
 
         {/* Policy Sections */}
         <div className="max-w-5xl mx-auto px-6 sm:px-8 py-12 space-y-12">

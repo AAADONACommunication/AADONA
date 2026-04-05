@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg";
-import reqbanner from "../../assets/ReqDemoBanner.jpeg";
+import reqbanner from "../../assets/ReqDemoBanner.avif";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

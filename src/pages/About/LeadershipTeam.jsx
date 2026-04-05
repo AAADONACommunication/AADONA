@@ -9,7 +9,7 @@ import Govind from "../../assets/Govind_Madhav.avif";
 import Chandan from "../../assets/Chandan_Sharma.avif";
 import bg from "../../assets/bg.jpg";
 import linkedin from "../../assets/linkedin.png";
-import leadershipbanner from "../../assets/LeadershipBanner.jpeg";
+import leadershipbanner from "../../assets/LeadershipBanner.avif";
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {

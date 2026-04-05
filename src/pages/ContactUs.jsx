@@ -9,7 +9,7 @@ import { Helmet } from 'react-helmet-async'; // npm install react-helmet-async
 import Footer from '../Components/Footer';
 import Navbar from '../Components/Navbar';
 import bg from '../assets/bg.jpg';
-import contactusbanner from '../assets/ContactUsBanner.webp'
+import contactusbanner from '../assets/ContactUs.avif'
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -85,13 +85,27 @@ const LOCATIONS = [
 
 // ─── Security helpers ──────────────────────────────────────────────────────────
 
-/** Strip HTML tags and dangerous characters to prevent XSS */
-const sanitize = (str) =>
+/**
+ * sanitizeLive — used on every keystroke.
+ * Strips HTML tags and XSS characters but does NOT trim,
+ * so spaces typed mid-sentence are preserved while the user types.
+ */
+const sanitizeLive = (str) =>
   String(str)
     .replace(/<[^>]*>/g, '')           // strip HTML tags
     .replace(/[<>"'`]/g, '')           // strip XSS chars
-    .trim()
     .slice(0, 1000);                   // hard length cap
+
+/**
+ * sanitize — used only on the final submit payload.
+ * Same as above but also trims leading/trailing whitespace.
+ */
+const sanitize = (str) =>
+  String(str)
+    .replace(/<[^>]*>/g, '')
+    .replace(/[<>"'`]/g, '')
+    .trim()
+    .slice(0, 1000);
 
 /** Validate E.164-ish phone: digits, spaces, +, -, () only; 7–15 digits total */
 const isValidPhone = (val) => /^[+\d][\d\s\-().]{6,19}$/.test(val.trim());
@@ -361,11 +375,11 @@ export default function ContactPage() {
     return e;
   }, [formData]);
 
-  // ── Input handler with sanitization ──
+  // ── Input handler with live sanitization (no trim) ──
   const handleChange = useCallback(
     (e) => {
       const { name, value } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: sanitize(value) }));
+      setFormData((prev) => ({ ...prev, [name]: sanitizeLive(value) })); // ✅ sanitizeLive preserves spaces
       setErrors((prev) => ({ ...prev, [name]: '' }));
     },
     []
@@ -396,10 +410,10 @@ export default function ContactPage() {
 
     setIsSubmitting(true);
 
-    // Build clean payload — exclude honeypot
+    // Build clean payload — exclude honeypot, apply trim sanitize on submit
     const { _honey, ...payload } = formData;
     const cleanPayload = Object.fromEntries(
-      Object.entries(payload).map(([k, v]) => [k, sanitize(v)])
+      Object.entries(payload).map(([k, v]) => [k, sanitize(v)]) // ✅ sanitize (with trim) only on submit
     );
 
     try {
@@ -495,26 +509,21 @@ export default function ContactPage() {
       <Navbar />
 
       {/* ── Hero ── */}
-     <header
-  className="relative pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-  style={{ backgroundImage: `url(${contactusbanner})` }}
-  aria-label="Contact us hero banner"
->
-
-
-  {/* Content */}
-  <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    
-    <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
-      Contact AADONA
-    </h1>
-
-    <p className="mt-6 text-md text-white max-w-3xl mx-auto">
-      We're here to help! Get in touch with our team
-    </p>
-
-  </div>
-</header>
+      <header
+        className="relative pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${contactusbanner})` }}
+        aria-label="Contact us hero banner"
+      >
+        {/* Content */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+            Contact AADONA
+          </h1>
+          <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+            We're here to help! Get in touch with our team
+          </p>
+        </div>
+      </header>
 
       {/* ── Main Content ── */}
       <main

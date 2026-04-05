@@ -4,7 +4,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import bg from "../assets/bg.jpg";
 import { FaSearch } from "react-icons/fa";
-import customersbanner from "../assets/OurCustomerBanner.jpeg";
+import customersbanner from "../assets/OurCustomerBanner.avif";
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {

@@ -4,7 +4,7 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { X, UploadCloud } from "lucide-react";
 import bg from "../../assets/bg.jpg";
-import whistlebanner from '../../assets/WhistleBanner.jpeg';
+import whistlebanner from '../../assets/WhistleBanner.avif';
 
 
 const WhistleBlowerButton = () => {

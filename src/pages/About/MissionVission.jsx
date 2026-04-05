@@ -12,7 +12,7 @@ import goodCitizenship from '../../assets/GoodCitizenship.jpeg';
 import respectPeople from '../../assets/RespectforPeople.jpeg';
 import willToWin from '../../assets/Awilltowin.jpeg';
 import accountability from '../../assets/PersonalAccountability.jpeg';
-import missionbanner from '../../assets/MissionVissionBanner.jpeg';
+import missionbanner from '../../assets/MissionVissionBanner.avif';
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {

@@ -2,6 +2,8 @@ import React from 'react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import bg from '../../assets/bg.jpg';
+import aboutusbanner from '../../assets/aboutusbanner.avif';
+
 
 /* Same Card Style as CSR */
 const liftCard =
@@ -21,16 +23,21 @@ const About = () => {
         }}
       >
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-green-700 to-green-900 pt-32 pb-16">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
-              Our Story
-            </h1>
-            <p className="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-              Building India’s premium networking technology brand
-            </p>
-          </div>
-        </div>
+        <header
+                  className="pt-32 pb-16 bg-cover bg-no-repeat bg-center sm:bg-none"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.0), transparent), url(${aboutusbanner})` }}
+                  aria-label="Product Support hero banner"
+                >
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+                      Our Story
+                    </h1>
+                    <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+                      Building India’s premium networking technology brand
+                    </p>
+                  </div>
+                </header>
 
         {/* Cards Section */}
         <div className="max-w-6xl mx-auto px-4 py-16">

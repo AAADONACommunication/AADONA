@@ -4,7 +4,7 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { Link } from "react-router-dom";
 import bg from "../../assets/bg.jpg";
-import csrbanner from '../../assets/CSRBanner.jpeg'
+import csrbanner from '../../assets/CSRBanner.avif'
 
 /* -------- Hover Lift Card Style -------- */
 const liftCard =
