@@ -1,12 +1,263 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { auth } from "../../../firebase";
 import {
   Trash2, Edit, Plus, ChevronDown, ChevronUp, ChevronRight,
+  Image, Eye, X, Upload, Loader2
 } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
 
 const CATEGORY_API = `${import.meta.env.VITE_API_URL}/categories`;
 
+/* ─────────────────────────────────────────────
+   AVIF Converter: Canvas → AVIF/WebP fallback
+   Target: ~100-200kb
+───────────────────────────────────────────── */
+const convertToAvif = (file) =>
+  new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      // Max dimension 1920px, aspect ratio maintain
+      const MAX = 1920;
+      let { width, height } = img;
+      if (width > MAX) { height = Math.round((height * MAX) / width); width = MAX; }
+      if (height > MAX) { width = Math.round((width * MAX) / height); height = MAX; }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Try AVIF first, fallback to WebP
+      const tryConvert = (type, quality) =>
+        new Promise((res) => {
+          canvas.toBlob((blob) => res(blob), type, quality);
+        });
+
+      const attempt = async () => {
+        // AVIF: quality 0.7
+        let blob = await tryConvert("image/avif", 0.7);
+        if (!blob || blob.size === 0) {
+          // Fallback to WebP
+          blob = await tryConvert("image/webp", 0.75);
+        }
+        // If still too large (>250kb), reduce quality
+        if (blob && blob.size > 250 * 1024) {
+          blob = await tryConvert("image/webp", 0.55);
+        }
+        if (blob) {
+          const ext = blob.type === "image/avif" ? "avif" : "webp";
+          const converted = new File([blob], `banner.${ext}`, { type: blob.type });
+          resolve(converted);
+        } else {
+          reject(new Error("Image conversion failed"));
+        }
+      };
+      attempt().catch(reject);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image load failed")); };
+    img.src = url;
+  });
+
+/* ─────────────────────────────────────────────
+   BANNER PREVIEW MODAL
+───────────────────────────────────────────── */
+const BannerPreviewModal = ({ cat, previewUrl, onClose }) => {
+  const bannerSrc = previewUrl || cat.banner;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header bar */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+          <span className="font-bold text-green-800 text-sm">
+            Preview — <span className="text-gray-600 font-semibold">{cat.name}</span>
+          </span>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Simulated category page banner */}
+        <div className="relative min-h-[180px] sm:h-[240px] flex items-center justify-center overflow-hidden bg-gray-800">
+          {bannerSrc ? (
+            <img
+              src={bannerSrc}
+              alt="Banner Preview"
+              className="absolute inset-0 w-full h-full object-cover opacity-80"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-green-800 to-teal-700" />
+          )}
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/30" />
+          {/* Category name overlay */}
+          <div className="relative z-10 text-center px-4">
+            <h1 className="text-3xl sm:text-5xl font-bold text-white border-b-4 border-green-400 inline-block pb-1">
+              {cat.name}
+            </h1>
+          </div>
+        </div>
+
+        <div className="px-5 py-3 bg-gray-50 text-xs text-gray-400 text-center">
+          This will exactly look like this in the specific product page •{" "}
+          {bannerSrc ? "The banner is set ✅" : "No banner set yet"}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────
+   BANNER UPLOAD CELL (per category)
+───────────────────────────────────────────── */
+const BannerCell = ({ cat, onBannerSaved }) => {
+  const fileRef = useRef(null);
+  const [converting, setConverting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null); // local blob
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [sizeInfo, setSizeInfo] = useState("");
+
+  const hasBanner = !!(previewUrl || cat.banner);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+
+    setConverting(true);
+    setSizeInfo("");
+    try {
+      const converted = await convertToAvif(file);
+      const kb = Math.round(converted.size / 1024);
+      setSizeInfo(`${kb} KB • ${converted.type.split("/")[1].toUpperCase()}`);
+
+      // Local preview
+      const localUrl = URL.createObjectURL(converted);
+      setPreviewUrl(localUrl);
+
+      // Upload to backend
+      setConverting(false);
+      setUploading(true);
+      const token = await auth.currentUser.getIdToken();
+      const formData = new FormData();
+      formData.append("bannerImage", converted, converted.name);
+
+      const res = await fetch(`${CATEGORY_API}/${cat._id}/banner`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        onBannerSaved(cat._id, data.banner);
+        alert(`Banner uploaded ✅ (${kb} KB)`);
+      } else {
+        alert(data.message || "Upload failed");
+        setPreviewUrl(null);
+      }
+    } catch (err) {
+      alert(err.message);
+      setPreviewUrl(null);
+    } finally {
+      setConverting(false);
+      setUploading(false);
+    }
+  };
+
+  const isLoading = converting || uploading;
+  const loadingText = converting ? "Converting..." : "Uploading...";
+
+  return (
+    <>
+      {previewOpen && (
+        <BannerPreviewModal
+          cat={cat}
+          previewUrl={previewUrl}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
+
+      <div
+        className="flex items-center gap-1.5 flex-shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Hidden file input */}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
+        {/* Upload / Change Banner btn */}
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={isLoading}
+          title={hasBanner ? "Banner change karo" : "Banner upload karo"}
+          className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap
+            ${hasBanner
+              ? "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
+              : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
+            }
+            ${isLoading ? "opacity-60 cursor-not-allowed" : ""}
+          `}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 size={12} className="animate-spin" />
+              <span className="hidden sm:inline">{loadingText}</span>
+            </>
+          ) : (
+            <>
+              <Image size={12} />
+              <span className="hidden sm:inline">
+                {hasBanner ? "Banner" : "Add Banner"}
+              </span>
+            </>
+          )}
+        </button>
+
+        {/* Preview btn — sirf tab dikhao jab banner ho */}
+        {hasBanner && (
+          <button
+            onClick={() => setPreviewOpen(true)}
+            title="Preview dekho"
+            className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 font-semibold transition"
+          >
+            <Eye size={12} />
+            <span className="hidden sm:inline">Preview</span>
+          </button>
+        )}
+
+        {/* Size info badge */}
+        {sizeInfo && (
+          <span className="hidden lg:inline text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5">
+            {sizeInfo}
+          </span>
+        )}
+      </div>
+    </>
+  );
+};
+
+/* ─────────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────── */
 export default function Categories({
   allCategories,
   setAllCategories,
@@ -34,6 +285,13 @@ export default function Categories({
 
   // ── Helpers ──
   const getCategoriesByType = (type) => allCategories.filter((c) => c.type === type);
+
+  // Banner saved callback — local state update (no full reload needed)
+  const handleBannerSaved = (catId, bannerUrl) => {
+    setAllCategories((prev) =>
+      prev.map((c) => (c._id === catId ? { ...c, banner: bannerUrl } : c))
+    );
+  };
 
   // ── CRUD ──
   const createCategory = async () => {
@@ -307,7 +565,9 @@ export default function Categories({
       <div className="bg-white rounded-3xl shadow-xl border border-green-100 overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-green-100 bg-green-700">
           <h2 className="text-lg sm:text-xl font-bold text-white">All Categories</h2>
-          <p className="text-green-200 text-sm mt-1">Use ↑ ↓ buttons to reorder — works on mobile too</p>
+          <p className="text-green-200 text-sm mt-1">
+            Use ↑ ↓ to reorder
+          </p>
         </div>
 
         {categoriesLoading ? (
@@ -330,7 +590,7 @@ export default function Categories({
 
                         {/* Category Row */}
                         <div
-                          className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 hover:bg-gray-50 cursor-pointer transition gap-2"
+                          className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 hover:bg-gray-50 cursor-pointer transition gap-2 flex-wrap sm:flex-nowrap"
                           onClick={() => setExpandedCat(expandedCat === cat._id ? null : cat._id)}
                         >
                           {/* Left: reorder + expand + name */}
@@ -367,6 +627,14 @@ export default function Categories({
                               </div>
                             ) : (
                               <div className="flex items-center gap-2 min-w-0">
+                                {/* Banner thumbnail — sirf tab dikhao jab set ho */}
+                                {cat.banner && (
+                                  <img
+                                    src={cat.banner}
+                                    alt=""
+                                    className="w-8 h-8 rounded object-cover border border-gray-200 flex-shrink-0"
+                                  />
+                                )}
                                 <span className="font-bold text-gray-800 text-sm sm:text-base normal-case truncate">{cat.name}</span>
                                 <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full normal-case flex-shrink-0">
                                   {cat.subCategories?.length || 0} sub
@@ -376,7 +644,10 @@ export default function Categories({
                           </div>
 
                           {/* Right: action buttons */}
-                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
+                            {/* ── BANNER CELL ── */}
+                            <BannerCell cat={cat} onBannerSaved={handleBannerSaved} />
+
                             {renamingCatId !== cat._id && (
                               <button onClick={() => { setRenamingCatId(cat._id); setRenameCatInput(cat.name); }}
                                 className="p-1.5 sm:p-2 bg-blue-50 text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg transition">

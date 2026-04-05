@@ -695,7 +695,7 @@ export default function ContactPage() {
                         id="phone"
                         type="tel"
                         name="phone"
-                        placeholder="+91 XXXXX XXXXX"
+                        placeholder="Enter your phone number"
                         autoComplete="tel"
                         disabled={isSubmitting}
                         aria-required="true"
