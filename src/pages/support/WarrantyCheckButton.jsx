@@ -189,7 +189,7 @@ const WarrantyCheckButton = () => {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>Place of Purchase <span className="text-red-500">*</span></label>
+                      <label className={labelClass}>Place of Purchase<span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="placeOfPurchase"
@@ -265,7 +265,7 @@ const WarrantyCheckButton = () => {
 
                 {/* ── Section 3: Invoice Upload ── */}
                 <div>
-                  <SectionHeading>Upload invoice<span className="text-red-500">*</span></SectionHeading>
+                  <SectionHeading>Upload invoice</SectionHeading>
                   <div
                     className={`relative flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition-all ${
                       fileError ? 'border-red-400 bg-red-50' : 'border-green-300 hover:border-green-500'
