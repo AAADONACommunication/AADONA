@@ -27,6 +27,9 @@ const sanitizePhone = (value) =>
 const sanitizeEmail = (value) =>
   value.replace(/[^a-zA-Z0-9@._+\-]/g, "").slice(0, 254);
 
+const sanitizeZip = (value) =>
+  value.replace(/[^\d]/g, "").slice(0, 10);
+
 // Simple but effective email format check
 const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
@@ -106,7 +109,7 @@ const inputBase =
 
 const emptyForm = {
   firstName: "", lastName: "", email: "", phone: "",
-  address: "", purchaseDate: "", serviceType: "", issue: "",
+  address: "", city: "", zipCode: "", purchaseDate: "", serviceType: "", issue: "",
 };
 
 // ─── Structured Data (JSON-LD) ────────────────────────────────────────────────
@@ -153,6 +156,7 @@ const TechSquad = () => {
     let sanitized = sanitizeText(value);
     if (name === "phone") sanitized = sanitizePhone(value);
     if (name === "email") sanitized = sanitizeEmail(value);
+    if (name === "zipCode") sanitized = sanitizeZip(value);
 
     setForm((prev) => ({ ...prev, [name]: sanitized }));
     // Clear error on change
@@ -206,6 +210,9 @@ const TechSquad = () => {
     if (!isValidPhone(form.phone)) e.phone = "Enter a valid phone number.";
     if (!form.address.trim() || form.address.trim().length < 10)
       e.address = "Please enter a complete address.";
+    if (!form.city.trim()) e.city = "City is required.";
+    if (!form.zipCode.trim() || form.zipCode.trim().length < 4)
+      e.zipCode = "Enter a valid ZIP / PIN code.";
     if (!form.serviceType) e.serviceType = "Select a service type.";
     if (!form.issue.trim() || form.issue.trim().length < 20)
       e.issue = "Describe the issue in at least 20 characters.";
@@ -317,22 +324,22 @@ const TechSquad = () => {
         <Navbar />
 
         {/* ── Hero Banner ──────────────────────────────────────────────────── */}
-   <header
-  className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
-  style={{
-    backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${tsbanner})`
-  }}
-  aria-label="Tech Squad hero banner"
->
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
-      Tech Squad
-    </h1>
-    <p className="mt-6 text-md text-white  max-w-3xl mx-auto">
-      On-site &amp; Remote Engineering Support across India — fast, reliable, professional.
-    </p>
-  </div>
-</header>
+        <header
+          className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${tsbanner})`
+          }}
+          aria-label="Tech Squad hero banner"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+              Tech Squad
+            </h1>
+            <p className="mt-6 text-md text-white  max-w-3xl mx-auto">
+              On-site &amp; Remote Engineering Support across India — fast, reliable, professional.
+            </p>
+          </div>
+        </header>
 
         {/* ── Main Content ─────────────────────────────────────────────────── */}
         <div
@@ -566,12 +573,52 @@ const TechSquad = () => {
                             value={form.address}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.address ? "border-red-400" : ""}`}
-                            placeholder="Full address with city & pin code"
+                            placeholder="House / Flat no., Street, Area"
                             autoComplete="street-address"
                             required
                             aria-required="true"
                           />
                           {fieldError("address")}
+                        </div>
+
+                        {/* City */}
+                        <div>
+                          <label htmlFor="city" className="block text-slate-700 font-medium mb-1">
+                            City <span aria-hidden="true" className="text-red-500">*</span>
+                          </label>
+                          <input
+                            id="city"
+                            name="city"
+                            value={form.city}
+                            onChange={handleChange}
+                            className={`${inputBase} ${errors.city ? "border-red-400" : ""}`}
+                            placeholder="Enter city"
+                            autoComplete="address-level2"
+                            required
+                            aria-required="true"
+                          />
+                          {fieldError("city")}
+                        </div>
+
+                        {/* ZIP / PIN Code */}
+                        <div>
+                          <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-1">
+                            ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                          </label>
+                          <input
+                            id="zipCode"
+                            name="zipCode"
+                            type="text"
+                            inputMode="numeric"
+                            value={form.zipCode}
+                            onChange={handleChange}
+                            className={`${inputBase} ${errors.zipCode ? "border-red-400" : ""}`}
+                            placeholder="e.g. 492001"
+                            autoComplete="postal-code"
+                            required
+                            aria-required="true"
+                          />
+                          {fieldError("zipCode")}
                         </div>
 
                         {/* Purchase Date */}

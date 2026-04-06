@@ -15,6 +15,9 @@ const WhistleBlowerButton = () => {
   const [formData, setFormData] = useState({
     name: '',
     telephone: '',
+    email: '',
+    city: '',
+    zipCode: '',
     comment: ''
   });
   const [submitting, setSubmitting] = useState(false);
@@ -31,7 +34,6 @@ const WhistleBlowerButton = () => {
     setFileError("");
 
     if (file) {
-      // Validate file size (15MB = 15 * 1024 * 1024 bytes)
       const maxSize = 15 * 1024 * 1024;
       if (file.size > maxSize) {
         setFileError("File size must be less than 15MB");
@@ -41,7 +43,6 @@ const WhistleBlowerButton = () => {
         return;
       }
 
-      // Validate file type
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
         setFileError("Only PDF, JPG, and PNG files are allowed");
@@ -68,22 +69,21 @@ const WhistleBlowerButton = () => {
     setSubmitting(true);
     
     try {
-      // Create FormData object to handle file upload
       const formDataToSend = new FormData();
-      
-      // Append all form fields
       formDataToSend.append('name', formData.name);
       formDataToSend.append('telephone', formData.telephone);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('city', formData.city);
+      formDataToSend.append('zipCode', formData.zipCode);
       formDataToSend.append('comment', formData.comment);
       
-      // Append file if selected
       if (selectedFile) {
         formDataToSend.append('attachmentFile', selectedFile);
       }
       
       const response = await fetch(`${import.meta.env.VITE_API_URL}/submit-whistleblower`, {
         method: 'POST',
-        body: formDataToSend // Send FormData directly (don't set Content-Type header)
+        body: formDataToSend
       });
       
       const data = await response.json();
@@ -93,14 +93,15 @@ const WhistleBlowerButton = () => {
         setFormData({
           name: '',
           telephone: '',
+          email: '',
+          city: '',
+          zipCode: '',
           comment: ''
         });
         setSelectedFile(null);
         setFileName("Choose file");
         setFileError("");
         if (fileInputRef.current) fileInputRef.current.value = "";
-        
-        // Reset success message after 5 seconds
         setTimeout(() => setSubmitted(false), 5000);
       } else {
         alert(data.message || 'Failed to submit report');
@@ -123,27 +124,26 @@ const WhistleBlowerButton = () => {
     <>
       <Navbar />
 
-      
-        {/* Hero Section */}
-          <header
-                           className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                           style={{ backgroundImage: `url(${whistlebanner})` }}
-                           aria-label=" Whistle Blower banner"
-                         >
-                           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                             <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
-                                Whistle Blower
-                             </h1>
-                             <p className="mt-6 text-md text-white max-w-3xl mx-auto">
-              Report issues confidentially — provide details and upload evidence (optional).
-                                                         </p>
-                           </div>
-                         </header>
+      {/* Hero Section */}
+      <header
+        className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${whistlebanner})` }}
+        aria-label="Whistle Blower banner"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+            Whistle Blower
+          </h1>
+          <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+            Report issues confidentially — provide details and upload evidence (optional).
+          </p>
+        </div>
+      </header>
 
-          <div
-                      className="bg-cover bg-fixed py-16"
-                      style={{ backgroundImage: `url(${bg})` }}
-                    >
+      <div
+        className="bg-cover bg-fixed py-16"
+        style={{ backgroundImage: `url(${bg})` }}
+      >
 
         {/* Form Container */}
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10">
@@ -164,7 +164,7 @@ const WhistleBlowerButton = () => {
               </button>
             </div>
 
-            {/* ✅ Success Message */}
+            {/* Success Message */}
             {submitted && (
               <div className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6">
                 ✅ Report submitted successfully! Thank you for your submission.
@@ -178,7 +178,7 @@ const WhistleBlowerButton = () => {
             {/* Form */}
             {!submitted && (
               <form onSubmit={handleSubmit} className="space-y-6">
-                
+
                 {/* Name Field */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
@@ -209,6 +209,60 @@ const WhistleBlowerButton = () => {
                     placeholder="Enter your telephone number"
                     className={`mt-2 ${inputClass}`}
                   />
+                </div>
+
+                {/* Email Field */}
+                <div>
+                  <label className="text-green-700 font-semibold block text-lg">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter your email address"
+                    className={`mt-2 ${inputClass}`}
+                  />
+                </div>
+
+                {/* City + ZIP side by side */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
+                  {/* City Field */}
+                  <div>
+                    <label className="text-green-700 font-semibold block text-lg">
+                      City *
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter your city"
+                      className={`mt-2 ${inputClass}`}
+                    />
+                  </div>
+
+                  {/* ZIP / PIN Code Field */}
+                  <div>
+                    <label className="text-green-700 font-semibold block text-lg">
+                      ZIP / PIN Code *
+                    </label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={formData.zipCode}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter ZIP or PIN code"
+                      maxLength={10}
+                      className={`mt-2 ${inputClass}`}
+                    />
+                  </div>
+
                 </div>
 
                 {/* Comment Section */}
@@ -288,17 +342,17 @@ const WhistleBlowerButton = () => {
                       submitting || fileError ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
-                    <svg 
-                      className="w-5 h-5" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                       />
                     </svg>
                     {submitting ? 'Submitting...' : 'Submit Application'}

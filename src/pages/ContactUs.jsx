@@ -85,27 +85,21 @@ const LOCATIONS = [
 
 // ─── Security helpers ──────────────────────────────────────────────────────────
 
-/**
- * sanitizeLive — used on every keystroke.
- * Strips HTML tags and XSS characters but does NOT trim,
- * so spaces typed mid-sentence are preserved while the user types.
- */
 const sanitizeLive = (str) =>
   String(str)
-    .replace(/<[^>]*>/g, '')           // strip HTML tags
-    .replace(/[<>"'`]/g, '')           // strip XSS chars
-    .slice(0, 1000);                   // hard length cap
+    .replace(/<[^>]*>/g, '')
+    .replace(/[<>"'`]/g, '')
+    .slice(0, 1000);
 
-/**
- * sanitize — used only on the final submit payload.
- * Same as above but also trims leading/trailing whitespace.
- */
 const sanitize = (str) =>
   String(str)
     .replace(/<[^>]*>/g, '')
     .replace(/[<>"'`]/g, '')
     .trim()
     .slice(0, 1000);
+
+const sanitizeZipLive = (str) =>
+  String(str).replace(/[^\d]/g, '').slice(0, 10);
 
 /** Validate E.164-ish phone: digits, spaces, +, -, () only; 7–15 digits total */
 const isValidPhone = (val) => /^[+\d][\d\s\-().]{6,19}$/.test(val.trim());
@@ -315,6 +309,8 @@ const INITIAL_FORM = {
   email: '',
   subject: '',
   phone: '',
+  city: '',
+  zipCode: '',
   natureOfBusiness: BUSINESS_OPTIONS[0],
   message: '',
   _honey: '', // honeypot — must remain empty
@@ -366,6 +362,11 @@ export default function ContactPage() {
     if (!d.subject.trim()) e.subject = 'Subject is required';
     else if (d.subject.trim().length < 3) e.subject = 'Subject too short';
 
+    if (!d.city.trim()) e.city = 'City is required';
+
+    if (!d.zipCode.trim()) e.zipCode = 'ZIP / PIN code is required';
+    else if (d.zipCode.trim().length < 4) e.zipCode = 'Enter a valid ZIP / PIN code';
+
     if (d.natureOfBusiness === BUSINESS_OPTIONS[0])
       e.natureOfBusiness = 'Please select a business type';
 
@@ -375,15 +376,13 @@ export default function ContactPage() {
     return e;
   }, [formData]);
 
-  // ── Input handler with live sanitization (no trim) ──
-  const handleChange = useCallback(
-    (e) => {
-      const { name, value } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: sanitizeLive(value) })); // ✅ sanitizeLive preserves spaces
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    },
-    []
-  );
+  // ── Input handler with live sanitization ──
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    const sanitized = name === 'zipCode' ? sanitizeZipLive(value) : sanitizeLive(value);
+    setFormData((prev) => ({ ...prev, [name]: sanitized }));
+    setErrors((prev) => ({ ...prev, [name]: '' }));
+  }, []);
 
   // ── Submit handler ──
   const handleSubmit = async (e) => {
@@ -413,7 +412,7 @@ export default function ContactPage() {
     // Build clean payload — exclude honeypot, apply trim sanitize on submit
     const { _honey, ...payload } = formData;
     const cleanPayload = Object.fromEntries(
-      Object.entries(payload).map(([k, v]) => [k, sanitize(v)]) // ✅ sanitize (with trim) only on submit
+      Object.entries(payload).map(([k, v]) => [k, sanitize(v)])
     );
 
     try {
@@ -421,12 +420,10 @@ export default function ContactPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Forward CSRF token if your backend uses one:
-          // 'X-CSRF-Token': getCsrfToken(),
         },
         credentials: 'same-origin',
         body: JSON.stringify(cleanPayload),
-        signal: AbortSignal.timeout(15000), // 15s timeout
+        signal: AbortSignal.timeout(15000),
       });
 
       if (!res.ok) {
@@ -514,7 +511,6 @@ export default function ContactPage() {
         style={{ backgroundImage: `url(${contactusbanner})` }}
         aria-label="Contact us hero banner"
       >
-        {/* Content */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
             Contact Us
@@ -740,6 +736,52 @@ export default function ContactPage() {
                         </svg>
                       </div>
                       <FieldError msg={errors.natureOfBusiness} />
+                    </div>
+                  </div>
+
+                  {/* City + ZIP */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-1">
+                      <label htmlFor="city" className="block text-sm font-semibold text-gray-700">
+                        City <span aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="city"
+                        type="text"
+                        name="city"
+                        placeholder="Enter your city"
+                        autoComplete="address-level2"
+                        disabled={isSubmitting}
+                        aria-required="true"
+                        aria-invalid={!!errors.city}
+                        className={fieldClass('city')}
+                        value={formData.city}
+                        onChange={handleChange}
+                        maxLength={100}
+                      />
+                      <FieldError msg={errors.city} />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label htmlFor="zipCode" className="block text-sm font-semibold text-gray-700">
+                        ZIP / PIN Code <span aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="zipCode"
+                        type="text"
+                        name="zipCode"
+                        inputMode="numeric"
+                        placeholder="e.g. 492001"
+                        autoComplete="postal-code"
+                        disabled={isSubmitting}
+                        aria-required="true"
+                        aria-invalid={!!errors.zipCode}
+                        className={fieldClass('zipCode')}
+                        value={formData.zipCode}
+                        onChange={handleChange}
+                        maxLength={10}
+                      />
+                      <FieldError msg={errors.zipCode} />
                     </div>
                   </div>
 

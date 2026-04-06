@@ -24,6 +24,9 @@ const sanitizeEmail = (v) =>
 const sanitizeCode = (v) =>
   v.replace(/[^a-zA-Z0-9\-\/\s]/g, "").slice(0, 100);
 
+const sanitizeZip = (v) =>
+  v.replace(/[^\d]/g, "").slice(0, 10);
+
 const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 const isValidPhone  = (p) => /^[+]?[\d\s\-().]{7,20}$/.test(p.trim());
 
@@ -49,6 +52,7 @@ const checkMagicBytes = (file) =>
 const sanitizerFor = (name) => {
   if (name === "email") return sanitizeEmail;
   if (name === "phone") return sanitizePhone;
+  if (name === "zipCode") return sanitizeZip;
   if (["serialNumber", "invoiceNumber", "doaAuthCode"].includes(name)) return sanitizeCode;
   return sanitizeText;
 };
@@ -96,7 +100,7 @@ const inputBase =
 
 const emptyForm = {
   firstName: "", lastName: "", email: "", phone: "",
-  address: "", productType: "", purchaseDate: "",
+  address: "", city: "", zipCode: "", productType: "", purchaseDate: "",
   warrantyYear: "", serialNumber: "", invoiceNumber: "", doaAuthCode: "",
 };
 
@@ -182,15 +186,17 @@ const RequestDOA = () => {
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
-    if (!form.firstName.trim())                          e.firstName    = "First name is required.";
-    if (!isValidEmail(form.email))                       e.email        = "Enter a valid email address.";
-    if (!isValidPhone(form.phone))                       e.phone        = "Enter a valid phone number.";
-    if (!form.address.trim() || form.address.length < 10) e.address     = "Please enter a complete address.";
-    if (!form.productType)                               e.productType  = "Select a product type.";
-    if (!form.warrantyYear)                              e.warrantyYear = "Select warranty period.";
-    if (!form.serialNumber.trim())                       e.serialNumber = "Serial number is required.";
-    if (!form.invoiceNumber.trim())                      e.invoiceNumber= "Invoice number is required.";
-    if (!form.doaAuthCode.trim())                        e.doaAuthCode  = "DOA authorization code is required.";
+    if (!form.firstName.trim())                           e.firstName    = "First name is required.";
+    if (!isValidEmail(form.email))                        e.email        = "Enter a valid email address.";
+    if (!isValidPhone(form.phone))                        e.phone        = "Enter a valid phone number.";
+    if (!form.address.trim() || form.address.length < 10) e.address      = "Please enter a complete address.";
+    if (!form.city.trim())                                e.city         = "City is required.";
+    if (!form.zipCode.trim() || form.zipCode.length < 4)  e.zipCode      = "Enter a valid ZIP / PIN code.";
+    if (!form.productType)                                e.productType  = "Select a product type.";
+    if (!form.warrantyYear)                               e.warrantyYear = "Select warranty period.";
+    if (!form.serialNumber.trim())                        e.serialNumber = "Serial number is required.";
+    if (!form.invoiceNumber.trim())                       e.invoiceNumber= "Invoice number is required.";
+    if (!form.doaAuthCode.trim())                         e.doaAuthCode  = "DOA authorization code is required.";
     return e;
   };
 
@@ -303,13 +309,12 @@ const RequestDOA = () => {
 
         {/* ── Hero Banner ──────────────────────────────────────────────────── */}
         <header
-         className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
-           style={{
-             backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${rdoabanner})`
-           }}
+          className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${rdoabanner})`
+          }}
           aria-label="Request DOA hero banner"
         >
-
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
               Request DOA
@@ -511,11 +516,44 @@ const RequestDOA = () => {
                           id="address" name="address"
                           value={form.address} onChange={handleChange}
                           className={inputClass("address")}
-                          placeholder="Enter your full address"
+                          placeholder="House / Flat no., Street, Area"
                           autoComplete="street-address"
                           required aria-required="true"
                         />
                         {fieldError("address")}
+                      </div>
+
+                      {/* City */}
+                      <div>
+                        <label htmlFor="city" className="block text-slate-700 font-medium mb-1">
+                          City <span aria-hidden="true" className="text-red-500">*</span>
+                        </label>
+                        <input
+                          id="city" name="city"
+                          value={form.city} onChange={handleChange}
+                          className={inputClass("city")}
+                          placeholder="Enter city"
+                          autoComplete="address-level2"
+                          required aria-required="true"
+                        />
+                        {fieldError("city")}
+                      </div>
+
+                      {/* ZIP / PIN Code */}
+                      <div>
+                        <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-1">
+                          ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                        </label>
+                        <input
+                          id="zipCode" name="zipCode"
+                          type="text" inputMode="numeric"
+                          value={form.zipCode} onChange={handleChange}
+                          className={inputClass("zipCode")}
+                          placeholder="e.g. 492001"
+                          autoComplete="postal-code"
+                          required aria-required="true"
+                        />
+                        {fieldError("zipCode")}
                       </div>
 
                       {/* Product Type */}
