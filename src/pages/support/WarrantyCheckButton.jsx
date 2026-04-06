@@ -3,7 +3,7 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { X, UploadCloud, Send } from "lucide-react";
 import bg from "../../assets/bg.jpg";
-import warrantybanner from '../../assets/WarrantyBanner.jpeg'
+import warrantybanner from '../../assets/WarrantyBanner.avif'
 
 
 const WarrantyCheckButton = () => {

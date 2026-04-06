@@ -7,7 +7,7 @@ import {
   UploadCloud, Mail, Phone, MapPin, Hash, Send, X,
 } from "lucide-react";
 import bg from "../../assets/bg.jpg";
-import rdoabanner from "../../assets/RequestDOABanner.jpeg";
+import rdoabanner from "../../assets/RequestDOABanner.avif";
 
 // ─── Security Helpers ────────────────────────────────────────────────────────
 

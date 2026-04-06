@@ -4,7 +4,7 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import { X, UploadCloud, Plus } from 'lucide-react';
 import bg from '../../assets/bg.jpg';
-import wrbanner from '../../assets/WarrantyRegisterBanner.jpeg';
+import wrbanner from '../../assets/WarrantyRegisterBanner.avif';
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia",
