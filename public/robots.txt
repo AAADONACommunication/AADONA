@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.aadona.online/sitemap.xml
+Sitemap: https://www.aadona.co.in/sitemap.xml

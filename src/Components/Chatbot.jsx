@@ -32,7 +32,7 @@ function getTime() {
 // ─── Product Card ──────────────────────────────────────────────────────────
 function ProductCard({ product }) {
   if (!product) return null;
-  const url = product.url || `https://aadona.online/${(product.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${product.slug}`;
+  const url = product.url || `https://aadona.co.in/${(product.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${product.slug}`;
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif" }} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden w-[180px] flex-shrink-0">
       {product.image ? (

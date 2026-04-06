@@ -286,6 +286,8 @@ const verifyToken = async (req, res, next) => {
 app.use(
   cors({
     origin: [
+      "https://aadona.co.in",
+      "https://www.aadona.co.in",
       "https://aadona.com",
       "https://www.aadona.com",
       "https://aadona.online",
