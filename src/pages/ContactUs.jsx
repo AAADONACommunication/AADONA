@@ -517,7 +517,7 @@ export default function ContactPage() {
         {/* Content */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
-            Contact AADONA
+            Contact Us
           </h1>
           <p className="mt-6 text-md text-white max-w-3xl mx-auto">
             We're here to help! Get in touch with our team
