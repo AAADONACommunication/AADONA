@@ -328,4 +328,4 @@ const WarrantyCheckButton = () => {
   );
 };
 
-export default WarrantyCheckButton;
+export default WarrantyCheckButton; /* */
