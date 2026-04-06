@@ -593,14 +593,14 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-                        Email <span aria-hidden="true">*</span>
+                        Email<span aria-hidden="true" className="text-red-500">*</span>
                         <span className="sr-only">(required)</span>
                       </label>
                       <input
                         id="email"
                         type="email"
                         name="email"
-                        placeholder="email@example.com"
+                        placeholder="Enter your email"
                         autoComplete="email"
                         disabled={isSubmitting}
                         aria-required="true"
@@ -616,7 +616,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="subject" className="block text-sm font-semibold text-gray-700">
-                        Subject <span aria-hidden="true">*</span>
+                        Subject<span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <input
                         id="subject"
@@ -640,7 +640,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700">
-                        First name <span aria-hidden="true">*</span>
+                        First name<span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <input
                         id="firstName"
@@ -661,7 +661,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700">
-                        Last name <span aria-hidden="true">*</span>
+                        Last name
                       </label>
                       <input
                         id="lastName"
@@ -685,7 +685,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="phone" className="block text-sm font-semibold text-gray-700">
-                        Phone <span aria-hidden="true">*</span>
+                        Phone<span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <input
                         id="phone"
@@ -706,7 +706,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="natureOfBusiness" className="block text-sm font-semibold text-gray-700">
-                        Nature of Business <span aria-hidden="true">*</span>
+                        Nature of Business<span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <select
@@ -743,13 +743,13 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="city" className="block text-sm font-semibold text-gray-700">
-                        City <span aria-hidden="true">*</span>
+                        City<span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <input
                         id="city"
                         type="text"
                         name="city"
-                        placeholder="Enter your city"
+                        placeholder="Enter city"
                         autoComplete="address-level2"
                         disabled={isSubmitting}
                         aria-required="true"
@@ -764,14 +764,14 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="zipCode" className="block text-sm font-semibold text-gray-700">
-                        ZIP / PIN Code <span aria-hidden="true">*</span>
+                        ZIP / PIN Code<span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <input
                         id="zipCode"
                         type="text"
                         name="zipCode"
                         inputMode="numeric"
-                        placeholder="e.g. 492001"
+                        placeholder="Enter your postal or zip code"
                         autoComplete="postal-code"
                         disabled={isSubmitting}
                         aria-required="true"
@@ -788,7 +788,7 @@ export default function ContactPage() {
                   {/* Message */}
                   <div className="mb-8 space-y-1">
                     <label htmlFor="message" className="block text-sm font-semibold text-gray-700">
-                      Your message <span aria-hidden="true">*</span>
+                      Your message<span aria-hidden="true" className="text-red-500">*</span>
                     </label>
                     <textarea
                       id="message"

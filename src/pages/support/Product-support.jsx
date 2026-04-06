@@ -271,8 +271,7 @@ const ProductSupport = () => {
                           htmlFor="productModel"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Product Model{" "}
-                          <span aria-hidden="true" className="text-red-500">*</span>
+                          Product Model<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="productModel"
@@ -299,8 +298,7 @@ const ProductSupport = () => {
                           htmlFor="email"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Email{" "}
-                          <span aria-hidden="true" className="text-red-500">*</span>
+                          Email<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="email"
@@ -308,7 +306,7 @@ const ProductSupport = () => {
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
-                          placeholder="you@example.com"
+                          placeholder="Enter your email"
                           className={inputClass(errors.email)}
                           required
                           aria-required="true"
@@ -328,7 +326,7 @@ const ProductSupport = () => {
                           htmlFor="phone"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Phone
+                          Phone<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="phone"
@@ -336,7 +334,7 @@ const ProductSupport = () => {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          placeholder="+91 98765 43210"
+                          placeholder="Enter your phone number"
                           className={inputClass(errors.phone)}
                           autoComplete="tel"
                           aria-describedby={errors.phone ? "err-phone" : undefined}
@@ -355,7 +353,7 @@ const ProductSupport = () => {
                         htmlFor="details"
                         className="block text-sm font-medium text-gray-700 mb-2"
                       >
-                        Describe Your Issue or Question{" "}
+                        Describe Your Issue or Question
                         <span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <textarea

@@ -445,13 +445,13 @@ const RequestDOA = () => {
                       {/* First Name */}
                       <div>
                         <label htmlFor="firstName" className="block text-slate-700 font-medium mb-1">
-                          First Name <span aria-hidden="true" className="text-red-500">*</span>
+                          First Name<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="firstName" name="firstName"
                           value={form.firstName} onChange={handleChange}
                           className={inputClass("firstName")}
-                          placeholder="First name"
+                          placeholder="Enter first name"
                           autoComplete="given-name"
                           required aria-required="true"
                         />
@@ -467,7 +467,7 @@ const RequestDOA = () => {
                           id="lastName" name="lastName"
                           value={form.lastName} onChange={handleChange}
                           className={inputBase}
-                          placeholder="Last name"
+                          placeholder="Enter last name"
                           autoComplete="family-name"
                         />
                       </div>
@@ -476,13 +476,13 @@ const RequestDOA = () => {
                       <div>
                         <label htmlFor="email" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
                           <Mail className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Email <span aria-hidden="true" className="text-red-500">*</span>
+                          Email<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="email" type="email" name="email"
                           value={form.email} onChange={handleChange}
                           className={inputClass("email")}
-                          placeholder="e.g., email@example.com"
+                          placeholder="Enter your email"
                           autoComplete="email"
                           required aria-required="true"
                         />
@@ -493,13 +493,13 @@ const RequestDOA = () => {
                       <div>
                         <label htmlFor="phone" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
                           <Phone className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Phone <span aria-hidden="true" className="text-red-500">*</span>
+                          Phone<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="phone" name="phone" type="tel"
                           value={form.phone} onChange={handleChange}
                           className={inputClass("phone")}
-                          placeholder="+91 98765 43210"
+                          placeholder="Enter your phone number"
                           autoComplete="tel"
                           required aria-required="true"
                         />
@@ -516,7 +516,7 @@ const RequestDOA = () => {
                           id="address" name="address"
                           value={form.address} onChange={handleChange}
                           className={inputClass("address")}
-                          placeholder="House / Flat no., Street, Area"
+                          placeholder="Enter street address, building, etc."
                           autoComplete="street-address"
                           required aria-required="true"
                         />
@@ -526,7 +526,7 @@ const RequestDOA = () => {
                       {/* City */}
                       <div>
                         <label htmlFor="city" className="block text-slate-700 font-medium mb-1">
-                          City <span aria-hidden="true" className="text-red-500">*</span>
+                          City<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="city" name="city"
@@ -542,14 +542,14 @@ const RequestDOA = () => {
                       {/* ZIP / PIN Code */}
                       <div>
                         <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-1">
-                          ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                          Postal / Zip code<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="zipCode" name="zipCode"
                           type="text" inputMode="numeric"
                           value={form.zipCode} onChange={handleChange}
                           className={inputClass("zipCode")}
-                          placeholder="e.g. 492001"
+                          placeholder="Enter postal or zip code"
                           autoComplete="postal-code"
                           required aria-required="true"
                         />
@@ -559,7 +559,7 @@ const RequestDOA = () => {
                       {/* Product Type */}
                       <div>
                         <label htmlFor="productType" className="block text-slate-700 font-medium mb-1">
-                          Product Type <span aria-hidden="true" className="text-red-500">*</span>
+                          Product Type<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <select
                           id="productType" name="productType"
@@ -579,7 +579,7 @@ const RequestDOA = () => {
                       {/* Purchase Date */}
                       <div>
                         <label htmlFor="purchaseDate" className="block text-slate-700 font-medium mb-1">
-                          Purchase Date
+                          Purchase Date<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="purchaseDate" type="date" name="purchaseDate"
@@ -592,7 +592,7 @@ const RequestDOA = () => {
                       {/* Warranty Year */}
                       <div>
                         <label htmlFor="warrantyYear" className="block text-slate-700 font-medium mb-1">
-                          Warranty Period <span aria-hidden="true" className="text-red-500">*</span>
+                          Warranty Period<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <select
                           id="warrantyYear" name="warrantyYear"
@@ -613,7 +613,7 @@ const RequestDOA = () => {
                       <div>
                         <label htmlFor="serialNumber" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
                           <Hash className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Serial Number <span aria-hidden="true" className="text-red-500">*</span>
+                          Serial Number<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="serialNumber" name="serialNumber"
@@ -628,7 +628,7 @@ const RequestDOA = () => {
                       {/* Invoice Number */}
                       <div>
                         <label htmlFor="invoiceNumber" className="block text-slate-700 font-medium mb-1">
-                          Invoice Number <span aria-hidden="true" className="text-red-500">*</span>
+                          Invoice Number<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="invoiceNumber" name="invoiceNumber"
@@ -643,7 +643,7 @@ const RequestDOA = () => {
                       {/* DOA Auth Code */}
                       <div>
                         <label htmlFor="doaAuthCode" className="block text-slate-700 font-medium mb-1">
-                          DOA Authorization Code <span aria-hidden="true" className="text-red-500">*</span>
+                          DOA Authorization Code<span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="doaAuthCode" name="doaAuthCode"
@@ -660,6 +660,7 @@ const RequestDOA = () => {
                         <label htmlFor="invoiceFile" className="block text-slate-700 font-medium mb-1">
                           Upload Invoice{" "}
                           <span className="text-slate-400 font-normal">(Max 15 MB)</span>
+                          <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <div
                           className={`relative flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition ${

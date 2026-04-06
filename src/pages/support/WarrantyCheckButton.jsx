@@ -163,7 +163,7 @@ const WarrantyCheckButton = () => {
                   <div className="grid md:grid-cols-3 gap-5">
                     <div>
                       <label className={labelClass}>
-                        Serial Number <span className="text-red-500">*</span>
+                        Serial Number<span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -177,7 +177,7 @@ const WarrantyCheckButton = () => {
                     </div>
                     <div>
                       <label className={labelClass}>
-                        Purchase Date <span className="text-red-500">*</span>
+                        Purchase Date<span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
@@ -208,7 +208,7 @@ const WarrantyCheckButton = () => {
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
                       <label className={labelClass}>
-                        Email <span className="text-red-500">*</span>
+                        Email<span className="text-red-500">*</span>
                       </label>
                       <input
                         type="email"
@@ -223,20 +223,20 @@ const WarrantyCheckButton = () => {
                     </div>
                     <div>
                       <label className={labelClass}>
-                        Phone <span className="text-red-500">*</span>
+                        Phone<span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
                         name="phone"
                         value={form.phone}
                         onChange={handleChange}
-                        placeholder="Mobile number"
+                        placeholder="Enter your phone number"
                         autoComplete="tel"
                         className={inputClass}
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>City <span className="text-red-500">*</span></label>
+                      <label className={labelClass}>City<span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="city"
@@ -248,13 +248,13 @@ const WarrantyCheckButton = () => {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>ZIP / PIN Code <span className="text-red-500">*</span></label>
+                      <label className={labelClass}>Postal / Zip code<span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="zipCode"
                         value={form.zipCode}
                         onChange={handleChange}
-                        placeholder="e.g. 492001"
+                        placeholder="Enter postal or zip code"
                         inputMode="numeric"
                         autoComplete="postal-code"
                         className={inputClass}
@@ -265,7 +265,7 @@ const WarrantyCheckButton = () => {
 
                 {/* ── Section 3: Invoice Upload ── */}
                 <div>
-                  <SectionHeading>Invoice Upload<span className="text-red-500">*</span></SectionHeading>
+                  <SectionHeading>Upload invoice<span className="text-red-500">*</span></SectionHeading>
                   <div
                     className={`relative flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition-all ${
                       fileError ? 'border-red-400 bg-red-50' : 'border-green-300 hover:border-green-500'

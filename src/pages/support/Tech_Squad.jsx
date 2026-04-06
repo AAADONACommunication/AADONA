@@ -486,7 +486,7 @@ const TechSquad = () => {
                         {/* First Name */}
                         <div>
                           <label htmlFor="firstName" className="block text-slate-700 font-medium mb-1">
-                            First Name <span aria-hidden="true" className="text-red-500">*</span>
+                            First Name<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <input
                             id="firstName"
@@ -523,7 +523,7 @@ const TechSquad = () => {
                         <div>
                           <label htmlFor="email" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
                             <Mail className="w-4 h-4 text-green-600" aria-hidden="true" />
-                            Email <span aria-hidden="true" className="text-red-500">*</span>
+                            Email<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <input
                             id="email"
@@ -532,7 +532,7 @@ const TechSquad = () => {
                             value={form.email}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.email ? "border-red-400" : ""}`}
-                            placeholder="you@example.com"
+                            placeholder="Enter your email"
                             autoComplete="email"
                             required
                             aria-required="true"
@@ -544,7 +544,7 @@ const TechSquad = () => {
                         <div>
                           <label htmlFor="phone" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
                             <Phone className="w-4 h-4 text-green-600" aria-hidden="true" />
-                            Phone <span aria-hidden="true" className="text-red-500">*</span>
+                            Phone<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <input
                             id="phone"
@@ -553,7 +553,7 @@ const TechSquad = () => {
                             value={form.phone}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.phone ? "border-red-400" : ""}`}
-                            placeholder="+91 98765 43210"
+                            placeholder="Enter your phone number"
                             autoComplete="tel"
                             required
                             aria-required="true"
@@ -565,7 +565,7 @@ const TechSquad = () => {
                         <div className="md:col-span-2">
                           <label htmlFor="address" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-green-600" aria-hidden="true" />
-                            Address <span aria-hidden="true" className="text-red-500">*</span>
+                            Address<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <input
                             id="address"
@@ -573,7 +573,7 @@ const TechSquad = () => {
                             value={form.address}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.address ? "border-red-400" : ""}`}
-                            placeholder="House / Flat no., Street, Area"
+                            placeholder="Enter street address, building, etc."
                             autoComplete="street-address"
                             required
                             aria-required="true"
@@ -584,7 +584,7 @@ const TechSquad = () => {
                         {/* City */}
                         <div>
                           <label htmlFor="city" className="block text-slate-700 font-medium mb-1">
-                            City <span aria-hidden="true" className="text-red-500">*</span>
+                            City<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <input
                             id="city"
@@ -603,7 +603,7 @@ const TechSquad = () => {
                         {/* ZIP / PIN Code */}
                         <div>
                           <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-1">
-                            ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                            Postal / Zip code<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <input
                             id="zipCode"
@@ -613,7 +613,7 @@ const TechSquad = () => {
                             value={form.zipCode}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.zipCode ? "border-red-400" : ""}`}
-                            placeholder="e.g. 492001"
+                            placeholder="Enter postal or zip code"
                             autoComplete="postal-code"
                             required
                             aria-required="true"
@@ -624,7 +624,7 @@ const TechSquad = () => {
                         {/* Purchase Date */}
                         <div>
                           <label htmlFor="purchaseDate" className="block text-slate-700 font-medium mb-1">
-                            Purchase Date
+                            Purchase Date<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <input
                             id="purchaseDate"
@@ -640,7 +640,7 @@ const TechSquad = () => {
                         {/* Service Type */}
                         <div>
                           <label htmlFor="serviceType" className="block text-slate-700 font-medium mb-1">
-                            Service Type <span aria-hidden="true" className="text-red-500">*</span>
+                            Service Type<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <select
                             id="serviceType"
@@ -669,6 +669,7 @@ const TechSquad = () => {
                           >
                             Upload Invoice / Evidence{" "}
                             <span className="text-slate-400 font-normal">(Max 15 MB)</span>
+                            <span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <div
                             className={`relative flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition ${
@@ -721,7 +722,7 @@ const TechSquad = () => {
                         {/* Issue Description */}
                         <div className="md:col-span-2">
                           <label htmlFor="issue" className="block text-slate-700 font-medium mb-1">
-                            Describe the Issue <span aria-hidden="true" className="text-red-500">*</span>
+                            Describe the Issue<span aria-hidden="true" className="text-red-500">*</span>
                           </label>
                           <textarea
                             id="issue"

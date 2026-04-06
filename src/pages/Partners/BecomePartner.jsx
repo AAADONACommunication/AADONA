@@ -481,7 +481,7 @@ export default function BecomePartner() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      <InputField id="postalZip" name="postalZip" label="Postal / Zip Code" value={form.postalZip} autoComplete="postal-code" inputMode="numeric" placeholder="Postal / Zip code" {...sharedProps} maxLength={12} />
+                      <InputField id="postalZip" name="postalZip" label="Postal / Zip Code" value={form.postalZip} autoComplete="postal-code" inputMode="numeric" placeholder="Enter postal or zip code" {...sharedProps} maxLength={12} />
                       <div className="flex flex-col">
                         <label htmlFor="country" className="text-sm text-gray-600 mb-2 font-normal">
                           Country <span className="text-red-500 ml-1" aria-hidden="true">*</span>

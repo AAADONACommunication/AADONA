@@ -74,7 +74,7 @@ const ApplyNow = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Strict validation for 10 digit phone number
+    // Strict validation for 10 digit phone number
     if (form.phone.length !== 10) {
       alert("Please enter a valid 10-digit phone number.");
       return;
@@ -182,7 +182,7 @@ const ApplyNow = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    First name
+                    First name<span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -212,7 +212,7 @@ const ApplyNow = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
+                  Email<span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -227,14 +227,14 @@ const ApplyNow = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone (10 digits)
+                  Phone<span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
-                  placeholder="Enter 10-digit number"
+                  placeholder="Enter your phone number"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-green-300 focus:border-green-500"
                 />
@@ -242,7 +242,7 @@ const ApplyNow = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Resume
+                  Upload Resume<span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="flex flex-col items-center justify-center px-6 py-6 border-2 border-dashed rounded-xl hover:border-green-500 bg-white/90 transition">
                   <svg className="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
