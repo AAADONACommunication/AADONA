@@ -2253,7 +2253,7 @@ app.post("/submit-warranty", formLimiter, upload.single("invoiceFile"), async (r
   }
 });
 
-app.post("/submit-techsquad", formLimiter, upload.single("invoiceFile"), async (req, res) => {
+app.post("/submit-techsquad", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2262,12 +2262,11 @@ app.post("/submit-techsquad", formLimiter, upload.single("invoiceFile"), async (
       .json({ success: false, message: "Invalid email address. Please enter a real email." });
 
   try {
-    const attachmentUrl = await uploadToFirebase(req.file, "techsquad");
     await Inquiry.create({
       formType: "Tech Squad",
       customerName: `${form.firstName} ${form.lastName}`,
       customerEmail: form.email,
-      formData: { ...form, attachmentUrl },
+      formData: { ...form },
     });
 
     const mailOptions = {
@@ -2287,14 +2286,9 @@ app.post("/submit-techsquad", formLimiter, upload.single("invoiceFile"), async (
           <tr style="background:#f0fdf4"><td><b>Purchase Date</b></td><td>${form.purchaseDate || "-"}</td></tr>
           <tr><td><b>Service Type</b></td><td>${form.serviceType || "-"}</td></tr>
           <tr style="background:#f0fdf4"><td><b>Issue Description</b></td><td>${form.issue || "-"}</td></tr>
-          ${attachmentUrl ? `<tr><td><b>Uploaded File</b></td><td><a href="${attachmentUrl}">View File</a></td></tr>` : ""}
         </table>
       `,
     };
-    if (req.file)
-      mailOptions.attachments = [
-        { filename: req.file.originalname, content: req.file.buffer },
-      ];
 
     await transporter.sendMail(mailOptions);
     res.json({ success: true, message: "Tech Squad request submitted successfully" });
@@ -2341,6 +2335,7 @@ app.post("/submit-doa", formLimiter, upload.single("invoiceFile"), async (req, r
           <tr><td><b>Serial Number</b></td><td>${form.serialNumber || "-"}</td></tr>
           <tr style="background:#f0fdf4"><td><b>Invoice Number</b></td><td>${form.invoiceNumber || "-"}</td></tr>
           <tr><td><b>DOA Auth Code</b></td><td>${form.doaAuthCode || "-"}</td></tr>
+          <tr><td><b>Issue Description</b></td><td>${form.issue || "-"}</td></tr>
           ${attachmentUrl ? `<tr style="background:#f0fdf4"><td><b>Invoice File</b></td><td><a href="${attachmentUrl}">View Uploaded Invoice</a></td></tr>` : ""}
         </table>
       `,
@@ -2369,22 +2364,26 @@ app.post("/submit-product-support", formLimiter, async (req, res) => {
   try {
     await Inquiry.create({
       formType: "Product Support",
-      customerName: form.email,
+      customerName: form.name,
       customerEmail: form.email,
       formData: form,
     });
 
     await transporter.sendMail({
-      from: `"${form.productModel} - Support" <${process.env.EMAIL_USER}>`,
+      from: `"${form.name}" <${process.env.EMAIL_USER}>`,
       replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Product Support Request - ${form.productModel || "Unknown"}`,
       html: `
         <h2 style="color:#166534">New Product Support Request</h2>
         <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif">
+          <tr style="background:#f0fdf4"><td><b>Name</b></td><td>${form.name || "-"}</td></tr>
+          <tr><td><b>Company Name</b></td><td>${form.companyName || "-"}</td></tr>
           <tr style="background:#f0fdf4"><td><b>Product Model</b></td><td>${form.productModel || "-"}</td></tr>
           <tr><td><b>Email</b></td><td>${form.email}</td></tr>
           <tr style="background:#f0fdf4"><td><b>Phone</b></td><td>${form.phone || "-"}</td></tr>
+          <tr><td><b>City</b></td><td>${form.city || "-"}</td></tr>
+          <tr style="background:#f0fdf4"><td><b>ZIP / PIN Code</b></td><td>${form.zipCode || "-"}</td></tr>
           <tr><td><b>Issue / Question</b></td><td>${form.details || "-"}</td></tr>
         </table>
       `,

@@ -182,7 +182,7 @@ const WhistleBlowerButton = () => {
                 {/* Name Field */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Name<span aria-hidden="true" className="text-red-500">*</span>
+                    Name <span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -198,7 +198,7 @@ const WhistleBlowerButton = () => {
                 {/* Telephone Field */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Telephone<span aria-hidden="true" className="text-red-500">*</span>
+                    Telephone <span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -214,7 +214,7 @@ const WhistleBlowerButton = () => {
                 {/* Email Field */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Email<span aria-hidden="true" className="text-red-500">*</span>
+                    Email <span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -233,7 +233,7 @@ const WhistleBlowerButton = () => {
                   {/* City Field */}
                   <div>
                     <label className="text-green-700 font-semibold block text-lg">
-                      City<span aria-hidden="true" className="text-red-500">*</span>
+                      City <span aria-hidden="true" className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -249,7 +249,7 @@ const WhistleBlowerButton = () => {
                   {/* ZIP / PIN Code Field */}
                   <div>
                     <label className="text-green-700 font-semibold block text-lg">
-                      ZIP / PIN Code<span aria-hidden="true" className="text-red-500">*</span>
+                      ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -268,7 +268,7 @@ const WhistleBlowerButton = () => {
                 {/* Comment Section */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Comment<span aria-hidden="true" className="text-red-500">*</span>
+                    Comment <span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="comment"

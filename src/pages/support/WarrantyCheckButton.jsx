@@ -163,7 +163,7 @@ const WarrantyCheckButton = () => {
                   <div className="grid md:grid-cols-3 gap-5">
                     <div>
                       <label className={labelClass}>
-                        Serial Number<span className="text-red-500">*</span>
+                        Serial Number <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -177,7 +177,7 @@ const WarrantyCheckButton = () => {
                     </div>
                     <div>
                       <label className={labelClass}>
-                        Purchase Date<span className="text-red-500">*</span>
+                        Purchase Date <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
@@ -189,7 +189,7 @@ const WarrantyCheckButton = () => {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>Place of Purchase<span className="text-red-500">*</span></label>
+                      <label className={labelClass}>Place of Purchase <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="placeOfPurchase"
@@ -208,7 +208,7 @@ const WarrantyCheckButton = () => {
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
                       <label className={labelClass}>
-                        Email<span className="text-red-500">*</span>
+                        Email <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="email"
@@ -223,7 +223,7 @@ const WarrantyCheckButton = () => {
                     </div>
                     <div>
                       <label className={labelClass}>
-                        Phone<span className="text-red-500">*</span>
+                        Phone <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -236,7 +236,7 @@ const WarrantyCheckButton = () => {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>City<span className="text-red-500">*</span></label>
+                      <label className={labelClass}>City <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="city"
@@ -248,7 +248,7 @@ const WarrantyCheckButton = () => {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>Postal / Zip code<span className="text-red-500">*</span></label>
+                      <label className={labelClass}>Postal / Zip code <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         name="zipCode"

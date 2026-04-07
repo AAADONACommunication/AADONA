@@ -302,7 +302,7 @@ const ProductSupport = () => {
                           name="name"
                           value={formData.name}
                           onChange={handleChange}
-                          placeholder="John Doe"
+                          placeholder="Enter your name"
                           className={inputClass(errors.name)}
                           required
                           aria-required="true"
@@ -322,7 +322,7 @@ const ProductSupport = () => {
                           htmlFor="companyName"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Company Name
+                          Company Name <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="companyName"
@@ -330,7 +330,7 @@ const ProductSupport = () => {
                           name="companyName"
                           value={formData.companyName}
                           onChange={handleChange}
-                          placeholder="ACME Pvt. Ltd. (optional)"
+                          placeholder="Enter your company name"
                           className={inputClass(errors.companyName)}
                           autoComplete="organization"
                           aria-describedby={errors.companyName ? "err-companyName" : undefined}
@@ -352,7 +352,7 @@ const ProductSupport = () => {
                           htmlFor="productModel"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Product Model<span aria-hidden="true" className="text-red-500">*</span>
+                          Product Model <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="productModel"
@@ -379,7 +379,7 @@ const ProductSupport = () => {
                           htmlFor="email"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Email<span aria-hidden="true" className="text-red-500">*</span>
+                          Email <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="email"
@@ -407,7 +407,7 @@ const ProductSupport = () => {
                           htmlFor="phone"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Phone<span aria-hidden="true" className="text-red-500">*</span>
+                          Phone <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="phone"
@@ -466,7 +466,7 @@ const ProductSupport = () => {
                           htmlFor="zipCode"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          ZIP / PIN Code
+                          ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <input
                           id="zipCode"
@@ -474,7 +474,7 @@ const ProductSupport = () => {
                           name="zipCode"
                           value={formData.zipCode}
                           onChange={handleChange}
-                          placeholder="492001"
+                          placeholder="Enter postal or zip code"
                           className={inputClass(errors.zipCode)}
                           autoComplete="postal-code"
                           inputMode="numeric"
@@ -494,8 +494,7 @@ const ProductSupport = () => {
                         htmlFor="details"
                         className="block text-sm font-medium text-gray-700 mb-2"
                       >
-                        Describe Your Issue or Question
-                        <span aria-hidden="true" className="text-red-500">*</span>
+                        Describe Your Issue or Question <span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <textarea
                         id="details"

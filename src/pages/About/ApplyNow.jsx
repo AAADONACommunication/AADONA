@@ -182,7 +182,7 @@ const ApplyNow = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    First name<span aria-hidden="true" className="text-red-500">*</span>
+                    First name <span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -212,7 +212,7 @@ const ApplyNow = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email<span aria-hidden="true" className="text-red-500">*</span>
+                  Email <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -227,7 +227,7 @@ const ApplyNow = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone<span aria-hidden="true" className="text-red-500">*</span>
+                  Phone <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -242,7 +242,7 @@ const ApplyNow = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Resum<span aria-hidden="true" className="text-red-500">*</span>
+                  Upload Resume <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="flex flex-col items-center justify-center px-6 py-6 border-2 border-dashed rounded-xl hover:border-green-500 bg-white/90 transition">
                   <svg className="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">

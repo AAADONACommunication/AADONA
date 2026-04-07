@@ -335,7 +335,7 @@ const ProductRegistration = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">First Name<span aria-hidden="true" className="text-red-500">*</span></label>
+                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">First Name <span aria-hidden="true" className="text-red-500">*</span></label>
                       <input id="firstName" type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Enter your first name" autoComplete="given-name" maxLength={50} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
                     </div>
                     <div>
@@ -343,7 +343,7 @@ const ProductRegistration = () => {
                       <input id="lastName" type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Enter your last name" autoComplete="family-name" maxLength={50} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
                     </div>
                     <div>
-                      <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 mb-2">Date of Purchase<span className="text-red-500" aria-hidden="true">*</span></label>
+                      <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 mb-2">Date of Purchase <span className="text-red-500" aria-hidden="true">*</span></label>
                       <input id="purchaseDate" type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleChange} max={new Date().toISOString().split('T')[0]} aria-required="true"
                         className={`w-full px-4 py-3 rounded-lg border ${errors.purchaseDate ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
                       {errors.purchaseDate && <p className="mt-1 text-sm text-red-600" role="alert">{errors.purchaseDate}</p>}
@@ -352,13 +352,13 @@ const ProductRegistration = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email<span className="text-red-500" aria-hidden="true">*</span></label>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email <span className="text-red-500" aria-hidden="true">*</span></label>
                       <input id="email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" autoComplete="email" inputMode="email" maxLength={254} aria-required="true"
                         className={`w-full px-4 py-3 rounded-lg border ${errors.email ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
                       {errors.email && <p className="mt-1 text-sm text-red-600" role="alert">{errors.email}</p>}
                     </div>
                     <div>
-                      <label htmlFor="companyCity" className="block text-sm font-medium text-gray-700 mb-2">City<span aria-hidden="true" className="text-red-500">*</span></label>
+                      <label htmlFor="companyCity" className="block text-sm font-medium text-gray-700 mb-2">City <span aria-hidden="true" className="text-red-500">*</span></label>
                       <input id="companyCity" type="text" name="companyCity" value={formData.companyCity} onChange={handleChange} placeholder="Enter city" autoComplete="address-level2" maxLength={100} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
                     </div>
                     <div>
@@ -369,13 +369,13 @@ const ProductRegistration = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone<span aria-hidden="true" className="text-red-500">*</span></label>
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone <span aria-hidden="true" className="text-red-500">*</span></label>
                       <input id="phone" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter your phone number" autoComplete="tel-national" inputMode="numeric" maxLength={10}
                         className={`w-full px-4 py-3 rounded-lg border ${errors.phone ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
                       {errors.phone && <p className="mt-1 text-sm text-red-600" role="alert">{errors.phone}</p>}
                     </div>
                     <div>
-                      <label htmlFor="postalZipCode" className="block text-sm font-medium text-gray-700 mb-2">Postal / Zip code<span aria-hidden="true" className="text-red-500">*</span></label>
+                      <label htmlFor="postalZipCode" className="block text-sm font-medium text-gray-700 mb-2">Postal / Zip code <span aria-hidden="true" className="text-red-500">*</span></label>
                       <input id="postalZipCode" type="text" name="postalZipCode" value={formData.postalZipCode} onChange={handleChange} placeholder="Enter postal or zip code" autoComplete="postal-code" maxLength={10} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
                     </div>
                     <div>
@@ -389,7 +389,7 @@ const ProductRegistration = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <label htmlFor="models" className="block text-sm font-medium text-gray-700 mb-2">Model(s)<span className="text-red-500" aria-hidden="true">*</span></label>
+                      <label htmlFor="models" className="block text-sm font-medium text-gray-700 mb-2">Model(s) <span className="text-red-500" aria-hidden="true">*</span></label>
                       <div className="flex gap-2">
                         <input id="models" type="text" value={currentModel} onChange={e => setCurrentModel(e.target.value)} onKeyDown={e => handleAddItem(e, 'models', currentModel, setCurrentModel)} placeholder="Type model and press Enter" maxLength={100} aria-required="true"
                           className={`flex-1 px-4 py-3 rounded-lg border ${errors.models ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
@@ -408,7 +408,7 @@ const ProductRegistration = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="serialNumbers" className="block text-sm font-medium text-gray-700 mb-2">Serial Number(s)<span className="text-red-500" aria-hidden="true">*</span></label>
+                      <label htmlFor="serialNumbers" className="block text-sm font-medium text-gray-700 mb-2">Serial Number(s) <span className="text-red-500" aria-hidden="true">*</span></label>
                       <div className="flex gap-2">
                         <input id="serialNumbers" type="text" value={currentSerial} onChange={e => setCurrentSerial(e.target.value)} onKeyDown={e => handleAddItem(e, 'serialNumbers', currentSerial, setCurrentSerial)} placeholder="Type serial and press Enter" maxLength={100} aria-required="true"
                           className={`flex-1 px-4 py-3 rounded-lg border ${errors.serialNumbers ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
@@ -429,13 +429,13 @@ const ProductRegistration = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-2">Invoice Number<span className="text-red-500" aria-hidden="true">*</span></label>
+                      <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-2">Invoice Number <span className="text-red-500" aria-hidden="true">*</span></label>
                       <input id="invoiceNumber" type="text" name="invoiceNumber" value={formData.invoiceNumber} onChange={handleChange} placeholder="Enter Number" maxLength={50} aria-required="true"
                         className={`w-full px-4 py-3 rounded-lg border ${errors.invoiceNumber ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
                       {errors.invoiceNumber && <p className="mt-1 text-sm text-red-600" role="alert">{errors.invoiceNumber}</p>}
                     </div>
                     <div>
-                      <label htmlFor="purchasedFrom" className="block text-sm font-medium text-gray-700 mb-2">Purchased From<span className="text-red-500" aria-hidden="true">*</span></label>
+                      <label htmlFor="purchasedFrom" className="block text-sm font-medium text-gray-700 mb-2">Purchased From <span className="text-red-500" aria-hidden="true">*</span></label>
                       <input id="purchasedFrom" type="text" name="purchasedFrom" value={formData.purchasedFrom} onChange={handleChange} placeholder="Purchased From" maxLength={100} aria-required="true"
                         className={`w-full px-4 py-3 rounded-lg border ${errors.purchasedFrom ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
                       {errors.purchasedFrom && <p className="mt-1 text-sm text-red-600" role="alert">{errors.purchasedFrom}</p>}
@@ -443,7 +443,7 @@ const ProductRegistration = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="invoiceFile" className="block text-sm font-medium text-gray-700 mb-2">Upload Invoice<span aria-hidden="true" className="text-red-500">*</span></label>
+                    <label htmlFor="invoiceFile" className="block text-sm font-medium text-gray-700 mb-2">Upload Invoice <span aria-hidden="true" className="text-red-500">*</span></label>
                     <div className={`relative flex items-center justify-between border rounded-lg px-4 py-3 cursor-pointer transition-all ${fileError ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-green-500'}`}>
                       <span className={`truncate text-sm ${selectedFile ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>{fileName}</span>
                       <div className="flex items-center gap-2 ml-2">
