@@ -2736,6 +2736,26 @@ const SubscriberSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ── NEWSLETTER HISTORY MODEL ──────────────────────────────────────
+const NewsletterHistorySchema = new mongoose.Schema(
+  {
+    subject: { type: String, required: true },
+    heading: { type: String, default: "" },
+    bodyText: { type: String, required: true },
+    footerText: { type: String, default: "" },
+    buttons: { type: Array, default: [] },
+    bannerUrl: { type: String, default: null },
+    pdfNames: { type: [String], default: [] },
+    sentTo: { type: Number, default: 0 },
+    failed: { type: Number, default: 0 },
+    sentBy: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+NewsletterHistorySchema.index({ createdAt: 1 }, { expireAfterSeconds: 365 * 24 * 60 * 60 });
+const NewsletterHistory = mongoose.model("NewsletterHistory", NewsletterHistorySchema);
+
 // Auto-delete unsubscribed after 90 days
 SubscriberSchema.index(
   { updatedAt: 1 }, 
@@ -2762,7 +2782,7 @@ app.post("/newsletter-subscribe", formLimiter, async (req, res) => {
   try {
     const cleanEmail = email.toLowerCase().trim();
 
-    // Agar pehle se exist karta hai
+    // If already exist
     const existing = await Subscriber.findOne({ email: cleanEmail });
     if (existing) {
       if (existing.status === "unsubscribed") {
@@ -2780,10 +2800,10 @@ app.post("/newsletter-subscribe", formLimiter, async (req, res) => {
       return res.json({ success: true, message: "You're already subscribed!" });
     }
 
-    // Naya subscriber save karo
+    // Save new subcriber
     await Subscriber.create({ email: cleanEmail });
 
-    // Company ko notify karo
+    // Notify the company about new subscriber
     transporter.sendMail({
       from: `"AADONA Newsletter" <${process.env.EMAIL_USER}>`,
       to: process.env.COMPANY_EMAIL,
@@ -2841,10 +2861,10 @@ app.post(
   adminLimiter,
   upload.fields([
     { name: "bannerImage", maxCount: 1 },
-    { name: "pdfAttachment", maxCount: 1 },
+    { name: "pdfAttachment", maxCount: 10 },
   ]),
   async (req, res) => {
-    const { subject, selectedIds, heading, bodyText, buttonText, buttonUrl, footerText } = req.body;
+    const buttons = req.body.buttons ? JSON.parse(req.body.buttons) : [];
 
     if (!subject?.trim() || !bodyText?.trim())
       return res.status(400).json({ message: "Subject and content are required" });
@@ -2899,17 +2919,20 @@ app.post(
                 </tr>
 
                 <!-- CTA Button -->
-                ${buttonText?.trim() && buttonUrl?.trim() ? `
-                <tr>
-                  <td style="padding:0 40px 32px;text-align:center">
-                    <a href="${buttonUrl}" target="_blank"
-                      style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;
-                        font-weight:700;font-size:15px;padding:14px 36px;border-radius:10px;
-                        box-shadow:0 4px 12px rgba(22,163,74,0.35)">
-                      ${buttonText}
-                    </a>
-                  </td>
-                </tr>` : ""}
+                ${buttons.length > 0 ? `
+                  <tr>
+                    <td style="padding:0 40px 32px;text-align:center">
+                      ${buttons.filter(b => b.text?.trim() && b.url?.trim()).map(b => `
+                        <a href="${b.url}" target="_blank"
+                          style="display:inline-block;background:#16a34a;color:#ffffff;
+                            text-decoration:none;font-weight:700;font-size:15px;
+                            padding:14px 36px;border-radius:10px;margin:4px;
+                            box-shadow:0 4px 12px rgba(22,163,74,0.35)">
+                          ${b.text}
+                        </a>
+                      `).join("")}
+                    </td>
+                  </tr>` : ""}
 
                 <!-- Divider -->
                 <tr>
@@ -2965,12 +2988,12 @@ app.post(
         };
 
         // PDF attachment
-        if (req.files?.pdfAttachment?.[0]) {
-          mailOptions.attachments = [{
-            filename: req.files.pdfAttachment[0].originalname,
-            content: req.files.pdfAttachment[0].buffer,
+        if (req.files?.pdfAttachments?.length) {
+          mailOptions.attachments = req.files.pdfAttachments.map(pdf => ({
+            filename: pdf.originalname,
+            content: pdf.buffer,
             contentType: "application/pdf",
-          }];
+          }));
         }
 
         try {
@@ -2986,6 +3009,19 @@ app.post(
         changes: { sent: { new: sent }, failed: { new: failed } },
       });
 
+      await NewsletterHistory.create({
+        subject: subject.trim(),
+        heading: req.body.heading?.trim() || "",
+        bodyText: req.body.bodyText?.trim(),
+        footerText: req.body.footerText?.trim() || "",
+        buttons,
+        bannerUrl,
+        pdfNames: req.files?.pdfAttachments?.map(f => f.originalname) || [],
+        sentTo: sent,
+        failed,
+        sentBy: req.user.email,
+      });
+
       res.json({
         success: true,
         message: `Newsletter sent to ${sent} subscribers${failed > 0 ? `, ${failed} failed` : ""}.`,
@@ -2997,6 +3033,18 @@ app.post(
     }
   }
 );
+
+// ── NEWSLETTER HISTORY (Admin) ────────────────────────────────────
+app.get("/subscribers/history", verifyToken, adminLimiter, async (req, res) => {
+  try {
+    const history = await NewsletterHistory.find()
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get("/test-mail", async (req, res) => {
   try {
@@ -3013,6 +3061,8 @@ app.get("/test-mail", async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+
+
 
 /* =============================
    GRACEFUL SHUTDOWN

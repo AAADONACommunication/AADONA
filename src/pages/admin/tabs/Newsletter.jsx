@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { auth } from "../../../firebase";
-import { Trash2, Send, Users, Eye, EyeOff, Image, FileText, X, RefreshCw, CheckSquare, Square, Search } from "lucide-react";
+import { Trash2, Send, Users, Eye, EyeOff, Image, FileText, X, RefreshCw, CheckSquare, Square, Search, Plus, ChevronUp, ChevronDown } from "lucide-react";
 
 const SUB_API = `${import.meta.env.VITE_API_URL}/subscribers`;
 
@@ -14,13 +14,18 @@ export default function Newsletter() {
   const [subject, setSubject] = useState("");
   const [heading, setHeading] = useState("");
   const [bodyText, setBodyText] = useState("");
-  const [buttonText, setButtonText] = useState("");
-  const [buttonUrl, setButtonUrl] = useState("");
-  const [footerText, setFooterText] = useState("© 2025 AADONA Communication. All rights reserved.");
+  const [footerText, setFooterText] = useState("© 2026 AADONA Communication. All rights reserved.");
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  // Multiple buttons
+  const [buttons, setButtons] = useState([]);
+
+  // Multiple PDFs
+  const [pdfFiles, setPdfFiles] = useState([]);
 
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
-  const [pdfFile, setPdfFile] = useState(null);
 
   const [showPreview, setShowPreview] = useState(false);
   const [sending, setSending] = useState(false);
@@ -47,7 +52,24 @@ export default function Newsletter() {
     }
   }, []);
 
+    const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const token = await getToken();
+      const res = await fetch(`${SUB_API}/history`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setHistory(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
   useEffect(() => { loadSubscribers(); }, [loadSubscribers]);
+  useEffect(() => { loadHistory(); }, [loadHistory]);
 
   const filtered = subscribers.filter((s) =>
     !search || s.email.toLowerCase().includes(search.toLowerCase())
@@ -91,10 +113,46 @@ export default function Newsletter() {
     setBannerPreview(URL.createObjectURL(file));
   };
 
-  const handlePdfChange = (e) => {
+  const handlePdfAdd = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setPdfFile(file);
+    setPdfFiles((prev) => [...prev, file]);
+    pdfRef.current.value = "";
+  };
+
+  const removePdf = (index) => {
+    setPdfFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const movePdf = (index, direction) => {
+    const arr = [...pdfFiles];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= arr.length) return;
+    [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
+    setPdfFiles(arr);
+  };
+
+  // Button helpers
+  const addButton = () => {
+    setButtons((prev) => [...prev, { text: "", url: "" }]);
+  };
+
+  const updateButton = (index, field, value) => {
+    setButtons((prev) =>
+      prev.map((btn, i) => (i === index ? { ...btn, [field]: value } : btn))
+    );
+  };
+
+  const removeButton = (index) => {
+    setButtons((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const moveButton = (index, direction) => {
+    const arr = [...buttons];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= arr.length) return;
+    [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
+    setButtons(arr);
   };
 
   const handleSend = async () => {
@@ -111,12 +169,12 @@ export default function Newsletter() {
       formData.append("subject", subject.trim());
       formData.append("heading", heading.trim());
       formData.append("bodyText", bodyText.trim());
-      formData.append("buttonText", buttonText.trim());
-      formData.append("buttonUrl", buttonUrl.trim());
       formData.append("footerText", footerText.trim());
       formData.append("selectedIds", JSON.stringify(targetIds));
+      formData.append("buttons", JSON.stringify(buttons.filter((b) => b.text.trim() && b.url.trim())));
       if (bannerFile) formData.append("bannerImage", bannerFile);
-      if (pdfFile) formData.append("pdfAttachment", pdfFile);
+      pdfFiles.forEach((pdf) => formData.append("pdfAttachments", pdf));
+
       const res = await fetch(`${SUB_API}/broadcast`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -126,10 +184,11 @@ export default function Newsletter() {
       setSendResult(data.message || (res.ok ? "Sent!" : "Failed"));
       if (res.ok) {
         setSubject(""); setHeading(""); setBodyText("");
-        setButtonText(""); setButtonUrl("");
-        setFooterText("© 2025 AADONA Communication. All rights reserved.");
-        setBannerFile(null); setBannerPreview(null); setPdfFile(null);
+        setButtons([]);
+        setFooterText("© 2026 AADONA Communication. All rights reserved.");
+        setBannerFile(null); setBannerPreview(null); setPdfFiles([]);
         setSelected(new Set());
+        loadHistory();
       }
     } catch (err) {
       setSendResult("Error: " + err.message);
@@ -150,9 +209,16 @@ export default function Newsletter() {
         <div style="padding:16px 32px 24px;color:#374151;font-size:14px;line-height:1.75">
           ${bodyText.replace(/\n/g, "<br/>") || '<span style="color:#9ca3af;font-style:italic">Your content will appear here...</span>'}
         </div>
-        ${buttonText && buttonUrl ? `
-          <div style="padding:0 32px 28px;text-align:center">
-            <span style="display:inline-block;background:#16a34a;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">${buttonText}</span>
+        ${buttons.filter((b) => b.text.trim() && b.url.trim()).length > 0 ? `
+          <div style="padding:0 32px 28px;text-align:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+            ${buttons.filter((b) => b.text.trim() && b.url.trim()).map((b) =>
+              `<span style="display:inline-block;background:#16a34a;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">${b.text}</span>`
+            ).join("")}
+          </div>` : ""}
+        ${pdfFiles.length > 0 ? `
+          <div style="padding:0 32px 20px">
+            <p style="font-size:12px;color:#6b7280;font-weight:600;margin:0 0 8px">📎 Attachments:</p>
+            ${pdfFiles.map((f) => `<div style="font-size:12px;color:#166534;background:#f0fdf4;padding:6px 10px;border-radius:6px;margin-bottom:4px">📄 ${f.name}</div>`).join("")}
           </div>` : ""}
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 32px"/>
         <div style="padding:20px 32px;text-align:center;color:#6b7280;font-size:11px">${footerText}</div>
@@ -250,7 +316,6 @@ export default function Newsletter() {
         }
         .nl-sel-all:hover { color: #166534; }
 
-        /* Subscriber grid — horizontal wrapping list */
         .nl-sub-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -358,6 +423,56 @@ export default function Newsletter() {
         }
         .nl-banner-rm:hover { background: rgba(239,68,68,0.85); }
 
+        /* Button block */
+        .nl-btn-block {
+          border: 1px solid #d1fae5; border-radius: 14px;
+          padding: 14px; background: #f0fdf4; margin-bottom: 8px;
+        }
+        .nl-btn-block-head {
+          display: flex; align-items: center;
+          justify-content: space-between; margin-bottom: 10px;
+          flex-wrap: wrap; gap: 6px;
+        }
+        .nl-btn-block-label {
+          font-size: 12px; font-weight: 700; color: #166534;
+          display: flex; align-items: center; gap: 5px;
+        }
+        .nl-btn-block-actions { display: flex; gap: 5px; }
+        .nl-icon-btn {
+          padding: 4px 6px; border-radius: 8px; border: 1px solid #d1fae5;
+          background: #fff; cursor: pointer; display: flex; align-items: center;
+          transition: all 0.15s; color: #16a34a;
+        }
+        .nl-icon-btn:hover { background: #dcfce7; }
+        .nl-icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .nl-icon-btn.danger { border-color: #fecaca; color: #f87171; }
+        .nl-icon-btn.danger:hover { background: #fef2f2; color: #ef4444; }
+
+        /* PDF list */
+        .nl-pdf-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .nl-pdf-item {
+          display: flex; align-items: center; gap: 10px;
+          background: #f0fdf4; border: 1px solid #bbf7d0;
+          border-radius: 10px; padding: 8px 12px;
+        }
+        .nl-pdf-item-name {
+          flex: 1; font-size: 12px; color: #166534; font-weight: 500;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .nl-pdf-item-actions { display: flex; gap: 4px; }
+
+        /* Add buttons */
+        .nl-add-btn {
+          display: flex; align-items: center; gap: 6px;
+          background: #16a34a; color: #fff; border: none;
+          border-radius: 10px; padding: 8px 14px; font-size: 12px;
+          font-weight: 700; font-family: 'DM Sans', sans-serif;
+          cursor: pointer; transition: background 0.15s;
+        }
+        .nl-add-btn:hover { background: #166534; }
+        .nl-add-btn.teal { background: #0d9488; }
+        .nl-add-btn.teal:hover { background: #0f766e; }
+
         .nl-result {
           padding: 11px 14px; border-radius: 12px;
           font-size: 13px; font-weight: 500;
@@ -411,7 +526,6 @@ export default function Newsletter() {
         }
         .nl-eye:hover { background: rgba(255,255,255,0.3); }
 
-        /* Responsive */
         @media (max-width: 700px) {
           .nl-stats { grid-template-columns: 1fr 1fr; }
           .nl-stats .nl-stat:last-child { grid-column: span 2; }
@@ -457,7 +571,7 @@ export default function Newsletter() {
           </div>
         </div>
 
-        {/* ── TOP: Subscribers ── */}
+        {/* ── Subscribers ── */}
         <div className="nl-card">
           <div className="nl-card-head">
             <h3 className="nl-card-head-title">Subscribers</h3>
@@ -527,7 +641,7 @@ export default function Newsletter() {
           </div>
         </div>
 
-        {/* ── BOTTOM: Newsletter Builder ── */}
+        {/* ── Newsletter Builder ── */}
         <div className="nl-card">
           <div className="nl-card-head">
             <div>
@@ -547,6 +661,7 @@ export default function Newsletter() {
           <div className="nl-builder-body">
             <div className={`nl-form ${showPreview ? "half" : "full"}`}>
 
+              {/* Subject */}
               <div className="nl-field">
                 <label>Subject *</label>
                 <input
@@ -557,6 +672,7 @@ export default function Newsletter() {
                 />
               </div>
 
+              {/* Banner Image */}
               <div className="nl-field">
                 <label>Banner Image</label>
                 {bannerPreview ? (
@@ -576,6 +692,7 @@ export default function Newsletter() {
                 <input ref={bannerRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleBannerChange} />
               </div>
 
+              {/* Heading */}
               <div className="nl-field">
                 <label>Heading</label>
                 <input
@@ -586,6 +703,7 @@ export default function Newsletter() {
                 />
               </div>
 
+              {/* Content */}
               <div className="nl-field">
                 <label>Content *</label>
                 <textarea
@@ -596,34 +714,196 @@ export default function Newsletter() {
                 />
               </div>
 
-              <div className="nl-2col">
-                <div className="nl-field">
-                  <label>Button Text</label>
-                  <input type="text" value={buttonText} onChange={(e) => setButtonText(e.target.value)} placeholder="e.g. Shop Now" className="nl-input" />
-                </div>
-                <div className="nl-field">
-                  <label>Button URL</label>
-                  <input type="url" value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} placeholder="https://aadona.com" className="nl-input" />
-                </div>
+              {/* ── Buttons Section ── */}
+              <div className="nl-field">
+                <label>Buttons</label>
+
+                {buttons.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>
+                    {buttons.map((btn, index) => (
+                      <div key={index} className="nl-btn-block">
+                        <div className="nl-btn-block-head">
+                          <span className="nl-btn-block-label">🔘 Button #{index + 1}</span>
+                          <div className="nl-btn-block-actions">
+                            <button
+                              type="button"
+                              className="nl-icon-btn"
+                              onClick={() => moveButton(index, "up")}
+                              disabled={index === 0}
+                            >
+                              <ChevronUp size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="nl-icon-btn"
+                              onClick={() => moveButton(index, "down")}
+                              disabled={index === buttons.length - 1}
+                            >
+                              <ChevronDown size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="nl-icon-btn danger"
+                              onClick={() => removeButton(index)}
+                            >
+                              <X size={13} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="nl-2col">
+                          <input
+                            type="text"
+                            value={btn.text}
+                            onChange={(e) => updateButton(index, "text", e.target.value)}
+                            placeholder="Button text"
+                            className="nl-input"
+                          />
+                          <input
+                            type="url"
+                            value={btn.url}
+                            onChange={(e) => updateButton(index, "url", e.target.value)}
+                            placeholder="https://aadona.com"
+                            className="nl-input"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button type="button" className="nl-add-btn" onClick={addButton}>
+                  <Plus size={14} /> Add Button
+                </button>
               </div>
 
+              {/* ── PDF Attachments Section ── */}
               <div className="nl-field">
-                <label>PDF Attachment</label>
-                {pdfFile ? (
-                  <div className="nl-file-tag">
-                    <FileText size={17} color="#16a34a" />
-                    <span className="nl-file-name">{pdfFile.name}</span>
-                    <button className="nl-file-rm" onClick={() => { setPdfFile(null); pdfRef.current.value = ""; }}><X size={14} /></button>
+                <label>PDF Attachments</label>
+
+                {pdfFiles.length > 0 && (
+                  <div className="nl-pdf-list">
+                    {pdfFiles.map((file, index) => (
+                      <div key={index} className="nl-pdf-item">
+                        <FileText size={15} color="#16a34a" style={{ flexShrink: 0 }} />
+                        <span className="nl-pdf-item-name">{file.name}</span>
+                        <div className="nl-pdf-item-actions">
+                          <button
+                            type="button"
+                            className="nl-icon-btn"
+                            onClick={() => movePdf(index, "up")}
+                            disabled={index === 0}
+                          >
+                            <ChevronUp size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            className="nl-icon-btn"
+                            onClick={() => movePdf(index, "down")}
+                            disabled={index === pdfFiles.length - 1}
+                          >
+                            <ChevronDown size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            className="nl-icon-btn danger"
+                            onClick={() => removePdf(index)}
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button type="button" className="nl-add-btn teal" onClick={() => pdfRef.current.click()}>
+                  <Plus size={14} /> Attach PDF
+                </button>
+                <input ref={pdfRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={handlePdfAdd} />
+              </div>
+
+                {/* ── Sent History ── */}
+              <div className="nl-card">
+                <div className="nl-card-head">
+                  <div>
+                    <h3 className="nl-card-head-title">📬 Sent Newsletters</h3>
+                    <p className="nl-card-head-sub">{history.length} newsletter{history.length !== 1 ? "s" : ""} sent</p>
+                  </div>
+                  <button className="nl-refresh" onClick={loadHistory}>
+                    <RefreshCw size={12} /> Refresh
+                  </button>
+                </div>
+
+                {historyLoading ? (
+                  <div className="nl-empty">
+                    <div className="nl-spin" style={{ borderColor: "#d1fae5", borderTopColor: "#16a34a" }} />
+                    <span>Loading history...</span>
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="nl-empty">
+                    <span style={{ fontSize: 32 }}>📭</span>
+                    <span>No newsletters sent yet</span>
                   </div>
                 ) : (
-                  <button className="nl-upload" style={{ padding: "14px 20px" }} onClick={() => pdfRef.current.click()}>
-                    <FileText size={20} />
-                    <span className="nl-upload-lbl">Click to attach PDF</span>
-                  </button>
+                  <div>
+                    {history.map((item) => (
+                      <div key={item._id} style={{
+                        padding: "14px 20px", borderBottom: "1px solid #f0fdf4",
+                        display: "flex", gap: 14, alignItems: "flex-start"
+                      }}>
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 12, background: "#dcfce7",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 20, flexShrink: 0
+                        }}>📨</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: "#1f2937", marginBottom: 3 }}>
+                            {item.subject}
+                          </div>
+                          {item.heading && (
+                            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 3 }}>{item.heading}</div>
+                          )}
+                          <div style={{ fontSize: 12, color: "#9ca3af", display: "flex", flexWrap: "wrap", gap: 8 }}>
+                            <span>📅 {new Date(item.createdAt).toLocaleDateString("en-IN", {
+                              day: "numeric", month: "short", year: "numeric",
+                              hour: "2-digit", minute: "2-digit"
+                            })}</span>
+                            <span>•</span>
+                            <span style={{ color: "#16a34a", fontWeight: 600 }}>✅ {item.sentTo} sent</span>
+                            {item.failed > 0 && (
+                              <><span>•</span>
+                              <span style={{ color: "#ef4444", fontWeight: 600 }}>❌ {item.failed} failed</span></>
+                            )}
+                            {item.buttons?.length > 0 && (
+                              <><span>•</span>
+                              <span>🔘 {item.buttons.length} button{item.buttons.length !== 1 ? "s" : ""}</span></>
+                            )}
+                            {item.pdfNames?.length > 0 && (
+                              <><span>•</span>
+                              <span>📎 {item.pdfNames.length} PDF</span></>
+                            )}
+                          </div>
+                          {item.pdfNames?.length > 0 && (
+                            <div style={{ marginTop: 5, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                              {item.pdfNames.map((name, i) => (
+                                <span key={i} style={{
+                                  fontSize: 11, background: "#f0fdf4", color: "#166534",
+                                  border: "1px solid #bbf7d0", borderRadius: 6, padding: "2px 8px"
+                                }}>📄 {name}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 10, color: "#9ca3af", textAlign: "right", flexShrink: 0 }}>
+                          {item.sentBy}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
-                <input ref={pdfRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={handlePdfChange} />
               </div>
 
+              {/* Footer */}
               <div className="nl-field">
                 <label>Footer Text</label>
                 <input type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} className="nl-input" />
