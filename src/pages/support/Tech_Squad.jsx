@@ -451,7 +451,7 @@ const TechSquad = () => {
                             value={form.email}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.email ? "border-red-400" : ""}`}
-                            placeholder="you@example.com"
+                            placeholder="Enter your email"
                             autoComplete="email"
                             required
                             aria-required="true"
