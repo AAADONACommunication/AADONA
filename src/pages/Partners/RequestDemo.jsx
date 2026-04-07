@@ -424,7 +424,7 @@ export default function RequestDemo() {
                         id="phone"
                         name="phone"
                         type="tel"
-                        placeholder="e.g. +91 98765 43210"
+                        placeholder="Enter your phone number"
                         required
                         autoComplete="tel"
                         inputMode="tel"

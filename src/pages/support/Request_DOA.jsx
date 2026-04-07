@@ -484,7 +484,7 @@ const RequestDOA = () => {
                           id="email" type="email" name="email"
                           value={form.email} onChange={handleChange}
                           className={inputClass("email")}
-                          placeholder="Enter your email"
+                          placeholder="e.g., email@example.com"
                           autoComplete="email"
                           required aria-required="true"
                         />

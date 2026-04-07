@@ -3,7 +3,7 @@ const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-const BASE_URL = 'https://aadona.co.in';
+const BASE_URL = 'https://aadona.com';
 
 // ─── Rate limiter ──────────────────────────────────────────────────────────
 const chatLimiter = rateLimit({
@@ -260,30 +260,30 @@ PRODUCTS (use LIVE DATABASE for exact models):
 7. Passive — Cat6/6A/7, fiber, patch panels, cable management
 
 STATIC PAGES (mention naturally only when relevant):
-- About Us: aadona.co.in/about
-- Mission & Vision: aadona.co.in/missionVision
-- Leadership Team: aadona.co.in/leadershipTeam
-- CSR: aadona.co.in/csr
-- Careers: aadona.co.in/careers
-- Blog: aadona.co.in/blog
-- Media Center: aadona.co.in/mediaCenter
-- Our Customers: aadona.co.in/customers
-- Contact Us: aadona.co.in/contactUs
-- Whistleblower: aadona.co.in/whistleBlower
+- About Us: aadona.com/about
+- Mission & Vision: aadona.com/missionVision
+- Leadership Team: aadona.com/leadershipTeam
+- CSR: aadona.com/csr
+- Careers: aadona.com/careers
+- Blog: aadona.com/blog
+- Media Center: aadona.com/mediaCenter
+- Our Customers: aadona.com/customers
+- Contact Us: aadona.com/contactUs
+- Whistleblower: aadona.com/whistleBlower
 
 SUPPORT PAGES:
-- Warranty Check: aadona.co.in/warranty
-- Tech Squad (on-site): aadona.co.in/techSquad
-- Request DOA: aadona.co.in/requestDoa
-- Support Tools: aadona.co.in/supportTools
-- Product Support: aadona.co.in/productSupport
-- Product Registration: aadona.co.in/warrantyRegistration
+- Warranty Check: aadona.com/warranty
+- Tech Squad (on-site): aadona.com/techSquad
+- Request DOA: aadona.com/requestDoa
+- Support Tools: aadona.com/supportTools
+- Product Support: aadona.com/productSupport
+- Product Registration: aadona.com/warrantyRegistration
 
 PARTNER PAGES:
-- Become a Partner: aadona.co.in/becomePartner
-- Project Locking: aadona.co.in/projectLocking
-- Request a Demo: aadona.co.in/requestDemo
-- Request Training: aadona.co.in/requestTraining
+- Become a Partner: aadona.com/becomePartner
+- Project Locking: aadona.com/projectLocking
+- Request a Demo: aadona.com/requestDemo
+- Request Training: aadona.com/requestTraining
 `.trim();
 
 // ─── POST /chat/register ───────────────────────────────────────────────────

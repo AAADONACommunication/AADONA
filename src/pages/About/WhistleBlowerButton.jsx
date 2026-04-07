@@ -182,7 +182,7 @@ const WhistleBlowerButton = () => {
                 {/* Name Field */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Name *
+                    Name<span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -198,7 +198,7 @@ const WhistleBlowerButton = () => {
                 {/* Telephone Field */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Telephone *
+                    Telephone<span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -214,7 +214,7 @@ const WhistleBlowerButton = () => {
                 {/* Email Field */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Email *
+                    Email<span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -222,7 +222,7 @@ const WhistleBlowerButton = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    placeholder="Enter your email address"
+                    placeholder="Enter your email"
                     className={`mt-2 ${inputClass}`}
                   />
                 </div>
@@ -233,7 +233,7 @@ const WhistleBlowerButton = () => {
                   {/* City Field */}
                   <div>
                     <label className="text-green-700 font-semibold block text-lg">
-                      City *
+                      City<span aria-hidden="true" className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -249,7 +249,7 @@ const WhistleBlowerButton = () => {
                   {/* ZIP / PIN Code Field */}
                   <div>
                     <label className="text-green-700 font-semibold block text-lg">
-                      ZIP / PIN Code *
+                      ZIP / PIN Code<span aria-hidden="true" className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -257,7 +257,7 @@ const WhistleBlowerButton = () => {
                       value={formData.zipCode}
                       onChange={handleChange}
                       required
-                      placeholder="Enter ZIP or PIN code"
+                      placeholder="Enter postal or zip code"
                       maxLength={10}
                       className={`mt-2 ${inputClass}`}
                     />
@@ -268,7 +268,7 @@ const WhistleBlowerButton = () => {
                 {/* Comment Section */}
                 <div>
                   <label className="text-green-700 font-semibold block text-lg">
-                    Comment *
+                    Comment<span aria-hidden="true" className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="comment"
