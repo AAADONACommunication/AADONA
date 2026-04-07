@@ -2861,7 +2861,7 @@ app.post(
   adminLimiter,
   upload.fields([
     { name: "bannerImage", maxCount: 1 },
-    { name: "pdfAttachment", maxCount: 10 },
+    { name: "pdfAttachments", maxCount: 10 },
   ]),
   async (req, res) => {
     const buttons = req.body.buttons ? JSON.parse(req.body.buttons) : [];
