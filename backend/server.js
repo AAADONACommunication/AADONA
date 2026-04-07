@@ -2983,11 +2983,7 @@ app.post(
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: process.env.COMPANY_EMAIL,
           bcc: bccList,
-          subject: subject.trim(),
-          headers: {
-            "Message-ID": `<${Date.now()}@aadona.co.in>`,
-            "X-Entity-Ref-ID": `${Date.now()}`
-          },
+          subject: `${subject.trim()} – AADONA`,
           html: emailHtml,
         };
 
