@@ -5,12 +5,7 @@ import govmarketplace from '../assets/govmarketplace.avif';
 import madeinindia from '../assets/madeinindia.avif';
 
 const Hero = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+  const [isVisible, setIsVisible] = useState(true);
 
   return (
     <>
@@ -60,7 +55,7 @@ const Hero = () => {
             px-5
             sm:px-10
             md:pl-16 md:pr-10
-            transition-all duration-1000 ease-out
+            transition-all duration-300 ease-out
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
           `}
         >
