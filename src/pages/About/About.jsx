@@ -10,6 +10,12 @@ const liftCard =
   "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
   "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
 
+  const PrivacyPolicy = () => {
+    useEffect(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }, []);
+
+    
 const About = () => {
   return (
     <>
