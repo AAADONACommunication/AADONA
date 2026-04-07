@@ -532,7 +532,7 @@ const TechSquad = () => {
                             value={form.zipCode}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.zipCode ? "border-red-400" : ""}`}
-                            placeholder="Enter psotal or zip code"
+                            placeholder="Enter postal or zip code"
                             autoComplete="postal-code"
                             required
                             aria-required="true"
