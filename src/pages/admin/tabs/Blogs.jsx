@@ -5,6 +5,7 @@ import {
   Trash2, Edit, Plus, Upload, CheckCircle2, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
+import "quill/dist/quill.snow.css";
 
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
 
@@ -29,13 +30,6 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
 
     const loadQuill = async () => {
       const Quill = (await import("quill")).default;
-
-      if (!document.querySelector('link[href*="quill"]')) {
-        const link = document.createElement("link");
-        link.rel  = "stylesheet";
-        link.href = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css";
-        document.head.appendChild(link);
-      }
 
       if (quillRef.current) return;
 
