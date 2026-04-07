@@ -2981,7 +2981,7 @@ app.post(
 
         const mailOptions = {
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
-          to: process.env.EMAIL_USER,
+          to: process.env.COMPANY_EMAIL,
           bcc: bccList,
           subject: subject.trim(),
           html: emailHtml,
