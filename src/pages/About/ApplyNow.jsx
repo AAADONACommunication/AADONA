@@ -242,7 +242,7 @@ const ApplyNow = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Resume<span aria-hidden="true" className="text-red-500">*</span>
+                  Upload Resum<span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="flex flex-col items-center justify-center px-6 py-6 border-2 border-dashed rounded-xl hover:border-green-500 bg-white/90 transition">
                   <svg className="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
