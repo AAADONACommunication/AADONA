@@ -771,7 +771,7 @@ export default function ContactPage() {
                         type="text"
                         name="zipCode"
                         inputMode="numeric"
-                        placeholder="Enter your postal or zip code"
+                        placeholder="e.g. 492001"
                         autoComplete="postal-code"
                         disabled={isSubmitting}
                         aria-required="true"
