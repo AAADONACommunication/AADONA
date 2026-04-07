@@ -101,7 +101,7 @@ const inputBase =
 const emptyForm = {
   firstName: "", lastName: "", email: "", phone: "",
   address: "", city: "", zipCode: "", productType: "", purchaseDate: "",
-  warrantyYear: "", serialNumber: "", invoiceNumber: "", doaAuthCode: "",
+  warrantyYear: "", serialNumber: "", invoiceNumber: "", doaAuthCode: "", issue: "",
 };
 
 // ─── JSON-LD Structured Data ─────────────────────────────────────────────────
@@ -197,6 +197,8 @@ const RequestDOA = () => {
     if (!form.serialNumber.trim())                        e.serialNumber = "Serial number is required.";
     if (!form.invoiceNumber.trim())                       e.invoiceNumber= "Invoice number is required.";
     if (!form.doaAuthCode.trim())                         e.doaAuthCode  = "DOA authorization code is required.";
+    if (!form.issue.trim() || form.issue.trim().length < 20)
+      e.issue = "Describe the issue in at least 20 characters.";
     return e;
   };
 
@@ -482,7 +484,7 @@ const RequestDOA = () => {
                           id="email" type="email" name="email"
                           value={form.email} onChange={handleChange}
                           className={inputClass("email")}
-                          placeholder="e.g., email@example.com"
+                          placeholder="Enter your email"
                           autoComplete="email"
                           required aria-required="true"
                         />
@@ -499,7 +501,7 @@ const RequestDOA = () => {
                           id="phone" name="phone" type="tel"
                           value={form.phone} onChange={handleChange}
                           className={inputClass("phone")}
-                          placeholder="+91 98765 43210"
+                          placeholder="Enter your phone number"
                           autoComplete="tel"
                           required aria-required="true"
                         />
@@ -549,7 +551,7 @@ const RequestDOA = () => {
                           type="text" inputMode="numeric"
                           value={form.zipCode} onChange={handleChange}
                           className={inputClass("zipCode")}
-                          placeholder="e.g. 492001"
+                          placeholder="Enter psotal or zip code"
                           autoComplete="postal-code"
                           required aria-required="true"
                         />
@@ -703,6 +705,25 @@ const RequestDOA = () => {
                             ✓ File ready: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         )}
+                      </div>
+
+                      {/* Describe the Issue */}
+                      <div className="md:col-span-2">
+                        <label htmlFor="issue" className="block text-slate-700 font-medium mb-1">
+                          Describe the Issue <span aria-hidden="true" className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          id="issue"
+                          name="issue"
+                          value={form.issue}
+                          onChange={handleChange}
+                          rows={4}
+                          className={`${inputBase} ${errors.issue ? "border-red-400" : ""}`}
+                          placeholder="Describe the defect or issue in detail (min 20 characters)..."
+                          required
+                          aria-required="true"
+                        />
+                        {fieldError("issue")}
                       </div>
 
                       {/* Terms & Conditions */}

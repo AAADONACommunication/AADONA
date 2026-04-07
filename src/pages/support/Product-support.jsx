@@ -16,14 +16,19 @@ const sanitizePhone = (v) =>
 const sanitizeEmail = (v) =>
   v.replace(/[^a-zA-Z0-9@._+\-]/g, "").slice(0, 254);
 
+const sanitizeZip = (v) =>
+  v.replace(/[^\d\s\-]/g, "").slice(0, 10);
+
 const sanitizerFor = (name) => {
-  if (name === "email")  return sanitizeEmail;
-  if (name === "phone")  return sanitizePhone;
+  if (name === "email")   return sanitizeEmail;
+  if (name === "phone")   return sanitizePhone;
+  if (name === "zipCode") return sanitizeZip;
   return sanitizeText;
 };
 
 const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 const isValidPhone  = (p) => /^[+]?[\d\s\-().]{7,20}$/.test(p.trim());
+const isValidZip    = (z) => /^[\d\s\-]{4,10}$/.test(z.trim());
 
 // ─── JSON-LD Structured Data ─────────────────────────────────────────────────
 
@@ -51,13 +56,22 @@ const inputClass = (error) =>
       : "border-gray-300 focus:border-green-500 focus:ring-green-500"
   }`;
 
-const emptyForm = { productModel: "", email: "", phone: "", details: "" };
+const emptyForm = {
+  name:        "",
+  companyName: "",
+  productModel: "",
+  email:       "",
+  phone:       "",
+  city:        "",
+  zipCode:     "",
+  details:     "",
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const ProductSupport = () => {
-  const [formData, setFormData]       = useState(emptyForm);
-  const [errors, setErrors]           = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [formData, setFormData]         = useState(emptyForm);
+  const [errors, setErrors]             = useState({});
+  const [isSubmitted, setIsSubmitted]   = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
   const successRef = useRef(null);
@@ -82,12 +96,18 @@ const ProductSupport = () => {
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
+    if (!formData.name.trim())
+      e.name = "Full name is required.";
     if (!formData.productModel.trim())
       e.productModel = "Product model is required.";
     if (!isValidEmail(formData.email))
       e.email = "Please enter a valid email address.";
     if (formData.phone && !isValidPhone(formData.phone))
       e.phone = "Please enter a valid phone number.";
+    if (!formData.city.trim())
+      e.city = "City is required.";
+    if (formData.zipCode && !isValidZip(formData.zipCode))
+      e.zipCode = "Please enter a valid ZIP / PIN code.";
     if (!formData.details.trim() || formData.details.trim().length < 20)
       e.details = "Please describe your issue in at least 20 characters.";
     return e;
@@ -263,6 +283,67 @@ const ProductSupport = () => {
                     autoComplete="on"
                     className="space-y-6"
                   >
+
+                    {/* ── Row 1: Name & Company Name ── */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                      {/* Full Name */}
+                      <div>
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          Full Name{" "}
+                          <span aria-hidden="true" className="text-red-500">*</span>
+                        </label>
+                        <input
+                          id="name"
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          placeholder="John Doe"
+                          className={inputClass(errors.name)}
+                          required
+                          aria-required="true"
+                          autoComplete="name"
+                          aria-describedby={errors.name ? "err-name" : undefined}
+                        />
+                        {errors.name && (
+                          <p id="err-name" role="alert" className="mt-1 text-sm text-red-600">
+                            {errors.name}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Company Name */}
+                      <div>
+                        <label
+                          htmlFor="companyName"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          Company Name
+                        </label>
+                        <input
+                          id="companyName"
+                          type="text"
+                          name="companyName"
+                          value={formData.companyName}
+                          onChange={handleChange}
+                          placeholder="ACME Pvt. Ltd. (optional)"
+                          className={inputClass(errors.companyName)}
+                          autoComplete="organization"
+                          aria-describedby={errors.companyName ? "err-companyName" : undefined}
+                        />
+                        {errors.companyName && (
+                          <p id="err-companyName" role="alert" className="mt-1 text-sm text-red-600">
+                            {errors.companyName}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Row 2: Product Model, Email, Phone ── */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
                       {/* Product Model */}
@@ -349,7 +430,67 @@ const ProductSupport = () => {
                       </div>
                     </div>
 
-                    {/* Issue Description */}
+                    {/* ── Row 3: City & ZIP ── */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                      {/* City */}
+                      <div>
+                        <label
+                          htmlFor="city"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          City{" "}
+                          <span aria-hidden="true" className="text-red-500">*</span>
+                        </label>
+                        <input
+                          id="city"
+                          type="text"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleChange}
+                          placeholder="Raipur"
+                          className={inputClass(errors.city)}
+                          required
+                          aria-required="true"
+                          autoComplete="address-level2"
+                          aria-describedby={errors.city ? "err-city" : undefined}
+                        />
+                        {errors.city && (
+                          <p id="err-city" role="alert" className="mt-1 text-sm text-red-600">
+                            {errors.city}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* ZIP / PIN Code */}
+                      <div>
+                        <label
+                          htmlFor="zipCode"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          ZIP / PIN Code
+                        </label>
+                        <input
+                          id="zipCode"
+                          type="text"
+                          name="zipCode"
+                          value={formData.zipCode}
+                          onChange={handleChange}
+                          placeholder="492001"
+                          className={inputClass(errors.zipCode)}
+                          autoComplete="postal-code"
+                          inputMode="numeric"
+                          aria-describedby={errors.zipCode ? "err-zipCode" : undefined}
+                        />
+                        {errors.zipCode && (
+                          <p id="err-zipCode" role="alert" className="mt-1 text-sm text-red-600">
+                            {errors.zipCode}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Issue Description ── */}
                     <div>
                       <label
                         htmlFor="details"

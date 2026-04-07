@@ -5,21 +5,17 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import {
   Wrench, ClipboardList, CheckCircle2,
-  Mail, Phone, MapPin, UploadCloud, Send, X,
+  Mail, Phone, MapPin, Send,
 } from "lucide-react";
 import bg from "../../assets/bg.jpg";
 import tsbanner from "../../assets/TechSquadBanner.avif";
 
 // ─── Security Helpers ────────────────────────────────────────────────────────
 
-/**
- * Strip every character that isn't safe for plain-text form fields.
- * Prevents stored/reflected XSS if values are ever echoed back.
- */
 const sanitizeText = (value) =>
   value
-    .replace(/[<>"'`]/g, "")   // strip html / template injection chars
-    .slice(0, 500);             // hard length cap
+    .replace(/[<>"'`]/g, "")
+    .slice(0, 500);
 
 const sanitizePhone = (value) =>
   value.replace(/[^\d\s+\-().]/g, "").slice(0, 20);
@@ -30,38 +26,11 @@ const sanitizeEmail = (value) =>
 const sanitizeZip = (value) =>
   value.replace(/[^\d]/g, "").slice(0, 10);
 
-// Simple but effective email format check
 const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 
-// Indian / international phone: 7-15 digits (spaces / +/- allowed)
 const isValidPhone = (phone) =>
   /^[+]?[\d\s\-().]{7,20}$/.test(phone.trim());
-
-const ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
-const ALLOWED_EXT  = /\.(pdf|jpe?g|png)$/i;
-const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15 MB
-
-/** Extra defence: read first 8 bytes and check magic numbers. */
-const checkMagicBytes = (file) =>
-  new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const arr = new Uint8Array(e.target.result);
-      // PDF: %PDF  → 25 50 44 46
-      if (arr[0] === 0x25 && arr[1] === 0x50 && arr[2] === 0x44 && arr[3] === 0x46) {
-        return resolve(true);
-      }
-      // JPEG: FF D8
-      if (arr[0] === 0xff && arr[1] === 0xd8) return resolve(true);
-      // PNG: 89 50 4E 47
-      if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4e && arr[3] === 0x47) {
-        return resolve(true);
-      }
-      resolve(false);
-    };
-    reader.readAsArrayBuffer(file.slice(0, 8));
-  });
 
 // ─── Reveal Animation ────────────────────────────────────────────────────────
 
@@ -136,15 +105,11 @@ const structuredData = {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const TechSquad = () => {
-  const [selectedFile, setSelectedFile]     = useState(null);
-  const [fileName, setFileName]             = useState("Choose file");
-  const [fileError, setFileError]           = useState("");
   const [form, setForm]                     = useState(emptyForm);
   const [errors, setErrors]                 = useState({});
   const [submitting, setSubmitting]         = useState(false);
   const [submitted, setSubmitted]           = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
-  const fileInputRef = useRef(null);
 
   // Scroll to top on mount
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -159,48 +124,8 @@ const TechSquad = () => {
     if (name === "zipCode") sanitized = sanitizeZip(value);
 
     setForm((prev) => ({ ...prev, [name]: sanitized }));
-    // Clear error on change
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   }, []);
-
-  // ── File Change ─────────────────────────────────────────────────────────────
-  const handleFileChange = useCallback(async (e) => {
-    const file = e.target.files?.[0];
-    setFileError("");
-
-    if (!file) return;
-
-    if (file.size > MAX_FILE_BYTES) {
-      setFileError("File size must be less than 15 MB.");
-      return resetFile();
-    }
-
-    if (!ALLOWED_MIME.includes(file.type) || !ALLOWED_EXT.test(file.name)) {
-      setFileError("Only PDF, JPG, and PNG files are allowed.");
-      return resetFile();
-    }
-
-    // Deep content-type validation via magic bytes
-    const valid = await checkMagicBytes(file);
-    if (!valid) {
-      setFileError("File content doesn't match its extension. Upload a valid PDF, JPG, or PNG.");
-      return resetFile();
-    }
-
-    setSelectedFile(file);
-    setFileName(file.name);
-  }, []); // eslint-disable-line
-
-  const resetFile = () => {
-    setSelectedFile(null);
-    setFileName("Choose file");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const removeFile = () => {
-    resetFile();
-    setFileError("");
-  };
 
   // ── Client-side Validation ──────────────────────────────────────────────────
   const validate = () => {
@@ -223,7 +148,6 @@ const TechSquad = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Soft rate-limit: block after 5 rapid submissions
     if (submitAttempts >= 5) {
       alert("Too many submissions. Please refresh the page and try again.");
       return;
@@ -241,13 +165,11 @@ const TechSquad = () => {
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, val]) => formData.append(key, val));
-      if (selectedFile) formData.append("invoiceFile", selectedFile);
 
       const res = await fetch(`${import.meta.env.VITE_API_URL}/submit-techsquad`, {
         method: "POST",
-        // No manual Content-Type — browser sets multipart boundary automatically
         body: formData,
-        signal: AbortSignal.timeout(30_000), // 30-second timeout
+        signal: AbortSignal.timeout(30_000),
       });
 
       const data = await res.json();
@@ -256,10 +178,7 @@ const TechSquad = () => {
         setSubmitted(true);
         setForm(emptyForm);
         setErrors({});
-        resetFile();
-        setFileError("");
       } else {
-        // Show server error message but sanitise it before rendering
         const msg = typeof data?.message === "string"
           ? sanitizeText(data.message)
           : "Something went wrong. Please try again.";
@@ -532,7 +451,7 @@ const TechSquad = () => {
                             value={form.email}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.email ? "border-red-400" : ""}`}
-                            placeholder="you@example.com"
+                            placeholder="Enter your email"
                             autoComplete="email"
                             required
                             aria-required="true"
@@ -553,7 +472,7 @@ const TechSquad = () => {
                             value={form.phone}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.phone ? "border-red-400" : ""}`}
-                            placeholder="+91 98765 43210"
+                            placeholder="Enter your phone number"
                             autoComplete="tel"
                             required
                             aria-required="true"
@@ -613,7 +532,7 @@ const TechSquad = () => {
                             value={form.zipCode}
                             onChange={handleChange}
                             className={`${inputBase} ${errors.zipCode ? "border-red-400" : ""}`}
-                            placeholder="e.g. 492001"
+                            placeholder="Enter psotal or zip code"
                             autoComplete="postal-code"
                             required
                             aria-required="true"
@@ -632,7 +551,7 @@ const TechSquad = () => {
                             name="purchaseDate"
                             value={form.purchaseDate}
                             onChange={handleChange}
-                            max={new Date().toISOString().split("T")[0]} // no future dates
+                            max={new Date().toISOString().split("T")[0]}
                             className={inputBase}
                           />
                         </div>
@@ -661,63 +580,6 @@ const TechSquad = () => {
                           {fieldError("serviceType")}
                         </div>
 
-                        {/* File Upload */}
-                        <div className="md:col-span-2">
-                          <label
-                            htmlFor="invoiceFile"
-                            className="block text-slate-700 font-medium mb-1"
-                          >
-                            Upload Invoice / Evidence{" "}
-                            <span className="text-slate-400 font-normal">(Max 15 MB)</span>
-                          </label>
-                          <div
-                            className={`relative flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition ${
-                              fileError
-                                ? "border-red-400 bg-red-50"
-                                : "border-green-300 hover:border-green-500"
-                            }`}
-                          >
-                            <span className={`text-sm ${selectedFile ? "text-slate-800 font-medium" : "text-slate-500"}`}>
-                              {fileName}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              {selectedFile && (
-                                <button
-                                  type="button"
-                                  onClick={removeFile}
-                                  className="p-1 hover:bg-red-100 rounded-full transition"
-                                  title="Remove file"
-                                  aria-label="Remove selected file"
-                                >
-                                  <X className="w-4 h-4 text-red-600" aria-hidden="true" />
-                                </button>
-                              )}
-                              <UploadCloud className="w-5 h-5 text-green-700" aria-hidden="true" />
-                            </div>
-                            <input
-                              ref={fileInputRef}
-                              id="invoiceFile"
-                              type="file"
-                              className="absolute inset-0 opacity-0 cursor-pointer"
-                              onChange={handleFileChange}
-                              accept=".pdf,.jpg,.jpeg,.png"
-                              aria-label="Upload invoice or evidence file"
-                            />
-                          </div>
-
-                          {fileError && (
-                            <p role="alert" className="text-sm mt-1 text-red-600">{fileError}</p>
-                          )}
-                          {!fileError && !selectedFile && (
-                            <p className="text-sm mt-1 text-slate-500">PDF / JPG / PNG supported (Max 15 MB)</p>
-                          )}
-                          {selectedFile && !fileError && (
-                            <p className="text-sm mt-1 text-green-600">
-                              ✓ File ready: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          )}
-                        </div>
-
                         {/* Issue Description */}
                         <div className="md:col-span-2">
                           <label htmlFor="issue" className="block text-slate-700 font-medium mb-1">
@@ -742,7 +604,7 @@ const TechSquad = () => {
                       <div className="flex justify-center mt-8">
                         <button
                           type="submit"
-                          disabled={submitting || !!fileError}
+                          disabled={submitting}
                           className="inline-flex items-center gap-2 rounded-lg bg-green-600 text-white px-10 py-4 font-semibold hover:bg-green-700 transition duration-300 ease-out hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-busy={submitting}
                         >
