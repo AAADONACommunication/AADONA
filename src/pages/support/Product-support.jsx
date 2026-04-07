@@ -446,7 +446,7 @@ const ProductSupport = () => {
                           name="city"
                           value={formData.city}
                           onChange={handleChange}
-                          placeholder="Enter city"
+                          placeholder="Enter your city"
                           className={inputClass(errors.city)}
                           required
                           aria-required="true"
