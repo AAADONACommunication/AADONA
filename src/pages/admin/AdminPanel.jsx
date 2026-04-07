@@ -119,7 +119,7 @@ export default function AdminPanel() {
         loadBlogs();
         loadCategories();
       } else {
-        navigate("/admin-login");
+        navigate("/ram-ctrl-505");
       }
     });
     return () => unsubscribe();
@@ -132,7 +132,7 @@ export default function AdminPanel() {
       clearTimeout(timer);
       timer = setTimeout(async () => {
         await signOut(auth);
-        navigate("/admin-login");
+        navigate("/ram-ctrl-505");
       }, 5 * 60 * 1000);
     };
     const events = ["mousemove", "mousedown", "keypress", "scroll", "touchstart", "click"];

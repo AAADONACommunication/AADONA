@@ -70,15 +70,15 @@ const App = () => {
           <Route path="/" element={<Home />} />
 
           {/* ADMIN */}
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminPanel />
-              </ProtectedRoute>
-            }
-          />
+         <Route path="/ram-ctrl-505" element={<AdminLogin />} />
+         <Route
+           path="/ram-portal-100"
+           element={
+             <ProtectedRoute>
+               <AdminPanel />
+             </ProtectedRoute>
+           }
+         />
 
           {/* BLOG */}
           <Route path="/blog" element={<Blog />} />

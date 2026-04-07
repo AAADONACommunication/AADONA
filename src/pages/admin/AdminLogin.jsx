@@ -31,7 +31,7 @@ const AdminLogin = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/admin");
+      navigate("/ram-portal-100");
     } catch (err) {
       console.log("Firebase Error Code:", err.code);
 

@@ -26,7 +26,7 @@ export default function ProtectedRoute({ children }) {
 
   // Not logged in
   if (!user) {
-    return <Navigate to="/admin-login" replace />;
+    return <Navigate to="/ram-ctrl-505" replace />;
   }
 
   // Logged in
