@@ -12,13 +12,19 @@ const generateSlug = (title) =>
   title.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 
 // ── Rich Text Editor ──
+// ── Rich Text Editor ──
 const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }) => {
-  const editorRef = useRef(null);
-  const quillRef = useRef(null);
+  const editorRef     = useRef(null);
+  const quillRef      = useRef(null);
   const isInitialized = useRef(false);
+  const onChangeRef   = useRef(onChange);
 
   useEffect(() => {
-    if (isInitialized.current) return;
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    if (isInitialized.current || !editorRef.current) return;
     isInitialized.current = true;
 
     const loadQuill = async () => {
@@ -26,12 +32,12 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
 
       if (!document.querySelector('link[href*="quill"]')) {
         const link = document.createElement("link");
-        link.rel = "stylesheet";
+        link.rel  = "stylesheet";
         link.href = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css";
         document.head.appendChild(link);
       }
 
-      if (!editorRef.current || quillRef.current) return;
+      if (quillRef.current) return;
 
       quillRef.current = new Quill(editorRef.current, {
         theme: "snow",
@@ -53,23 +59,12 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
 
       quillRef.current.on("text-change", () => {
         const html = quillRef.current.root.innerHTML;
-        onChange(html === "<p><br></p>" ? "" : html);
+        onChangeRef.current(html === "<p><br></p>" ? "" : html);
       });
     };
 
     loadQuill();
   }, []);
-
-  useEffect(() => {
-    if (quillRef.current && value !== undefined) {
-      const currentHtml = quillRef.current.root.innerHTML;
-      const normalizedValue = value || "";
-      const normalizedCurrent = currentHtml === "<p><br></p>" ? "" : currentHtml;
-      if (normalizedValue !== normalizedCurrent) {
-        quillRef.current.root.innerHTML = normalizedValue;
-      }
-    }
-  }, [value]);
 
   return (
     <div className="rounded-xl overflow-hidden border border-green-300">
