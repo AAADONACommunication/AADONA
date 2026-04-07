@@ -526,7 +526,7 @@ export default function Chatbot() {
         {isOpen && (
           <div style={{ position:'relative' }}>
             {/* RED FLOATING CLOSE */}
-            <button className="chat-close-btn" onClick={() => setIsOpen(false)} title="Close">
+            <button className="chat-close-btn" onClick={() => setIsOpen(false)} aria-label="Close chat" title="Close">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
@@ -553,13 +553,13 @@ export default function Chatbot() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 ml-auto">
-                      <button onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }} title={`Call ${TOLL_FREE_DISPLAY}`}
+                      <button onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }} aria-label={`Call ${TOLL_FREE_DISPLAY}`} title={`Call ${TOLL_FREE_DISPLAY}`}
                         className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
                         </svg>
                       </button>
-                      <button onClick={handleClearHistory} title="Clear chat"
+                      <button onClick={handleClearHistory} aria-label="Clear chat history" title="Clear chat"
                         className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/70 hover:text-white">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -602,7 +602,7 @@ export default function Chatbot() {
                       className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-[13px] resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition leading-snug"
                       style={{ minHeight:'40px', maxHeight:'90px', overflow:'hidden', fontFamily:"'DM Sans',sans-serif" }}
                       disabled={isLoading} />
-                    <button onClick={() => sendMessage()} disabled={!input.trim() || isLoading}
+                    <button onClick={() => sendMessage()} aria-label="Send message" disabled={!input.trim() || isLoading}
                       className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
                       style={{ background:'linear-gradient(135deg, #10b981, #059669)' }}>
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
