@@ -2865,7 +2865,7 @@ app.post(
   ]),
   async (req, res) => {
     const buttons = req.body.buttons ? JSON.parse(req.body.buttons) : [];
-
+    const { subject, heading, bodyText, footerText } = req.body;
     if (!subject?.trim() || !bodyText?.trim())
       return res.status(400).json({ message: "Subject and content are required" });
 

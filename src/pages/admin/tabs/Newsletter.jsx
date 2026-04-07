@@ -822,7 +822,26 @@ export default function Newsletter() {
                 <input ref={pdfRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={handlePdfAdd} />
               </div>
 
-                {/* ── Sent History ── */}
+              {/* Footer */}
+              <div className="nl-field">
+                <label>Footer Text</label>
+                <input type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} className="nl-input" />
+              </div>
+
+              {sendResult && (
+                <div className={`nl-result ${sendResult.toLowerCase().includes("fail") || sendResult.toLowerCase().includes("error") ? "err" : "ok"}`}>
+                  {sendResult}
+                </div>
+              )}
+
+              <button className="nl-send" onClick={handleSend} disabled={sending || !subject.trim() || !bodyText.trim()}>
+                {sending
+                  ? <><div className="nl-spin" /> Sending...</>
+                  : <><Send size={15} /> Send Newsletter</>
+                }
+              </button>
+
+              {/* ── Sent History ── */}
               <div className="nl-card">
                 <div className="nl-card-head">
                   <div>
@@ -902,25 +921,6 @@ export default function Newsletter() {
                   </div>
                 )}
               </div>
-
-              {/* Footer */}
-              <div className="nl-field">
-                <label>Footer Text</label>
-                <input type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} className="nl-input" />
-              </div>
-
-              {sendResult && (
-                <div className={`nl-result ${sendResult.toLowerCase().includes("fail") || sendResult.toLowerCase().includes("error") ? "err" : "ok"}`}>
-                  {sendResult}
-                </div>
-              )}
-
-              <button className="nl-send" onClick={handleSend} disabled={sending || !subject.trim() || !bodyText.trim()}>
-                {sending
-                  ? <><div className="nl-spin" /> Sending...</>
-                  : <><Send size={15} /> Send Newsletter</>
-                }
-              </button>
             </div>
 
             {showPreview && (
