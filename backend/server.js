@@ -2829,28 +2829,31 @@ app.post("/newsletter-subscribe", formLimiter, async (req, res) => {
   }
 });
 
-// ── SUBSCRIBERS LIST (Admin only) ─────────────────────────────────
-app.get("/subscribers", verifyToken, adminLimiter, async (req, res) => {
+// ── NEWSLETTER HISTORY (Admin) ────────────────────────────────────
+app.get("/subscribers/history", verifyToken, adminLimiter, async (req, res) => {
   try {
-    const { status } = req.query;
-    const query = status ? { status } : {};
-    const subscribers = await Subscriber.find(query).sort({ createdAt: -1 });
-    res.json(subscribers);
+    const history = await NewsletterHistory.find()
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json(history);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── UNSUBSCRIBE single (Admin) ─────────────────────────────────────
-app.delete("/subscribers/:id", verifyToken, async (req, res) => {
+app.get("/test-mail", async (req, res) => {
   try {
-    const sub = await Subscriber.findById(req.params.id);
-    if (!sub) return res.status(404).json({ message: "Subscriber not found" });
-    await Subscriber.findByIdAndDelete(req.params.id);
-    logAction(req.user.email, "DELETE", "Subscriber", sub.email, {});
-    res.json({ message: "Subscriber removed" });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: "Test Mail",
+      text: "Working",
+    });
+
+    res.send("MAIL SENT ✅");
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.log("MAIL ERROR:", err);
+    res.status(500).send(err.message);
   }
 });
 
@@ -3034,35 +3037,30 @@ app.post(
   }
 );
 
-// ── NEWSLETTER HISTORY (Admin) ────────────────────────────────────
-app.get("/subscribers/history", verifyToken, adminLimiter, async (req, res) => {
+// ── UNSUBSCRIBE single (Admin) ─────────────────────────────────────
+app.delete("/subscribers/:id", verifyToken, async (req, res) => {
   try {
-    const history = await NewsletterHistory.find()
-      .sort({ createdAt: -1 })
-      .limit(50);
-    res.json(history);
+    const sub = await Subscriber.findById(req.params.id);
+    if (!sub) return res.status(404).json({ message: "Subscriber not found" });
+    await Subscriber.findByIdAndDelete(req.params.id);
+    logAction(req.user.email, "DELETE", "Subscriber", sub.email, {});
+    res.json({ message: "Subscriber removed" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get("/test-mail", async (req, res) => {
+// ── SUBSCRIBERS LIST (Admin only) ─────────────────────────────────
+app.get("/subscribers", verifyToken, adminLimiter, async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "Test Mail",
-      text: "Working",
-    });
-
-    res.send("MAIL SENT ✅");
+    const { status } = req.query;
+    const query = status ? { status } : {};
+    const subscribers = await Subscriber.find(query).sort({ createdAt: -1 });
+    res.json(subscribers);
   } catch (err) {
-    console.log("MAIL ERROR:", err);
-    res.status(500).send(err.message);
+    res.status(500).json({ error: err.message });
   }
 });
-
-
 
 /* =============================
    GRACEFUL SHUTDOWN
