@@ -670,6 +670,7 @@ export default function Chatbot() {
               <span className="ac-tooltip">{isOpen ? 'Minimise' : 'Chat with us'}</span>
               {!isOpen && hasUnread && showBubble && <span className="notif-dot">1</span>}
               <button onClick={isOpen ? () => setIsOpen(false) : handleOpen}
+                aria-label={isOpen ? 'Minimise chat' : 'Chat with us'}
                 style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'56px', width:'56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border:'none', cursor:'pointer', transition:'background 0.15s', outline:'none', borderRadius:'9999px 9999px 0 0', overflow:'hidden' }}>
                 {isOpen
                   ? <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -681,6 +682,7 @@ export default function Chatbot() {
             <div className="ac-btn-wrap" style={{ borderRadius:'0 0 9999px 9999px', overflow:'visible' }}>
               <span className="ac-tooltip">Call us</span>
               <button onClick={handleCallDrawerToggle}
+                aria-label="Call us"
                 style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'56px', width:'56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border:'none', cursor:'pointer', transition:'background 0.15s', outline:'none', borderRadius:'0 0 9999px 9999px', overflow:'hidden' }}>
                 <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
               </button>
