@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import Navbar from "../Components/Navbar";
+import Footer from "../Components/Footer";
 
 export default function NotFound() {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ export default function NotFound() {
   }, []);
 
   return (
+    <>
+    <Navbar/>
     <div style={{
       minHeight: "100dvh",
       background: "#1a1a1a",
@@ -127,5 +131,7 @@ export default function NotFound() {
       </button>
 
     </div>
+    <Footer/>
+    </>
   );
 }
