@@ -1,5 +1,11 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 
 // LAZY IMPORTS
 const Home = lazy(() => import("./pages/Home"));
@@ -34,51 +40,60 @@ const AdminPanel = lazy(() => import("./pages/admin/AdminPanel"));
 const ProtectedRoute = lazy(() => import("./pages/admin/ProtectedRoute"));
 const ProductDetailPage = lazy(() => import("./Components/ProductDetailPage"));
 const BlogDetail = lazy(() => import("./pages/Blogdetail"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Global components
+// GLOBAL COMPONENTS
 import Breadcrumbs from "./BreadCrumbs";
 const Chatbot = lazy(() => import("./Components/Chatbot"));
 
-const App = () => {
-
+const AppContent = () => {
+  const location = useLocation();
   const [showChatbot, setShowChatbot] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowChatbot(true);
-    }, 3000); // 3 sec delay
+  // 🔹 ADMIN PATH CHECK
+  const isAdminPath =
+    location.pathname === "/ram-ctrl-505" ||
+    location.pathname === "/ram-portal-100";
 
+  // 🔹 404 PAGE CHECK
+  const is404Page = location.pathname === "/404";
+
+  // 🔹 SHOW / HIDE GLOBAL UI
+  const showGlobalComponents = !isAdminPath && !is404Page;
+
+  // ⏳ chatbot delay
+  useEffect(() => {
+    const timer = setTimeout(() => setShowChatbot(true), 3000);
     return () => clearTimeout(timer);
   }, []);
+
   return (
-    <Router>
+    <>
+      {/* GLOBAL UI */}
+      {showGlobalComponents && <Breadcrumbs />}
 
-      {/* Global */}
-      <Breadcrumbs />
-
-      {showChatbot && (
+      {showGlobalComponents && showChatbot && (
         <Suspense fallback={null}>
           <Chatbot />
         </Suspense>
       )}
 
-      {/* Suspense wrapper */}
+      {/* ROUTES */}
       <Suspense fallback={<div>Loading...</div>}>
-
         <Routes>
-
+          {/* HOME */}
           <Route path="/" element={<Home />} />
 
           {/* ADMIN */}
-         <Route path="/ram-ctrl-505" element={<AdminLogin />} />
-         <Route
-           path="/ram-portal-100"
-           element={
-             <ProtectedRoute>
-               <AdminPanel />
-             </ProtectedRoute>
-           }
-         />
+          <Route path="/ram-ctrl-505" element={<AdminLogin />} />
+          <Route
+            path="/ram-portal-100"
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            }
+          />
 
           {/* BLOG */}
           <Route path="/blog" element={<Blog />} />
@@ -114,17 +129,29 @@ const App = () => {
           <Route path="/warranty" element={<Warranty />} />
           <Route path="/warranty/check-Warranty" element={<WarrantyCheck />} />
 
-          {/* OTHERS */}
+          {/* OTHER */}
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-          {/* CMS */}
+          {/* DYNAMIC */}
           <Route path="/:categoryName" element={<CategoryProductsPage />} />
           <Route path="/:categoryName/:slug" element={<ProductDetailPage />} />
 
-        </Routes>
+          {/* ✅ 404 PAGE */}
+          <Route path="/404" element={<NotFound />} />
 
+          {/* ✅ CATCH ALL */}
+          <Route path="*" element={<Navigate to="/404" replace />} />
+        </Routes>
       </Suspense>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 };

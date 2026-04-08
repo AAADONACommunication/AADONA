@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef, memo } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
@@ -192,11 +192,9 @@ const RelatedProducts = memo(({ relatedProducts }) => {
 });
 
 /* -------------------- BANNER COMPONENT -------------------- */
-// Dynamic banner
 const CategoryBanner = memo(({ categoryName, bannerUrl, bannerLoading }) => (
   <div className="relative min-h-[220px] sm:h-[280px] md:h-[380px] flex items-center justify-center overflow-hidden bg-gray-900">
     {bannerLoading ? (
-      /* Jab tak fetch ho raha hai — dark skeleton, koi green nahi */
       <div className="absolute inset-0 bg-gray-800 animate-pulse" />
     ) : bannerUrl ? (
       <img
@@ -236,6 +234,7 @@ const detailContent = {
 /* -------------------- MAIN PAGE -------------------- */
 export default function CategoryProductsPage() {
   const { categoryName: categorySlug } = useParams();
+  const navigate = useNavigate(); // ← ADD
 
   const [products, setProducts] = useState([]);
   const [actualCategoryName, setActualCategoryName] = useState("");
@@ -248,7 +247,7 @@ export default function CategoryProductsPage() {
   const [orderedSubCategories, setOrderedSubCategories] = useState([]);
   const [orderedExtraCategories, setOrderedExtraCategories] = useState([]);
 
-  // SEO: dynamic title + schema.org structured data
+  // SEO
   useEffect(() => {
     if (!actualCategoryName) return;
     const prev = document.title;
@@ -285,19 +284,22 @@ export default function CategoryProductsPage() {
     ])
       .then(([productsData, categoriesData]) => {
         const filtered = productsData.filter(p => nameToSlug(p.category) === categorySlug);
+        const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
+
+        // ← 404 redirect: na products mile, na category mile
+        if (filtered.length === 0 && !categoryDoc) {
+          navigate("/404", { replace: true });
+          return;
+        }
+
         setProducts(filtered);
 
         if (filtered.length > 0) {
           const catName = filtered[0].category;
           setActualCategoryName(catName);
 
-          const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
-
-          // ── Set banner from DB ──
-          if (categoryDoc?.banner) {
-            setCategoryBanner(categoryDoc.banner);
-          }
-          setBannerLoading(false); // 👈 dono cases mein
+          if (categoryDoc?.banner) setCategoryBanner(categoryDoc.banner);
+          setBannerLoading(false);
 
           if (categoryDoc && categoryDoc.subCategories?.length > 0) {
             const subsWithProducts = categoryDoc.subCategories
@@ -313,7 +315,7 @@ export default function CategoryProductsPage() {
             setOrderedExtraCategories([]);
           }
         } else {
-          const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
+          // Category exist karti hai but products nahi hain abhi
           if (categoryDoc) {
             setActualCategoryName(categoryDoc.name);
             if (categoryDoc.banner) setCategoryBanner(categoryDoc.banner);
@@ -321,14 +323,18 @@ export default function CategoryProductsPage() {
           setBannerLoading(false);
         }
       })
-      .catch(err => { if (err.name !== "AbortError") console.warn("Failed to load data"); })
+      .catch(err => {
+        if (err.name !== "AbortError") {
+          navigate("/404", { replace: true }); // ← network error pe bhi 404
+        }
+      })
       .finally(() => {
         setLoading(false);
         setBannerLoading(false);
       });
 
     return () => controller.abort();
-  }, [categorySlug]);
+  }, [categorySlug, navigate]);
 
   useEffect(() => {
     if (!activeSubCategory) return;
@@ -393,7 +399,6 @@ export default function CategoryProductsPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      {/* ── Dynamic Banner ── */}
       <CategoryBanner
         categoryName={actualCategoryName || ""}
         bannerUrl={categoryBanner}
