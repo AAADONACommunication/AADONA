@@ -67,7 +67,7 @@ const AdminLogin = () => {
         className="flex-grow bg-cover bg-center flex items-center justify-center  pb-10 p-4"
         style={{ backgroundImage: `url(${bg})` }}
       >
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 md:p-12 w-full mt-4 max-w-md border border-white/20">
+        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 md:p-12 w-full mt-26 max-w-md border border-white/20">
           <div className="flex flex-col items-center mb-8">
             <div className="bg-green-100 p-4 rounded-full mb-4">
               <LogIn className="w-8 h-8 text-green-600" />
