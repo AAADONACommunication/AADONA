@@ -143,7 +143,7 @@ borderBottom: "2px solid rgba(34,197,94,0.15)"
             e.target.style.transform = "translateY(0)";
           }}
         >
-          Back to homepage
+          Back to Home
         </button>
 
       </div>
