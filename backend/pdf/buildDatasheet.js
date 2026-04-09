@@ -64,30 +64,98 @@ const buildDatasheetHTML = async (product) => {
   const specsHTML = Object.entries(product.specifications || {})
     .map(([section, specs]) => {
       const rows = Object.entries(specs || {})
+        .filter(([key]) => !key.startsWith("__sub__") && key.trim() !== "")
         .map(([key, value], i) => {
+          const isTableMode = key.startsWith("__table__");
+          const isBoldFirst = key.startsWith("__table__bold__");
+          const displayKey = key.replace("__table__bold__", "").replace("__table__", "");
+
           const values = Array.isArray(value)
             ? value.filter(Boolean)
             : value ? [value] : [];
           const isMultiple = values.length > 1;
+          const hasAnyPipe = values.some(v => v.includes("|"));
 
-          const valueCell = isMultiple
-            ? `<ul style="margin:0;padding:0;list-style:none;">${
-                values.map(point =>
-                  `<li style="display:flex;align-items:flex-start;gap:7px;margin-bottom:4px;">
-                    <span style="color:#25a86a;font-size:11px;margin-top:2px;flex-shrink:0;">•</span>
-                    <span>${point}</span>
-                  </li>`
-                ).join("")
-              }</ul>`
-            : `${values[0] ?? ""}`;
+          let valueCell;
+
+          if (isTableMode && hasAnyPipe) {
+            // Table mode
+            const headers = values[0].split("|").map(h => h.trim());
+            const colWidth = `${100 / headers.length}%`;
+            const headerRow = isBoldFirst
+              ? `<tr style="border-bottom:1px solid #ccc;">
+                  ${headers.map(h => `<th style="text-align:left;padding:6px 10px;font-size:11px;font-weight:700;color:#2d4a2d;width:${colWidth};">${h}</th>`).join("")}
+                </tr>`
+              : `<tr>
+                  ${headers.map(h => `<th style="text-align:left;padding:6px 10px;font-size:11px;font-weight:400;color:#555;width:${colWidth};">${h}</th>`).join("")}
+                </tr>`;
+
+            const dataRows = values.slice(1).map((row, ri) => {
+              const cells = row.split("|").map(c => c.trim());
+              const bg = ri % 2 === 0 ? "#fff" : "#f9faff";
+              return `<tr style="background:${bg};">
+                ${cells.map((cell, ci) => {
+                  const isBold = ri === 0 && isBoldFirst;
+                  return `<td style="padding:6px 10px;font-size:11px;color:${isBold ? "#2d4a2d" : "#555"};font-weight:${isBold ? "700" : "400"};border-bottom:0.5px solid #eee;width:${colWidth};">${cell}</td>`;
+                }).join("")}
+              </tr>`;
+            }).join("");
+
+            valueCell = `<table style="width:100%;border-collapse:collapse;">${headerRow}${dataRows}</table>`;
+          } else if (isMultiple) {
+            valueCell = `<ul style="margin:0;padding:0;list-style:none;">${
+              values.map(point =>
+                `<li style="display:flex;align-items:flex-start;gap:7px;margin-bottom:4px;">
+                  <span style="color:#25a86a;font-size:11px;margin-top:2px;flex-shrink:0;">•</span>
+                  <span>${point}</span>
+                </li>`
+              ).join("")
+            }</ul>`;
+          } else {
+            valueCell = `${values[0] ?? ""}`;
+          }
 
           return `
           <tr>
-            <td style="padding:9px 14px;font-size:12px;font-weight:600;color:#2d4a2d;background:${i % 2 === 0 ? "#f3f8f3" : "#eaf2ea"};border:0.5px solid #dde8dd;width:38%;vertical-align:middle;text-align:center;">${key}</td>
-            <td style="padding:9px 14px;font-size:12px;color:#444;background:${i % 2 === 0 ? "#fff" : "#fafffe"};border:0.5px solid #dde8dd;vertical-align:middle;">${valueCell}</td>
+            <td style="padding:9px 14px;font-size:12px;font-weight:600;color:#2d4a2d;background:${i % 2 === 0 ? "#f3f8f3" : "#eaf2ea"};border:0.5px solid #dde8dd;width:38%;vertical-align:middle;text-align:center;">${displayKey}</td>
+            <td style="padding:9px 14px;font-size:12px;color:#444;background:${i % 2 === 0 ? "#fff" : "#fafffe"};border:0.5px solid #dde8dd;vertical-align:top;">${valueCell}</td>
           </tr>`;
         })
         .join("");
+
+      // Sub categories bhi handle karo
+      const subRows = Object.entries(specs || {})
+        .filter(([key]) => key.startsWith("__sub__"))
+        .map(([subKey, subSpecs]) => {
+          const subName = subKey.replace("__sub__", "");
+          const subInnerRows = Object.entries(subSpecs || {})
+            .filter(([k]) => k.trim() !== "")
+            .map(([k, v], i) => {
+              const values = Array.isArray(v) ? v.filter(Boolean) : v ? [v] : [];
+              const isMultiple = values.length > 1;
+              const valueCell = isMultiple
+                ? `<ul style="margin:0;padding:0;list-style:none;">${
+                    values.map(point =>
+                      `<li style="display:flex;align-items:flex-start;gap:7px;margin-bottom:4px;">
+                        <span style="color:#25a86a;font-size:11px;margin-top:2px;flex-shrink:0;">•</span>
+                        <span>${point}</span>
+                      </li>`
+                    ).join("")
+                  }</ul>`
+                : `${values[0] ?? ""}`;
+              return `
+              <tr>
+                <td style="padding:8px 14px;font-size:12px;font-weight:600;color:#2d4a2d;background:${i % 2 === 0 ? "#f3f8f3" : "#eaf2ea"};border:0.5px solid #dde8dd;width:38%;vertical-align:middle;text-align:center;">${k}</td>
+                <td style="padding:8px 14px;font-size:12px;color:#444;background:${i % 2 === 0 ? "#fff" : "#fafffe"};border:0.5px solid #dde8dd;vertical-align:middle;">${valueCell}</td>
+              </tr>`;
+            }).join("");
+
+          return `
+          <tr>
+            <td colspan="2" style="padding:6px 14px 2px;font-size:11px;font-weight:700;color:#25a86a;letter-spacing:0.5px;text-transform:uppercase;border:0.5px solid #dde8dd;background:#f0faf5;">↳ ${subName}</td>
+          </tr>
+          ${subInnerRows}`;
+        }).join("");
 
       return `
         <div style="margin-bottom:24px;padding-top:2px;">
@@ -95,7 +163,7 @@ const buildDatasheetHTML = async (product) => {
             <div style="width:4px;height:16px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
             <div style="font-size:12px;font-weight:700;color:#1b7f4c;letter-spacing:0.8px;text-transform:uppercase;">${section}</div>
           </div>
-          <table style="width:100%;border-collapse:collapse;">${rows}</table>
+          <table style="width:100%;border-collapse:collapse;">${rows}${subRows}</table>
         </div>`;
     }).join("");
 

@@ -144,50 +144,121 @@ const FeaturesTab = memo(({ items = [] }) => (
   </div>
 ));
 
-const SpecificationsTab = memo(({ specifications }) => (
-  <div className="space-y-6">
-    {specifications &&
-      Object.entries(specifications).map(([category, specs]) => (
-        <div key={category}>
-          <h3 className="text-l font-black text-[#111] uppercase tracking-[0.15em] mb-2 border-l-[3px] border-[#00A859] pl-4">
-            {category}
-          </h3>
-          <div className="border border-gray-200 rounded-lg overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-            {Object.entries(specs).map(([key, value], rowIdx) => {
-              const values = Array.isArray(value)
-                ? value.filter(Boolean)
-                : value ? [value] : [];
-              const isMultiple = values.length > 1;
-              return (
-                <div
-                  key={key}
-                  className={`grid grid-cols-1 md:grid-cols-3 text-[14.5px] border-b border-gray-200 last:border-0 ${rowIdx % 2 === 0 ? "bg-white" : "bg-[#fafafa]"}`}
-                >
-                  <div className="p-3 px-[18px] font-semibold text-[#333] bg-[#fafafa] border-r border-gray-100 tracking-tight flex items-center justify-center text-center">
-                    {key}
-                  </div>
-                  <div className="md:col-span-2 p-3 px-[18px] text-[#555] leading-relaxed flex items-center">
-                    {isMultiple ? (
-                      <ul className="space-y-1 w-full" aria-label={key}>
-                        {values.map((point, pi) => (
-                          <li key={pi} className="flex items-start gap-2">
-                            <span className="text-green-500 text-xs mt-[5px] flex-shrink-0" aria-hidden="true">•</span>
-                            <span>{point}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span>{values[0] ?? ""}</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+const SpecificationsTab = memo(({ specifications }) => {
+  const renderRows = (specs, bgOffset = 0) =>
+    Object.entries(specs)
+      .filter(([key]) => !key.startsWith("__sub__") && key.trim() !== "")
+      .map(([key, value], rowIdx) => {
+        const values = Array.isArray(value)
+          ? value.filter(Boolean)
+          : value ? [value] : [];
+        const isMultiple = values.length > 1;
+
+        const isTableMode = key.startsWith("__table__");
+        const isBoldFirst = key.startsWith("__table__bold__");
+        const displayKey = key.replace("__table__bold__", "").replace("__table__", "");
+
+        const hasAnyPipe = values.some(v => v.includes("|"));
+        const tableHeaders = isTableMode && hasAnyPipe
+          ? values[0].split("|").map(h => h.trim())
+          : [];
+
+        return (
+          <div
+            key={key}
+            className={`grid grid-cols-1 md:grid-cols-3 text-[14.5px] border-b border-gray-200 last:border-0 ${(rowIdx + bgOffset) % 2 === 0 ? "bg-white" : "bg-[#fafafa]"}`}
+          >
+            <div className="p-3 px-[18px] font-semibold text-[#333] bg-[#fafafa] border-r border-gray-100 tracking-tight flex items-center justify-center text-center">
+              {displayKey}
+            </div>
+            <div className="md:col-span-2 p-3 px-[18px] text-[#555] leading-relaxed">
+              {isTableMode ? (
+                <table className="w-full text-[13.5px] border-collapse">
+                  <thead>
+                    <tr className={isBoldFirst ? "border-b border-gray-200" : ""}>
+                      {tableHeaders.map((h, hi) => (
+                        <th key={hi} className={`text-left px-3 py-2 tracking-tight ${isBoldFirst ? "font-bold text-[#333]" : "font-normal text-[#555]"}`} style={{ width: `${100 / tableHeaders.length}%` }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {values.slice(1).map((row, ri) => {
+                      const cells = row.split("|").map(c => c.trim());
+                      return (
+                        <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-gray-50/60"}>
+                          {cells.map((cell, ci) => (
+                            <td key={ci} className={`px-3 py-2 border-b border-gray-100 last:border-0 ${ri === 0 && isBoldFirst ? "font-bold text-[#333]" : "text-[#555]"}`} style={{ width: `${100 / tableHeaders.length}%` }}>
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : isMultiple ? (
+                <ul className="space-y-1 w-full">
+                  {values.map((point, pi) => (
+                    <li key={pi} className="flex items-start gap-2">
+                      <span className="text-green-500 text-xs mt-[5px] flex-shrink-0">•</span>
+                      <span className="font-normal">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span>{values[0] ?? ""}</span>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
-  </div>
-));
+        );
+      });
+
+  return (
+    <div className="space-y-6">
+      {specifications &&
+        Object.entries(specifications).map(([category, specs]) => {
+          const subCategories = Object.entries(specs).filter(([k]) => k.startsWith("__sub__"));
+          const hasSubCats = subCategories.length > 0;
+
+          return (
+            <div key={category}>
+              <h3 className="text-l font-black text-[#111] uppercase tracking-[0.15em] mb-2 border-l-[3px] border-[#00A859] pl-4">
+                {category}
+              </h3>
+
+              {/* Normal rows — jo sub category ke bahar hain */}
+              {Object.entries(specs).filter(([k]) => !k.startsWith("__sub__")).length > 0 && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.04)] mb-4">
+                  {renderRows(specs, 0)}
+                </div>
+              )}
+
+              {/* Sub Categories */}
+              {hasSubCats && (
+                <div className="space-y-4 ml-4">
+                  {subCategories.map(([subKey, subSpecs]) => {
+                    const subName = subKey.replace("__sub__", "");
+                    return (
+                      <div key={subKey}>
+                        <h4 className="text-sm font-bold text-[#00A859] uppercase tracking-[0.12em] mb-2 border-l-[2px] border-[#00A859]/40 pl-3">
+                          {subName}
+                        </h4>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+                          {renderRows(subSpecs, 0)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+    </div>
+  );
+});
 
 const DownloadTab = memo(({ datasheet }) => {
   const safeSrc = datasheet && isSafeUrl(datasheet) ? datasheet : null;
