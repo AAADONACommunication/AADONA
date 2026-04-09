@@ -316,7 +316,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
   // ── Open Edit in New Tab ──
   const openEditInNewTab = (p) => {
     const params = new URLSearchParams({ editProduct: p._id });
-    window.open(`${window.location.pathname}?${params}`, "_blank");
+    window.open(`${window.location.origin}${window.location.pathname}?editProduct=${p._id}`, "_blank");
   };
 
   const resetForm = () => {
