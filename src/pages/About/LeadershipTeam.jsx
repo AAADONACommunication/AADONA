@@ -226,4 +226,4 @@ const LeadershipTeam = () => {
 };
 
 export default LeadershipTeam;
- {/* ── END AGAIN AND AGAIN */}
+ {/* ── END AND AGAIN */}
