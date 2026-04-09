@@ -79,25 +79,20 @@ const buildDatasheetHTML = async (product) => {
           let valueCell;
 
           if (isTableMode && hasAnyPipe) {
-            // Table mode
-            const headers = values[0].split("|").map(h => h.trim());
-            const colWidth = `${100 / headers.length}%`;
-            const headerRow = isBoldFirst
-              ? `<tr style="border-bottom:1px solid #ccc;">
-                  ${headers.map(h => `<th style="text-align:left;padding:6px 10px;font-size:11px;font-weight:700;color:#2d4a2d;width:${colWidth};">${h}</th>`).join("")}
-                </tr>`
-              : `<tr>
-                  ${headers.map(h => `<th style="text-align:left;padding:6px 10px;font-size:11px;font-weight:400;color:#555;width:${colWidth};">${h}</th>`).join("")}
-                </tr>`;
+            const rawValues = Array.isArray(value) ? value.filter(v => v && v.toString().trim()) : value ? [value] : [];
+            const headers = rawValues[0] ? rawValues[0].split("|").map(h => h.trim()) : [];
+            const colWidth = headers.length > 0 ? `${100 / headers.length}%` : "auto";
 
-            const dataRows = values.slice(1).map((row, ri) => {
+            const headerRow = `<tr ${isBoldFirst ? 'style="border-bottom:1px solid #ccc;"' : ""}>
+              ${headers.map(h => `<th style="text-align:left;padding:6px 10px;font-size:11px;font-weight:${isBoldFirst ? "700" : "400"};color:${isBoldFirst ? "#2d4a2d" : "#555"};width:${colWidth};">${h}</th>`).join("")}
+            </tr>`;
+
+            const dataRows = rawValues.slice(1).map((row, ri) => {
               const cells = row.split("|").map(c => c.trim());
+              const isBoldRow = ri === 0 && isBoldFirst;
               const bg = ri % 2 === 0 ? "#fff" : "#f9faff";
               return `<tr style="background:${bg};">
-                ${cells.map((cell, ci) => {
-                  const isBold = ri === 0 && isBoldFirst;
-                  return `<td style="padding:6px 10px;font-size:11px;color:${isBold ? "#2d4a2d" : "#555"};font-weight:${isBold ? "700" : "400"};border-bottom:0.5px solid #eee;width:${colWidth};">${cell}</td>`;
-                }).join("")}
+                ${cells.map(cell => `<td style="padding:6px 10px;font-size:11px;color:${isBoldRow ? "#2d4a2d" : "#555"};font-weight:${isBoldRow ? "700" : "400"};border-bottom:0.5px solid #eee;width:${colWidth};">${cell}</td>`).join("")}
               </tr>`;
             }).join("");
 
