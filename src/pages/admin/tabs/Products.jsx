@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import { auth, storage } from "../../../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -34,6 +34,19 @@ export default function Products({ products, setProducts, allCategories, reloadP
   const [savedRelatedIds, setSavedRelatedIds] = useState([]);
   const [savedRelatedLoading, setSavedRelatedLoading] = useState(false);
   const [removeRelatedLoading, setRemoveRelatedLoading] = useState(null);
+
+  // ── Auto-load product from URL param (new tab edit) ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("editProduct");
+    if (editId && products.length > 0) {
+      const product = products.find((p) => p._id === editId);
+      if (product) {
+        edit(product);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [products]);
 
   // ── Category Helpers ──
   const getCategoriesByType = (type) => allCategories.filter((c) => c.type === type);
@@ -230,8 +243,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
         overview: form.overview || {},
         featuresDetail: (form.featuresDetail || []).map(item => ({
           ...item,
-          itemType: item.itemType 
-            ? item.itemType 
+          itemType: item.itemType
+            ? item.itemType
             : (item.title?.trim() ? "subheading" : "bullet"),
         })),
         specifications: form.specifications || {},
@@ -287,8 +300,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
       overview: p.overview || {},
       featuresDetail: (p.featuresDetail || []).map((item) => ({
         ...item,
-        itemType: item.itemType 
-          ? item.itemType 
+        itemType: item.itemType
+          ? item.itemType
           : (item.title && item.title.trim() !== "" ? "subheading" : "bullet"),
       })),
       specifications: p.specifications || {},
@@ -298,6 +311,12 @@ export default function Products({ products, setProducts, allCategories, reloadP
     });
     setEditingId(p._id);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // ── Open Edit in New Tab ──
+  const openEditInNewTab = (p) => {
+    const params = new URLSearchParams({ editProduct: p._id });
+    window.open(`${window.location.pathname}?${params}`, "_blank");
   };
 
   const resetForm = () => {
@@ -369,7 +388,6 @@ export default function Products({ products, setProducts, allCategories, reloadP
     try {
       const token = await auth.currentUser.getIdToken();
 
-      // ── Step 1: Fetch existing related products for this combo ──
       const params = new URLSearchParams({
         category: form.relatedCategory,
         ...(form.relatedSubCategory ? { subCategory: form.relatedSubCategory } : {}),
@@ -383,10 +401,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
       const existingData = await existingRes.json();
       const existingIds = existingData.relatedProducts || [];
 
-      // ── Step 2: Merge — purane + naye, duplicates hata do ──
       const mergedProducts = [...new Set([...existingIds, ...form.relatedProducts])];
 
-      // ── Step 3: Save merged list ──
       const res = await fetch(`${import.meta.env.VITE_API_URL}/save-related-products`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -418,11 +434,11 @@ export default function Products({ products, setProducts, allCategories, reloadP
     try {
       const token = await auth.currentUser.getIdToken();
       const params = new URLSearchParams({
-      category: combo.category,
-      ...(combo.subCategory ? { subCategory: combo.subCategory } : {}),
-      ...(combo.extraCategory ? { extraCategory: combo.extraCategory } : {}),
-      ...(combo.type ? { type: combo.type } : {}),
-    });
+        category: combo.category,
+        ...(combo.subCategory ? { subCategory: combo.subCategory } : {}),
+        ...(combo.extraCategory ? { extraCategory: combo.extraCategory } : {}),
+        ...(combo.type ? { type: combo.type } : {}),
+      });
       const res = await fetch(`${import.meta.env.VITE_API_URL}/related-products/raw?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -655,7 +671,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                       className="flex-1 font-bold text-green-800 bg-white border border-green-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300"
                       defaultValue={category}
                       placeholder="Category Name"
-                      onBlur={(e) => {               
+                      onBlur={(e) => {
                         const entries = Object.entries(form.specifications || {});
                         const rebuilt = {};
                         entries.forEach(([k, v]) => {
@@ -674,7 +690,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                     </button>
                   </div>
                   {Object.entries(specs).map(([key, value], idx) => (
-                      <div key={idx} className="flex gap-2 mb-2">
+                    <div key={idx} className="flex gap-2 mb-2">
                       <input className="w-5/12 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                         placeholder="Key" value={key}
                         onChange={(e) => {
@@ -689,57 +705,57 @@ export default function Products({ products, setProducts, allCategories, reloadP
                         }}
                       />
                       <div className="w-6/12 flex flex-col gap-1">
-                      {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
-                        <div key={vi} className="flex gap-1">
-                          <input
-                            className="flex-1 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                            placeholder={`Point ${vi + 1}`}
-                            value={val}
-                            onChange={(e) => {
-                              const newSpecs = { ...form.specifications };
-                              const arr = Array.isArray(newSpecs[category][key])
-                                ? [...newSpecs[category][key]]
-                                : [newSpecs[category][key] || ""];
-                              arr[vi] = e.target.value;
-                              newSpecs[category][key] = arr;
-                              setForm({ ...form, specifications: newSpecs });
-                            }}
-                          />
-                          {(Array.isArray(value) ? value : [value]).length > 1 && (
-                            <button
-                              type="button"
-                              className="text-red-400 hover:text-red-600 px-1"
-                              onClick={() => {
+                        {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
+                          <div key={vi} className="flex gap-1">
+                            <input
+                              className="flex-1 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                              placeholder={`Point ${vi + 1}`}
+                              value={val}
+                              onChange={(e) => {
                                 const newSpecs = { ...form.specifications };
                                 const arr = Array.isArray(newSpecs[category][key])
                                   ? [...newSpecs[category][key]]
-                                  : [newSpecs[category][key]];
-                                arr.splice(vi, 1);
-                                newSpecs[category][key] = arr.length === 1 ? arr : arr;
+                                  : [newSpecs[category][key] || ""];
+                                arr[vi] = e.target.value;
+                                newSpecs[category][key] = arr;
                                 setForm({ ...form, specifications: newSpecs });
                               }}
-                            >
-                              <X size={14} />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        className="text-green-600 hover:text-green-800 text-xs font-semibold flex items-center gap-1 mt-0.5"
-                        onClick={() => {
-                          const newSpecs = { ...form.specifications };
-                          const arr = Array.isArray(newSpecs[category][key])
-                            ? [...newSpecs[category][key]]
-                            : [newSpecs[category][key] || ""];
-                          arr.push("");
-                          newSpecs[category][key] = arr;
-                          setForm({ ...form, specifications: newSpecs });
-                        }}
-                      >
-                        <Plus size={12} /> Add point
-                      </button>
-                    </div>
+                            />
+                            {(Array.isArray(value) ? value : [value]).length > 1 && (
+                              <button
+                                type="button"
+                                className="text-red-400 hover:text-red-600 px-1"
+                                onClick={() => {
+                                  const newSpecs = { ...form.specifications };
+                                  const arr = Array.isArray(newSpecs[category][key])
+                                    ? [...newSpecs[category][key]]
+                                    : [newSpecs[category][key]];
+                                  arr.splice(vi, 1);
+                                  newSpecs[category][key] = arr.length === 1 ? arr : arr;
+                                  setForm({ ...form, specifications: newSpecs });
+                                }}
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="text-green-600 hover:text-green-800 text-xs font-semibold flex items-center gap-1 mt-0.5"
+                          onClick={() => {
+                            const newSpecs = { ...form.specifications };
+                            const arr = Array.isArray(newSpecs[category][key])
+                              ? [...newSpecs[category][key]]
+                              : [newSpecs[category][key] || ""];
+                            arr.push("");
+                            newSpecs[category][key] = arr;
+                            setForm({ ...form, specifications: newSpecs });
+                          }}
+                        >
+                          <Plus size={12} /> Add point
+                        </button>
+                      </div>
                       <button type="button" className="text-red-400 hover:text-red-600 transition"
                         onClick={() => {
                           const newSpecs = { ...form.specifications };
@@ -933,8 +949,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
           </div>
 
           <button type="button"
-            disabled={!viewRelatedFor?.category || 
-              (getSubCategories(viewRelatedFor?.type || "", viewRelatedFor?.category || "").length > 0 
+            disabled={!viewRelatedFor?.category ||
+              (getSubCategories(viewRelatedFor?.type || "", viewRelatedFor?.category || "").length > 0
                 && !viewRelatedFor?.subCategory)}
             onClick={() => loadSavedRelated(viewRelatedFor)}
             className="bg-green-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-800 transition disabled:bg-gray-300 disabled:cursor-not-allowed mb-6">
@@ -1079,7 +1095,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
                   </td>
                   <td className="p-5 text-center">
                     <div className="flex justify-center gap-3">
-                      <button onClick={() => edit(p)}
+                      {/* ── Edit button — opens in new tab ── */}
+                      <button onClick={() => openEditInNewTab(p)}
                         className="p-2.5 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition shadow-sm">
                         <Edit size={18} />
                       </button>
