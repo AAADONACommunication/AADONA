@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
+import TopLoader from "./components/TopLoader";
 import {
   BrowserRouter as Router,
   Route,
@@ -79,8 +80,8 @@ const AppContent = () => {
       )}
 
       {/* ROUTES */}
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
+       <Suspense fallback={<TopLoader />}>        
+       <Routes>
           {/* HOME */}
           <Route path="/" element={<Home />} />
 
