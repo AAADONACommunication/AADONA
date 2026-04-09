@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useState, useEffect } from "react";
-import TopLoader from "./components/TopLoader";
+import TopLoader from "./Components/TopLoader";
 import {
   BrowserRouter as Router,
   Route,
