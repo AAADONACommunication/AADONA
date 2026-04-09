@@ -34,6 +34,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
   const [savedRelatedIds, setSavedRelatedIds] = useState([]);
   const [savedRelatedLoading, setSavedRelatedLoading] = useState(false);
   const [removeRelatedLoading, setRemoveRelatedLoading] = useState(null);
+  const [copiedSpecCategory, setCopiedSpecCategory] = useState(null);
 
   // ── Auto-load product from URL param (new tab edit) ──
   useEffect(() => {
@@ -47,6 +48,11 @@ export default function Products({ products, setProducts, allCategories, reloadP
       }
     }
   }, [products]);
+
+  useEffect(() => {
+      const raw = localStorage.getItem("copiedSpecCategory");
+      if (raw) setCopiedSpecCategory(JSON.parse(raw));
+    }, []);
 
   // ── Category Helpers ──
   const getCategoriesByType = (type) => allCategories.filter((c) => c.type === type);
@@ -662,130 +668,244 @@ export default function Products({ products, setProducts, allCategories, reloadP
             </div>
 
             {/* Specifications */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-green-700 mb-4">Specifications</label>
-              {Object.entries(form.specifications || {}).map(([category, specs], catIndex) => (
-                <div key={catIndex} className="mb-6 border border-green-200 p-5 rounded-xl bg-green-50/60">
-                  <div className="flex items-center gap-3 mb-4">
+<div className="mb-6">
+  <label className="block text-sm font-semibold text-green-700 mb-4">Specifications</label>
+  {Object.entries(form.specifications || {}).map(([category, specs], catIndex) => {
+    const allCatEntries = Object.entries(form.specifications || {});
+    const totalCats = allCatEntries.length;
+
+    const moveCat = (dir) => {
+      const entries = Object.entries(form.specifications || {});
+      const newIndex = catIndex + dir;
+      if (newIndex < 0 || newIndex >= entries.length) return;
+      const temp = entries[catIndex];
+      entries[catIndex] = entries[newIndex];
+      entries[newIndex] = temp;
+      setForm({ ...form, specifications: Object.fromEntries(entries) });
+    };
+
+    const moveRow = (idx, dir) => {
+      const entries = Object.entries(specs);
+      const newIndex = idx + dir;
+      if (newIndex < 0 || newIndex >= entries.length) return;
+      const temp = entries[idx];
+      entries[idx] = entries[newIndex];
+      entries[newIndex] = temp;
+      const newSpecs = { ...form.specifications };
+      newSpecs[category] = Object.fromEntries(entries);
+      setForm({ ...form, specifications: newSpecs });
+    };
+
+    return (
+      <div key={category} className="mb-6 border border-green-200 p-5 rounded-xl bg-green-50/60">
+        <div className="flex items-center gap-3 mb-4">
+
+          {/* Category reorder */}
+          <div className="flex flex-col gap-0.5">
+            <button type="button" onClick={() => moveCat(-1)} disabled={catIndex === 0}
+              className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+              <ChevronUp size={16} />
+            </button>
+            <button type="button" onClick={() => moveCat(1)} disabled={catIndex === totalCats - 1}
+              className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+              <ChevronDown size={16} />
+            </button>
+          </div>
+
+          <input
+            className="flex-1 font-bold text-green-800 bg-white border border-green-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300"
+            value={category}
+            placeholder="Category Name"
+            onChange={(e) => {
+              const entries = Object.entries(form.specifications || {});
+              const rebuilt = {};
+              entries.forEach(([k, v]) => {
+                rebuilt[k === category ? e.target.value : k] = v;
+              });
+              setForm({ ...form, specifications: rebuilt });
+            }}
+          />
+          <button
+            type="button"
+            title="Copy this category"
+            onClick={() => {
+              const data = { name: category, specs: JSON.parse(JSON.stringify(specs)) };
+              setCopiedSpecCategory(data);
+              localStorage.setItem("copiedSpecCategory", JSON.stringify(data));
+            }}
+            className={`text-xs px-3 py-1.5 rounded-lg border font-semibold transition ${
+              copiedSpecCategory?.name === category
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-600 hover:text-white"
+            }`}
+          >
+            {copiedSpecCategory?.name === category ? "✓ Copied!" : "Copy"}
+          </button>
+          <button type="button" className="text-red-400 hover:text-red-600 transition"
+            onClick={() => {
+              const newSpecs = { ...form.specifications };
+              delete newSpecs[category];
+              setForm({ ...form, specifications: newSpecs });
+            }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {Object.entries(specs).map(([key, value], idx) => {
+          const totalRows = Object.entries(specs).length;
+          return (
+            <div key={idx} className="flex gap-2 mb-2 items-start">
+
+              {/* Row reorder */}
+              <div className="flex flex-col gap-0.5 pt-2">
+                <button type="button" onClick={() => moveRow(idx, -1)} disabled={idx === 0}
+                  className="text-green-500 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+                  <ChevronUp size={14} />
+                </button>
+                <button type="button" onClick={() => moveRow(idx, 1)} disabled={idx === totalRows - 1}
+                  className="text-green-500 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+
+              <input className="w-5/12 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                placeholder="Key" value={key}
+                onChange={(e) => {
+                  const newSpecs = { ...form.specifications };
+                  const oldVal = newSpecs[category][key];
+                  const rebuilt = {};
+                  Object.entries(newSpecs[category]).forEach(([k, v]) => {
+                    rebuilt[k === key ? e.target.value : k] = k === key ? oldVal : v;
+                  });
+                  newSpecs[category] = rebuilt;
+                  setForm({ ...form, specifications: newSpecs });
+                }}
+              />
+
+              <div className="w-5/12 flex flex-col gap-1">
+                {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
+                  <div key={vi} className="flex gap-1">
                     <input
-                      className="flex-1 font-bold text-green-800 bg-white border border-green-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300"
-                      defaultValue={category}
-                      placeholder="Category Name"
-                      onBlur={(e) => {
-                        const entries = Object.entries(form.specifications || {});
-                        const rebuilt = {};
-                        entries.forEach(([k, v]) => {
-                          rebuilt[k === category ? e.target.value : k] = v;
-                        });
-                        setForm({ ...form, specifications: rebuilt });
+                      className="flex-1 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                      placeholder={`Point ${vi + 1}`}
+                      value={val}
+                      onChange={(e) => {
+                        const newSpecs = { ...form.specifications };
+                        const arr = Array.isArray(newSpecs[category][key])
+                          ? [...newSpecs[category][key]]
+                          : [newSpecs[category][key] || ""];
+                        arr[vi] = e.target.value;
+                        newSpecs[category][key] = arr;
+                        setForm({ ...form, specifications: newSpecs });
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const newSpecs = { ...form.specifications };
+                          const arr = Array.isArray(newSpecs[category][key])
+                            ? [...newSpecs[category][key]]
+                            : [newSpecs[category][key] || ""];
+                          arr.splice(vi + 1, 0, "");
+                          newSpecs[category][key] = arr;
+                          setForm({ ...form, specifications: newSpecs });
+                        }
                       }}
                     />
-                    <button type="button" className="text-red-400 hover:text-red-600 transition"
-                      onClick={() => {
-                        const newSpecs = { ...form.specifications };
-                        delete newSpecs[category];
-                        setForm({ ...form, specifications: newSpecs });
-                      }}>
-                      <X size={18} />
-                    </button>
-                  </div>
-                  {Object.entries(specs).map(([key, value], idx) => (
-                    <div key={idx} className="flex gap-2 mb-2">
-                      <input className="w-5/12 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                        placeholder="Key" value={key}
-                        onChange={(e) => {
-                          const newSpecs = { ...form.specifications };
-                          const oldVal = newSpecs[category][key];
-                          const rebuilt = {};
-                          Object.entries(newSpecs[category]).forEach(([k, v]) => {
-                            rebuilt[k === key ? e.target.value : k] = k === key ? oldVal : v;
-                          });
-                          newSpecs[category] = rebuilt;
-                          setForm({ ...form, specifications: newSpecs });
-                        }}
-                      />
-                      <div className="w-6/12 flex flex-col gap-1">
-                        {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
-                          <div key={vi} className="flex gap-1">
-                            <input
-                              className="flex-1 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                              placeholder={`Point ${vi + 1}`}
-                              value={val}
-                              onChange={(e) => {
-                                const newSpecs = { ...form.specifications };
-                                const arr = Array.isArray(newSpecs[category][key])
-                                  ? [...newSpecs[category][key]]
-                                  : [newSpecs[category][key] || ""];
-                                arr[vi] = e.target.value;
-                                newSpecs[category][key] = arr;
-                                setForm({ ...form, specifications: newSpecs });
-                              }}
-                            />
-                            {(Array.isArray(value) ? value : [value]).length > 1 && (
-                              <button
-                                type="button"
-                                className="text-red-400 hover:text-red-600 px-1"
-                                onClick={() => {
-                                  const newSpecs = { ...form.specifications };
-                                  const arr = Array.isArray(newSpecs[category][key])
-                                    ? [...newSpecs[category][key]]
-                                    : [newSpecs[category][key]];
-                                  arr.splice(vi, 1);
-                                  newSpecs[category][key] = arr.length === 1 ? arr : arr;
-                                  setForm({ ...form, specifications: newSpecs });
-                                }}
-                              >
-                                <X size={14} />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          className="text-green-600 hover:text-green-800 text-xs font-semibold flex items-center gap-1 mt-0.5"
-                          onClick={() => {
-                            const newSpecs = { ...form.specifications };
-                            const arr = Array.isArray(newSpecs[category][key])
-                              ? [...newSpecs[category][key]]
-                              : [newSpecs[category][key] || ""];
-                            arr.push("");
-                            newSpecs[category][key] = arr;
-                            setForm({ ...form, specifications: newSpecs });
-                          }}
-                        >
-                          <Plus size={12} /> Add point
-                        </button>
-                      </div>
-                      <button type="button" className="text-red-400 hover:text-red-600 transition"
+                    {(Array.isArray(value) ? value : [value]).length > 1 && (
+                      <button type="button" className="text-red-400 hover:text-red-600 px-1"
                         onClick={() => {
                           const newSpecs = { ...form.specifications };
-                          delete newSpecs[category][key];
+                          const arr = Array.isArray(newSpecs[category][key])
+                            ? [...newSpecs[category][key]]
+                            : [newSpecs[category][key]];
+                          arr.splice(vi, 1);
+                          newSpecs[category][key] = arr;
                           setForm({ ...form, specifications: newSpecs });
                         }}>
-                        <X size={16} />
+                        <X size={14} />
                       </button>
-                    </div>
-                  ))}
-                  <button type="button"
-                    className="mt-3 text-sm text-green-700 font-semibold flex items-center gap-1 hover:text-green-900 transition"
-                    onClick={() => {
-                      const newSpecs = { ...form.specifications };
-                      newSpecs[category][`Key ${Object.keys(newSpecs[category]).length + 1}`] = "";
-                      setForm({ ...form, specifications: newSpecs });
-                    }}>
-                    <Plus size={14} /> Add Row
-                  </button>
-                </div>
-              ))}
-              <button type="button"
-                className="mt-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
+                    )}
+                  </div>
+                ))}
+                <button type="button"
+                  className="text-green-600 hover:text-green-800 text-xs font-semibold flex items-center gap-1 mt-0.5"
+                  onClick={() => {
+                    const newSpecs = { ...form.specifications };
+                    const arr = Array.isArray(newSpecs[category][key])
+                      ? [...newSpecs[category][key]]
+                      : [newSpecs[category][key] || ""];
+                    arr.push("");
+                    newSpecs[category][key] = arr;
+                    setForm({ ...form, specifications: newSpecs });
+                  }}>
+                  <Plus size={12} /> Add point
+                </button>
+              </div>
+
+              <button type="button" className="text-red-400 hover:text-red-600 transition pt-2"
                 onClick={() => {
-                  const newCatName = `New Category ${Object.keys(form.specifications || {}).length + 1}`;
-                  setForm({ ...form, specifications: { ...(form.specifications || {}), [newCatName]: { "": "" } } });
+                  const newSpecs = { ...form.specifications };
+                  delete newSpecs[category][key];
+                  setForm({ ...form, specifications: newSpecs });
                 }}>
-                <Plus size={16} /> Add Specification Category
+                <X size={16} />
               </button>
             </div>
+          );
+        })}
+
+        <button type="button"
+          className="mt-3 text-sm text-green-700 font-semibold flex items-center gap-1 hover:text-green-900 transition"
+          onClick={() => {
+            const newSpecs = { ...form.specifications };
+            newSpecs[category][`Key ${Object.keys(newSpecs[category]).length + 1}`] = "";
+            setForm({ ...form, specifications: newSpecs });
+          }}>
+          <Plus size={14} /> Add Row
+        </button>
+      </div>
+    );
+  })}
+
+  <div className="flex items-center gap-3 flex-wrap mt-2">
+  <button type="button"
+    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
+    onClick={() => {
+      const newCatName = `New Category ${Object.keys(form.specifications || {}).length + 1}`;
+      setForm({ ...form, specifications: { ...(form.specifications || {}), [newCatName]: { "": "" } } });
+    }}>
+    <Plus size={16} /> Add Specification Category
+  </button>
+
+  {copiedSpecCategory && (
+    <button
+      type="button"
+      className="bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300 px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
+      onClick={() => {
+        const raw = localStorage.getItem("copiedSpecCategory");
+        const data = raw ? JSON.parse(raw) : copiedSpecCategory;
+        if (!data) return;
+        let pasteName = data.name;
+        const existingKeys = Object.keys(form.specifications || {});
+        if (existingKeys.includes(pasteName)) {
+          let counter = 2;
+          while (existingKeys.includes(`${pasteName} (${counter})`)) counter++;
+          pasteName = `${pasteName} (${counter})`;
+        }
+        setForm({
+          ...form,
+          specifications: {
+            ...(form.specifications || {}),
+            [pasteName]: JSON.parse(JSON.stringify(data.specs)),
+          },
+        });
+      }}
+    >
+      📋 Paste Copied Category
+    </button>
+  )}
+</div>
+</div>
 
             <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-5 py-4">
               <CheckCircle2 className="text-green-600 shrink-0" size={20} />
