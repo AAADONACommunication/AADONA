@@ -167,7 +167,7 @@ const buildDatasheetHTML = async (product) => {
         </div>`;
     }).join("");
 
-  // ══════════════════════════════════════════════════════════════════════
+  // 
   return `<!DOCTYPE html>
 <html>
 <head>
