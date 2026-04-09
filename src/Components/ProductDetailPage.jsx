@@ -102,9 +102,18 @@ ProductCard.displayName = "ProductCard";
 // ─── Tab Content Components (split for code-splitting readiness) ──────────────
 
 const OverviewTab = memo(({ product }) => (
-  <div className="max-w-4xl text-[16px] text-[#444] leading-[1.8]">
-    <p className="whitespace-pre-line">
-      {product.overview?.content || product.description}
+  <div className="w-full text-[16px] text-[#444] leading-[1.8]">
+    <p 
+      style={{ 
+        textAlign: 'justify',
+        width: '100%',
+        display: 'block'
+      }}
+    >
+      {(product.overview?.content || product.description)
+        ?.replace(/\n+/g, ' ')
+        .trim()
+      }
     </p>
   </div>
 ));
@@ -558,7 +567,7 @@ const ProductDetailPage = () => {
             id={`tabpanel-${activeTab}`}
             role="tabpanel"
             aria-label={activeTab}
-            className="bg-white border border-green-300 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-6 mb-12 lg:mb-0"
+            className="bg-white border border-green-300 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-6 mb-12 lg:mb-0 w-full"
           >
             {activeTab === "overview" && <OverviewTab product={product} />}
             {activeTab === "features" && <FeaturesTab items={product.featuresDetail} />}
