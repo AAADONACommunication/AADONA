@@ -38,7 +38,7 @@ const PrivacyPolicy = lazy(() => import("./Components/PrivacyPolicy"));
 const CategoryProductsPage = lazy(() => import("./pages/CategoryProductsPage"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminPanel = lazy(() => import("./pages/admin/AdminPanel"));
-const ProtectedRoute = lazy(() => import("./pages/admin/ProtectedRoute"));
+import ProtectedRoute from "./pages/admin/ProtectedRoute";
 const ProductDetailPage = lazy(() => import("./Components/ProductDetailPage"));
 const BlogDetail = lazy(() => import("./pages/Blogdetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
