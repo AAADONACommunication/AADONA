@@ -2,30 +2,34 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import c1 from '../assets/FC.jpg';
 import c2 from '../assets/IEC.jpg';
-import c3 from '../assets/ISO2000.jpeg';
-import c4 from '../assets/14001.jpg';
-import c5 from '../assets/ISO900.jpeg';
-import c6 from '../assets/27001.jpg';
-import c7 from '../assets/DPII.jpeg';
-import c8 from '../assets/MakeInIndia.jpeg';
-import c9 from '../assets/CE.jpeg';
-import c10 from '../assets/rohs_logo.jpeg';
-import c11 from '../assets/MSME.jpg';
-import c12 from '../assets/startUp.jpg';
+import c3 from '../assets/iso45001.avif';
+import c4 from '../assets/ISO2000.jpeg';
+import c5 from '../assets/14001.jpg';
+import c6 from '../assets/ISO900.jpeg';
+import c7 from '../assets/27001.jpg';
+import c8 from '../assets/ul.avif';
+import c9 from '../assets/DPII.jpeg';
+import c10 from '../assets/MakeInIndia.jpeg';
+import c11 from '../assets/CE.jpeg';
+import c12 from '../assets/rohs_logo.jpeg';
+import c13 from '../assets/MSME.jpg';
+import c14 from '../assets/startUp.jpg';
 
 const certifications = [
   { url: c1,  name: "FC Certification" },
   { url: c2,  name: "IEC Certification" },
-  { url: c3,  name: "ISO 20000 Certification" },
-  { url: c4,  name: "ISO 14001 Environmental Management Certification" },
-  { url: c5,  name: "ISO 9001 Quality Management Certification" },
-  { url: c6,  name: "ISO 27001 Information Security Certification" },
-  { url: c7,  name: "DPIIT Recognition" },
-  { url: c8,  name: "Make in India Certification" },
-  { url: c9,  name: "CE Marking Certification" },
-  { url: c10, name: "RoHS Compliance Certification" },
-  { url: c11, name: "MSME Registration" },
-  { url: c12, name: "Startup India Recognition" },
+  { url: c3,  name: "ISO 45001 Certification" },
+  { url: c4,  name: "ISO 20000 Certification" },
+  { url: c5,  name: "ISO 14001 Environmental Management Certification" },
+  { url: c6,  name: "ISO 9001 Quality Management Certification" },
+  { url: c7,  name: "ISO 27001 Information Security Certification" },
+  { url: c8,  name: "UL Certification" },
+  { url: c9,  name: "DPIIT Recognition" },
+  { url: c10,  name: "Make in India Certification" },
+  { url: c11,  name: "CE Marking Certification" },
+  { url: c12, name: "RoHS Compliance Certification" },
+  { url: c13, name: "MSME Registration" },
+  { url: c14, name: "Startup India Recognition" },
 ];
 
 // FIX 1: Default fallback `cert = {}` — prevents "Cannot read name of undefined"
