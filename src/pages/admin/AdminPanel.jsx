@@ -155,7 +155,7 @@ export default function AdminPanel() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-green-50 pt-12 px-4 md:px-10 pb-10">
+      <div className="min-h-screen bg-green-50 pt-30 px-4 md:px-10 pb-10">
         <div className="max-w-6xl mx-auto">
 
           {/* ── Top Header Bar ── */}
