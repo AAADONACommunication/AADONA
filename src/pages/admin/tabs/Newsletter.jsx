@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { auth } from "../../../firebase";
-import { Trash2, Send, Users, Eye, EyeOff, Image, FileText, X, RefreshCw, CheckSquare, Square, Search, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, Send, Users, Eye, EyeOff, Image, FileText, X, RefreshCw, CheckSquare, Square, Search, Plus, ChevronUp, ChevronDown, Download } from "lucide-react";
 
 const SUB_API = `${import.meta.env.VITE_API_URL}/subscribers`;
 
@@ -52,7 +52,7 @@ export default function Newsletter() {
     }
   }, []);
 
-    const loadHistory = useCallback(async () => {
+  const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
     try {
       const token = await getToken();
@@ -153,6 +153,23 @@ export default function Newsletter() {
     if (newIndex < 0 || newIndex >= arr.length) return;
     [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
     setButtons(arr);
+  };
+
+  // Download subscribers as CSV
+  const downloadSubscribersCSV = () => {
+    const list = subscribers;
+    const csvRows = [
+      ["Email", "Subscribed On"],
+      ...list.map((s) => [s.email, formatDate(s.createdAt)])
+    ];
+    const csvContent = csvRows.map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `subscribers_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSend = async () => {
@@ -517,6 +534,15 @@ export default function Newsletter() {
         }
         .nl-refresh:hover { color: #fff; }
 
+        .nl-download {
+          background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+          border-radius: 8px; padding: 6px 12px; color: #fff;
+          font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+          cursor: pointer; display: flex; align-items: center; gap: 5px;
+          transition: background 0.15s; flex-shrink: 0;
+        }
+        .nl-download:hover { background: rgba(255,255,255,0.25); }
+
         .nl-eye {
           background: rgba(255,255,255,0.2); border: none; border-radius: 8px;
           padding: 6px 12px; color: #fff; font-size: 12px; font-weight: 600;
@@ -575,9 +601,14 @@ export default function Newsletter() {
         <div className="nl-card">
           <div className="nl-card-head">
             <h3 className="nl-card-head-title">Subscribers</h3>
-            <button className="nl-refresh" onClick={loadSubscribers}>
-              <RefreshCw size={12} /> Refresh
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button className="nl-download" onClick={downloadSubscribersCSV} disabled={subscribers.length === 0}>
+                <Download size={12} /> Download CSV
+              </button>
+              <button className="nl-refresh" onClick={loadSubscribers}>
+                <RefreshCw size={12} /> Refresh
+              </button>
+            </div>
           </div>
 
           <div className="nl-search-wrap">
