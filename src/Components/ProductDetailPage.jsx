@@ -101,22 +101,24 @@ ProductCard.displayName = "ProductCard";
 
 // ─── Tab Content Components (split for code-splitting readiness) ──────────────
 
-const OverviewTab = memo(({ product }) => (
-  <div className="w-full text-[16px] text-[#444] leading-[1.8]">
-    <p 
-      style={{ 
-        textAlign: 'justify',
-        width: '100%',
-        display: 'block'
-      }}
-    >
-      {(product.overview?.content || product.description)
-        ?.replace(/\n+/g, ' ')
-        .trim()
-      }
-    </p>
-  </div>
-));
+const OverviewTab = memo(({ product }) => {
+  const content = product.overview?.content || product.description || "";
+  const paragraphs = content.split(/\n+/).filter(p => p.trim());
+  
+  return (
+    <div className="w-full text-[16px] text-[#444] leading-[1.8]">
+      {paragraphs.map((para, i) => (
+        <p 
+          key={i}
+          className="mb-4"
+          style={{ textAlign: 'justify' }}
+        >
+          {para.trim()}
+        </p>
+      ))}
+    </div>
+  );
+});
 
 const FeaturesTab = memo(({ items = [] }) => (
   <div className="space-y-5 max-w-3xl">
