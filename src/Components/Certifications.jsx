@@ -38,34 +38,20 @@ const CertCard = ({ cert = {}, index = 0, priority = false }) => {
 
   const certName = cert.name || `Certification ${index + 1}`;
   const certUrl  = cert.url  || '';
-  const rafRef = useRef(null);
-  const handleMouseMove = useCallback((e) => {
-    // Cancel previous frame
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    
-    // Batch reads & writes in next animation frame
-    rafRef.current = requestAnimationFrame(() => {
-      const card = cardRef.current;
-      if (!card) return;
-      const rect = card.getBoundingClientRect(); // READ
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const rotateX = ((y - centerY) / centerY) * -12;
-      const rotateY = ((x - centerX) / centerX) * 12;
-      // WRITES — all batched together in same frame
-      card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08) translateY(-6px)`;
-      card.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 30px rgba(22,163,74,0.2), 0 8px 20px rgba(0,0,0,0.10)`;
-      card.style.border = '1px solid rgba(22,163,74,0.3)';
-    });
-  }, []);
 
-  // Also clean up on unmount
-  useEffect(() => {
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
+  const handleMouseMove = useCallback((e) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -12;
+    const rotateY = ((x - centerX) / centerX) * 12;
+    card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08) translateY(-6px)`;
+    card.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 30px rgba(22,163,74,0.2), 0 8px 20px rgba(0,0,0,0.10)`;
+    card.style.border = '1px solid rgba(22,163,74,0.3)';
   }, []);
 
   const handleMouseLeave = useCallback(() => {
