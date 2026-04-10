@@ -3,8 +3,13 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import bg from "../assets/bg.jpg";
-import { FaSearch } from "react-icons/fa";
 import customersbanner from "../assets/OurCustomerBanner.avif";
+
+const SearchIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.868-3.833zm-5.242 1.156a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
+  </svg>
+);
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -186,7 +191,7 @@ export default function CustomerPage() {
                 onClick={() => document.getElementById("companySearch").focus()}
                 aria-hidden="true"
               >
-                <FaSearch />
+                <SearchIcon />
               </span>
             </div>
           </div>
