@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { jsPDF } from "jspdf";
 import { getFirebaseAuth } from "../../../firebase";
 import { getFirebaseStorage } from "../../../firebase";
 import {
@@ -111,7 +112,6 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
   // ── Datasheet PDF Generation ──
   const generateDatasheetPDF = async () => {
-    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageW = doc.internal.pageSize.getWidth();
     const margin = 15;
