@@ -254,7 +254,6 @@ export default function Newsletter() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         .nl * { box-sizing: border-box; }
         .nl {
           font-family: 'DM Sans', sans-serif;

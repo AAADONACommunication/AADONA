@@ -434,7 +434,6 @@ const ProductDetailPage = () => {
   return (
     <div className="bg-[#f5f5f3] min-h-screen antialiased text-[#1a1a1a]">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
         .pdp-wrap * { font-family: 'Outfit', sans-serif; }
 
         @keyframes fadeSlideUp {
