@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth } from "../../../firebase";
+import { getFirebaseAuth } from "../../../firebase";
 import { Trash2, UserPlus } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
 
@@ -64,6 +64,7 @@ export default function ManageAdmin({
     }
     setAdminBtnLoading(true);
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${import.meta.env.VITE_API_URL}/send-otp`, {
         method: "POST",
@@ -91,6 +92,7 @@ export default function ManageAdmin({
     }
     setAdminBtnLoading(true);
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${import.meta.env.VITE_API_URL}/verify-otp`, {
         method: "POST",
@@ -117,6 +119,7 @@ export default function ManageAdmin({
     }
     setAdminBtnLoading(true);
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${import.meta.env.VITE_API_URL}/create-admin`, {
         method: "POST",
@@ -140,6 +143,7 @@ export default function ManageAdmin({
   const loadAdminList = async () => {
     setAdminListLoading(true);
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${import.meta.env.VITE_API_URL}/get-admins`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -157,6 +161,7 @@ export default function ManageAdmin({
     if (!window.confirm(`Remove admin access for "${email}"?`)) return;
     setRemoveAdminLoading(uid);
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${import.meta.env.VITE_API_URL}/delete-admin/${uid}`, {
         method: "DELETE",

@@ -4,7 +4,7 @@ import {
   ExternalLink, RefreshCw, TrendingUp, Globe, AlertCircle,
   MapPin, Navigation, Wifi, UserPlus, Activity, ArrowUpRight
 } from "lucide-react";
-import { auth } from "../../../firebase";
+import { getFirebaseAuth } from "../../../firebase";
 
 const GA_URL = "https://analytics.google.com/analytics/web/#/p524687355/reports/intelligenthome";
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -68,6 +68,7 @@ export default function Insights() {
     setLoading(true);
     setError(null);
     try {
+      const auth = await getFirebaseAuth(); // ✅
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${API_BASE}/analytics/summary?range=${r}`, {
         headers: { Authorization: `Bearer ${token}` },

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import { auth, storage } from "../../../firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getFirebaseAuth } from "../../../firebase";
+import { getFirebaseStorage } from "../../../firebase";
 import {
   Trash2, Edit, Plus, X, Upload, CheckCircle2, ChevronDown, ChevronUp,
 } from "lucide-react";
@@ -103,6 +103,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
   // ── Image Upload ──
   const uploadImage = async (file) => {
+    const storage = await getFirebaseStorage();
+    const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
     const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);
@@ -235,6 +237,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
       const pdfBlob = await generateDatasheetPDF();
       const safeName = (form.name || "product").replace(/\s+/g, "_").toLowerCase();
+      const storage = await getFirebaseStorage(); // ✅
+      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
       const pdfRef = ref(storage, `datasheets/${Date.now()}-${safeName}.pdf`);
       await uploadBytes(pdfRef, pdfBlob, { contentType: "application/pdf" });
       const datasheetUrl = await getDownloadURL(pdfRef);
@@ -259,7 +263,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
         datasheet: datasheetUrl,
       };
 
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(editingId ? `${API}/${editingId}` : API, {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -285,7 +290,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
   const del = async (id) => {
     if (!window.confirm("Delete this product?")) return;
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${API}/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -357,7 +363,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
     setReorderLoading(true);
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch(`${API}/reorder`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -394,7 +401,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
     }
     setRelatedBtnLoading(true);
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
 
       const params = new URLSearchParams({
         category: form.relatedCategory,
@@ -440,7 +448,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
     setSavedRelatedLoading(true);
     setSavedRelatedIds([]);
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const params = new URLSearchParams({
         category: combo.category,
         ...(combo.subCategory ? { subCategory: combo.subCategory } : {}),
@@ -463,7 +472,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
     if (!viewRelatedFor) return;
     setRemoveRelatedLoading(productId);
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${import.meta.env.VITE_API_URL}/related-products/remove`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

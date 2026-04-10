@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { auth, storage } from "../../../firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getFirebaseAuth } from "../../../firebase";
+import { getFirebaseStorage } from "../../../firebase";
 import {
   Trash2, Edit, Plus, Upload, CheckCircle2, ChevronDown, ChevronUp,
 } from "lucide-react";
@@ -106,6 +106,8 @@ export default function Blogs({ blogs, reloadBlogs }) {
     const file = e.target.files[0];
     if (!file) return;
     try {
+      const storage = await getFirebaseStorage(); // ✅ lazy
+      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
       const storageRef = ref(storage, `blog-blocks/${Date.now()}_${file.name}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
@@ -119,6 +121,8 @@ export default function Blogs({ blogs, reloadBlogs }) {
     const file = e.target.files[0];
     if (!file) return;
     try {
+      const storage = await getFirebaseStorage();
+      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
       const storageRef = ref(storage, `blog-heroes/${Date.now()}_${file.name}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
@@ -142,6 +146,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
       : new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       const method = editingBlogId ? "PUT" : "POST";
       const url = editingBlogId ? `${BLOG_API}/${editingBlogId}` : BLOG_API;
@@ -168,6 +173,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
   const loadDrafts = async () => {
     setDraftsLoading(true);
     try {
+      const auth = await getFirebaseAuth(); // ✅
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${BLOG_API}/drafts`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -200,8 +206,12 @@ export default function Blogs({ blogs, reloadBlogs }) {
   const deleteBlog = async (id, isDraft = false) => {
     if (!window.confirm("Delete this blog?")) return;
     try {
+      const auth = await getFirebaseAuth(); // ✅
       const token = await auth.currentUser?.getIdToken();
-      await fetch(`${BLOG_API}/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      await fetch(`${BLOG_API}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       reloadBlogs();
       if (isDraft) loadDrafts();
     } catch (err) {

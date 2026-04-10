@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { auth } from "../../../firebase";
+import { getFirebaseAuth } from "../../../firebase";
 import {
   Trash2, Edit, Plus, ChevronDown, ChevronUp, ChevronRight,
   Image, Eye, X, Upload, Loader2
@@ -152,7 +152,8 @@ const BannerCell = ({ cat, onBannerSaved }) => {
       // Upload to backend
       setConverting(false);
       setUploading(true);
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const formData = new FormData();
       formData.append("bannerImage", converted, converted.name);
 
@@ -301,7 +302,8 @@ export default function Categories({
     }
     setCatBtnLoading(true);
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(CATEGORY_API, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -325,7 +327,8 @@ export default function Categories({
   const deleteCategory = async (id, name) => {
     if (!window.confirm(`Delete category "${name}"? All related products will also be permanently deleted.`)) return;
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       await fetch(`${CATEGORY_API}/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -339,7 +342,8 @@ export default function Categories({
   const addSubCategory = async (catId) => {
     if (!newSubName.trim()) { alert("SubCategory name is required"); return; }
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const extras = newSubExtra.trim()
         ? newSubExtra.split(",").map((e) => e.trim()).filter(Boolean)
         : [];
@@ -365,7 +369,8 @@ export default function Categories({
   const deleteSubCategory = async (catId, subName) => {
     if (!window.confirm(`Delete subcategory "${subName}"? All related products will also be permanently deleted.`)) return;
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       await fetch(`${CATEGORY_API}/${catId}/subcategory/${encodeURIComponent(subName)}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -378,7 +383,8 @@ export default function Categories({
 
   const updateSubCategoryExtras = async (catId, subName, extras) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       await fetch(`${CATEGORY_API}/${catId}/subcategory/${encodeURIComponent(subName)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -395,7 +401,8 @@ export default function Categories({
   const renameCategory = async (catId, newName) => {
     if (!newName.trim()) return;
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${CATEGORY_API}/${catId}/rename`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -416,7 +423,8 @@ export default function Categories({
   const renameSubCategory = async (catId, oldSubName, newName) => {
     if (!newName.trim()) return;
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${CATEGORY_API}/${catId}/subcategory/${encodeURIComponent(oldSubName)}/rename`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -437,7 +445,8 @@ export default function Categories({
   const renameExtraCategory = async (catId, subName, oldExtra, newExtra) => {
     if (!newExtra.trim()) return;
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${CATEGORY_API}/${catId}/subcategory/${encodeURIComponent(subName)}/extra/rename`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -466,7 +475,8 @@ export default function Categories({
     setAllCategories([...otherCats, ...reordered]);
     setReorderLoading(true);
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       await fetch(`${CATEGORY_API}/reorder`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -488,7 +498,8 @@ export default function Categories({
     setAllCategories(allCategories.map((c) => c._id === cat._id ? { ...c, subCategories: subs } : c));
     setReorderLoading(true);
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       await fetch(`${CATEGORY_API}/${cat._id}/subcategory/reorder`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -512,7 +523,8 @@ export default function Categories({
       return { ...c, subCategories: c.subCategories.map((s) => s.name === sub.name ? { ...s, extraCategories: extras } : s) };
     }));
     try {
-      const token = await auth.currentUser.getIdToken();
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
       await fetch(`${CATEGORY_API}/${cat._id}/subcategory/${encodeURIComponent(sub.name)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

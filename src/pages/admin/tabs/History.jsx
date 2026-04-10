@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth } from "../../../firebase";
+import { getFirebaseAuth } from "../../../firebase";
 import { X } from "lucide-react";
 
 const ACTION_STYLES = {
@@ -25,6 +25,7 @@ export default function History() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
+      const auth = await getFirebaseAuth(); // ✅
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${import.meta.env.VITE_API_URL}/audit-logs`, {
         headers: { Authorization: `Bearer ${token}` },

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth } from "../../../firebase";
+import { getFirebaseAuth } from "../../../firebase";
 import { Trash2, X, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 
 const INQUIRY_API = `${import.meta.env.VITE_API_URL}/inquiries`;
@@ -29,6 +29,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
     setShowInboxFormData(false);
     if (inq.status === "new") {
       try {
+        const auth = await getFirebaseAuth(); // ✅
         const token = await auth.currentUser?.getIdToken();
         await fetch(`${INQUIRY_API}/${inq._id}/read`, {
           method: "PUT",
@@ -46,6 +47,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
     if (!inboxReplyText.trim() || !selectedInquiry) return;
     setInboxReplyLoading(true);
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${INQUIRY_API}/${selectedInquiry._id}/reply`, {
         method: "POST",
@@ -74,6 +76,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
     if (!window.confirm("Delete this inquiry permanently?")) return;
     setInboxDeleteLoading(id);
     try {
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       await fetch(`${INQUIRY_API}/${id}`, {
         method: "DELETE",

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { auth } from "../../../firebase";
+import { getFirebaseAuth } from "../../../firebase";
 import { Trash2, Send, Users, Eye, EyeOff, Image, FileText, X, RefreshCw, CheckSquare, Square, Search, Plus, ChevronUp, ChevronDown, Download } from "lucide-react";
 
 const SUB_API = `${import.meta.env.VITE_API_URL}/subscribers`;
@@ -34,7 +34,10 @@ export default function Newsletter() {
   const bannerRef = useRef();
   const pdfRef = useRef();
 
-  const getToken = () => auth.currentUser?.getIdToken();
+  const getToken = async () => {
+    const auth = await getFirebaseAuth();
+    return auth.currentUser?.getIdToken();
+  };
 
   const loadSubscribers = useCallback(async () => {
     setLoading(true);

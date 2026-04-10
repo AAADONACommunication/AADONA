@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getFirebaseAuth } from "../../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { Mail, Lock, LogIn, Loader2 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
@@ -19,22 +20,17 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    // auth.currentUser check hataya - browserSessionPersistence handle karega
-  }, [navigate]);
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
+      const auth = await getFirebaseAuth();
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/ram-portal-100");
     } catch (err) {
       console.log("Firebase Error Code:", err.code);
-
+      console.log("Firebase Error:", err);
       switch (err.code) {
         case "auth/user-not-found":
           setError("User not found. Please check your email.");

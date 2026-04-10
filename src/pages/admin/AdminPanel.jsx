@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { auth } from "../../firebase";
-import { signOut, onAuthStateChanged } from "firebase/auth";
+import { getFirebaseAuth } from "../../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { LogOut, UserPlus } from "lucide-react";
 import Navbar from "../../Components/Navbar";
@@ -79,6 +79,7 @@ export default function AdminPanel() {
 
   const loadBlogs = async () => {
     try {
+      const auth = await getFirebaseAuth(); // ✅
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(BLOG_API, {
         headers: { Authorization: `Bearer ${token}` },
@@ -94,6 +95,7 @@ export default function AdminPanel() {
     if (silent && setRefreshing) setRefreshing(true);
     else if (setInquiriesLoading) setInquiriesLoading(true);
     try {
+      const auth = await getFirebaseAuth(); // ✅
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(INQUIRY_API, {
         headers: { Authorization: `Bearer ${token}` },
@@ -113,16 +115,19 @@ export default function AdminPanel() {
 
   // ── Auth Guard + Initial Load ──
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        loadProducts();
-        loadBlogs();
-        loadCategories();
-      } else {
-        navigate("/ram-ctrl-505");
-      }
+    let unsubscribe;
+    getFirebaseAuth().then((auth) => { // ✅
+      unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          loadProducts();
+          loadBlogs();
+          loadCategories();
+        } else {
+          navigate("/ram-ctrl-505");
+        }
+      });
     });
-    return () => unsubscribe();
+    return () => unsubscribe?.();
   }, [navigate]);
 
   // ── Auto Logout on Inactivity (5 min) ──
@@ -131,6 +136,7 @@ export default function AdminPanel() {
     const resetTimer = () => {
       clearTimeout(timer);
       timer = setTimeout(async () => {
+        const auth = await getFirebaseAuth();
         await signOut(auth);
         navigate("/ram-ctrl-505");
       }, 5 * 60 * 1000);
@@ -187,7 +193,10 @@ export default function AdminPanel() {
   </button>
 
   <button
-    onClick={() => signOut(auth)}
+    onClick={async () => {
+      const auth = await getFirebaseAuth();
+      signOut(auth);
+    }}
     className="flex items-center justify-center gap-2 bg-red-500 text-white w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-red-600 transition shadow-md text-sm sm:text-base font-semibold"
   >
     <LogOut size={18} /> Logout
