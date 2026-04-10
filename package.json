@@ -12,10 +12,7 @@
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.2.8",
-    "@fontsource/manrope": "^5.2.8",
     "@fontsource/outfit": "^5.2.8",
-    "@fontsource/poppins": "^5.2.7",
-    "@google-analytics/data": "^4.12.1",
     "@vitejs/plugin-react": "^5.1.0",
     "async": "^3.2.6",
     "firebase": "^12.9.0",
