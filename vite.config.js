@@ -8,12 +8,15 @@ export default defineConfig({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'firebase-app':       ['firebase/app'],
-          'firebase-auth':      ['firebase/auth'],
-          'firebase-firestore': ['firebase/firestore'],
-          'firebase-storage':   ['firebase/storage'],
-        },
+        manualChunks(id) {
+          if (id.includes('firebase/app'))       return 'firebase-app';
+          if (id.includes('firebase/auth'))      return 'firebase-auth';
+          if (id.includes('firebase/firestore')) return 'firebase-firestore';
+          if (id.includes('firebase/storage'))   return 'firebase-storage';
+          if (id.includes('react-router'))       return 'vendor-router';
+          if (id.includes('react-helmet'))       return 'vendor-helmet';
+          if (id.includes('node_modules'))       return 'vendor';
+        }
       },
     },
   },
