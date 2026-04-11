@@ -712,7 +712,6 @@ export default function Products({ products, setProducts, allCategories, reloadP
       <div key={category} className="mb-6 border border-green-200 p-5 rounded-xl bg-green-50/60">
         <div className="flex items-center gap-3 mb-4">
 
-          {/* Category reorder */}
           <div className="flex flex-col gap-0.5">
             <button type="button" onClick={() => moveCat(-1)} disabled={catIndex === 0}
               className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
@@ -768,7 +767,6 @@ export default function Products({ products, setProducts, allCategories, reloadP
           return (
             <div key={idx} className="flex gap-2 mb-2 items-start">
 
-              {/* Row reorder */}
               <div className="flex flex-col gap-0.5 pt-2">
                 <button type="button" onClick={() => moveRow(idx, -1)} disabled={idx === 0}
                   className="text-green-500 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
@@ -781,19 +779,21 @@ export default function Products({ products, setProducts, allCategories, reloadP
               </div>
 
               <div className="w-5/12 flex flex-col gap-1">
-                <input className="w-full border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                  placeholder="Key" value={key.replace("__table__bold__", "").replace("__table__", "")}
+                <input
+                  className="w-full border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                  placeholder="Key"
+                  value={key.replace("__table__bold__", "").replace("__table__", "")}
                   onChange={(e) => {
-                  const newSpecs = { ...form.specifications };
-                  const oldVal = newSpecs[category][key];
-                  const rebuilt = {};
-                  Object.entries(newSpecs[category]).forEach(([k, v]) => {
-                    rebuilt[k === key ? e.target.value : k] = k === key ? oldVal : v;
-                  });
-                  newSpecs[category] = rebuilt;
-                  setForm({ ...form, specifications: newSpecs });
-                }}
-              />
+                    const newSpecs = { ...form.specifications };
+                    const oldVal = newSpecs[category][key];
+                    const rebuilt = {};
+                    Object.entries(newSpecs[category]).forEach(([k, v]) => {
+                      rebuilt[k === key ? e.target.value : k] = k === key ? oldVal : v;
+                    });
+                    newSpecs[category] = rebuilt;
+                    setForm({ ...form, specifications: newSpecs });
+                  }}
+                />
                 <div className="flex gap-1">
                   <button
                     type="button"
@@ -878,22 +878,29 @@ export default function Products({ products, setProducts, allCategories, reloadP
                         newSpecs[category][key] = arr;
                         setForm({ ...form, specifications: newSpecs });
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          const newSpecs = { ...form.specifications };
-                          const arr = Array.isArray(newSpecs[category][key])
-                            ? [...newSpecs[category][key]]
-                            : [newSpecs[category][key] || ""];
-                          arr.splice(vi + 1, 0, "");
-                          newSpecs[category][key] = arr;
-                          setForm({ ...form, specifications: newSpecs });
-                          setTimeout(() => {
-                            const ref = mainSpecValueRefs.current?.[category]?.[key]?.[vi + 1];
-                            if (ref) ref.focus();
-                          }, 30);
-                        }
-                      }}
+                onKeyDown={(e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const cursorPos = e.target.selectionStart;
+    const beforeCursor = val.slice(0, cursorPos);
+    const afterCursor = val.slice(cursorPos);
+    const newSpecs = { ...form.specifications };
+    const arr = Array.isArray(newSpecs[category][key])
+      ? [...newSpecs[category][key]]
+      : [newSpecs[category][key] || ""];
+    arr[vi] = beforeCursor;
+    arr.splice(vi + 1, 0, afterCursor);
+    newSpecs[category][key] = arr;
+    setForm({ ...form, specifications: newSpecs });
+    setTimeout(() => {
+      const ref = mainSpecValueRefs.current?.[category]?.[key]?.[vi + 1];
+      if (ref) {
+        ref.focus();
+        ref.setSelectionRange(0, 0);
+      }
+    }, 30);
+  }
+}}
                     />
                     {(Array.isArray(value) ? value : [value]).length > 1 && (
                       <button type="button" className="text-red-400 hover:text-red-600 px-1"
@@ -961,7 +968,6 @@ export default function Products({ products, setProducts, allCategories, reloadP
           </button>
         </div>
 
-        {/* Sub Categories — indented */}
         {Object.entries(specs).filter(([k]) => k.startsWith("__sub__")).map(([subKey, subSpecs]) => {
           const subName = subKey.replace("__sub__", "");
           const subEntries = Object.entries(subSpecs || {});
@@ -1016,20 +1022,29 @@ export default function Products({ products, setProducts, allCategories, reloadP
                         newSpecs[category][subKey] = Object.fromEntries(newEntries);
                         setForm({ ...form, specifications: newSpecs });
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          const newSpecs = { ...form.specifications };
-                          const entries = Object.entries(newSpecs[category][subKey]);
-                          entries.splice(idx + 1, 0, [`Key ${entries.length + 1}`, ""]);
-                          newSpecs[category][subKey] = Object.fromEntries(entries);
-                          setForm({ ...form, specifications: newSpecs });
-                          setTimeout(() => {
-                            const refs = subInputRefs.current[subKey];
-                            if (refs && refs[(idx + 1) * 2]) refs[(idx + 1) * 2].focus();
-                          }, 30);
-                        }
-                      }}
+                     onKeyDown={(e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const cursorPos = e.target.selectionStart;
+    const beforeCursor = val.slice(0, cursorPos);
+    const afterCursor = val.slice(cursorPos);
+    const newSpecs = { ...form.specifications };
+    const arr = Array.isArray(newSpecs[category][subKey][key])
+      ? [...newSpecs[category][subKey][key]]
+      : [newSpecs[category][subKey][key] || ""];
+    arr[vi] = beforeCursor;
+    arr.splice(vi + 1, 0, afterCursor);
+    newSpecs[category][subKey][key] = arr;
+    setForm({ ...form, specifications: newSpecs });
+    setTimeout(() => {
+      const ref = subInputRefs.current?.[`${subKey}_val`]?.[key]?.[vi + 1];
+      if (ref) {
+        ref.focus();
+        ref.setSelectionRange(0, 0);
+      }
+    }, 30);
+  }
+}}
                     />
                     <div className="w-5/12 flex flex-col gap-1">
                       {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
@@ -1054,18 +1069,25 @@ export default function Products({ products, setProducts, allCategories, reloadP
                               setForm({ ...form, specifications: newSpecs });
                             }}
                             onKeyDown={(e) => {
-                              if (e.key === "Enter") {
+                              if (e.key === "," || e.key === "Enter") {
                                 e.preventDefault();
+                                const cursorPos = e.target.selectionStart;
+                                const beforeCursor = val.slice(0, cursorPos);
+                                const afterCursor = val.slice(cursorPos);
                                 const newSpecs = { ...form.specifications };
                                 const arr = Array.isArray(newSpecs[category][subKey][key])
                                   ? [...newSpecs[category][subKey][key]]
                                   : [newSpecs[category][subKey][key] || ""];
-                                arr.splice(vi + 1, 0, "");
+                                arr[vi] = beforeCursor;
+                                arr.splice(vi + 1, 0, afterCursor);
                                 newSpecs[category][subKey][key] = arr;
                                 setForm({ ...form, specifications: newSpecs });
                                 setTimeout(() => {
-                                  const ref = subInputRefs.current[`${subKey}_val`]?.[key]?.[vi + 1];
-                                  if (ref) ref.focus();
+                                  const ref = subInputRefs.current?.[`${subKey}_val`]?.[key]?.[vi + 1];
+                                  if (ref) {
+                                    ref.focus();
+                                    ref.setSelectionRange(0, 0);
+                                  }
                                 }, 30);
                               }
                             }}
@@ -1128,43 +1150,43 @@ export default function Products({ products, setProducts, allCategories, reloadP
   })}
 
   <div className="flex items-center gap-3 flex-wrap mt-2">
-  <button type="button"
-    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
-    onClick={() => {
-      const newCatName = `New Category ${Object.keys(form.specifications || {}).length + 1}`;
-      setForm({ ...form, specifications: { ...(form.specifications || {}), [newCatName]: { "": "" } } });
-    }}>
-    <Plus size={16} /> Add Specification Category
-  </button>
-
-  {copiedSpecCategory && (
-    <button
-      type="button"
-      className="bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300 px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
+    <button type="button"
+      className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
       onClick={() => {
-        const raw = localStorage.getItem("copiedSpecCategory");
-        const data = raw ? JSON.parse(raw) : copiedSpecCategory;
-        if (!data) return;
-        let pasteName = data.name;
-        const existingKeys = Object.keys(form.specifications || {});
-        if (existingKeys.includes(pasteName)) {
-          let counter = 2;
-          while (existingKeys.includes(`${pasteName} (${counter})`)) counter++;
-          pasteName = `${pasteName} (${counter})`;
-        }
-        setForm({
-          ...form,
-          specifications: {
-            ...(form.specifications || {}),
-            [pasteName]: JSON.parse(JSON.stringify(data.specs)),
-          },
-        });
-      }}
-    >
-      📋 Paste Copied Category
+        const newCatName = `New Category ${Object.keys(form.specifications || {}).length + 1}`;
+        setForm({ ...form, specifications: { ...(form.specifications || {}), [newCatName]: { "": "" } } });
+      }}>
+      <Plus size={16} /> Add Specification Category
     </button>
-  )}
-</div>
+
+    {copiedSpecCategory && (
+      <button
+        type="button"
+        className="bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300 px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
+        onClick={() => {
+          const raw = localStorage.getItem("copiedSpecCategory");
+          const data = raw ? JSON.parse(raw) : copiedSpecCategory;
+          if (!data) return;
+          let pasteName = data.name;
+          const existingKeys = Object.keys(form.specifications || {});
+          if (existingKeys.includes(pasteName)) {
+            let counter = 2;
+            while (existingKeys.includes(`${pasteName} (${counter})`)) counter++;
+            pasteName = `${pasteName} (${counter})`;
+          }
+          setForm({
+            ...form,
+            specifications: {
+              ...(form.specifications || {}),
+              [pasteName]: JSON.parse(JSON.stringify(data.specs)),
+            },
+          });
+        }}
+      >
+        📋 Paste Copied Category
+      </button>
+    )}
+  </div>
 </div>
 
             <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-5 py-4">
