@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.jpg";
+import logo from "../assets/logo.avif";
 import menuIcon from "../assets/menu.svg";
 import closeIcon from "../assets/close.png";
 
