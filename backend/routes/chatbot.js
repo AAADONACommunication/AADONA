@@ -140,51 +140,77 @@ const buildCategoryUrl = (cat) => {
 const detectProductCards = (reply, products, userMessage, categories) => {
   if (!products?.length) return { cards: [], categoryButton: null };
 
-  const replyLower = reply.toLowerCase();
+  // IMPORTANT: Only use userMessage for category matching — NOT reply
+  // AI reply mein dusri categories ke words aa jaate hain jo wrong match cause karte hain
   const userLower = userMessage.toLowerCase();
-  const combined = userLower + ' ' + replyLower;
+  const replyLower = reply.toLowerCase();
 
-  // ── 1. Specific product match by model number ──────────────────
+  // ── 1. Specific product match by model number (reply + user dono mein dekho) ──
+  const combined = userLower + ' ' + replyLower;
   const matchedByModel = products.filter(p => {
     if (!p.model) return false;
     return combined.includes(p.model.toLowerCase());
   });
 
-  // ── 2. Category / SubCategory match for "browse" queries ──────
-  // e.g. "wireless products dikhao", "indoor switches", "NAS kya hai"
+  // ── 2. Category match — ONLY from userMessage, not reply ──────
   let categoryButton = null;
   let matchedByCategory = [];
+  let matchedCatName = null; // track which category matched
 
-  if (categories?.length) {
-    for (const cat of categories) {
+  if (!matchedByModel.length && categories?.length) {
+    // Sort: longer names first to avoid partial matches (e.g. "network accessories" before "network")
+    const sortedCats = [...categories].sort((a, b) => b.name.length - a.name.length);
+
+    for (const cat of sortedCats) {
       const catNameLower = cat.name.toLowerCase();
 
-      if (combined.includes(catNameLower)) {
-        // Category page button — always use PARENT category slug (no subcategory pages exist)
-        if (!categoryButton) {
-          const pageLabel = cat.parentName ? cat.parentName : cat.name;
-          const pageSlug = cat.parentName
-            ? cat.parentName.toLowerCase().trim().replace(/\s+/g, '').replace(/[^\w]+/g, '')
-            : cat.slug;
-          categoryButton = {
-            label: `Browse ${pageLabel}`,
-            url: `${BASE_URL}/${pageSlug}`
-          };
-        }
+      if (userLower.includes(catNameLower)) {
+        matchedCatName = catNameLower;
 
-        // Products from this category/subcategory
-        if (!matchedByModel.length) {
-          const filtered = products.filter(p => {
-            if (cat.parentName) {
-              // subCategory match
-              return (p.subCategory || '').toLowerCase() === catNameLower ||
-                     (p.category || '').toLowerCase() === catNameLower;
-            }
-            return (p.category || '').toLowerCase() === catNameLower;
-          });
-          matchedByCategory = filtered.slice(0, 4);
-        }
+        // Category page button — always parent category slug
+        const pageLabel = cat.parentName ? cat.parentName : cat.name;
+        const pageSlug = cat.parentName
+          ? cat.parentName.toLowerCase().trim().replace(/\s+/g, '').replace(/[^\w]+/g, '')
+          : cat.slug;
+        categoryButton = {
+          label: `Browse ${pageLabel}`,
+          url: `${BASE_URL}/${pageSlug}`
+        };
+
+        // Products: exact category or subCategory match only
+        const filtered = products.filter(p => {
+          const pCat = (p.category || '').toLowerCase();
+          const pSub = (p.subCategory || '').toLowerCase();
+          if (cat.parentName) {
+            // This is a subCategory — match subCategory field exactly
+            return pSub === catNameLower;
+          }
+          // Main category — match category field exactly
+          return pCat === catNameLower;
+        });
+        matchedByCategory = filtered.slice(0, 4);
         break;
+      }
+    }
+
+    // If no user match, try reply but only for clear category mentions
+    // (only main category names, not subcategories — avoids false positives)
+    if (!categoryButton) {
+      const mainCats = sortedCats.filter(c => !c.parentName);
+      for (const cat of mainCats) {
+        const catNameLower = cat.name.toLowerCase();
+        if (replyLower.includes(catNameLower)) {
+          matchedCatName = catNameLower;
+          categoryButton = {
+            label: `Browse ${cat.name}`,
+            url: `${BASE_URL}/${cat.slug}`
+          };
+          const filtered = products.filter(p =>
+            (p.category || '').toLowerCase() === catNameLower
+          );
+          matchedByCategory = filtered.slice(0, 4);
+          break;
+        }
       }
     }
   }

@@ -369,6 +369,7 @@ export default function Chatbot() {
   const [showBubble, setShowBubble] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const callDrawerRef = useRef(null);
 
@@ -379,16 +380,14 @@ export default function Chatbot() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Smart scroll — only auto-scroll if user is already near the bottom
+  // Smart scroll — scrolls the chat container itself, NOT the page
   const scrollToBottom = useCallback((force = false) => {
-    const container = messagesEndRef.current?.parentElement;
+    const container = messagesContainerRef.current;
     if (!container) return;
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    // Auto-scroll only if within 120px of bottom, or forced (new user message)
-    if (force || distanceFromBottom < 120) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }, 30);
+    // Only scroll if user is near bottom (150px) or forced
+    if (force || distanceFromBottom < 150) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     }
   }, []);
 
@@ -712,7 +711,7 @@ export default function Chatbot() {
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 bg-slate-50/80 no-scrollbar">
+                  <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 bg-slate-50/80 no-scrollbar">
                     {messages.map((msg, i) =>
                       msg.role === 'bot'
                         ? <BotMessage key={i} content={msg.content} time={msg.time} productCards={msg.productCards} actionButtons={msg.actionButtons} isStreaming={msg.isStreaming} />
