@@ -21,7 +21,10 @@ const getProductsContext = async () => {
     const products = await Product.find(
       {},
       'name fullName model category subCategory description overview features image slug'
-    ).limit(80);
+    )
+    .sort({ category: 1 })
+    .limit(500);
+
     if (!products.length) return { context: '', products: [] };
 
     const list = products.map(p => {
@@ -55,18 +58,22 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
   const msg = (userMessage + ' ' + aiReply).toLowerCase();
   const buttons = [];
 
-  // Only show button if AI has already asked/answered and intent is clear
-  const intentClear = /help|issue|problem|chahiye|chahta|chahti|karna|kaise|how|need|want|request|apply|submit|check|register|book|interested/.test(msg);
+  const intentClear = /help|issue|problem|chahiye|chahta|chahti|karna|kaise|how|need|want|request|submit|check|register|book|interested|apply|intern/.test(msg);
 
-  if (!intentClear) return []; // Pehle pooche, button baad mein
+  if (!intentClear) return [];
+
+  // ✅ Career/Internship — SPECIFIC match
+  if (/career|job|hiring|vacancy|internship|intern|fresher|नौकरी/.test(msg))
+    buttons.push({ label: 'Careers', url: `${BASE_URL}/careers` });
+
+  // ✅ Tech Squad — ONLY agar on-site visit ya technician ki baat ho
+  if (/tech squad|on.?site|technician|technician visit|घर पे/.test(msg))
+    buttons.push({ label: 'Tech Squad', url: `${BASE_URL}/techSquad` });
 
   if (/warranty|वारंटी/.test(msg))
     buttons.push({ label: 'Warranty Check', url: `${BASE_URL}/warranty` });
 
-  if (/tech squad|on.?site|technician|visit|तकनीशियन/.test(msg))
-    buttons.push({ label: 'Tech Squad', url: `${BASE_URL}/techSquad` });
-
-  if (/doa|dead on arrival|replacement|replace/.test(msg))
+  if (/doa|dead on arrival|replacement/.test(msg))
     buttons.push({ label: 'Request DOA', url: `${BASE_URL}/requestDoa` });
 
   if (/register product|product registration|रजिस्टर/.test(msg))
@@ -87,13 +94,10 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
   if (/training|train|ट्रेनिंग/.test(msg))
     buttons.push({ label: 'Request Training', url: `${BASE_URL}/requestTraining` });
 
-  if (/career|job|hiring|vacancy|नौकरी/.test(msg))
-    buttons.push({ label: 'Careers', url: `${BASE_URL}/careers` });
-
   if (/contact|reach|call|email|संपर्क/.test(msg))
     buttons.push({ label: 'Contact Us', url: `${BASE_URL}/contactUs` });
 
-  if (/whistle|complaint|report|misconduct/.test(msg))
+  if (/whistle|complaint|misconduct/.test(msg))
     buttons.push({ label: 'Whistleblower', url: `${BASE_URL}/whistleBlower` });
 
   if (/wireless|wifi|access point/.test(msg))
@@ -102,13 +106,13 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
   if (/surveillance|camera|cctv|nvr/.test(msg))
     buttons.push({ label: 'Surveillance', url: `${BASE_URL}/surveillance` });
 
-  if (/switch|स्विच/.test(msg))
+  if (/\bswitch|स्विच/.test(msg))
     buttons.push({ label: 'Network Switches', url: `${BASE_URL}/switches` });
 
   if (/server|workstation/.test(msg))
     buttons.push({ label: 'Servers', url: `${BASE_URL}/servers` });
 
-  if (/nas|storage/.test(msg))
+  if (/\bnas\b|storage/.test(msg))
     buttons.push({ label: 'NAS Storage', url: `${BASE_URL}/nas` });
 
   const seen = new Set();
@@ -116,7 +120,7 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
     if (seen.has(b.url)) return false;
     seen.add(b.url);
     return true;
-  }).slice(0, 2); // Max 2 buttons
+  }).slice(0, 2);
 };
 
 // ─── Product Cards Detection ───────────────────────────────────────────────
@@ -174,6 +178,11 @@ MOST IMPORTANT NAVIGATION RULES:
 - ONLY show confusion-based button when user clearly needs to go somewhere.
 - NEVER dump multiple page suggestions at once.
 - Guide conversationally. One question at a time.
+- NEVER say "my database does not contain" or "I don't have information" if products exist.
+- NEVER say "please contact sales" for product queries — always check LIVE PRODUCT DATABASE first.
+- If a category exists in database (like NAS, Switches, Wireless), ALWAYS show those products.
+- Only say "we do not have this product" if after checking the full database, truly no match is found.
+- NEVER mention database limitations to the user.
 
 USER INFO:
 - Name: ${userName}
