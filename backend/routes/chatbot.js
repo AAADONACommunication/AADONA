@@ -70,11 +70,9 @@ const getCategoryMap = async () => {
 };
 
 // ─── Static Page Intent Detection ─────────────────────────────────────────
-// Returns: { type: 'static', buttons: [...] } | null
 const detectStaticPageIntent = (userMessage, aiReply) => {
   const msg = (userMessage + ' ' + aiReply).toLowerCase();
 
-  // Map of regex → page info
   const staticPages = [
     { regex: /career|job|hiring|vacancy|internship|intern|fresher|नौकरी/, label: 'View Careers', url: `${BASE_URL}/careers` },
     { regex: /tech squad|on.?site|technician.*visit|घर पे.*technician/, label: 'Tech Squad', url: `${BASE_URL}/techSquad` },
@@ -126,71 +124,56 @@ const buildProductUrl = (p) => {
   return `${BASE_URL}/${cat}/${p.slug}`;
 };
 
-// ─── Category Page URL builder ─────────────────────────────────────────────
-const buildCategoryUrl = (cat) => {
-  // Passive type subCategories ka slug directly use hoga
-  if (cat.parentType === 'passive' || (cat.parentName && cat.parentName.toLowerCase() === 'passive')) {
-    return `${BASE_URL}/${cat.slug}`;
-  }
-  // Main categories
-  return `${BASE_URL}/${cat.slug}`;
-};
-
 // ─── Product + Category Detection ─────────────────────────────────────────
 const detectProductCards = (reply, products, userMessage, categories) => {
   if (!products?.length) return { cards: [], categoryButton: null };
 
-  // IMPORTANT: Only use userMessage for category matching — NOT reply
-  // AI reply mein dusri categories ke words aa jaate hain jo wrong match cause karte hain
   const userLower = userMessage.toLowerCase();
   const replyLower = reply.toLowerCase();
 
-  // ── 1. Specific product match by model number
+  // ── 1. Specific product match by model number ──
   const userNormalized = userLower.replace(/-/g, '');
 
   const matchedByModel = products.filter(p => {
     if (!p.model) return false;
     const modelLower = p.model.toLowerCase();
     const modelNormalized = modelLower.replace(/-/g, '');
-    // Sirf userLower mein check — reply se match nahi karna
-    const modelFound = userLower.includes(modelLower) || userNormalized.includes(modelNormalized);
-    return modelFound;
+    return userLower.includes(modelLower) || userNormalized.includes(modelNormalized);
   });
 
-  // ── 2. Category match — ONLY from userMessage, not reply ──────
+  // ── 2. Category match — ONLY from userMessage ──────────────────
   let categoryButton = null;
   let matchedByCategory = [];
-  let matchedCatName = null; // track which category matched
 
   if (!matchedByModel.length && categories?.length) {
-    // Sort: longer names first to avoid partial matches (e.g. "network accessories" before "network")
     const sortedCats = [...categories].sort((a, b) => b.name.length - a.name.length);
 
     for (const cat of sortedCats) {
       const catNameLower = cat.name.toLowerCase();
 
       if (userLower.includes(catNameLower)) {
-        matchedCatName = catNameLower;
+        // Passive subCategory — use subCategory slug directly as page
+        const isPassiveSub = cat.parentType === 'passive' || 
+          (cat.parentName || '').toLowerCase() === 'passive';
 
-        // Category page button — always parent category slug
-        const pageLabel = cat.parentName ? cat.parentName : cat.name;
-        const pageSlug = cat.parentName
-          ? cat.parentName.toLowerCase().trim().replace(/\s+/g, '').replace(/[^\w]+/g, '')
-          : cat.slug;
+        const finalSlug = isPassiveSub ? cat.slug : (
+          cat.parentName
+            ? cat.parentName.toLowerCase().trim().replace(/\s+/g, '').replace(/[^\w]+/g, '')
+            : cat.slug
+        );
+
         categoryButton = {
-          label: `Browse ${pageLabel}`,
-          url: `${BASE_URL}/${pageSlug}`
+          label: `Browse ${cat.name}`,
+          url: `${BASE_URL}/${finalSlug}`
         };
 
-        // Products: exact category or subCategory match only
+        // Products filter
         const filtered = products.filter(p => {
           const pCat = (p.category || '').toLowerCase();
           const pSub = (p.subCategory || '').toLowerCase();
           if (cat.parentName) {
-            // This is a subCategory — match subCategory field exactly
             return pSub === catNameLower;
           }
-          // Main category — match category field exactly
           return pCat === catNameLower;
         });
         matchedByCategory = filtered.slice(0, 4);
@@ -198,14 +181,12 @@ const detectProductCards = (reply, products, userMessage, categories) => {
       }
     }
 
-    // If no user match, try reply but only for clear category mentions
-    // (only main category names, not subcategories — avoids false positives)
+    // Fallback: reply mein check (only main categories)
     if (!categoryButton) {
       const mainCats = sortedCats.filter(c => !c.parentName);
       for (const cat of mainCats) {
         const catNameLower = cat.name.toLowerCase();
         if (replyLower.includes(catNameLower) && userLower.includes(catNameLower)) {
-          matchedCatName = catNameLower;
           categoryButton = {
             label: `Browse ${cat.name}`,
             url: `${BASE_URL}/${cat.slug}`
@@ -220,7 +201,7 @@ const detectProductCards = (reply, products, userMessage, categories) => {
     }
   }
 
-  // ── 3. Decide which products to show ──────────────────────────
+  // ── 3. Final products ──────────────────────────────────────────
   const finalProducts = matchedByModel.length
     ? matchedByModel.slice(0, 4)
     : matchedByCategory;
@@ -238,7 +219,6 @@ const detectProductCards = (reply, products, userMessage, categories) => {
     visitLabel: `View ${p.model || p.name}`
   }));
 
-  // If we have specific model cards, no need for category button
   if (matchedByModel.length) {
     categoryButton = null;
   }
@@ -246,6 +226,7 @@ const detectProductCards = (reply, products, userMessage, categories) => {
   return { cards, categoryButton };
 };
 
+// ─── System Prompt ─────────────────────────────────────────────────────────
 const buildSystemPrompt = (userName, userPhone, userCity) => `
 You are AADONA's AI assistant. Your name is "AADONA Assistant".
 
@@ -412,8 +393,7 @@ router.post('/chat/summary', async (req, res) => {
                 <span style="font-size:12px;font-weight:700;color:${labelColor}">${label}</span>
                 ${m.time ? `<br/><span style="font-size:10px;color:#9ca3af">${m.time}</span>` : ''}
               </td>
-              <td style="padding:10px 14px;border:1px solid #e5e7eb;font-size:13px;
-                color:#374151;line-height:1.6">
+              <td style="padding:10px 14px;border:1px solid #e5e7eb;font-size:13px;color:#374151;line-height:1.6">
                 ${m.content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br/>')}
               </td>
             </tr>`;
@@ -424,29 +404,23 @@ router.post('/chat/summary', async (req, res) => {
         to: process.env.COMPANY_EMAIL,
         subject: `🔄 User Resumed Chat — ${name} (+91 ${phone})`,
         html: `
-          <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;
-            border:1px solid #fef08a;border-radius:12px">
-            <div style="background:#fefce8;padding:16px 20px;border-radius:8px;margin-bottom:20px;
-              border-left:4px solid #f59e0b">
+          <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;border:1px solid #fef08a;border-radius:12px">
+            <div style="background:#fefce8;padding:16px 20px;border-radius:8px;margin-bottom:20px;border-left:4px solid #f59e0b">
               <h2 style="color:#854d0e;margin:0 0 6px">🔄 User Resumed Chat</h2>
               <p style="color:#713f12;font-size:14px;margin:0">
-                <b>${name}</b> (+91 ${phone}${city ? `, ${city}` : ''}) has
-                <b>resumed the conversation</b> after being inactive.
+                <b>${name}</b> (+91 ${phone}${city ? `, ${city}` : ''}) has <b>resumed the conversation</b> after being inactive.
               </p>
               <p style="color:#92400e;font-size:12px;margin:8px 0 0">
                 ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
               </p>
             </div>
             ${resumeChatRows ? `
-              <h3 style="color:#065f46;font-size:13px;text-transform:uppercase;
-                letter-spacing:0.5px;margin-bottom:10px">Previous Chat Transcript</h3>
+              <h3 style="color:#065f46;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Previous Chat Transcript</h3>
               <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
                 ${resumeChatRows}
               </table>
             ` : ''}
-            <p style="margin-top:20px;font-size:11px;color:#9ca3af">
-              Sent automatically · AADONA Chatbot System
-            </p>
+            <p style="margin-top:20px;font-size:11px;color:#9ca3af">Sent automatically · AADONA Chatbot System</p>
           </div>
         `,
       }).catch(() => {});
@@ -471,8 +445,7 @@ router.post('/chat/summary', async (req, res) => {
               <span style="font-size:12px;font-weight:700;color:${labelColor}">${label}</span>
               ${m.time ? `<br/><span style="font-size:10px;color:#9ca3af">${m.time}</span>` : ''}
             </td>
-            <td style="padding:10px 14px;border:1px solid #e5e7eb;font-size:13px;
-              color:#374151;line-height:1.6">
+            <td style="padding:10px 14px;border:1px solid #e5e7eb;font-size:13px;color:#374151;line-height:1.6">
               ${m.content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br/>')}
             </td>
           </tr>`;
@@ -483,14 +456,10 @@ router.post('/chat/summary', async (req, res) => {
       to: process.env.COMPANY_EMAIL,
       subject: `💬 Chat Summary — ${name} (+91 ${phone})${req.body.trigger === 'close' ? ' (Tab Closed)' : ' (10 min Inactivity)'}`,
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;
-          border:1px solid #d1fae5;border-radius:12px">
+        <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;border:1px solid #d1fae5;border-radius:12px">
           <h2 style="color:#065f46;margin-bottom:4px">Chat Summary (${req.body.trigger === 'close' ? 'Tab Closed' : '10 min Inactivity'})</h2>
-          <p style="color:#6b7280;font-size:13px;margin-bottom:20px">
-            Conversation captured after 10 minutes of inactivity.
-          </p>
-          <table cellpadding="10" cellspacing="0" width="100%"
-            style="border-collapse:collapse;font-size:13px;margin-bottom:24px">
+          <p style="color:#6b7280;font-size:13px;margin-bottom:20px">Conversation captured after 10 minutes of inactivity.</p>
+          <table cellpadding="10" cellspacing="0" width="100%" style="border-collapse:collapse;font-size:13px;margin-bottom:24px">
             <tr style="background:#f0fdf4">
               <td style="border:1px solid #d1fae5;font-weight:600;width:40%">Name</td>
               <td style="border:1px solid #d1fae5">${name}</td>
@@ -509,20 +478,14 @@ router.post('/chat/summary', async (req, res) => {
             </tr>
             <tr style="background:#f0fdf4">
               <td style="border:1px solid #d1fae5;font-weight:600">Time</td>
-              <td style="border:1px solid #d1fae5">
-                ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
-              </td>
+              <td style="border:1px solid #d1fae5">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</td>
             </tr>
           </table>
-          <h3 style="color:#065f46;font-size:13px;text-transform:uppercase;
-            letter-spacing:0.5px;margin-bottom:10px">Chat Transcript</h3>
-          <table cellpadding="0" cellspacing="0" width="100%"
-            style="border-collapse:collapse">
+          <h3 style="color:#065f46;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Chat Transcript</h3>
+          <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
             ${chatRows}
           </table>
-          <p style="margin-top:20px;font-size:11px;color:#9ca3af">
-            Sent automatically · AADONA Chatbot System
-          </p>
+          <p style="margin-top:20px;font-size:11px;color:#9ca3af">Sent automatically · AADONA Chatbot System</p>
         </div>
       `,
     });
@@ -571,7 +534,6 @@ router.post('/chat', chatLimiter, async (req, res) => {
       };
     });
 
-    // ── Streaming Gemini call ──
     const genAI = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
       {
@@ -591,7 +553,6 @@ router.post('/chat', chatLimiter, async (req, res) => {
       return res.status(502).json({ success: false, error: 'AI service temporarily unavailable. Please try again.' });
     }
 
-    // SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -620,12 +581,10 @@ router.post('/chat', chatLimiter, async (req, res) => {
       }
     }
 
-    // REMOVE ANY URL FROM AI RESPONSE
     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
 
     const categories = await getCategoryMap();
 
-    // ── Product cards + category button (dynamic) ──
     const { cards: productCards, categoryButton } = detectProductCards(
       fullReply,
       products,
@@ -633,15 +592,11 @@ router.post('/chat', chatLimiter, async (req, res) => {
       categories
     );
 
-    // ── Static page action buttons ──
-    // Only show static buttons if NO product cards were found
-    // (product queries shouldn't mix with static page buttons)
     let actionButtons = [];
     if (!productCards.length) {
       actionButtons = detectStaticPageIntent(lastUserMessage, fullReply);
     }
 
-    // Final buttons: category button (if any) + action buttons, max 2
     const allButtons = [
       ...(categoryButton ? [categoryButton] : []),
       ...actionButtons
