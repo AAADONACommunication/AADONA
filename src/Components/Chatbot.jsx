@@ -83,12 +83,23 @@ function ActionButtons({ buttons }) {
   if (!buttons?.length) return null;
   return (
     <div className="flex flex-wrap gap-1.5 mt-2">
-      {buttons.map((btn, i) => (
-        <a href={btn.url} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1.5 rounded-full bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-150 shadow-sm hover:shadow-md hover:-translate-y-0.5">
-          {btn.label || 'Go to this page'}
-        </a>
-      ))}
+      {buttons.map((btn, i) => {
+        const isInternal = btn.url?.includes('aadona.com');
+        return (
+          <a
+            key={i}
+            href={btn.url}
+            target={isInternal ? '_self' : '_blank'}
+            rel={isInternal ? undefined : 'noopener noreferrer'}
+            className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3.5 py-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-all duration-150 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+            {btn.label}
+          </a>
+        );
+      })}
     </div>
   );
 }

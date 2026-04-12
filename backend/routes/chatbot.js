@@ -55,111 +55,68 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
   const msg = (userMessage + ' ' + aiReply).toLowerCase();
   const buttons = [];
 
-  // Confusion Detection
-  const isConfused = /not understand|confuse|samajh nahi|kya karu|help|issue|problem|kaise|how|unable|nahi ho raha|error|fail/.test(msg);
+  // Only show button if AI has already asked/answered and intent is clear
+  const intentClear = /help|issue|problem|chahiye|chahta|chahti|karna|kaise|how|need|want|request|apply|submit|check|register|book|interested/.test(msg);
 
-  if (!isConfused) {
-    for (const cat of categories) {
-      const name = cat.name.toLowerCase();
+  if (!intentClear) return []; // Pehle pooche, button baad mein
 
-      if (msg.includes(name)) {
-        buttons.push({
-          label: `Go to ${cat.name}`,
-          url: `${BASE_URL}/${cat.slug}`
-        });
-        break;
-      }
-    }
-  }
+  if (/warranty|वारंटी/.test(msg))
+    buttons.push({ label: 'Warranty Check', url: `${BASE_URL}/warranty` });
 
-  // ONLY show buttons if confused
-  if (isConfused && /warranty|वारंटी/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/warranty` });
+  if (/tech squad|on.?site|technician|visit|तकनीशियन/.test(msg))
+    buttons.push({ label: 'Tech Squad', url: `${BASE_URL}/techSquad` });
 
-  if (isConfused && /tech squad|on.?site|technician|visit|तकनीशियन/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/techSquad` });
+  if (/doa|dead on arrival|replacement|replace/.test(msg))
+    buttons.push({ label: 'Request DOA', url: `${BASE_URL}/requestDoa` });
 
-  if (isConfused && /doa|dead on arrival|replacement|replace/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/requestDoa` });
+  if (/register product|product registration|रजिस्टर/.test(msg))
+    buttons.push({ label: 'Product Registration', url: `${BASE_URL}/warrantyRegistration` });
 
-  if (isConfused && /register product|product registration|रजिस्टर/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/warrantyRegistration` });
+  if (/product support|technical help|tech help/.test(msg))
+    buttons.push({ label: 'Product Support', url: `${BASE_URL}/productSupport` });
 
-  if (isConfused && /support tool|diagnostic/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/supportTools` });
+  if (/partner|reseller|distributor|पार्टनर/.test(msg))
+    buttons.push({ label: 'Become a Partner', url: `${BASE_URL}/becomePartner` });
 
-  if (isConfused && /product support|technical help|tech help|help with product/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/productSupport` });
+  if (/project lock|tender|project register/.test(msg))
+    buttons.push({ label: 'Project Locking', url: `${BASE_URL}/projectLocking` });
 
-  if (isConfused && /partner|reseller|distributor|system integrator|पार्टनर/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/becomePartner` });
+  if (/demo|demonstration|डेमो/.test(msg))
+    buttons.push({ label: 'Request Demo', url: `${BASE_URL}/requestDemo` });
 
-  if (isConfused && /project lock|tender|project register/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/projectLocking` });
+  if (/training|train|ट्रेनिंग/.test(msg))
+    buttons.push({ label: 'Request Training', url: `${BASE_URL}/requestTraining` });
 
-  if (isConfused && /demo|demonstration|डेमो/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/requestDemo` });
+  if (/career|job|hiring|vacancy|नौकरी/.test(msg))
+    buttons.push({ label: 'Careers', url: `${BASE_URL}/careers` });
 
-  if (isConfused && /training|train|ट्रेनिंग/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/requestTraining` });
+  if (/contact|reach|call|email|संपर्क/.test(msg))
+    buttons.push({ label: 'Contact Us', url: `${BASE_URL}/contactUs` });
 
-  if (isConfused && /career|job|hiring|vacancy|नौकरी/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/careers` });
+  if (/whistle|complaint|report|misconduct/.test(msg))
+    buttons.push({ label: 'Whistleblower', url: `${BASE_URL}/whistleBlower` });
 
-  if (isConfused && /csr|social responsibility/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/csr` });
+  if (/wireless|wifi|access point/.test(msg))
+    buttons.push({ label: 'Wireless Products', url: `${BASE_URL}/wireless` });
 
-  if (isConfused && /blog|article|news|insight/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/blog` });
+  if (/surveillance|camera|cctv|nvr/.test(msg))
+    buttons.push({ label: 'Surveillance', url: `${BASE_URL}/surveillance` });
 
-  if (isConfused && /customer|client|who uses|हमारे ग्राहक/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/customers` });
+  if (/switch|स्विच/.test(msg))
+    buttons.push({ label: 'Network Switches', url: `${BASE_URL}/switches` });
 
-  if (isConfused && /media|press|announcement/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/mediaCenter` });
+  if (/server|workstation/.test(msg))
+    buttons.push({ label: 'Servers', url: `${BASE_URL}/servers` });
 
-  if (isConfused && /contact|reach|call|email|संपर्क/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/contactUs` });
-
-  if (isConfused && /about|company|aadona kya|who are/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/about` });
-
-  if (isConfused && /mission|vision|goal/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/missionVision` });
-
-  if (isConfused && /leader|team|founder|management/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/leadershipTeam` });
-
-  if (isConfused && /whistle|complaint|report|misconduct/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/whistleBlower` });
-
-  if (isConfused && /wireless|wifi|wi-fi|access point|वायरलेस/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/wireless` });
-
-  if (isConfused && /surveillance|camera|cctv|nvr|dvr|सर्विलांस/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/surveillance` });
-
-  if (isConfused && /switch|स्विच/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/switches` });
-
-  if (isConfused && /server|workstation|सर्वर/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/servers` });
-
-  if (isConfused && /nas|storage|स्टोरेज/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/nas` });
-
-  if (isConfused && /industrial|rugged|harsh/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/industrial-switches` });
-
-  if (isConfused && /passive|cable|fiber|cabling/.test(msg))
-    buttons.push({ label: 'Go to this page', url: `${BASE_URL}/passive-networking` });
+  if (/nas|storage/.test(msg))
+    buttons.push({ label: 'NAS Storage', url: `${BASE_URL}/nas` });
 
   const seen = new Set();
   return buttons.filter(b => {
     if (seen.has(b.url)) return false;
     seen.add(b.url);
     return true;
-  }).slice(0, 3);
+  }).slice(0, 2); // Max 2 buttons
 };
 
 // ─── Product Cards Detection ───────────────────────────────────────────────
@@ -187,7 +144,6 @@ const detectProductCards = (reply, products) => {
   }));
 };
 
-// ─── System Prompt ─────────────────────────────────────────────────────────
 const buildSystemPrompt = (userName, userPhone, userCity) => `
 You are AADONA's AI assistant. Your name is "AADONA Assistant".
 
@@ -200,32 +156,24 @@ CRITICAL INSTRUCTIONS:
 - TONE: Professional, concise, modern. No emojis. No filler words. No "ji". No "sure!", no "great!", no "absolutely!". Get straight to the point.
 - RESPONSE STYLE: Be direct. Answer in 3-4 lines max unless user asks for details. Use **bold** only for model numbers or key specs.
 - NEVER fabricate information. If unsure, provide: 1800-202-6599 or contact@aadona.com
-- ONLY answer AADONA-related questions. Politely decline everything else and redirect to the contact number.
+- ONLY answer AADONA-related questions. Politely decline everything else.
 - For product queries, ALWAYS reference the LIVE PRODUCT DATABASE. Use exact model numbers.
-- When user asks about a specific product → give a brief 2-line overview + top 2 specs. Let them ask for more.
-- When user asks to see all products in a category → list ALL matching models from the database.
+- When user asks about a specific product → give a brief 2-line overview + top 2 specs.
 - Address the user by first name only occasionally — not in every message.
-- Mention page links naturally only when directly relevant. Never dump all URLs at once.
-- Guide users step by step. Ask one follow-up question at a time if clarification is needed.
-- GREETING: Keep it brief and professional. No enthusiasm overload.
-- When describing a product:
-  * Do NOT copy raw database text.
-  * Rephrase naturally like a human sales expert.
-  * Highlight use-case + benefit (not just specs).
-  * Keep it short but impactful.
-- If a product exists in database:
-  * ALWAYS mention its model number clearly in **bold**
-  * Give 1 short benefit line + 2 key specs
-- NEVER show raw URLs in chat responses.
-- Always try to solve the user's query directly in chat first.
-- ONLY if the user seems confused, unsure, or asks for help repeatedly:
-  * Then suggest a button (NOT a link)
-  * Say something like: "You can also use the option below if needed."
-- Do NOT say "visit this page" or paste URLs.
-- Let frontend buttons handle navigation.
-- If a button is available:
-  * Do NOT mention link in text
-  * Just guide user and let button appear below
+- GREETING: Keep it brief and professional.
+
+MOST IMPORTANT NAVIGATION RULES:
+- NEVER mention any URL, link, or page address in your text response. Not even partially.
+- NEVER say "visit aadona.com/..." or "go to aadona.com/..." or "check our website".
+- NEVER say "visit this page" or "click here" in your text.
+- When a user has a query related to a specific service/page:
+  * FIRST ask them what exactly their issue or requirement is.
+  * ONLY after understanding their query, end your reply naturally.
+  * A button will automatically appear below — do NOT mention it in text.
+  * Let the button handle navigation silently.
+- ONLY show confusion-based button when user clearly needs to go somewhere.
+- NEVER dump multiple page suggestions at once.
+- Guide conversationally. One question at a time.
 
 USER INFO:
 - Name: ${userName}
