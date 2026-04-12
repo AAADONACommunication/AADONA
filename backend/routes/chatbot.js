@@ -110,7 +110,7 @@ const detectStaticPageIntent = (userMessage, aiReply) => {
   return buttons;
 };
 
-// ─── Smart URL builder ─────────────────────────────────────────────────────
+// ─── Smart URL builder ────────────────────────────────────────────────────
 const buildProductUrl = (p) => {
   const cat = (p.category || '').toLowerCase().trim()
     .replace(/\s+/g, '').replace(/[^\w]+/g, '');
