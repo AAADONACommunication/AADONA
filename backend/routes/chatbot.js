@@ -40,12 +40,15 @@ const getProductsContext = async () => {
 const getCategoryMap = async () => {
   try {
     const Category = mongoose.model('Category');
-    const categories = await Category.find({}, 'name subCategories');
+    const categories = await Category.find({}, 'name');
 
     return categories.map(c => ({
       name: c.name,
-      // ✅ DB ke name se slug banao — same logic jo frontend use karta hai
-      slug: c.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
+      slug: c.name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '')
+        .replace(/[^\w]+/g, '')
     }));
   } catch {
     return [];

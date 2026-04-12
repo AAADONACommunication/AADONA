@@ -69,12 +69,12 @@ function ProductCard({ product }) {
           </ul>
         )}
         <a 
-          href={url} 
+          href={product.url}
           target="_self"
           className="block text-center text-[10.5px] font-semibold text-white py-1.5 rounded-lg transition-colors duration-150 mt-1 tracking-wide"
           style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
         >
-          {product.visitLabel || `Visit ${product.model || 'Product'}`}
+          {product.visitLabel || `Visit ${product.model || 'Product'}`}  {/* ✅ visitLabel use karo */}
         </a>
       </div>
     </div>
