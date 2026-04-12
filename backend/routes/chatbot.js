@@ -394,20 +394,53 @@ router.post('/chat/summary', async (req, res) => {
 
     // ── Resume notification ──
     if (isResume) {
+      const resumeChatRows = (messages || [])
+        .filter(m => m.content?.trim())
+        .map(m => {
+          const isBot = m.role === 'bot' || m.role === 'assistant';
+          const bg = isBot ? '#f0fdf4' : '#ffffff';
+          const label = isBot ? '🤖 AADONA Assistant' : `👤 ${name}`;
+          const labelColor = isBot ? '#166534' : '#1e40af';
+          return `
+            <tr style="background:${bg}">
+              <td style="padding:10px 14px;border:1px solid #e5e7eb;width:150px;vertical-align:top">
+                <span style="font-size:12px;font-weight:700;color:${labelColor}">${label}</span>
+                ${m.time ? `<br/><span style="font-size:10px;color:#9ca3af">${m.time}</span>` : ''}
+              </td>
+              <td style="padding:10px 14px;border:1px solid #e5e7eb;font-size:13px;
+                color:#374151;line-height:1.6">
+                ${m.content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br/>')}
+              </td>
+            </tr>`;
+        }).join('');
+
       await transporter.sendMail({
         from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
         to: process.env.COMPANY_EMAIL,
         subject: `🔄 User Resumed Chat — ${name} (+91 ${phone})`,
         html: `
-          <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:28px;
-            border:1px solid #fef08a;border-radius:12px;background:#fefce8">
-            <h2 style="color:#854d0e;margin-bottom:8px">User Resumed Chat</h2>
-            <p style="color:#713f12;font-size:14px">
-              <b>${name}</b> (+91 ${phone}${city ? `, ${city}` : ''}) has 
-              <b>resumed the conversation</b> after being inactive.
-            </p>
-            <p style="color:#92400e;font-size:12px;margin-top:12px">
-              ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+          <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;
+            border:1px solid #fef08a;border-radius:12px">
+            <div style="background:#fefce8;padding:16px 20px;border-radius:8px;margin-bottom:20px;
+              border-left:4px solid #f59e0b">
+              <h2 style="color:#854d0e;margin:0 0 6px">🔄 User Resumed Chat</h2>
+              <p style="color:#713f12;font-size:14px;margin:0">
+                <b>${name}</b> (+91 ${phone}${city ? `, ${city}` : ''}) has
+                <b>resumed the conversation</b> after being inactive.
+              </p>
+              <p style="color:#92400e;font-size:12px;margin:8px 0 0">
+                ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+              </p>
+            </div>
+            ${resumeChatRows ? `
+              <h3 style="color:#065f46;font-size:13px;text-transform:uppercase;
+                letter-spacing:0.5px;margin-bottom:10px">Previous Chat Transcript</h3>
+              <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
+                ${resumeChatRows}
+              </table>
+            ` : ''}
+            <p style="margin-top:20px;font-size:11px;color:#9ca3af">
+              Sent automatically · AADONA Chatbot System
             </p>
           </div>
         `,
@@ -443,11 +476,11 @@ router.post('/chat/summary', async (req, res) => {
     await transporter.sendMail({
       from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
       to: process.env.COMPANY_EMAIL,
-      subject: `💬 Chat Summary — ${name} (+91 ${phone})`,
+      subject: `💬 Chat Summary — ${name} (+91 ${phone})${req.body.trigger === 'close' ? ' (Tab Closed)' : ' (10 min Inactivity)'}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;
           border:1px solid #d1fae5;border-radius:12px">
-          <h2 style="color:#065f46;margin-bottom:4px">Chat Summary (10 min inactivity)</h2>
+          <h2 style="color:#065f46;margin-bottom:4px">Chat Summary (${req.body.trigger === 'close' ? 'Tab Closed' : '10 min Inactivity'})</h2>
           <p style="color:#6b7280;font-size:13px;margin-bottom:20px">
             Conversation captured after 10 minutes of inactivity.
           </p>

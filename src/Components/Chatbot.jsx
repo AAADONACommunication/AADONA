@@ -451,13 +451,40 @@ export default function Chatbot() {
     };
   }, []);
 
+  // Tab/window close pe summary bhejo
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!user?.phone) return;
+      if (!messages.some(m => m.role === 'user')) return;
+      const payload = JSON.stringify({
+        name: user.name,
+        phone: user.phone,
+        city: user.city,
+        trigger: 'close',
+        messages: messages.map(m => ({
+          role: m.role,
+          content: m.content,
+          time: m.time,
+        })),
+        isResume: false,
+      });
+
+      navigator.sendBeacon(
+        `${API_BASE}/chat/summary`,
+        new Blob([payload], { type: 'application/json' })
+      );
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [messages, user]);
+
   // ── Chat Summary Mail ─────────────────────────────────────────────────────
-  const sendChatSummaryMail = useCallback(async (chatMessages, isResume = false) => {
+  const sendChatSummaryMail = useCallback(async (chatMessages, isResume = false, trigger = 'inactivity') => {
     if (!user?.phone) return;
 
     // ── Resume notification ──
     if (isResume) {
-      // Sirf tab bhejo agar pehle summary ja chuki ho
       if (!summaryMailSentRef.current) return;
       try {
         await fetch(`${API_BASE}/chat/summary`, {
@@ -467,7 +494,11 @@ export default function Chatbot() {
             name: user.name,
             phone: user.phone,
             city: user.city,
-            messages: [],
+            messages: chatMessages.map(m => ({
+              role: m.role,
+              content: m.content,
+              time: m.time,
+            })),
             isResume: true,
           }),
         });
@@ -481,9 +512,7 @@ export default function Chatbot() {
     if (!hasRealChat) return;
 
     // Sirf nayi messages honi chahiye jo pehle nahi gayi
-    const { messageCount } = lastSummaryRef.current;
-    const newMsgs = chatMessages.slice(messageCount);
-    if (!newMsgs.some(m => m.role === 'user')) return;
+    if (!chatMessages.some(m => m.role === 'user')) return;
 
     // Update tracking
     lastSummaryRef.current = { messageCount: chatMessages.length, sentAt: Date.now() };
@@ -497,6 +526,7 @@ export default function Chatbot() {
           name: user.name,
           phone: user.phone,
           city: user.city,
+          trigger,
           messages: chatMessages.map(m => ({
             role: m.role,
             content: m.content,
@@ -514,7 +544,7 @@ export default function Chatbot() {
 
     inactivityTimerRef.current = setTimeout(() => {
       // 10 min baad poori chat bhejo (purani + nayi sab)
-      sendChatSummaryMail(chatMessages);
+      sendChatSummaryMail(chatMessages, false, 'inactivity');
     }, 10 * 60 * 1000);
   }, [sendChatSummaryMail]);
 
