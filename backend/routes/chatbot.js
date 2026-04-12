@@ -149,7 +149,31 @@ const detectProductCards = (reply, products, userMessage, categories) => {
   const combined = userLower + ' ' + replyLower;
   const matchedByModel = products.filter(p => {
     if (!p.model) return false;
-    return combined.includes(p.model.toLowerCase());
+    if (!combined.includes(p.model.toLowerCase())) return false;
+    const categoryKeywords = {
+      wireless: ['wireless', 'wifi', 'wi-fi', 'access point', 'ap '],
+      surveillance: ['surveillance', 'camera', 'cctv', 'nvr', 'dvr'],
+      switches: ['switch', 'switching', 'poe', 'managed'],
+      servers: ['server', 'workstation'],
+      nas: ['nas', 'storage'],
+      passive: ['cable', 'patch', 'fiber', 'cat6', 'cat7'],
+    };
+
+    const pCat = (p.category || '').toLowerCase();
+
+    const userMentionedAnyCat = Object.values(categoryKeywords)
+      .some(keywords => keywords.some(k => userLower.includes(k)));
+
+    if (!userMentionedAnyCat) return true;
+
+    // Agar category mention ki hai — toh wrong category filter karo
+    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+      const userMentionedThisCat = keywords.some(k => userLower.includes(k));
+      const productIsThisCat = pCat.includes(cat);
+      if (userMentionedThisCat && !productIsThisCat) return false;
+    }
+
+    return true;
   });
 
   // ── 2. Category match — ONLY from userMessage, not reply ──────
@@ -199,7 +223,7 @@ const detectProductCards = (reply, products, userMessage, categories) => {
       const mainCats = sortedCats.filter(c => !c.parentName);
       for (const cat of mainCats) {
         const catNameLower = cat.name.toLowerCase();
-        if (replyLower.includes(catNameLower)) {
+        if (replyLower.includes(catNameLower) && userLower.includes(catNameLower)) {
           matchedCatName = catNameLower;
           categoryButton = {
             label: `Browse ${cat.name}`,
