@@ -81,7 +81,7 @@ const detectStaticPageIntent = (userMessage, aiReply) => {
     { regex: /warranty|वारंटी/, label: 'Warranty Check', url: `${BASE_URL}/warranty` },
     { regex: /doa|dead on arrival/, label: 'Request DOA', url: `${BASE_URL}/requestDoa` },
     { regex: /register.*product|product.*registration|रजिस्टर/, label: 'Product Registration', url: `${BASE_URL}/warrantyRegistration` },
-    { regex: /product support|technical help|tech help/, label: 'Product Support', url: `${BASE_URL}/productSupport` },
+    { regex: /issue|problem|fault|not.?working|error|disconnect|hang|slow|repair|खराब|technical|firmware|config|product.*support|support.*product/, label: 'Product Support', url: `${BASE_URL}/productSupport` },
     { regex: /partner|reseller|distributor|पार्टनर/, label: 'Become a Partner', url: `${BASE_URL}/becomePartner` },
     { regex: /project lock|tender|project register/, label: 'Project Locking', url: `${BASE_URL}/projectLocking` },
     { regex: /demo|demonstration|डेमो/, label: 'Request Demo', url: `${BASE_URL}/requestDemo` },
@@ -91,7 +91,7 @@ const detectStaticPageIntent = (userMessage, aiReply) => {
     { regex: /about.*aadona|aadona.*about|company.*info|who.*aadona/, label: 'About AADONA', url: `${BASE_URL}/about` },
     { regex: /csr|social responsibility/, label: 'CSR', url: `${BASE_URL}/csr` },
     { regex: /blog|article|news/, label: 'Blog', url: `${BASE_URL}/blog` },
-    { regex: /leadership|team|founder|ceo|management/, label: 'Leadership Team', url: `${BASE_URL}/leadershipTeam` },
+    { regex: /leadership.*team|leadership.*aadona|founder.*aadona|ceo.*aadona|who.*founded.*aadona|aadona.*leadership/, label: 'Leadership Team', url: `${BASE_URL}/leadershipTeam` },
     { regex: /customer|client|who.*use|use.*aadona/, label: 'Our Customers', url: `${BASE_URL}/customers` },
   ];
 
@@ -160,11 +160,15 @@ const detectProductCards = (reply, products, userMessage, categories) => {
       const catNameLower = cat.name.toLowerCase();
 
       if (combined.includes(catNameLower)) {
-        // Category page button
+        // Category page button — always use PARENT category slug (no subcategory pages exist)
         if (!categoryButton) {
+          const pageLabel = cat.parentName ? cat.parentName : cat.name;
+          const pageSlug = cat.parentName
+            ? cat.parentName.toLowerCase().trim().replace(/\s+/g, '').replace(/[^\w]+/g, '')
+            : cat.slug;
           categoryButton = {
-            label: `Browse ${cat.name}`,
-            url: buildCategoryUrl(cat)
+            label: `Browse ${pageLabel}`,
+            url: `${BASE_URL}/${pageSlug}`
           };
         }
 

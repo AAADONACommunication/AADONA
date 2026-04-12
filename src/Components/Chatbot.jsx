@@ -96,7 +96,8 @@ function ProductCard({ product }) {
         {/* CTA */}
         <a
           href={product.url}
-          target="_self"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center justify-center gap-1 text-[10.5px] font-semibold text-white py-1.5 rounded-lg transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5"
           style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
         >
@@ -378,11 +379,20 @@ export default function Chatbot() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 50);
-  }, [messages, isLoading]);
+  // Smart scroll — only auto-scroll if user is already near the bottom
+  const scrollToBottom = useCallback((force = false) => {
+    const container = messagesEndRef.current?.parentElement;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    // Auto-scroll only if within 120px of bottom, or forced (new user message)
+    if (force || distanceFromBottom < 120) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 30);
+    }
+  }, []);
+
+  useEffect(() => { scrollToBottom(); }, [isLoading]);
 
   useEffect(() => { if (isOpen && isRegistered) setTimeout(() => inputRef.current?.focus(), 100); }, [isOpen, isRegistered]);
 
@@ -475,6 +485,7 @@ export default function Chatbot() {
     const userMsg = { role: 'user', content: trimmed, time: getTime() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
+    scrollToBottom(true);
     const newApiHistory = [...apiHistory, { role: 'user', content: trimmed }];
     setApiHistory(newApiHistory);
     setIsLoading(true);
@@ -516,13 +527,20 @@ export default function Chatbot() {
           try {
             const json = JSON.parse(line.replace('data: ', ''));
             if (json.token) {
-              await new Promise(r => setTimeout(r, 8));
-              streamedText += json.token;
-              setMessages(prev => {
-                const updated = [...prev];
-                if (updated[botIndex]) updated[botIndex] = { ...updated[botIndex], content: streamedText, isStreaming: true };
-                return updated;
-              });
+              // Split token into characters for smooth word-by-word feel
+              const chars = json.token.split('');
+              for (const char of chars) {
+                streamedText += char;
+                // Small delay per char — feels like real typing
+                await new Promise(r => setTimeout(r, 12));
+                const snap = streamedText;
+                setMessages(prev => {
+                  const updated = [...prev];
+                  if (updated[botIndex]) updated[botIndex] = { ...updated[botIndex], content: snap, isStreaming: true };
+                  return updated;
+                });
+                scrollToBottom();
+              }
             }
             if (json.done) {
               productCards = json.productCards || null;
@@ -571,7 +589,7 @@ export default function Chatbot() {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [input, messages, apiHistory, isLoading, user, saveHistory]);
+  }, [input, messages, apiHistory, isLoading, user, saveHistory, scrollToBottom]);
 
   const handleClearHistory = () => {
     if (!user?.phone) return;
