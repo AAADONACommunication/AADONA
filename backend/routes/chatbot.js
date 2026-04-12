@@ -145,35 +145,16 @@ const detectProductCards = (reply, products, userMessage, categories) => {
   const userLower = userMessage.toLowerCase();
   const replyLower = reply.toLowerCase();
 
-  // ── 1. Specific product match by model number (reply + user dono mein dekho) ──
-  const combined = userLower + ' ' + replyLower;
+  // ── 1. Specific product match by model number
+  const userNormalized = userLower.replace(/-/g, '');
+
   const matchedByModel = products.filter(p => {
     if (!p.model) return false;
-    if (!combined.includes(p.model.toLowerCase())) return false;
-    const categoryKeywords = {
-      wireless: ['wireless', 'wifi', 'wi-fi', 'access point', 'ap '],
-      surveillance: ['surveillance', 'camera', 'cctv', 'nvr', 'dvr'],
-      switches: ['switch', 'switching', 'poe', 'managed'],
-      servers: ['server', 'workstation'],
-      nas: ['nas', 'storage'],
-      passive: ['cable', 'patch', 'fiber', 'cat6', 'cat7'],
-    };
-
-    const pCat = (p.category || '').toLowerCase();
-
-    const userMentionedAnyCat = Object.values(categoryKeywords)
-      .some(keywords => keywords.some(k => userLower.includes(k)));
-
-    if (!userMentionedAnyCat) return true;
-
-    // Agar category mention ki hai — toh wrong category filter karo
-    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
-      const userMentionedThisCat = keywords.some(k => userLower.includes(k));
-      const productIsThisCat = pCat.includes(cat);
-      if (userMentionedThisCat && !productIsThisCat) return false;
-    }
-
-    return true;
+    const modelLower = p.model.toLowerCase();
+    const modelNormalized = modelLower.replace(/-/g, '');
+    // Sirf userLower mein check — reply se match nahi karna
+    const modelFound = userLower.includes(modelLower) || userNormalized.includes(modelNormalized);
+    return modelFound;
   });
 
   // ── 2. Category match — ONLY from userMessage, not reply ──────
