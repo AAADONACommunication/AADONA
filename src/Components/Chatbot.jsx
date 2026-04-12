@@ -39,15 +39,9 @@ function ProductCard({ product }) {
       className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex-shrink-0"
       style={{ width: '172px', fontFamily: "'DM Sans', sans-serif" }}
     >
-      {/* Product Image */}
       <div className="w-full bg-slate-50 flex items-center justify-center overflow-hidden" style={{ height: '108px' }}>
         {product.image && !imgError ? (
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-contain p-2"
-            onError={() => setImgError(true)}
-          />
+          <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2" onError={() => setImgError(true)} />
         ) : (
           <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-slate-100 to-slate-50 gap-1">
             <svg className="w-7 h-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
@@ -58,9 +52,7 @@ function ProductCard({ product }) {
           </div>
         )}
       </div>
-
       <div className="p-2.5">
-        {/* Model badge */}
         {product.model && (
           <div className="inline-block mb-1">
             <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono tracking-wider">
@@ -68,20 +60,8 @@ function ProductCard({ product }) {
             </span>
           </div>
         )}
-
-        {/* Name */}
-        <p className="text-[11.5px] font-semibold text-slate-800 leading-snug line-clamp-2 tracking-tight mb-1">
-          {product.name}
-        </p>
-
-        {/* Overview */}
-        {product.overview && (
-          <p className="text-[10px] text-slate-500 leading-relaxed line-clamp-2 mb-1.5">
-            {product.overview}
-          </p>
-        )}
-
-        {/* Features */}
+        <p className="text-[11.5px] font-semibold text-slate-800 leading-snug line-clamp-2 tracking-tight mb-1">{product.name}</p>
+        {product.overview && <p className="text-[10px] text-slate-500 leading-relaxed line-clamp-2 mb-1.5">{product.overview}</p>}
         {product.features?.length > 0 && (
           <ul className="flex flex-col gap-0.5 mb-2">
             {product.features.slice(0, 2).map((f, i) => (
@@ -92,15 +72,9 @@ function ProductCard({ product }) {
             ))}
           </ul>
         )}
-
-        {/* CTA */}
-        <a
-          href={product.url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <a href={product.url} target="_blank" rel="noopener noreferrer"
           className="flex items-center justify-center gap-1 text-[10.5px] font-semibold text-white py-1.5 rounded-lg transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
-        >
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
           <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
@@ -111,19 +85,71 @@ function ProductCard({ product }) {
   );
 }
 
-// ─── Action Buttons (Static Pages) ────────────────────────────────────────
+// ─── Single Product Card (Wide) ────────────────────────────────────────────
+function SingleProductCard({ product }) {
+  if (!product) return null;
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif", maxWidth: '100%' }}>
+      <div className="flex gap-3 p-3">
+        <div className="flex-shrink-0 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100" style={{ width: '80px', height: '80px' }}>
+          {product.image && !imgError ? (
+            <img src={product.image} alt={product.name} className="w-full h-full object-contain p-1.5" onError={() => setImgError(true)} />
+          ) : (
+            <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-slate-100 to-slate-50 gap-1">
+              <svg className="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+                <rect x="2" y="3" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8M12 17v4" />
+              </svg>
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          <div>
+            {product.model && (
+              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono tracking-wider inline-block mb-1">
+                {product.model}
+              </span>
+            )}
+            <p className="text-[12px] font-semibold text-slate-800 leading-snug tracking-tight mb-1 line-clamp-2">{product.name}</p>
+            {product.overview && <p className="text-[10.5px] text-slate-500 leading-relaxed line-clamp-2">{product.overview}</p>}
+          </div>
+          {product.features?.length > 0 && (
+            <ul className="flex flex-col gap-0.5 mt-1.5">
+              {product.features.slice(0, 2).map((f, i) => (
+                <li key={i} className="flex items-start gap-1 text-[10px] text-slate-500">
+                  <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
+                  <span className="line-clamp-1">{f}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      <div className="px-3 pb-3">
+        <a href={product.url} target="_blank" rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-white py-2 rounded-lg transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5 w-full"
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+          {product.visitLabel || `View ${product.model || product.name}`}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ─── Action Buttons ────────────────────────────────────────────────────────
 function ActionButtons({ buttons }) {
   if (!buttons?.length) return null;
   return (
     <div className="flex flex-wrap gap-1.5 mt-2">
       {buttons.map((btn, i) => (
-        <a
-          key={i}
-          href={btn.url}
-          target="_self"
+        <a key={i} href={btn.url} target="_self"
           className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3.5 py-2 rounded-full transition-all duration-150 shadow-sm hover:shadow-md hover:-translate-y-0.5"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff' }}
-        >
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff' }}>
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
@@ -150,31 +176,17 @@ function TypingDots() {
 function BotMessage({ content, time, productCards, actionButtons, isStreaming }) {
   const safeContent = content.replace(/https?:\/\/[^\s]+/g, '');
 
-  useEffect(() => {
-    if (productCards?.length) {
-      setTimeout(() => {
-        const el = document.querySelector('.product-scroll');
-        el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 200);
-    }
-  }, [productCards]);
-
   return (
     <div className="flex items-end gap-2 animate-fadeIn">
-      {/* Bot avatar */}
       <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mb-1 shadow-sm"
         style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
         <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
         </svg>
       </div>
-
       <div className="flex flex-col gap-1.5 max-w-[84%]">
-        {/* Text bubble */}
-        <div
-          className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[13px] leading-relaxed"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
-        >
+        <div className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[13px] leading-relaxed"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}>
           {safeContent.split('\n').map((line, i, arr) => (
             <span key={i}>
               {line.split(/(\*\*.*?\*\*)/g).map((part, j) =>
@@ -190,22 +202,20 @@ function BotMessage({ content, time, productCards, actionButtons, isStreaming })
 
         {/* Product Cards */}
         {!isStreaming && productCards?.length > 0 && (
-          <div
-            className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 product-scroll"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
-          </div>
+          productCards.length === 1 ? (
+            <SingleProductCard product={productCards[0]} />
+          ) : (
+            <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 product-scroll"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
+            </div>
+          )
         )}
 
-        {/* Action Buttons (static pages) */}
         {!isStreaming && <ActionButtons buttons={actionButtons} />}
 
-        {/* Timestamp */}
         {!isStreaming && time && (
-          <span className="text-[10px] text-slate-400 pl-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            {time}
-          </span>
+          <span className="text-[10px] text-slate-400 pl-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>{time}</span>
         )}
       </div>
     </div>
@@ -217,10 +227,8 @@ function UserMessage({ content, time }) {
   return (
     <div className="flex items-end justify-end gap-2 animate-fadeIn">
       <div className="flex flex-col items-end gap-0.5 max-w-[78%]">
-        <div
-          className="px-3.5 py-2.5 rounded-2xl rounded-br-sm text-white text-[13px] leading-relaxed shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', fontFamily: "'DM Sans', sans-serif" }}
-        >
+        <div className="px-3.5 py-2.5 rounded-2xl rounded-br-sm text-white text-[13px] leading-relaxed shadow-sm"
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', fontFamily: "'DM Sans', sans-serif" }}>
           {content}
         </div>
         {time && <span className="text-[10px] text-slate-400 pr-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>{time}</span>}
@@ -368,11 +376,18 @@ export default function Chatbot() {
   const [showCallDrawer, setShowCallDrawer] = useState(false);
   const [showBubble, setShowBubble] = useState(false);
 
+  // ── Refs ──────────────────────────────────────────────────────────────────
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const callDrawerRef = useRef(null);
 
+  // Mail tracking refs — INSIDE component
+  const lastSummaryRef = useRef({ messageCount: 0, sentAt: 0 });
+  const inactivityTimerRef = useRef(null);
+  const summaryMailSentRef = useRef(false);
+
+  // ── Mobile detection ──────────────────────────────────────────────────────
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
     check();
@@ -380,40 +395,130 @@ export default function Chatbot() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Smart scroll — scrolls the chat container itself, NOT the page
+  // ── Smart scroll ──────────────────────────────────────────────────────────
   const scrollToBottom = useCallback((force = false) => {
     const container = messagesContainerRef.current;
     if (!container) return;
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    // Only scroll if user is near bottom (150px) or forced
     if (force || distanceFromBottom < 150) {
       container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     }
   }, []);
 
-  useEffect(() => { scrollToBottom(); }, [isLoading]);
+  useEffect(() => {
+    if (isLoading) scrollToBottom(true);
+  }, [isLoading]);
 
-  useEffect(() => { if (isOpen && isRegistered) setTimeout(() => inputRef.current?.focus(), 100); }, [isOpen, isRegistered]);
+  useEffect(() => {
+    if (isOpen && isRegistered) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [isOpen, isRegistered]);
 
+  // ── Load saved user on mount ──────────────────────────────────────────────
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY_USER);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed?.name && parsed?.phone) { setUser(parsed); setIsRegistered(true); loadHistory(parsed.phone); }
+        if (parsed?.name && parsed?.phone) {
+          setUser(parsed);
+          setIsRegistered(true);
+          loadHistory(parsed.phone);
+        }
       } catch { }
     }
   }, []);
 
+  // ── Call drawer outside click ──────────────────────────────────────────────
   useEffect(() => {
     if (!showCallDrawer) return;
-    const handler = (e) => { if (callDrawerRef.current && !callDrawerRef.current.contains(e.target)) setShowCallDrawer(false); };
+    const handler = (e) => {
+      if (callDrawerRef.current && !callDrawerRef.current.contains(e.target)) setShowCallDrawer(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showCallDrawer]);
 
-  useEffect(() => { const t = setTimeout(() => setShowBubble(true), 5000); return () => clearTimeout(t); }, []);
+  // ── Bubble delay ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const t = setTimeout(() => setShowBubble(true), 5000);
+    return () => clearTimeout(t);
+  }, []);
 
+  // ── Cleanup inactivity timer on unmount ───────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    };
+  }, []);
+
+  // ── Chat Summary Mail ─────────────────────────────────────────────────────
+  const sendChatSummaryMail = useCallback(async (chatMessages, isResume = false) => {
+    if (!user?.phone) return;
+
+    // ── Resume notification ──
+    if (isResume) {
+      // Sirf tab bhejo agar pehle summary ja chuki ho
+      if (!summaryMailSentRef.current) return;
+      try {
+        await fetch(`${API_BASE}/chat/summary`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: user.name,
+            phone: user.phone,
+            city: user.city,
+            messages: [],
+            isResume: true,
+          }),
+        });
+      } catch { }
+      return;
+    }
+
+    // ── Full summary ──
+    if (!chatMessages?.length) return;
+    const hasRealChat = chatMessages.some(m => m.role === 'user');
+    if (!hasRealChat) return;
+
+    // Sirf nayi messages honi chahiye jo pehle nahi gayi
+    const { messageCount } = lastSummaryRef.current;
+    const newMsgs = chatMessages.slice(messageCount);
+    if (!newMsgs.some(m => m.role === 'user')) return;
+
+    // Update tracking
+    lastSummaryRef.current = { messageCount: chatMessages.length, sentAt: Date.now() };
+    summaryMailSentRef.current = true;
+
+    try {
+      await fetch(`${API_BASE}/chat/summary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: user.name,
+          phone: user.phone,
+          city: user.city,
+          messages: chatMessages.map(m => ({
+            role: m.role,
+            content: m.content,
+            time: m.time,
+          })),
+          isResume: false,
+        }),
+      });
+    } catch { }
+  }, [user]);
+
+  // ── Inactivity timer reset ────────────────────────────────────────────────
+  const resetInactivityTimer = useCallback((chatMessages) => {
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+
+    inactivityTimerRef.current = setTimeout(() => {
+      // 10 min baad poori chat bhejo (purani + nayi sab)
+      sendChatSummaryMail(chatMessages);
+    }, 10 * 60 * 1000);
+  }, [sendChatSummaryMail]);
+
+  // ── History helpers ───────────────────────────────────────────────────────
   const loadHistory = (phone) => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_HISTORY(phone));
@@ -425,7 +530,7 @@ export default function Chatbot() {
           content: m.content,
           time: m.time || '',
           productCards: m.productCards || null,
-          actionButtons: m.actionButtons || null
+          actionButtons: m.actionButtons || null,
         })));
         setApiHistory(hist.slice(-10).map(m => ({ role: m.role, content: m.content })));
         setQuickReplies(QUICK_REPLY_MAP.default);
@@ -441,19 +546,20 @@ export default function Chatbot() {
           content: m.content,
           time: m.time,
           productCards: m.productCards || null,
-          actionButtons: m.actionButtons || null
+          actionButtons: m.actionButtons || null,
         }))
       ));
     } catch { }
   }, []);
 
+  // ── Handle Start (Registration) ───────────────────────────────────────────
   const handleStart = async (name, phone, city) => {
     const userData = { name, phone, city, joinedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
     fetch(`${API_BASE}/chat/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, city })
+      body: JSON.stringify({ name, phone, city }),
     }).catch(() => { });
     setUser(userData);
     setIsRegistered(true);
@@ -461,13 +567,21 @@ export default function Chatbot() {
     const existingHistory = localStorage.getItem(STORAGE_KEY_HISTORY(phone));
     if (existingHistory) {
       loadHistory(phone);
-      const welcomeBack = { role: 'bot', content: `Welcome back, **${name}**. How can I assist you today?`, time: getTime() };
-      setMessages(prev => { const updated = [...prev, welcomeBack]; saveHistory(phone, updated); return updated; });
+      const welcomeBack = {
+        role: 'bot',
+        content: `Welcome back, **${name}**. How can I assist you today?`,
+        time: getTime(),
+      };
+      setMessages(prev => {
+        const updated = [...prev, welcomeBack];
+        saveHistory(phone, updated);
+        return updated;
+      });
     } else {
       const greeting = {
         role: 'bot',
         content: `Hello **${name}**, welcome to **AADONA** — India's premier networking brand.\n\nI can assist with products, support, and partnership queries. What would you like to know?`,
-        time: getTime()
+        time: getTime(),
       };
       setMessages([greeting]);
       saveHistory(phone, [greeting]);
@@ -475,9 +589,18 @@ export default function Chatbot() {
     setQuickReplies(QUICK_REPLY_MAP.default);
   };
 
+  // ── Send Message ──────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || isLoading) return;
+
+    // Agar pehle summary ja chuki hai toh resume notification bhejo
+    if (summaryMailSentRef.current) {
+      sendChatSummaryMail(messages, true);
+      // summaryMailSentRef ko false mat karo —
+      // taaki agle 10 min baad poori updated chat jaaye
+    }
+
     setInput('');
     setQuickReplies([]);
 
@@ -485,11 +608,15 @@ export default function Chatbot() {
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     scrollToBottom(true);
+
     const newApiHistory = [...apiHistory, { role: 'user', content: trimmed }];
     setApiHistory(newApiHistory);
     setIsLoading(true);
 
-    const streamingMsg = { role: 'bot', content: '', time: getTime(), isStreaming: true, productCards: null, actionButtons: null };
+    const streamingMsg = {
+      role: 'bot', content: '', time: getTime(),
+      isStreaming: true, productCards: null, actionButtons: null,
+    };
     setMessages(prev => [...prev, streamingMsg]);
     const botIndex = newMessages.length;
 
@@ -501,7 +628,7 @@ export default function Chatbot() {
           messages: newApiHistory,
           userName: user?.name || 'Guest',
           userPhone: user?.phone || '',
-          userCity: user?.city || ''
+          userCity: user?.city || '',
         }),
       });
 
@@ -526,11 +653,9 @@ export default function Chatbot() {
           try {
             const json = JSON.parse(line.replace('data: ', ''));
             if (json.token) {
-              // Split token into characters for smooth word-by-word feel
               const chars = json.token.split('');
               for (const char of chars) {
                 streamedText += char;
-                // Small delay per char — feels like real typing
                 await new Promise(r => setTimeout(r, 12));
                 const snap = streamedText;
                 setMessages(prev => {
@@ -551,7 +676,7 @@ export default function Chatbot() {
                   content: streamedText,
                   isStreaming: false,
                   productCards,
-                  actionButtons
+                  actionButtons,
                 };
                 return updated;
               });
@@ -566,11 +691,15 @@ export default function Chatbot() {
         time: getTime(),
         productCards,
         actionButtons,
-        isStreaming: false
+        isStreaming: false,
       }];
+
       setApiHistory(prev => [...prev, { role: 'assistant', content: streamedText }]);
       setQuickReplies(getQuickReplies(trimmed));
       saveHistory(user?.phone, finalMessages);
+
+      // Har message ke baad inactivity timer reset karo
+      resetInactivityTimer(finalMessages);
 
     } catch (err) {
       console.error('Chat error:', err);
@@ -579,7 +708,7 @@ export default function Chatbot() {
         if (updated[botIndex]) updated[botIndex] = {
           ...updated[botIndex],
           content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`,
-          isStreaming: false
+          isStreaming: false,
         };
         return updated;
       });
@@ -588,15 +717,24 @@ export default function Chatbot() {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [input, messages, apiHistory, isLoading, user, saveHistory, scrollToBottom]);
+  }, [input, messages, apiHistory, isLoading, user, saveHistory, scrollToBottom, sendChatSummaryMail, resetInactivityTimer]);
 
+  // ── Clear History ─────────────────────────────────────────────────────────
   const handleClearHistory = () => {
     if (!user?.phone) return;
     localStorage.removeItem(STORAGE_KEY_HISTORY(user.phone));
-    const greeting = { role: 'bot', content: `Conversation cleared. How can I assist you, **${user.name}**?`, time: getTime() };
+    const greeting = {
+      role: 'bot',
+      content: `Conversation cleared. How can I assist you, **${user.name}**?`,
+      time: getTime(),
+    };
     setMessages([greeting]);
     setApiHistory([]);
     setQuickReplies(QUICK_REPLY_MAP.default);
+    // Mail tracking reset
+    lastSummaryRef.current = { messageCount: 0, sentAt: 0 };
+    summaryMailSentRef.current = false;
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
   };
 
   const handleOpen = () => { setIsOpen(true); setHasUnread(false); setShowCallDrawer(false); };
@@ -617,10 +755,8 @@ export default function Chatbot() {
         .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
         .product-scroll::-webkit-scrollbar { display:none; }
         .product-scroll { -ms-overflow-style:none; scrollbar-width:none; }
-
         @keyframes notif-bubble-in { 0% { opacity:0; transform:translateX(-70%) scale(0.9); } 100% { opacity:1; transform:translateX(-70%) scale(1); } }
         @keyframes notif-bubble-bounce { 0%,100% { transform:translateX(-70%) translateY(0); } 50% { transform:translateX(-70%) translateY(-3px); } }
-
         @keyframes drawerSlideUp { from { opacity:0; transform:translateY(8px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
         .call-drawer-enter { animation: drawerSlideUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
         .notif-bubble {
@@ -644,17 +780,14 @@ export default function Chatbot() {
         .ac-btn-wrap { position:relative; display:flex; }
         .call-number-row { display:flex; align-items:center; gap:9px; background:#f0fdf4; border-radius:10px; padding:10px 12px; text-decoration:none; border:1px solid #a7f3d0; transition:background 0.15s,border-color 0.15s; }
         .call-number-row:hover { background:#d1fae5; border-color:#6ee7b7; }
-
         @keyframes blink-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.55; transform:scale(0.85); } }
         .notif-dot {
-          position:absolute; top:-5px; right:-5px;
-          width:17px; height:17px;
+          position:absolute; top:-5px; right:-5px; width:17px; height:17px;
           background:#ef4444; border-radius:50%; border:2px solid #fff;
           display:flex; align-items:center; justify-content:center;
           font-size:10px; font-weight:700; color:#fff; font-family:'DM Sans',sans-serif;
           animation: blink-dot 1.4s ease-in-out infinite;
         }
-
         .chat-close-btn { position:absolute; top:-11px; right:-11px; width:26px; height:26px; border-radius:50%; background:#ef4444; border:2.5px solid #fff; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:20; box-shadow:0 2px 10px rgba(239,68,68,0.55); transition:transform 0.15s,background 0.15s; outline:none; }
         .chat-close-btn:hover { transform:scale(1.18); background:#dc2626; }
       `}</style>
@@ -695,8 +828,7 @@ export default function Chatbot() {
                       <button
                         onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }}
                         aria-label={`Call ${TOLL_FREE_DISPLAY}`}
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white"
-                      >
+                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
                         </svg>
@@ -758,8 +890,7 @@ export default function Chatbot() {
                       aria-label="Send message"
                       disabled={!input.trim() || isLoading}
                       className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
-                      style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
-                    >
+                      style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                       </svg>
@@ -827,8 +958,7 @@ export default function Chatbot() {
               <button
                 onClick={isOpen ? () => setIsOpen(false) : handleOpen}
                 aria-label={isOpen ? 'Minimise chat' : 'Chat with us'}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden' }}
-              >
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden' }}>
                 {isOpen
                   ? <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                   : <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
@@ -841,8 +971,7 @@ export default function Chatbot() {
               <button
                 onClick={handleCallDrawerToggle}
                 aria-label="Call us"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden' }}
-              >
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden' }}>
                 <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
               </button>
             </div>

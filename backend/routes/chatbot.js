@@ -384,6 +384,118 @@ router.post('/chat/register', async (req, res) => {
   }
 });
 
+// ─── POST /chat/summary ────────────────────────────────────────────────────
+router.post('/chat/summary', async (req, res) => {
+  try {
+    const { name, phone, city, messages, isResume } = req.body;
+    if (!name || !phone) return res.json({ success: true });
+
+    const transporter = require('../mailer');
+
+    // ── Resume notification ──
+    if (isResume) {
+      await transporter.sendMail({
+        from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
+        to: process.env.COMPANY_EMAIL,
+        subject: `🔄 User Resumed Chat — ${name} (+91 ${phone})`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:28px;
+            border:1px solid #fef08a;border-radius:12px;background:#fefce8">
+            <h2 style="color:#854d0e;margin-bottom:8px">User Resumed Chat</h2>
+            <p style="color:#713f12;font-size:14px">
+              <b>${name}</b> (+91 ${phone}${city ? `, ${city}` : ''}) has 
+              <b>resumed the conversation</b> after being inactive.
+            </p>
+            <p style="color:#92400e;font-size:12px;margin-top:12px">
+              ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+            </p>
+          </div>
+        `,
+      }).catch(() => {});
+      return res.json({ success: true });
+    }
+
+    // ── Full summary ──
+    if (!messages?.length) return res.json({ success: true });
+    const hasRealChat = messages.some(m => m.role === 'user');
+    if (!hasRealChat) return res.json({ success: true });
+
+    const chatRows = messages
+      .filter(m => m.content?.trim())
+      .map(m => {
+        const isBot = m.role === 'bot' || m.role === 'assistant';
+        const bg = isBot ? '#f0fdf4' : '#ffffff';
+        const label = isBot ? '🤖 AADONA Assistant' : `👤 ${name}`;
+        const labelColor = isBot ? '#166534' : '#1e40af';
+        return `
+          <tr style="background:${bg}">
+            <td style="padding:10px 14px;border:1px solid #e5e7eb;width:150px;vertical-align:top">
+              <span style="font-size:12px;font-weight:700;color:${labelColor}">${label}</span>
+              ${m.time ? `<br/><span style="font-size:10px;color:#9ca3af">${m.time}</span>` : ''}
+            </td>
+            <td style="padding:10px 14px;border:1px solid #e5e7eb;font-size:13px;
+              color:#374151;line-height:1.6">
+              ${m.content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br/>')}
+            </td>
+          </tr>`;
+      }).join('');
+
+    await transporter.sendMail({
+      from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
+      to: process.env.COMPANY_EMAIL,
+      subject: `💬 Chat Summary — ${name} (+91 ${phone})`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;
+          border:1px solid #d1fae5;border-radius:12px">
+          <h2 style="color:#065f46;margin-bottom:4px">Chat Summary (10 min inactivity)</h2>
+          <p style="color:#6b7280;font-size:13px;margin-bottom:20px">
+            Conversation captured after 10 minutes of inactivity.
+          </p>
+          <table cellpadding="10" cellspacing="0" width="100%"
+            style="border-collapse:collapse;font-size:13px;margin-bottom:24px">
+            <tr style="background:#f0fdf4">
+              <td style="border:1px solid #d1fae5;font-weight:600;width:40%">Name</td>
+              <td style="border:1px solid #d1fae5">${name}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #d1fae5;font-weight:600">Mobile</td>
+              <td style="border:1px solid #d1fae5">+91 ${phone}</td>
+            </tr>
+            <tr style="background:#f0fdf4">
+              <td style="border:1px solid #d1fae5;font-weight:600">City</td>
+              <td style="border:1px solid #d1fae5">${city || '-'}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #d1fae5;font-weight:600">Total Messages</td>
+              <td style="border:1px solid #d1fae5">${messages.length}</td>
+            </tr>
+            <tr style="background:#f0fdf4">
+              <td style="border:1px solid #d1fae5;font-weight:600">Time</td>
+              <td style="border:1px solid #d1fae5">
+                ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+              </td>
+            </tr>
+          </table>
+          <h3 style="color:#065f46;font-size:13px;text-transform:uppercase;
+            letter-spacing:0.5px;margin-bottom:10px">Chat Transcript</h3>
+          <table cellpadding="0" cellspacing="0" width="100%"
+            style="border-collapse:collapse">
+            ${chatRows}
+          </table>
+          <p style="margin-top:20px;font-size:11px;color:#9ca3af">
+            Sent automatically · AADONA Chatbot System
+          </p>
+        </div>
+      `,
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Chat summary error:', err.message);
+    return res.json({ success: true });
+  }
+});
+
 // ─── POST /chat (Streaming) ────────────────────────────────────────────────
 router.post('/chat', chatLimiter, async (req, res) => {
   try {
