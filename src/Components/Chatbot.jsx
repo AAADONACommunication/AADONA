@@ -68,10 +68,13 @@ function ProductCard({ product }) {
             ))}
           </ul>
         )}
-        <a href={url} target="_blank" rel="noopener noreferrer"
+        <a 
+          href={url} 
+          target="_self"
           className="block text-center text-[10.5px] font-semibold text-white py-1.5 rounded-lg transition-colors duration-150 mt-1 tracking-wide"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-          Go to {product.model || 'Product'}
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+        >
+          {product.visitLabel || `Visit ${product.model || 'Product'}`}
         </a>
       </div>
     </div>

@@ -40,14 +40,13 @@ const getProductsContext = async () => {
 const getCategoryMap = async () => {
   try {
     const Category = mongoose.model('Category');
-    const categories = await Category.find({}, 'name');
+    const categories = await Category.find({}, 'name subCategories');
 
-    const map = categories.map(c => ({
+    return categories.map(c => ({
       name: c.name,
-      slug: c.name.toLowerCase().replace(/\s+/g, '-')
+      // ✅ DB ke name se slug banao — same logic jo frontend use karta hai
+      slug: c.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
     }));
-
-    return map;
   } catch {
     return [];
   }
@@ -124,23 +123,48 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
 };
 
 // ─── Product Cards Detection ───────────────────────────────────────────────
-const detectProductCards = (reply, products) => {
-  if (!products?.length) return [];
+const detectProductCards = (reply, products, userMessage, categories) => {
+  if (!products?.length) return { cards: [], categoryButton: null };
+  
   const replyLower = reply.toLowerCase();
+  const userLower = userMessage.toLowerCase();
 
+  // ─── Category Button — DB se slug lo ──────────────────────────
+  const specificModelMentioned = products.some(p => 
+    p.model && (
+      userLower.includes(p.model.toLowerCase()) || 
+      replyLower.includes(p.model.toLowerCase())
+    )
+  );
+
+  let categoryButton = null;
+
+  if (categories?.length) {
+    for (const cat of categories) {
+      if (
+        userLower.includes(cat.name.toLowerCase()) || 
+        replyLower.includes(cat.name.toLowerCase())
+      ) {
+        categoryButton = {
+          label: `Visit ${cat.name}`,
+          url: `${BASE_URL}/${cat.slug}`
+        };
+        break;
+      }
+    }
+  }
+
+  // ─── Specific Product Cards ────────────────────────────────────
   const matched = products.filter(p => {
-    const combined = `${p.fullName || ''} ${p.name || ''} ${p.model || ''}`.toLowerCase();
-    // Category match karo bhi
-    const categoryMatch = combined.split(' ').some(word =>
-      word.length > 3 && replyLower.includes(word)
+    if (!p.model) return false;
+    const modelLower = p.model.toLowerCase();
+    return (
+      replyLower.includes(modelLower) ||
+      userLower.includes(modelLower)
     );
-
-    const modelMentioned = p.model && replyLower.includes(p.model.toLowerCase());
-
-    return modelMentioned;
   });
 
-  return matched.slice(0, 4).map(p => ({
+  const cards = matched.slice(0, 4).map(p => ({
     name: p.fullName || p.name,
     model: p.model,
     image: p.image,
@@ -149,7 +173,10 @@ const detectProductCards = (reply, products) => {
     overview: p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '',
     features: (p.features || []).slice(0, 3),
     url: `${BASE_URL}/${(p.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${p.slug}`,
+    visitLabel: `Visit ${p.model}`
   }));
+
+  return { cards, categoryButton };
 };
 
 const buildSystemPrompt = (userName, userPhone, userCity) => `
@@ -381,14 +408,27 @@ router.post('/chat', chatLimiter, async (req, res) => {
     // REMOVE ANY URL FROM AI RESPONSE
      fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
 
-    const productCards = detectProductCards(fullReply, products);
     const categories = await getCategoryMap();
+
+    const { cards: productCards, categoryButton } = detectProductCards(
+      fullReply, 
+      products, 
+      lastUserMessage, 
+      categories
+    );
+
     const actionButtons = detectActionButtons(lastUserMessage, fullReply, products, categories);
+
+    // Category button + action buttons
+    const allButtons = [
+      ...(categoryButton ? [categoryButton] : []),
+      ...actionButtons
+    ].slice(0, 2);
 
     res.write(`data: ${JSON.stringify({
       done: true,
       productCards: productCards.length ? productCards : null,
-      actionButtons: actionButtons.length ? actionButtons : null,
+      actionButtons: allButtons.length ? allButtons : null,
     })}\n\n`);
     res.end();
 
