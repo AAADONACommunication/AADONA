@@ -32,34 +32,58 @@ function getTime() {
 // ─── Product Card ──────────────────────────────────────────────────────────
 function ProductCard({ product }) {
   if (!product) return null;
-  const url = product.url || `https://aadona.comproduct.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${product.slug}`;
+  const [imgError, setImgError] = useState(false);
+
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif" }} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden w-[180px] flex-shrink-0">
-      {product.image ? (
-        <div className="w-full h-28 bg-slate-50 flex items-center justify-center overflow-hidden">
+    <div
+      className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex-shrink-0"
+      style={{ width: '172px', fontFamily: "'DM Sans', sans-serif" }}
+    >
+      {/* Product Image */}
+      <div className="w-full bg-slate-50 flex items-center justify-center overflow-hidden" style={{ height: '108px' }}>
+        {product.image && !imgError ? (
           <img
             src={product.image}
             alt={product.name}
             className="w-full h-full object-contain p-2"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.parentElement.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f1f5f9"><svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg></div>`;
-            }}
+            onError={() => setImgError(true)}
           />
-        </div>
-      ) : (
-        <div className="w-full h-28 bg-slate-100 flex items-center justify-center">
-          <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
-          </svg>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-slate-100 to-slate-50 gap-1">
+            <svg className="w-7 h-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+              <rect x="2" y="3" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8M12 17v4" />
+            </svg>
+            <span className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">No Image</span>
+          </div>
+        )}
+      </div>
+
       <div className="p-2.5">
-        <p className="text-[11.5px] font-semibold text-slate-800 leading-snug line-clamp-2 tracking-tight">{product.name}</p>
-        {product.model && <p className="text-[10px] text-slate-400 mt-0.5 font-mono tracking-wide">{product.model}</p>}
-        {product.overview && <p className="text-[10px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{product.overview}</p>}
+        {/* Model badge */}
+        {product.model && (
+          <div className="inline-block mb-1">
+            <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono tracking-wider">
+              {product.model}
+            </span>
+          </div>
+        )}
+
+        {/* Name */}
+        <p className="text-[11.5px] font-semibold text-slate-800 leading-snug line-clamp-2 tracking-tight mb-1">
+          {product.name}
+        </p>
+
+        {/* Overview */}
+        {product.overview && (
+          <p className="text-[10px] text-slate-500 leading-relaxed line-clamp-2 mb-1.5">
+            {product.overview}
+          </p>
+        )}
+
+        {/* Features */}
         {product.features?.length > 0 && (
-          <ul className="mt-1.5 mb-2 flex flex-col gap-0.5">
+          <ul className="flex flex-col gap-0.5 mb-2">
             {product.features.slice(0, 2).map((f, i) => (
               <li key={i} className="flex items-start gap-1 text-[10px] text-slate-500">
                 <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
@@ -68,41 +92,43 @@ function ProductCard({ product }) {
             ))}
           </ul>
         )}
-        <a 
+
+        {/* CTA */}
+        <a
           href={product.url}
           target="_self"
-          className="block text-center text-[10.5px] font-semibold text-white py-1.5 rounded-lg transition-colors duration-150 mt-1 tracking-wide"
+          className="flex items-center justify-center gap-1 text-[10.5px] font-semibold text-white py-1.5 rounded-lg transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5"
           style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
         >
-          {product.visitLabel || `Visit ${product.model || 'Product'}`}  {/* ✅ visitLabel use karo */}
+          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+          {product.visitLabel || `View Product`}
         </a>
       </div>
     </div>
   );
 }
 
-// ─── Action Buttons ────────────────────────────────────────────────────────
+// ─── Action Buttons (Static Pages) ────────────────────────────────────────
 function ActionButtons({ buttons }) {
   if (!buttons?.length) return null;
   return (
     <div className="flex flex-wrap gap-1.5 mt-2">
-      {buttons.map((btn, i) => {
-        const isInternal = btn.url?.includes('aadona.com');
-        return (
-          <a
-            key={i}
-            href={btn.url}
-            target={isInternal ? '_self' : '_blank'}
-            rel={isInternal ? undefined : 'noopener noreferrer'}
-            className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3.5 py-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-all duration-150 shadow-sm hover:shadow-md hover:-translate-y-0.5"
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-            {btn.label}
-          </a>
-        );
-      })}
+      {buttons.map((btn, i) => (
+        <a
+          key={i}
+          href={btn.url}
+          target="_self"
+          className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3.5 py-2 rounded-full transition-all duration-150 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff' }}
+        >
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+          {btn.label}
+        </a>
+      ))}
     </div>
   );
 }
@@ -122,25 +148,32 @@ function TypingDots() {
 // ─── Bot Message ───────────────────────────────────────────────────────────
 function BotMessage({ content, time, productCards, actionButtons, isStreaming }) {
   const safeContent = content.replace(/https?:\/\/[^\s]+/g, '');
+
   useEffect(() => {
     if (productCards?.length) {
       setTimeout(() => {
         const el = document.querySelector('.product-scroll');
-        el?.scrollIntoView({ behavior: 'smooth' });
+        el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 200);
     }
   }, [productCards]);
+
   return (
     <div className="flex items-end gap-2 animate-fadeIn">
+      {/* Bot avatar */}
       <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mb-1 shadow-sm"
         style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
         <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
         </svg>
       </div>
-      <div className="flex flex-col gap-1 max-w-[82%]">
-        <div className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[13px] leading-relaxed"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}>
+
+      <div className="flex flex-col gap-1.5 max-w-[84%]">
+        {/* Text bubble */}
+        <div
+          className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[13px] leading-relaxed"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
           {safeContent.split('\n').map((line, i, arr) => (
             <span key={i}>
               {line.split(/(\*\*.*?\*\*)/g).map((part, j) =>
@@ -153,14 +186,25 @@ function BotMessage({ content, time, productCards, actionButtons, isStreaming })
           ))}
           {isStreaming && <span className="inline-block w-0.5 h-3.5 bg-emerald-400 ml-0.5 animate-pulse rounded-sm" />}
         </div>
+
+        {/* Product Cards */}
         {!isStreaming && productCards?.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5 product-scroll" style={{ scrollbarWidth: 'none' }}>
+          <div
+            className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 product-scroll"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
           </div>
         )}
+
+        {/* Action Buttons (static pages) */}
         {!isStreaming && <ActionButtons buttons={actionButtons} />}
+
+        {/* Timestamp */}
         {!isStreaming && time && (
-          <span className="text-[10px] text-slate-400 pl-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>{time}</span>
+          <span className="text-[10px] text-slate-400 pl-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            {time}
+          </span>
         )}
       </div>
     </div>
@@ -172,8 +216,10 @@ function UserMessage({ content, time }) {
   return (
     <div className="flex items-end justify-end gap-2 animate-fadeIn">
       <div className="flex flex-col items-end gap-0.5 max-w-[78%]">
-        <div className="px-3.5 py-2.5 rounded-2xl rounded-br-sm text-white text-[13px] leading-relaxed shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', fontFamily: "'DM Sans', sans-serif" }}>
+        <div
+          className="px-3.5 py-2.5 rounded-2xl rounded-br-sm text-white text-[13px] leading-relaxed shadow-sm"
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', fontFamily: "'DM Sans', sans-serif" }}
+        >
           {content}
         </div>
         {time && <span className="text-[10px] text-slate-400 pr-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>{time}</span>}
@@ -337,6 +383,7 @@ export default function Chatbot() {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 50);
   }, [messages, isLoading]);
+
   useEffect(() => { if (isOpen && isRegistered) setTimeout(() => inputRef.current?.focus(), 100); }, [isOpen, isRegistered]);
 
   useEffect(() => {
@@ -364,7 +411,13 @@ export default function Chatbot() {
       if (!raw) return;
       const hist = JSON.parse(raw);
       if (Array.isArray(hist) && hist.length) {
-        setMessages(hist.map(m => ({ role: m.role === 'assistant' ? 'bot' : 'user', content: m.content, time: m.time || '', productCards: m.productCards || null, actionButtons: m.actionButtons || null })));
+        setMessages(hist.map(m => ({
+          role: m.role === 'assistant' ? 'bot' : 'user',
+          content: m.content,
+          time: m.time || '',
+          productCards: m.productCards || null,
+          actionButtons: m.actionButtons || null
+        })));
         setApiHistory(hist.slice(-10).map(m => ({ role: m.role, content: m.content })));
         setQuickReplies(QUICK_REPLY_MAP.default);
       }
@@ -374,7 +427,13 @@ export default function Chatbot() {
   const saveHistory = useCallback((phone, allMessages) => {
     try {
       localStorage.setItem(STORAGE_KEY_HISTORY(phone), JSON.stringify(
-        allMessages.slice(-MAX_HISTORY).map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', content: m.content, time: m.time, productCards: m.productCards || null, actionButtons: m.actionButtons || null }))
+        allMessages.slice(-MAX_HISTORY).map(m => ({
+          role: m.role === 'bot' ? 'assistant' : 'user',
+          content: m.content,
+          time: m.time,
+          productCards: m.productCards || null,
+          actionButtons: m.actionButtons || null
+        }))
       ));
     } catch { }
   }, []);
@@ -382,7 +441,11 @@ export default function Chatbot() {
   const handleStart = async (name, phone, city) => {
     const userData = { name, phone, city, joinedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
-    fetch(`${API_BASE}/chat/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone, city }) }).catch(() => { });
+    fetch(`${API_BASE}/chat/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, city })
+    }).catch(() => { });
     setUser(userData);
     setIsRegistered(true);
 
@@ -392,7 +455,11 @@ export default function Chatbot() {
       const welcomeBack = { role: 'bot', content: `Welcome back, **${name}**. How can I assist you today?`, time: getTime() };
       setMessages(prev => { const updated = [...prev, welcomeBack]; saveHistory(phone, updated); return updated; });
     } else {
-      const greeting = { role: 'bot', content: `Hello **${name}**, welcome to **AADONA** — India's premier networking brand.\n\nI can assist with products, support, and partnership queries. What would you like to know?`, time: getTime() };
+      const greeting = {
+        role: 'bot',
+        content: `Hello **${name}**, welcome to **AADONA** — India's premier networking brand.\n\nI can assist with products, support, and partnership queries. What would you like to know?`,
+        time: getTime()
+      };
       setMessages([greeting]);
       saveHistory(phone, [greeting]);
     }
@@ -412,7 +479,7 @@ export default function Chatbot() {
     setApiHistory(newApiHistory);
     setIsLoading(true);
 
-    const streamingMsg = { role: 'bot', content: 'Typing...', time: getTime(), isStreaming: true, productCards: null, actionButtons: null };
+    const streamingMsg = { role: 'bot', content: '', time: getTime(), isStreaming: true, productCards: null, actionButtons: null };
     setMessages(prev => [...prev, streamingMsg]);
     const botIndex = newMessages.length;
 
@@ -420,10 +487,18 @@ export default function Chatbot() {
       const response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newApiHistory, userName: user?.name || 'Guest', userPhone: user?.phone || '', userCity: user?.city || '' }),
+        body: JSON.stringify({
+          messages: newApiHistory,
+          userName: user?.name || 'Guest',
+          userPhone: user?.phone || '',
+          userCity: user?.city || ''
+        }),
       });
 
-      if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.error || 'Server error'); }
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Server error');
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -436,31 +511,61 @@ export default function Chatbot() {
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+
         for (const line of lines) {
           try {
             const json = JSON.parse(line.replace('data: ', ''));
             if (json.token) {
               await new Promise(r => setTimeout(r, 8));
               streamedText += json.token;
-              setMessages(prev => { const updated = [...prev]; if (updated[botIndex]) updated[botIndex] = { ...updated[botIndex], content: streamedText, isStreaming: true }; return updated; });
+              setMessages(prev => {
+                const updated = [...prev];
+                if (updated[botIndex]) updated[botIndex] = { ...updated[botIndex], content: streamedText, isStreaming: true };
+                return updated;
+              });
             }
             if (json.done) {
               productCards = json.productCards || null;
               actionButtons = json.actionButtons || null;
-              setMessages(prev => { const updated = [...prev]; if (updated[botIndex]) updated[botIndex] = { ...updated[botIndex], content: streamedText, isStreaming: false, productCards, actionButtons }; return updated; });
+              setMessages(prev => {
+                const updated = [...prev];
+                if (updated[botIndex]) updated[botIndex] = {
+                  ...updated[botIndex],
+                  content: streamedText,
+                  isStreaming: false,
+                  productCards,
+                  actionButtons
+                };
+                return updated;
+              });
             }
           } catch { }
         }
       }
 
-      const finalMessages = [...newMessages, { role: 'bot', content: streamedText, time: getTime(), productCards, actionButtons, isStreaming: false }];
+      const finalMessages = [...newMessages, {
+        role: 'bot',
+        content: streamedText,
+        time: getTime(),
+        productCards,
+        actionButtons,
+        isStreaming: false
+      }];
       setApiHistory(prev => [...prev, { role: 'assistant', content: streamedText }]);
       setQuickReplies(getQuickReplies(trimmed));
       saveHistory(user?.phone, finalMessages);
 
     } catch (err) {
       console.error('Chat error:', err);
-      setMessages(prev => { const updated = [...prev]; if (updated[botIndex]) updated[botIndex] = { ...updated[botIndex], content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`, isStreaming: false }; return updated; });
+      setMessages(prev => {
+        const updated = [...prev];
+        if (updated[botIndex]) updated[botIndex] = {
+          ...updated[botIndex],
+          content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`,
+          isStreaming: false
+        };
+        return updated;
+      });
       setQuickReplies(QUICK_REPLY_MAP.default);
     } finally {
       setIsLoading(false);
@@ -472,7 +577,9 @@ export default function Chatbot() {
     if (!user?.phone) return;
     localStorage.removeItem(STORAGE_KEY_HISTORY(user.phone));
     const greeting = { role: 'bot', content: `Conversation cleared. How can I assist you, **${user.name}**?`, time: getTime() };
-    setMessages([greeting]); setApiHistory([]); setQuickReplies(QUICK_REPLY_MAP.default);
+    setMessages([greeting]);
+    setApiHistory([]);
+    setQuickReplies(QUICK_REPLY_MAP.default);
   };
 
   const handleOpen = () => { setIsOpen(true); setHasUnread(false); setShowCallDrawer(false); };
@@ -491,6 +598,8 @@ export default function Chatbot() {
         .chat-window-enter { animation: slideUp 0.28s cubic-bezier(0.34,1.18,0.64,1) forwards; }
         .no-scrollbar::-webkit-scrollbar { display:none; }
         .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+        .product-scroll::-webkit-scrollbar { display:none; }
+        .product-scroll { -ms-overflow-style:none; scrollbar-width:none; }
 
         @keyframes notif-bubble-in { 0% { opacity:0; transform:translateX(-70%) scale(0.9); } 100% { opacity:1; transform:translateX(-70%) scale(1); } }
         @keyframes notif-bubble-bounce { 0%,100% { transform:translateX(-70%) translateY(0); } 50% { transform:translateX(-70%) translateY(-3px); } }
@@ -533,26 +642,26 @@ export default function Chatbot() {
         .chat-close-btn:hover { transform:scale(1.18); background:#dc2626; }
       `}</style>
 
-      <div style={{ position:'fixed', bottom:'20px', right:'16px', zIndex:99999, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'12px', fontFamily:"'DM Sans',sans-serif" }}>
+      <div style={{ position: 'fixed', bottom: '20px', right: '16px', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px', fontFamily: "'DM Sans',sans-serif" }}>
 
-        {/* Chat Window */}
+        {/* ── Chat Window ── */}
         {isOpen && (
-          <div style={{ position:'relative' }}>
-            {/* RED FLOATING CLOSE */}
+          <div style={{ position: 'relative' }}>
             <button className="chat-close-btn" onClick={() => setIsOpen(false)} aria-label="Close chat" title="Close">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
 
-            <div className="chat-window-enter bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
-              style={{ width:winWidth, maxHeight:'calc(100dvh - 110px)', height:`min(${winHeight}px, calc(100dvh - 110px))` }}>
-
+            <div
+              className="chat-window-enter bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+              style={{ width: winWidth, maxHeight: 'calc(100dvh - 110px)', height: `min(${winHeight}px, calc(100dvh - 110px))` }}
+            >
               {isRegistered ? (
                 <>
                   {/* Header */}
                   <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0"
-                    style={{ background:'linear-gradient(135deg, #10b981, #059669)' }}>
+                    style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
                     <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                       <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
@@ -566,8 +675,11 @@ export default function Chatbot() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 ml-auto">
-                      <button onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }} aria-label={`Call ${TOLL_FREE_DISPLAY}`} title={`Call ${TOLL_FREE_DISPLAY}`}
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white">
+                      <button
+                        onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }}
+                        aria-label={`Call ${TOLL_FREE_DISPLAY}`}
+                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white"
+                      >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
                         </svg>
@@ -591,7 +703,7 @@ export default function Chatbot() {
                     {isLoading && !messages[messages.length - 1]?.isStreaming && (
                       <div className="flex items-end gap-2 animate-fadeIn">
                         <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mb-1 shadow-sm"
-                          style={{ background:'linear-gradient(135deg, #10b981, #059669)' }}>
+                          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
                           <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
                           </svg>
@@ -609,15 +721,28 @@ export default function Chatbot() {
 
                   {/* Input */}
                   <div className="flex items-end gap-2 px-3 py-3 bg-white border-t border-slate-100 flex-shrink-0">
-                    <textarea ref={inputRef} value={input}
-                      onChange={e => { setInput(e.target.value); e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight,90)+'px'; }}
-                      onKeyDown={handleKeyDown} placeholder="Ask anything about AADONA..." rows={1}
+                    <textarea
+                      ref={inputRef}
+                      value={input}
+                      onChange={e => {
+                        setInput(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = Math.min(e.target.scrollHeight, 90) + 'px';
+                      }}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask anything about AADONA..."
+                      rows={1}
                       className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-[13px] resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition leading-snug"
-                      style={{ minHeight:'40px', maxHeight:'90px', overflow:'hidden', fontFamily:"'DM Sans',sans-serif" }}
-                      disabled={isLoading} />
-                    <button onClick={() => sendMessage()} aria-label="Send message" disabled={!input.trim() || isLoading}
+                      style={{ minHeight: '40px', maxHeight: '90px', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif" }}
+                      disabled={isLoading}
+                    />
+                    <button
+                      onClick={() => sendMessage()}
+                      aria-label="Send message"
+                      disabled={!input.trim() || isLoading}
                       className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
-                      style={{ background:'linear-gradient(135deg, #10b981, #059669)' }}>
+                      style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                    >
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                       </svg>
@@ -626,7 +751,7 @@ export default function Chatbot() {
 
                   {/* Footer */}
                   <div className="text-center py-1.5 bg-white border-t border-slate-100 flex-shrink-0">
-                    <span className="text-[9.5px] text-slate-400 tracking-wide" style={{ fontFamily:"'DM Sans',sans-serif" }}>
+                    <span className="text-[9.5px] text-slate-400 tracking-wide" style={{ fontFamily: "'DM Sans', sans-serif" }}>
                       AADONA Communication · {TOLL_FREE_DISPLAY} · contact@aadona.com
                     </span>
                   </div>
@@ -638,66 +763,70 @@ export default function Chatbot() {
           </div>
         )}
 
-        {/* Launcher */}
-        <div ref={callDrawerRef} style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center' }}>
+        {/* ── Launcher ── */}
+        <div ref={callDrawerRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {!isOpen && hasUnread && showBubble && <div className="notif-bubble">Need help? Ask us anything.</div>}
 
           {/* Call Drawer */}
           {showCallDrawer && (
-            <div className="call-drawer-enter" style={{ position:'absolute', bottom:'calc(100% + 12px)', right:0, width:'240px', background:'#ffffff', border:'1px solid rgba(0,0,0,0.09)', borderRadius:'16px', overflow:'hidden', boxShadow:'0 8px 32px rgba(0,0,0,0.13)', zIndex:100, fontFamily:"'DM Sans',sans-serif" }}>
-              <div style={{ background:'linear-gradient(135deg,#0d9488,#0f766e)', padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'7px' }}>
-                  <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
-                  <span style={{ color:'#fff', fontSize:'12px', fontWeight:600 }}>Contact Support</span>
+            <div className="call-drawer-enter" style={{ position: 'absolute', bottom: 'calc(100% + 12px)', right: 0, width: '240px', background: '#ffffff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.13)', zIndex: 100, fontFamily: "'DM Sans',sans-serif" }}>
+              <div style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
+                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600 }}>Contact Support</span>
                 </div>
-                <button onClick={() => setShowCallDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.75)', padding:'2px', display:'flex' }}>
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button onClick={() => setShowCallDrawer(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.75)', padding: '2px', display: 'flex' }}>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
-              <div style={{ padding:'14px', display:'flex', flexDirection:'column', gap:'10px', background:'#f8fafc' }}>
-                <p style={{ margin:0, fontSize:'10.5px', color:'#64748b', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>Toll Free Support</p>
+              <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
+                <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Toll Free Support</p>
                 <a href={`tel:${TOLL_FREE}`} className="call-number-row" onClick={() => setShowCallDrawer(false)}>
-                  <div style={{ width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#10b981,#0d9488)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#0d9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
                   </div>
                   <div>
-                    <div style={{ fontSize:'10px', color:'#0d9488', fontWeight:600 }}>Tap to call →</div>
-                    <div style={{ fontSize:'14px', fontWeight:700, color:'#0f172a', letterSpacing:'0.4px' }}>{TOLL_FREE_DISPLAY}</div>
+                    <div style={{ fontSize: '10px', color: '#0d9488', fontWeight: 600 }}>Tap to call →</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>{TOLL_FREE_DISPLAY}</div>
                   </div>
                 </a>
-                <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/></svg>
-                  <span style={{ fontSize:'10.5px', color:'#94a3b8' }}>Mon – Fri · 10:30 AM – 6:30 PM IST</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}><circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M12 6v6l4 2" /></svg>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Mon – Fri · 10:30 AM – 6:30 PM IST</span>
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:'5px', background:'#ecfdf5', borderRadius:'8px', padding:'6px 10px', border:'1px solid #a7f3d0' }}>
-                  <svg width="11" height="11" fill="#10b981" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                  <span style={{ fontSize:'10px', color:'#065f46', fontWeight:500 }}>Free from all Indian networks</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#ecfdf5', borderRadius: '8px', padding: '6px 10px', border: '1px solid #a7f3d0' }}>
+                  <svg width="11" height="11" fill="#10b981" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  <span style={{ fontSize: '10px', color: '#065f46', fontWeight: 500 }}>Free from all Indian networks</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* GREEN Pill Launcher */}
-          <div style={{ display:'flex', flexDirection:'column', borderRadius:'9999px', overflow:'visible', border:'1px solid rgba(5,150,105,0.3)', boxShadow:'0 4px 20px rgba(16,185,129,0.35)', width:'56px' }}>
-            <div className="ac-btn-wrap" style={{ borderRadius:'9999px 9999px 0 0', overflow:'visible' }}>
+          {/* Pill Launcher */}
+          <div style={{ display: 'flex', flexDirection: 'column', borderRadius: '9999px', overflow: 'visible', border: '1px solid rgba(5,150,105,0.3)', boxShadow: '0 4px 20px rgba(16,185,129,0.35)', width: '56px' }}>
+            <div className="ac-btn-wrap" style={{ borderRadius: '9999px 9999px 0 0', overflow: 'visible' }}>
               <span className="ac-tooltip">{isOpen ? 'Minimise' : 'Chat with us'}</span>
               {!isOpen && hasUnread && showBubble && <span className="notif-dot">1</span>}
-              <button onClick={isOpen ? () => setIsOpen(false) : handleOpen}
+              <button
+                onClick={isOpen ? () => setIsOpen(false) : handleOpen}
                 aria-label={isOpen ? 'Minimise chat' : 'Chat with us'}
-                style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'56px', width:'56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border:'none', cursor:'pointer', transition:'background 0.15s', outline:'none', borderRadius:'9999px 9999px 0 0', overflow:'hidden' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden' }}
+              >
                 {isOpen
-                  ? <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                  : <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                  ? <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  : <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
                 }
               </button>
             </div>
-            <div style={{ height:'1px', background:'rgba(255,255,255,0.3)', flexShrink:0 }} />
-            <div className="ac-btn-wrap" style={{ borderRadius:'0 0 9999px 9999px', overflow:'visible' }}>
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+            <div className="ac-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
               <span className="ac-tooltip">Call us</span>
-              <button onClick={handleCallDrawerToggle}
+              <button
+                onClick={handleCallDrawerToggle}
                 aria-label="Call us"
-                style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'56px', width:'56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border:'none', cursor:'pointer', transition:'background 0.15s', outline:'none', borderRadius:'0 0 9999px 9999px', overflow:'hidden' }}>
-                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z"/></svg>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden' }}
+              >
+                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
               </button>
             </div>
           </div>

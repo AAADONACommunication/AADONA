@@ -30,7 +30,7 @@ const getProductsContext = async () => {
     const list = products.map(p => {
       const features = (p.features || []).slice(0, 3).join(' | ');
       const overview = p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '';
-      return `- ${p.fullName || p.name} (Model: ${p.model || 'N/A'}) | Category: ${p.category} | Slug: ${p.slug} | Overview: ${overview} | Features: ${features}`;
+      return `- ${p.fullName || p.name} (Model: ${p.model || 'N/A'}) | Category: ${p.category} | SubCategory: ${p.subCategory || 'N/A'} | Slug: ${p.slug} | Overview: ${overview} | Features: ${features}`;
     }).join('\n');
 
     return { context: `\n\nLIVE PRODUCT DATABASE:\n${list}`, products };
@@ -40,13 +40,14 @@ const getProductsContext = async () => {
 const getCategoryMap = async () => {
   try {
     const Category = mongoose.model('Category');
-    const categories = await Category.find({}, 'name subCategories');
+    const categories = await Category.find({}, 'name subCategories type');
 
     const result = [];
 
     categories.forEach(c => {
       result.push({
         name: c.name,
+        type: c.type,
         slug: c.name.toLowerCase().trim()
           .replace(/\s+/g, '').replace(/[^\w]+/g, '')
       });
@@ -55,6 +56,7 @@ const getCategoryMap = async () => {
         result.push({
           name: sub.name,
           parentName: c.name,
+          parentType: c.type,
           slug: sub.name.toLowerCase().trim()
             .replace(/\s+/g, '').replace(/[^\w]+/g, '')
         });
@@ -67,162 +69,144 @@ const getCategoryMap = async () => {
   }
 };
 
-// ─── Smart Intent Detection ────────────────────────────────────────────────
-const detectActionButtons = (userMessage, aiReply, products, categories) => {
+// ─── Static Page Intent Detection ─────────────────────────────────────────
+// Returns: { type: 'static', buttons: [...] } | null
+const detectStaticPageIntent = (userMessage, aiReply) => {
   const msg = (userMessage + ' ' + aiReply).toLowerCase();
-  const buttons = [];
 
-  const intentClear = /help|issue|problem|chahiye|chahta|chahti|karna|kaise|how|need|want|request|submit|check|register|book|interested|apply|intern/.test(msg);
+  // Map of regex → page info
+  const staticPages = [
+    { regex: /career|job|hiring|vacancy|internship|intern|fresher|नौकरी/, label: 'View Careers', url: `${BASE_URL}/careers` },
+    { regex: /tech squad|on.?site|technician.*visit|घर पे.*technician/, label: 'Tech Squad', url: `${BASE_URL}/techSquad` },
+    { regex: /warranty|वारंटी/, label: 'Warranty Check', url: `${BASE_URL}/warranty` },
+    { regex: /doa|dead on arrival/, label: 'Request DOA', url: `${BASE_URL}/requestDoa` },
+    { regex: /register.*product|product.*registration|रजिस्टर/, label: 'Product Registration', url: `${BASE_URL}/warrantyRegistration` },
+    { regex: /product support|technical help|tech help/, label: 'Product Support', url: `${BASE_URL}/productSupport` },
+    { regex: /partner|reseller|distributor|पार्टनर/, label: 'Become a Partner', url: `${BASE_URL}/becomePartner` },
+    { regex: /project lock|tender|project register/, label: 'Project Locking', url: `${BASE_URL}/projectLocking` },
+    { regex: /demo|demonstration|डेमो/, label: 'Request Demo', url: `${BASE_URL}/requestDemo` },
+    { regex: /training|train|ट्रेनिंग/, label: 'Request Training', url: `${BASE_URL}/requestTraining` },
+    { regex: /contact|reach|call|email|संपर्क/, label: 'Contact Us', url: `${BASE_URL}/contactUs` },
+    { regex: /whistle|complaint|misconduct/, label: 'Whistleblower', url: `${BASE_URL}/whistleBlower` },
+    { regex: /about.*aadona|aadona.*about|company.*info|who.*aadona/, label: 'About AADONA', url: `${BASE_URL}/about` },
+    { regex: /csr|social responsibility/, label: 'CSR', url: `${BASE_URL}/csr` },
+    { regex: /blog|article|news/, label: 'Blog', url: `${BASE_URL}/blog` },
+    { regex: /leadership|team|founder|ceo|management/, label: 'Leadership Team', url: `${BASE_URL}/leadershipTeam` },
+    { regex: /customer|client|who.*use|use.*aadona/, label: 'Our Customers', url: `${BASE_URL}/customers` },
+  ];
 
+  const intentClear = /help|issue|problem|chahiye|chahta|chahti|karna|kaise|how|need|want|request|submit|check|register|book|interested|apply|intern|about|info|tell me|batao|bata/.test(msg);
   if (!intentClear) return [];
 
-  // ✅ Career/Internship — SPECIFIC match
-  if (/career|job|hiring|vacancy|internship|intern|fresher|नौकरी/.test(msg))
-    buttons.push({ label: 'Careers', url: `${BASE_URL}/careers` });
-
-  // ✅ Tech Squad — ONLY agar on-site visit ya technician ki baat ho
-  if (/tech squad|on.?site|technician|technician visit|घर पे/.test(msg))
-    buttons.push({ label: 'Tech Squad', url: `${BASE_URL}/techSquad` });
-
-  if (/warranty|वारंटी/.test(msg))
-    buttons.push({ label: 'Warranty Check', url: `${BASE_URL}/warranty` });
-
-  if (/doa|dead on arrival|replacement/.test(msg))
-    buttons.push({ label: 'Request DOA', url: `${BASE_URL}/requestDoa` });
-
-  if (/register product|product registration|रजिस्टर/.test(msg))
-    buttons.push({ label: 'Product Registration', url: `${BASE_URL}/warrantyRegistration` });
-
-  if (/product support|technical help|tech help/.test(msg))
-    buttons.push({ label: 'Product Support', url: `${BASE_URL}/productSupport` });
-
-  if (/partner|reseller|distributor|पार्टनर/.test(msg))
-    buttons.push({ label: 'Become a Partner', url: `${BASE_URL}/becomePartner` });
-
-  if (/project lock|tender|project register/.test(msg))
-    buttons.push({ label: 'Project Locking', url: `${BASE_URL}/projectLocking` });
-
-  if (/demo|demonstration|डेमो/.test(msg))
-    buttons.push({ label: 'Request Demo', url: `${BASE_URL}/requestDemo` });
-
-  if (/training|train|ट्रेनिंग/.test(msg))
-    buttons.push({ label: 'Request Training', url: `${BASE_URL}/requestTraining` });
-
-  if (/contact|reach|call|email|संपर्क/.test(msg))
-    buttons.push({ label: 'Contact Us', url: `${BASE_URL}/contactUs` });
-
-  if (/whistle|complaint|misconduct/.test(msg))
-    buttons.push({ label: 'Whistleblower', url: `${BASE_URL}/whistleBlower` });
-
-  if (/wireless|wifi|access point/.test(msg))
-    buttons.push({ label: 'Wireless Products', url: `${BASE_URL}/wireless` });
-
-  if (/surveillance|camera|cctv|nvr/.test(msg))
-    buttons.push({ label: 'Surveillance', url: `${BASE_URL}/surveillance` });
-
-  if (/\bswitch|स्विच/.test(msg))
-  buttons.push({ label: 'Network Switches', url: `${BASE_URL}/networkswitches` });
-
-  if (/server|workstation/.test(msg))
-    buttons.push({ label: 'Servers', url: `${BASE_URL}/serversandworkstations` });
-
-  if (/\bnas\b|network attached storage|storage/.test(msg))
-    buttons.push({ label: 'NAS Storage', url: `${BASE_URL}/networkattachedstorages` });
-
-  if (/industrial|rugged|din.rail/.test(msg))
-  buttons.push({ label: 'Industrial Switches', url: `${BASE_URL}/industrialswitches` });
-
-  if (/\bracks?\b|server rack|network rack/.test(msg))
-  buttons.push({ label: 'Racks', url: `${BASE_URL}/racks` });
-
-  if (/\bcables?\b|cat6|fiber|patch cord|utp/.test(msg))
-    buttons.push({ label: 'Cables', url: `${BASE_URL}/cables` });
-
-  if (/network accessories|patch panel|keystone/.test(msg))
-    buttons.push({ label: 'Network Accessories', url: `${BASE_URL}/networkaccessories` });
-
   const seen = new Set();
-  return buttons.filter(b => {
-    if (seen.has(b.url)) return false;
-    seen.add(b.url);
-    return true;
-  }).slice(0, 2);
+  const buttons = [];
+
+  for (const page of staticPages) {
+    if (page.regex.test(msg) && !seen.has(page.url)) {
+      seen.add(page.url);
+      buttons.push({ label: page.label, url: page.url });
+      if (buttons.length >= 2) break;
+    }
+  }
+
+  return buttons;
 };
 
-// ─── Product Cards Detection ───────────────────────────────────────────────
+// ─── Smart URL builder ─────────────────────────────────────────────────────
+const buildProductUrl = (p) => {
+  const cat = (p.category || '').toLowerCase().trim()
+    .replace(/\s+/g, '').replace(/[^\w]+/g, '');
+  const sub = (p.subCategory || '').toLowerCase().trim()
+    .replace(/\s+/g, '').replace(/[^\w]+/g, '');
+
+  // Passive category — subCategory se route
+  if (cat === 'passive') {
+    return `${BASE_URL}/${sub}/${p.slug}`;
+  }
+  return `${BASE_URL}/${cat}/${p.slug}`;
+};
+
+// ─── Category Page URL builder ─────────────────────────────────────────────
+const buildCategoryUrl = (cat) => {
+  // Passive type subCategories ka slug directly use hoga
+  if (cat.parentType === 'passive' || (cat.parentName && cat.parentName.toLowerCase() === 'passive')) {
+    return `${BASE_URL}/${cat.slug}`;
+  }
+  // Main categories
+  return `${BASE_URL}/${cat.slug}`;
+};
+
+// ─── Product + Category Detection ─────────────────────────────────────────
 const detectProductCards = (reply, products, userMessage, categories) => {
   if (!products?.length) return { cards: [], categoryButton: null };
-  
+
   const replyLower = reply.toLowerCase();
   const userLower = userMessage.toLowerCase();
+  const combined = userLower + ' ' + replyLower;
 
-  // ─── URL builder — category/subcategory se sahi route banao ───
-  const buildProductUrl = (p) => {
-    const cat = (p.category || '').toLowerCase().trim()
-      .replace(/\s+/g, '').replace(/[^\w]+/g, '');
-    const sub = (p.subCategory || '').toLowerCase().trim()
-      .replace(/\s+/g, '').replace(/[^\w]+/g, '');
+  // ── 1. Specific product match by model number ──────────────────
+  const matchedByModel = products.filter(p => {
+    if (!p.model) return false;
+    return combined.includes(p.model.toLowerCase());
+  });
 
-    // ✅ Passive category — subCategory se route banta hai
-    if (cat === 'passive') {
-      return `${BASE_URL}/${sub}/${p.slug}`;
-    }
-
-    // ✅ Baaki sab — category se route
-    return `${BASE_URL}/${cat}/${p.slug}`;
-  };
-
-  // ─── Category Button ───────────────────────────────────────────
-  const specificModelMentioned = products.some(p => 
-    p.model && (
-      userLower.includes(p.model.toLowerCase()) || 
-      replyLower.includes(p.model.toLowerCase())
-    )
-  );
-
+  // ── 2. Category / SubCategory match for "browse" queries ──────
+  // e.g. "wireless products dikhao", "indoor switches", "NAS kya hai"
   let categoryButton = null;
+  let matchedByCategory = [];
 
-  if (!specificModelMentioned && categories?.length) {
+  if (categories?.length) {
     for (const cat of categories) {
-      if (
-        userLower.includes(cat.name.toLowerCase()) || 
-        replyLower.includes(cat.name.toLowerCase())
-      ) {
-        // ✅ Agar subCategory hai (Passive ke liye) toh uska slug
-        const slug = cat.parentName
-          ? cat.slug  // subCategory slug directly
-          : cat.slug; // main category slug
+      const catNameLower = cat.name.toLowerCase();
 
-        categoryButton = {
-          label: `Visit ${cat.name}`,
-          url: `${BASE_URL}/${slug}`
-        };
+      if (combined.includes(catNameLower)) {
+        // Category page button
+        if (!categoryButton) {
+          categoryButton = {
+            label: `Browse ${cat.name}`,
+            url: buildCategoryUrl(cat)
+          };
+        }
+
+        // Products from this category/subcategory
+        if (!matchedByModel.length) {
+          const filtered = products.filter(p => {
+            if (cat.parentName) {
+              // subCategory match
+              return (p.subCategory || '').toLowerCase() === catNameLower ||
+                     (p.category || '').toLowerCase() === catNameLower;
+            }
+            return (p.category || '').toLowerCase() === catNameLower;
+          });
+          matchedByCategory = filtered.slice(0, 4);
+        }
         break;
       }
     }
   }
 
-  // ─── Product Cards ─────────────────────────────────────────────
-  const matched = products.filter(p => {
-    if (!p.model) return false;
-    const modelLower = p.model.toLowerCase();
-    return (
-      replyLower.includes(modelLower) ||
-      userLower.includes(modelLower)
-    );
-  });
+  // ── 3. Decide which products to show ──────────────────────────
+  const finalProducts = matchedByModel.length
+    ? matchedByModel.slice(0, 4)
+    : matchedByCategory;
 
-  const cards = matched.slice(0, 4).map(p => ({
+  const cards = finalProducts.map(p => ({
     name: p.fullName || p.name,
     model: p.model,
-    image: p.image,
+    image: p.image || null,
     slug: p.slug,
     category: p.category,
+    subCategory: p.subCategory,
     overview: p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '',
     features: (p.features || []).slice(0, 3),
-    url: buildProductUrl(p), // ✅ Smart URL builder
-    visitLabel: `Visit ${p.model}`
+    url: buildProductUrl(p),
+    visitLabel: `View ${p.model || p.name}`
   }));
+
+  // If we have specific model cards, no need for category button
+  if (matchedByModel.length) {
+    categoryButton = null;
+  }
 
   return { cards, categoryButton };
 };
@@ -242,6 +226,7 @@ CRITICAL INSTRUCTIONS:
 - ONLY answer AADONA-related questions. Politely decline everything else.
 - For product queries, ALWAYS reference the LIVE PRODUCT DATABASE. Use exact model numbers.
 - When user asks about a specific product → give a brief 2-line overview + top 2 specs.
+- When user asks about a category (e.g. "wireless products", "indoor switches") → briefly describe what AADONA offers in that category using DB data.
 - Address the user by first name only occasionally — not in every message.
 - GREETING: Keep it brief and professional.
 
@@ -249,19 +234,21 @@ MOST IMPORTANT NAVIGATION RULES:
 - NEVER mention any URL, link, or page address in your text response. Not even partially.
 - NEVER say "visit aadona.com/..." or "go to aadona.com/..." or "check our website".
 - NEVER say "visit this page" or "click here" in your text.
-- When a user has a query related to a specific service/page:
-  * FIRST ask them what exactly their issue or requirement is.
-  * ONLY after understanding their query, end your reply naturally.
+- When a user has a query related to a specific SERVICE/SUPPORT page (careers, warranty, partner, etc.):
+  * FIRST understand their exact requirement conversationally.
+  * ONLY after understanding, end your reply naturally.
   * A button will automatically appear below — do NOT mention it in text.
   * Let the button handle navigation silently.
-- ONLY show confusion-based button when user clearly needs to go somewhere.
-- NEVER dump multiple page suggestions at once.
-- Guide conversationally. One question at a time.
+- When a user asks about PRODUCTS:
+  * If asking about a specific model → answer briefly, product card with image will appear automatically.
+  * If asking about a category → describe the category briefly, a "Browse [Category]" button + relevant products will appear.
+  * NEVER say "I'll show you the products" — just answer the query, the UI handles the rest.
 - NEVER say "my database does not contain" or "I don't have information" if products exist.
 - NEVER say "please contact sales" for product queries — always check LIVE PRODUCT DATABASE first.
-- If a category exists in database (like NAS, Switches, Wireless), ALWAYS show those products.
+- If a category exists in database (like NAS, Switches, Wireless), ALWAYS reference those products.
 - Only say "we do not have this product" if after checking the full database, truly no match is found.
 - NEVER mention database limitations to the user.
+- Guide conversationally. One question at a time.
 
 USER INFO:
 - Name: ${userName}
@@ -454,20 +441,27 @@ router.post('/chat', chatLimiter, async (req, res) => {
     }
 
     // REMOVE ANY URL FROM AI RESPONSE
-     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
+    fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
 
     const categories = await getCategoryMap();
 
+    // ── Product cards + category button (dynamic) ──
     const { cards: productCards, categoryButton } = detectProductCards(
-      fullReply, 
-      products, 
-      lastUserMessage, 
+      fullReply,
+      products,
+      lastUserMessage,
       categories
     );
 
-    const actionButtons = detectActionButtons(lastUserMessage, fullReply, products, categories);
+    // ── Static page action buttons ──
+    // Only show static buttons if NO product cards were found
+    // (product queries shouldn't mix with static page buttons)
+    let actionButtons = [];
+    if (!productCards.length) {
+      actionButtons = detectStaticPageIntent(lastUserMessage, fullReply);
+    }
 
-    // Category button + action buttons
+    // Final buttons: category button (if any) + action buttons, max 2
     const allButtons = [
       ...(categoryButton ? [categoryButton] : []),
       ...actionButtons
