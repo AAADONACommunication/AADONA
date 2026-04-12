@@ -40,16 +40,28 @@ const getProductsContext = async () => {
 const getCategoryMap = async () => {
   try {
     const Category = mongoose.model('Category');
-    const categories = await Category.find({}, 'name');
+    const categories = await Category.find({}, 'name subCategories');
 
-    return categories.map(c => ({
-      name: c.name,
-      slug: c.name
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '')
-        .replace(/[^\w]+/g, '')
-    }));
+    const result = [];
+
+    categories.forEach(c => {
+      result.push({
+        name: c.name,
+        slug: c.name.toLowerCase().trim()
+          .replace(/\s+/g, '').replace(/[^\w]+/g, '')
+      });
+
+      (c.subCategories || []).forEach(sub => {
+        result.push({
+          name: sub.name,
+          parentName: c.name,
+          slug: sub.name.toLowerCase().trim()
+            .replace(/\s+/g, '').replace(/[^\w]+/g, '')
+        });
+      });
+    });
+
+    return result;
   } catch {
     return [];
   }
@@ -109,13 +121,25 @@ const detectActionButtons = (userMessage, aiReply, products, categories) => {
     buttons.push({ label: 'Surveillance', url: `${BASE_URL}/surveillance` });
 
   if (/\bswitch|स्विच/.test(msg))
-    buttons.push({ label: 'Network Switches', url: `${BASE_URL}/switches` });
+  buttons.push({ label: 'Network Switches', url: `${BASE_URL}/networkswitches` });
 
   if (/server|workstation/.test(msg))
-    buttons.push({ label: 'Servers', url: `${BASE_URL}/servers` });
+    buttons.push({ label: 'Servers', url: `${BASE_URL}/serversandworkstations` });
 
-  if (/\bnas\b|storage/.test(msg))
-    buttons.push({ label: 'NAS Storage', url: `${BASE_URL}/nas` });
+  if (/\bnas\b|network attached storage|storage/.test(msg))
+    buttons.push({ label: 'NAS Storage', url: `${BASE_URL}/networkattachedstorages` });
+
+  if (/industrial|rugged|din.rail/.test(msg))
+  buttons.push({ label: 'Industrial Switches', url: `${BASE_URL}/industrialswitches` });
+
+  if (/\bracks?\b|server rack|network rack/.test(msg))
+  buttons.push({ label: 'Racks', url: `${BASE_URL}/racks` });
+
+  if (/\bcables?\b|cat6|fiber|patch cord|utp/.test(msg))
+    buttons.push({ label: 'Cables', url: `${BASE_URL}/cables` });
+
+  if (/network accessories|patch panel|keystone/.test(msg))
+    buttons.push({ label: 'Network Accessories', url: `${BASE_URL}/networkaccessories` });
 
   const seen = new Set();
   return buttons.filter(b => {
@@ -132,7 +156,23 @@ const detectProductCards = (reply, products, userMessage, categories) => {
   const replyLower = reply.toLowerCase();
   const userLower = userMessage.toLowerCase();
 
-  // ─── Category Button — DB se slug lo ──────────────────────────
+  // ─── URL builder — category/subcategory se sahi route banao ───
+  const buildProductUrl = (p) => {
+    const cat = (p.category || '').toLowerCase().trim()
+      .replace(/\s+/g, '').replace(/[^\w]+/g, '');
+    const sub = (p.subCategory || '').toLowerCase().trim()
+      .replace(/\s+/g, '').replace(/[^\w]+/g, '');
+
+    // ✅ Passive category — subCategory se route banta hai
+    if (cat === 'passive') {
+      return `${BASE_URL}/${sub}/${p.slug}`;
+    }
+
+    // ✅ Baaki sab — category se route
+    return `${BASE_URL}/${cat}/${p.slug}`;
+  };
+
+  // ─── Category Button ───────────────────────────────────────────
   const specificModelMentioned = products.some(p => 
     p.model && (
       userLower.includes(p.model.toLowerCase()) || 
@@ -142,22 +182,27 @@ const detectProductCards = (reply, products, userMessage, categories) => {
 
   let categoryButton = null;
 
-  if (categories?.length) {
+  if (!specificModelMentioned && categories?.length) {
     for (const cat of categories) {
       if (
         userLower.includes(cat.name.toLowerCase()) || 
         replyLower.includes(cat.name.toLowerCase())
       ) {
+        // ✅ Agar subCategory hai (Passive ke liye) toh uska slug
+        const slug = cat.parentName
+          ? cat.slug  // subCategory slug directly
+          : cat.slug; // main category slug
+
         categoryButton = {
           label: `Visit ${cat.name}`,
-          url: `${BASE_URL}/${cat.slug}`
+          url: `${BASE_URL}/${slug}`
         };
         break;
       }
     }
   }
 
-  // ─── Specific Product Cards ────────────────────────────────────
+  // ─── Product Cards ─────────────────────────────────────────────
   const matched = products.filter(p => {
     if (!p.model) return false;
     const modelLower = p.model.toLowerCase();
@@ -175,7 +220,7 @@ const detectProductCards = (reply, products, userMessage, categories) => {
     category: p.category,
     overview: p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '',
     features: (p.features || []).slice(0, 3),
-    url: `${BASE_URL}/${(p.category || 'products').toLowerCase().replace(/\s+/g, '-')}/${p.slug}`,
+    url: buildProductUrl(p), // ✅ Smart URL builder
     visitLabel: `Visit ${p.model}`
   }));
 
