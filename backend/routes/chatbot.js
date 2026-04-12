@@ -129,11 +129,15 @@ const detectProductCards = (reply, products) => {
   const replyLower = reply.toLowerCase();
 
   const matched = products.filter(p => {
-    const combined = `${p.fullName} ${p.name} ${p.model} ${p.category}`.toLowerCase();
-
-    return combined.split(' ').some(word =>
+    const combined = `${p.fullName || ''} ${p.name || ''} ${p.model || ''}`.toLowerCase();
+    // Category match karo bhi
+    const categoryMatch = combined.split(' ').some(word =>
       word.length > 3 && replyLower.includes(word)
     );
+
+    const modelMentioned = p.model && replyLower.includes(p.model.toLowerCase());
+
+    return modelMentioned;
   });
 
   return matched.slice(0, 4).map(p => ({
