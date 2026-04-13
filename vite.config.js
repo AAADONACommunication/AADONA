@@ -1,20 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   build: {
-    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          'firebase-app':       ['firebase/app'],
-          'firebase-auth':      ['firebase/auth'],
-          'firebase-firestore': ['firebase/firestore'],
-          'firebase-storage':   ['firebase/storage'],
-        },
-      },
+          // Separate vendor chunks
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/storage'],
+          'quill': ['quill'],
+          'html2canvas': ['html2canvas'],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        }
+      }
     },
-  },
+    // Warn on large chunks
+    chunkSizeWarningLimit: 500,
+  }
 })
