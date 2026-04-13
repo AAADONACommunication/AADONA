@@ -225,8 +225,6 @@ const Home = () => {
         <meta name="twitter:image:alt" content="AADONA – IT Networking Solutions India" />
 
         {/* ── Performance Hints ── */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//www.google-analytics.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
 
