@@ -63,120 +63,100 @@ const BlogDetail = () => {
   const [commentLoading, setCommentLoading] = useState(false);
   const [commentSuccess, setCommentSuccess] = useState(false);
   const [viewsCount, setViewsCount] = useState(0);
+  const [shareCopied, setShareCopied] = useState(false);
 
   useEffect(() => {
-  window.scrollTo(0, 0);
+    window.scrollTo(0, 0);
 
-  /* ─────────────────────────────
-     1️⃣  Load Quill CSS (once)
-  ───────────────────────────── */
-  if (!document.querySelector('link[href*="quill"]')) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css";
-    document.head.appendChild(link);
-  }
+    if (!document.querySelector('link[href*="quill"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css";
+      document.head.appendChild(link);
+    }
 
-  /* ─────────────────────────────
-     2️⃣  Inject Custom Render Styles (once)
-  ───────────────────────────── */
-  if (!document.getElementById("ql-render-styles")) {
-    const style = document.createElement("style");
-    style.id = "ql-render-styles";
-    style.innerHTML = `
-      .ql-editor-content h1 { font-size: 2.4rem; font-weight: 800; color: #1a1a1a; margin: 1.5rem 0 0.75rem; line-height: 1.2; }
-      .ql-editor-content h2 { font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 1.25rem 0 0.6rem; line-height: 1.3; }
-      .ql-editor-content h3 { font-size: 1.4rem; font-weight: 600; color: #1a1a1a; margin: 1rem 0 0.5rem; }
-      .ql-editor-content p { font-size: 1.05rem; margin: 0 0 1rem; line-height: 1.85; word-wrap: break-word; overflow-wrap: break-word; }
-      .ql-editor-content strong { font-weight: 700; color: #111; }
-      .ql-editor-content em { font-style: italic; }
-      .ql-editor-content u { text-decoration: underline; }
-      .ql-editor-content s { text-decoration: line-through; }
-      .ql-editor-content ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0 1rem; }
-      .ql-editor-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0 1rem; }
-      .ql-editor-content li { margin-bottom: 0.4rem; line-height: 1.7; }
-      .ql-editor-content blockquote { 
-        border-left: 4px solid #059669; 
-        padding: 0.75rem 1rem; 
-        background: #f0fdf4; 
-        color: #065f46; 
-        font-style: italic; 
-        margin: 1.25rem 0; 
-        border-radius: 0 0.5rem 0.5rem 0; 
-      }
-      .ql-editor-content .ql-align-center { text-align: center; }
-      .ql-editor-content .ql-align-right { text-align: right; }
-      .ql-editor-content .ql-align-justify { text-align: justify; }
-      @keyframes fadeInDown {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
+    if (!document.getElementById("ql-render-styles")) {
+      const style = document.createElement("style");
+      style.id = "ql-render-styles";
+      style.innerHTML = `
+        .ql-editor-content h1 { font-size: 2.4rem; font-weight: 800; color: #1a1a1a; margin: 1.5rem 0 0.75rem; line-height: 1.2; }
+        .ql-editor-content h2 { font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 1.25rem 0 0.6rem; line-height: 1.3; }
+        .ql-editor-content h3 { font-size: 1.4rem; font-weight: 600; color: #1a1a1a; margin: 1rem 0 0.5rem; }
+        .ql-editor-content p { font-size: 1.05rem; margin: 0 0 1rem; line-height: 1.85; word-wrap: break-word; overflow-wrap: break-word; }
+        .ql-editor-content strong { font-weight: 700; color: #111; }
+        .ql-editor-content em { font-style: italic; }
+        .ql-editor-content u { text-decoration: underline; }
+        .ql-editor-content s { text-decoration: line-through; }
+        .ql-editor-content ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0 1rem; }
+        .ql-editor-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0 1rem; }
+        .ql-editor-content li { margin-bottom: 0.4rem; line-height: 1.7; }
+        .ql-editor-content blockquote { 
+          border-left: 4px solid #059669; 
+          padding: 0.75rem 1rem; 
+          background: #f0fdf4; 
+          color: #065f46; 
+          font-style: italic; 
+          margin: 1.25rem 0; 
+          border-radius: 0 0.5rem 0.5rem 0; 
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        .ql-editor-content .ql-align-center { text-align: center; }
+        .ql-editor-content .ql-align-right { text-align: right; }
+        .ql-editor-content .ql-align-justify { text-align: justify; }
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-      }
-      .animate-fade-in-down {
-        animation: fadeInDown 0.8s ease-out forwards;
-      }
-    `;
-    document.head.appendChild(style);
-  }
+        .animate-fade-in-down {
+          animation: fadeInDown 0.8s ease-out forwards;
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
-  /* ─────────────────────────────
-     3️⃣  Fetch Blog By Slug
-  ───────────────────────────── */
-  fetch(`${import.meta.env.VITE_API_URL}/blogs/slug/${slug}`)
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.error) {
-        setBlog(null);
-      } else {
-        setBlog(data);
-        setLikesCount(data.likes || 0);
-        setComments(data.comments || []);
-        setViewsCount(data.views || 0);
+    fetch(`${import.meta.env.VITE_API_URL}/blogs/slug/${slug}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setBlog(null);
+        } else {
+          setBlog(data);
+          setLikesCount(data.likes || 0);
+          setComments(data.comments || []);
+          setViewsCount(data.views || 0);
 
-        const viewedBlogs = JSON.parse(localStorage.getItem("viewedBlogs") || "[]");
+          const viewedBlogs = JSON.parse(localStorage.getItem("viewedBlogs") || "[]");
 
-        if (!viewedBlogs.includes(data._id)) {
-          fetch(`${import.meta.env.VITE_API_URL}/blogs/slug/${slug}/view`, {
-            method: "POST",
-          })
-            .then((res) => res.json())
-            .then((viewData) => {
-              if (viewData.views !== undefined) {
-                setViewsCount(viewData.views);
-              }
+          if (!viewedBlogs.includes(data._id)) {
+            fetch(`${import.meta.env.VITE_API_URL}/blogs/slug/${slug}/view`, {
+              method: "POST",
             })
-            .catch(() => {});
+              .then((res) => res.json())
+              .then((viewData) => {
+                if (viewData.views !== undefined) {
+                  setViewsCount(viewData.views);
+                }
+              })
+              .catch(() => {});
 
-          viewedBlogs.push(data._id);
-          localStorage.setItem("viewedBlogs", JSON.stringify(viewedBlogs));
+            viewedBlogs.push(data._id);
+            localStorage.setItem("viewedBlogs", JSON.stringify(viewedBlogs));
+          }
         }
-      }
-      setLoading(false);
-    })
-    .catch(() => setLoading(false));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
 
-  /* ─────────────────────────────
-     4️⃣  Check Liked Blogs (LocalStorage)
-  ───────────────────────────── */
-  const likedBlogs = JSON.parse(localStorage.getItem("likedBlogs") || "[]");
-  if (likedBlogs.includes(slug)) setLiked(true);
+    const likedBlogs = JSON.parse(localStorage.getItem("likedBlogs") || "[]");
+    if (likedBlogs.includes(slug)) setLiked(true);
 
-  /* ─────────────────────────────
-     5️⃣  Fetch Recent Posts
-  ───────────────────────────── */
-  fetch(`${import.meta.env.VITE_API_URL}/blogs`)
-    .then((res) => res.json())
-    .then((data) =>
-      setRecentPosts(Array.isArray(data) ? data.slice(0, 5) : [])
-    )
-    .catch(() => {});
-    
-}, [slug]);
+    fetch(`${import.meta.env.VITE_API_URL}/blogs`)
+      .then((res) => res.json())
+      .then((data) =>
+        setRecentPosts(Array.isArray(data) ? data.slice(0, 5) : [])
+      )
+      .catch(() => {});
+
+  }, [slug]);
 
   const handleLike = async () => {
     if (liked || likeLoading) return;
@@ -197,6 +177,31 @@ const BlogDetail = () => {
       console.error("Like error:", err);
     } finally {
       setLikeLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const shareData = {
+      title: blog?.title || "Blog Post",
+      text: blog?.excerpt || "",
+      url,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // user cancelled — ignore
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      } catch {
+        prompt("Copy this link:", url);
+      }
     }
   };
 
@@ -281,255 +286,261 @@ const BlogDetail = () => {
                 </span>
               </div>
             )}
-      
+
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-8 leading-tight drop-shadow-xl max-w-4xl break-words">
               {blog.title}
             </h1>
 
             <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              {/* Author */}
               <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
                 <UserIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{blog.author}</span>
               </div>
+
+              {/* Date */}
               <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
                 <CalendarIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{blog.date}</span>
               </div>
+
+              {/* Read Time */}
               <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
                 <ClockIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{blog.readTime}</span>
               </div>
+
+              {/* Views */}
               <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
                 <EyeIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{viewsCount} views</span>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ══════════════════════════════════════
-          MAIN CONTENT AREA
-      ══════════════════════════════════════ */}
-      <div
-              className="bg-cover bg-fixed py-16"
-              style={{ backgroundImage: `url(${bg})` }}
-            >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        
-        {/* ① Excerpt card */}
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 sm:p-12 mb-8">
-          <p className="text-lg sm:text-xl text-gray-600 leading-relaxed italic font-light break-words">
-            {blog.excerpt}
-          </p>
-        </div>
-
-        {/* ② Blog blocks - Each block in separate card */}
-        {Array.isArray(blog.blocks) && blog.blocks.length > 0 ? (
-          blog.blocks.map((block, index) => (
-            <div key={index}>
-              {block.type === "text" && (
-                <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 sm:p-12 mb-8">
-                  <div
-                    className="ql-editor-content text-gray-700 leading-relaxed text-base break-words"
-                    dangerouslySetInnerHTML={{ __html: block.content }}
-                  />
-                </div>
-              )}
-              {block.type === "image" && (
-  <div className="mb-8">
-                  <div className="overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-                    <img
-                      src={block.url}
-                      alt={block.caption || "Blog image"}
-                      className="w-full hover:scale-105 transition-transform duration-700"
-                      onError={(e) => {
-                        e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Image";
-                      }}
-                    />
-                  </div>
-                  {block.caption && (
-                    <p className="text-sm text-gray-500 italic text-center mt-4 flex items-center justify-center gap-2 break-words">
-                      <span className="w-8 h-px bg-gradient-to-r from-transparent to-gray-300" />
-                      {block.caption}
-                      <span className="w-8 h-px bg-gradient-to-l from-transparent to-gray-300" />
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 p-8 sm:p-12 mb-8">
-            <p className="text-gray-400 italic">No content available.</p>
-          </div>
-        )}
-
-        {/* ③ Like button card */}
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 mb-8">
-          <div className="flex items-center gap-6">
-            <button
-              onClick={handleLike}
-              disabled={liked || likeLoading}
-              className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-base transition-all duration-300 border-2 ${
-                liked
-                  ? "bg-red-50 text-red-600 border-red-200 cursor-default shadow-md"
-                  : "bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 hover:shadow-lg active:scale-95"
-              }`}
-            >
-              <HeartIcon
-                filled={liked}
-                className={`transition-all duration-300 flex-shrink-0 ${
-                  liked ? "text-red-600 scale-125" : "text-gray-400"
-                }`}
-              />
-              <span>{likesCount} {likesCount === 1 ? "Like" : "Likes"}</span>
-            </button>
-            {liked && (
-              <p className="text-sm text-emerald-600 font-semibold flex items-center gap-2">
-                <span>✓</span> Thank you for your appreciation!
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* ④ Comments card */}
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 mb-8">
-
-          {/* Comments header */}
-          <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
-            <h3 className="text-2xl font-bold text-gray-800">
-              Comments
-            </h3>
-            <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-4 py-2 rounded-full border border-emerald-200 shadow-sm">
-              {comments.length} {comments.length === 1 ? "comment" : "comments"}
-            </span>
-          </div>
-
-          {/* Comment list */}
-          <div className="space-y-5 mb-10">
-            {comments.length > 0 ? (
-              comments.map((c, i) => (
-                <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200 border border-transparent hover:border-gray-200">
-                  {/* Avatar */}
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md text-white font-bold text-base ring-2 ring-white">
-                    {c.name.charAt(0).toUpperCase()}
-                  </div>
-                  {/* Comment bubble */}
-                  <div className="flex-1 bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-gray-800 text-sm break-words">{c.name}</span>
-                      <span className="text-xs text-gray-400 font-medium">
-                        {new Date(c.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-gray-700 text-sm leading-relaxed break-words">{c.text}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <p className="text-gray-400 text-sm font-medium">No comments yet. Be the first to share your thoughts!</p>
-              </div>
-            )}
-          </div>
-
-          {/* Comment form */}
-          <div className="border-t border-gray-200 pt-8">
-            <h4 className="text-lg font-bold text-gray-800 mb-6">Leave a Comment</h4>
-
-            {commentSuccess && (
-              <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-6 py-4 rounded-xl text-sm flex items-center gap-3 shadow-sm">
-                <span className="text-lg">✅</span>
-                <span className="font-semibold">Comment posted successfully!</span>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Your name"
-                value={commentName}
-                onChange={(e) => setCommentName(e.target.value)}
-                className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300 break-words"
-              />
-              <textarea
-                placeholder="Write your comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                rows={4}
-                className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300 resize-none break-words"
-              />
+              {/* Share Button */}
               <button
-                onClick={handleCommentSubmit}
-                disabled={commentLoading}
-                className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                onClick={handleShare}
+                className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all cursor-pointer"
               >
-                <SendIcon />
-                {commentLoading ? "Posting..." : "Post Comment"}
+                <span className="text-lg leading-none" style={{ fontSize: "18px" }}>
+                  {shareCopied ? "✅" : "🔗"}
+                </span>
+                <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base">
+                  {shareCopied ? "Copied!" : "Share"}
+                </span>
               </button>
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* ══════════════════════════════════════
-          RECENT POSTS - FULL WIDTH AT BOTTOM
-      ══════════════════════════════════════ */}
-      <div className="w-full border-t border-gray-300">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-          
-          <h3 className="text-3xl font-bold text-green-800 underline decoration-2 mb-12">
-            More Articles-
-          </h3>
+      {/* MAIN CONTENT AREA */}
+      <div
+        className="bg-cover bg-fixed py-16"
+        style={{ backgroundImage: `url(${bg})` }}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
 
-          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
-            {recentPosts
-              .filter((post) => post._id !== blog._id)
-              .slice(0, 4)
-              .map((post) => (
-                <Link
-                  key={post._id}
-                  to={`/blog/${post.slug}`}
-                  className="group h-full"
-                >
-                  <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 h-full flex flex-col hover:border-emerald-200">
-                    {/* Image */}
-                    <div className="relative overflow-hidden h-48 bg-gray-100">
+          {/* Excerpt card */}
+          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 sm:p-12 mb-8">
+            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed italic font-light break-words">
+              {blog.excerpt}
+            </p>
+          </div>
+
+          {/* Blog blocks */}
+          {Array.isArray(blog.blocks) && blog.blocks.length > 0 ? (
+            blog.blocks.map((block, index) => (
+              <div key={index}>
+                {block.type === "text" && (
+                  <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 sm:p-12 mb-8">
+                    <div
+                      className="ql-editor-content text-gray-700 leading-relaxed text-base break-words"
+                      dangerouslySetInnerHTML={{ __html: block.content }}
+                    />
+                  </div>
+                )}
+                {block.type === "image" && (
+                  <div className="mb-8">
+                    <div className="overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
                       <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        src={block.url}
+                        alt={block.caption || "Blog image"}
+                        className="w-full hover:scale-105 transition-transform duration-700"
                         onError={(e) => {
-                          e.target.src = "https://placehold.co/400x300/059669/ffffff?text=Blog";
+                          e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Image";
                         }}
                       />
                     </div>
+                    {block.caption && (
+                      <p className="text-sm text-gray-500 italic text-center mt-4 flex items-center justify-center gap-2 break-words">
+                        <span className="w-8 h-px bg-gradient-to-r from-transparent to-gray-300" />
+                        {block.caption}
+                        <span className="w-8 h-px bg-gradient-to-l from-transparent to-gray-300" />
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 p-8 sm:p-12 mb-8">
+              <p className="text-gray-400 italic">No content available.</p>
+            </div>
+          )}
 
-                    {/* Content */}
-                    <div className="flex-1 flex flex-col p-5">
-                      <h4 className="text-base font-bold text-gray-800 line-clamp-3 group-hover:text-emerald-600 transition-colors duration-200 mb-3 break-words">
-                        {post.title}
-                      </h4>
-                      
-                      <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mt-auto pt-3 border-t border-gray-100">
-                        <CalendarIcon className="w-4 h-4 text-emerald-500" />
-                        <span>{post.date}</span>
+          {/* Like button card */}
+          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 mb-8">
+            <div className="flex items-center gap-6">
+              <button
+                onClick={handleLike}
+                disabled={liked || likeLoading}
+                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-base transition-all duration-300 border-2 ${
+                  liked
+                    ? "bg-red-50 text-red-600 border-red-200 cursor-default shadow-md"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 hover:shadow-lg active:scale-95"
+                }`}
+              >
+                <HeartIcon
+                  filled={liked}
+                  className={`transition-all duration-300 flex-shrink-0 ${
+                    liked ? "text-red-600 scale-125" : "text-gray-400"
+                  }`}
+                />
+                <span>{likesCount} {likesCount === 1 ? "Like" : "Likes"}</span>
+              </button>
+              {liked && (
+                <p className="text-sm text-emerald-600 font-semibold flex items-center gap-2">
+                  <span>✓</span> Thank you for your appreciation!
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Comments card */}
+          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 mb-8">
+
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-800">Comments</h3>
+              <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-4 py-2 rounded-full border border-emerald-200 shadow-sm">
+                {comments.length} {comments.length === 1 ? "comment" : "comments"}
+              </span>
+            </div>
+
+            <div className="space-y-5 mb-10">
+              {comments.length > 0 ? (
+                comments.map((c, i) => (
+                  <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200 border border-transparent hover:border-gray-200">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md text-white font-bold text-base ring-2 ring-white">
+                      {c.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-gray-800 text-sm break-words">{c.name}</span>
+                        <span className="text-xs text-gray-400 font-medium">
+                          {new Date(c.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
                       </div>
+                      <p className="text-gray-700 text-sm leading-relaxed break-words">{c.text}</p>
                     </div>
                   </div>
-                </Link>
-              ))}
+                ))
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <p className="text-gray-400 text-sm font-medium">No comments yet. Be the first to share your thoughts!</p>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-gray-200 pt-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-6">Leave a Comment</h4>
+
+              {commentSuccess && (
+                <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-6 py-4 rounded-xl text-sm flex items-center gap-3 shadow-sm">
+                  <span className="text-lg">✅</span>
+                  <span className="font-semibold">Comment posted successfully!</span>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={commentName}
+                  onChange={(e) => setCommentName(e.target.value)}
+                  className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300 break-words"
+                />
+                <textarea
+                  placeholder="Write your comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  rows={4}
+                  className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300 resize-none break-words"
+                />
+                <button
+                  onClick={handleCommentSubmit}
+                  disabled={commentLoading}
+                  className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                >
+                  <SendIcon />
+                  {commentLoading ? "Posting..." : "Post Comment"}
+                </button>
+              </div>
+            </div>
           </div>
 
         </div>
+
+        {/* RECENT POSTS */}
+        <div className="w-full border-t border-gray-300">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+
+            <h3 className="text-3xl font-bold text-green-800 underline decoration-2 mb-12">
+              More Articles-
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
+              {recentPosts
+                .filter((post) => post._id !== blog._id)
+                .slice(0, 4)
+                .map((post) => (
+                  <Link
+                    key={post._id}
+                    to={`/blog/${post.slug}`}
+                    className="group h-full"
+                  >
+                    <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 h-full flex flex-col hover:border-emerald-200">
+                      <div className="relative overflow-hidden h-48 bg-gray-100">
+                        <img
+                          src={post.image}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          onError={(e) => {
+                            e.target.src = "https://placehold.co/400x300/059669/ffffff?text=Blog";
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 flex flex-col p-5">
+                        <h4 className="text-base font-bold text-gray-800 line-clamp-3 group-hover:text-emerald-600 transition-colors duration-200 mb-3 break-words">
+                          {post.title}
+                        </h4>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mt-auto pt-3 border-t border-gray-100">
+                          <CalendarIcon className="w-4 h-4 text-emerald-500" />
+                          <span>{post.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+
+          </div>
+        </div>
       </div>
-</div>
+
       <Footer />
     </div>
   );

@@ -47,13 +47,11 @@ const ClockIcon = (props) => (
 
 // ─── Security Helper ──────────────────────────────────────────────────────────
 
-// Sanitize search input — prevent XSS if value is ever rendered as HTML
 const sanitizeText = (value) => {
   if (typeof value !== "string") return "";
   return value.replace(/[<>"'&]/g, "");
 };
 
-// Safe slug generator
 const generateSlug = (title) =>
   title.toLowerCase().trim()
     .replace(/[^\w\s-]/g, "")
@@ -62,71 +60,121 @@ const generateSlug = (title) =>
 
 // ─── Blog Card ────────────────────────────────────────────────────────────────
 
-const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick }) => (
-  <article
-    onClick={onClick}
-    onMouseEnter={onMouseEnter}
-    onMouseLeave={onMouseLeave}
-    className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
-    aria-label={`Read blog post: ${post.title}`}
-  >
-    <div className="relative overflow-hidden h-56">
-      <img
-        src={post.image}
-        alt={post.title}
-        className={`w-full h-full object-fill transition-transform duration-700 ${isHovered ? "scale-110" : "scale-100"}`}
-        loading="lazy"
-        decoding="async"
-        onError={(e) => {
-          e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Blog";
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-    </div>
+const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick }) => {
+  const [shareCopied, setShareCopied] = useState(false);
 
-    <div className="p-7 flex flex-col flex-grow">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <UserIcon className="w-5 h-5 text-green-600" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="text-sm font-bold text-gray-800 leading-none">{post.author}</p>
-          <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
-            <span className="flex items-center gap-1">
-              <CalendarIcon className="w-3 h-3" aria-hidden="true" />
-              <time>{post.date}</time>
-            </span>
-            <span className="flex items-center gap-1">
-              <ClockIcon className="w-3 h-3" aria-hidden="true" />
-              {post.readTime}
-            </span>
+  const handleShare = async (e) => {
+    // Prevent card click from firing
+    e.stopPropagation();
+
+    const slug = post.slug || generateSlug(post.title);
+    const url = `${window.location.origin}/blog/${encodeURIComponent(slug)}`;
+    const shareData = {
+      title: post.title,
+      text: post.excerpt || "",
+      url,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // user cancelled — ignore
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      } catch {
+        prompt("Copy this link:", url);
+      }
+    }
+  };
+
+  return (
+    <article
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
+      aria-label={`Read blog post: ${post.title}`}
+    >
+      <div className="relative overflow-hidden h-56">
+        <img
+          src={post.image}
+          alt={post.title}
+          className={`w-full h-full object-fill transition-transform duration-700 ${isHovered ? "scale-110" : "scale-100"}`}
+          loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Blog";
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      </div>
+
+      <div className="p-7 flex flex-col flex-grow">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <UserIcon className="w-5 h-5 text-green-600" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-800 leading-none">{post.author}</p>
+            <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
+              <span className="flex items-center gap-1">
+                <CalendarIcon className="w-3 h-3" aria-hidden="true" />
+                <time>{post.date}</time>
+              </span>
+              <span className="flex items-center gap-1">
+                <ClockIcon className="w-3 h-3" aria-hidden="true" />
+                {post.readTime}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <h2 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2 hover:text-green-600 transition-colors duration-300">
-        {post.title}
-      </h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2 hover:text-green-600 transition-colors duration-300">
+          {post.title}
+        </h2>
 
-      <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
-        {post.excerpt}
-      </p>
+        <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
+          {post.excerpt}
+        </p>
 
-      <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-gray-400">
-          <span>{post.views || 0} views</span>
-          <span className="flex items-center gap-1 text-red-400 font-medium">
-            ❤️ {post.likes || 0}
+        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+          {/* Left: views + likes + share */}
+          <div className="flex items-center gap-3 text-xs text-gray-400">
+            <span>{post.views || 0} views</span>
+            <span className="flex items-center gap-1 text-red-400 font-medium">
+              ❤️ {post.likes || 0}
+            </span>
+
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              title="Share this post"
+              className="flex items-center gap-1 font-semibold transition-all duration-200 hover:scale-110 active:scale-95"
+              style={{ color: shareCopied ? "#059669" : "#6b7280" }}
+            >
+              <span style={{ fontSize: "14px" }}>
+                {shareCopied ? "✅" : "🔗"}
+              </span>
+              <span className="text-xs font-semibold">
+                {shareCopied ? "Copied!" : "Share"}
+              </span>
+            </button>
+          </div>
+
+          <span className="text-green-600 font-bold text-sm flex items-center gap-1 group/btn">
+            Read More
+            <ArrowRightIcon className="w-5 h-5 transform group-hover/btn:translate-x-1 transition-transform" aria-hidden="true" />
           </span>
         </div>
-        <span className="text-green-600 font-bold text-sm flex items-center gap-1 group/btn">
-          Read More
-          <ArrowRightIcon className="w-5 h-5 transform group-hover/btn:translate-x-1 transition-transform" aria-hidden="true" />
-        </span>
       </div>
-    </div>
-  </article>
-));
+    </article>
+  );
+});
 BlogCard.displayName = "BlogCard";
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -138,7 +186,6 @@ const BlogPage = () => {
   const [blogPosts, setBlogPosts] = useState([]);
   const [blogsLoading, setBlogsLoading] = useState(true);
 
-  // SEO: dynamic title + schema
   useEffect(() => {
     const prev = document.title;
     document.title = "Blog | Networking Insights & Articles";
@@ -160,7 +207,6 @@ const BlogPage = () => {
     };
   }, []);
 
-  // Fetch with AbortController — prevents memory leak on unmount
   useEffect(() => {
     window.scrollTo(0, 0);
     const controller = new AbortController();
@@ -189,7 +235,6 @@ const BlogPage = () => {
     setSearchQuery(sanitizeText(e.target.value));
   }, []);
 
-  // Search filter — safe toLowerCase comparison
   const filteredBlogPosts = blogPosts.filter((post) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -205,48 +250,44 @@ const BlogPage = () => {
 
       {/* HERO SECTION */}
       <div
-  className="relative pt-32 pb-24 bg-cover sm:bg-center bg-right"
-  style={{ backgroundImage: `url(${blogbanner})` }}
->
+        className="relative pt-32 pb-24 bg-cover sm:bg-center bg-right"
+        style={{ backgroundImage: `url(${blogbanner})` }}
+      >
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
-  <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    
-    <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl animate-fade-in-down">
-      Our Blog
-    </h1>
+          <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl animate-fade-in-down">
+            Our Blog
+          </h1>
 
-    <p className="mt-6 text-xl text-white max-w-3xl mx-auto opacity-90">
-      Insights, stories, and expertise from the world of networking.
-    </p>
+          <p className="mt-6 text-xl text-white max-w-3xl mx-auto opacity-90">
+            Insights, stories, and expertise from the world of networking.
+          </p>
 
-    <div className="max-w-2xl mx-auto mt-12">
-      <div className="relative group">
-        
-        <label htmlFor="blog-search" className="sr-only">
-          Search articles
-        </label>
+          <div className="max-w-2xl mx-auto mt-12">
+            <div className="relative group">
+              <label htmlFor="blog-search" className="sr-only">
+                Search articles
+              </label>
+              <input
+                id="blog-search"
+                type="search"
+                placeholder="Search articles..."
+                className="w-full px-6 py-4 rounded-full bg-white border border-green-200 text-gray-700 shadow-md focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 placeholder-gray-400"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                maxLength={100}
+                autoComplete="off"
+                aria-label="Search blog articles"
+              />
+              <SearchIcon
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
 
-        <input
-          id="blog-search"
-          type="search"
-          placeholder="Search articles..."
-          className="w-full px-6 py-4 rounded-full bg-white border border-green-200 text-gray-700 shadow-md focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 placeholder-gray-400"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          maxLength={100}
-          autoComplete="off"
-          aria-label="Search blog articles"
-        />
-
-        <SearchIcon
-          className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform"
-          aria-hidden="true"
-        />
+        </div>
       </div>
-    </div>
-
-  </div>
-</div>
 
       {/* BLOG CARDS SECTION */}
       <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
