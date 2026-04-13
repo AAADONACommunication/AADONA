@@ -64,7 +64,7 @@ const AppContent = () => {
 
   // ⏳ chatbot delay
   useEffect(() => {
-    const timer = setTimeout(() => setShowChatbot(true), 3000);
+    const timer = setTimeout(() => setShowChatbot(true), 8000);
     return () => clearTimeout(timer);
   }, []);
 
