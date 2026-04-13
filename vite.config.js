@@ -6,15 +6,15 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     cssCodeSplit: true,
-    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          chatbot: ['./src/Chatbot.jsx'], // 🔥 IMPORTANT
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+          'firebase-app':       ['firebase/app'],
+          'firebase-auth':      ['firebase/auth'],
+          'firebase-firestore': ['firebase/firestore'],
+          'firebase-storage':   ['firebase/storage'],
         },
       },
     },
-  }
+  },
 })
