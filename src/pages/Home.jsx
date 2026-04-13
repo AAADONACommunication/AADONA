@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react'
-import { Helmet } from 'react-helmet-async'
-import Navbar from '../Components/Navbar'
-import Hero from '../Components/Hero'
-import Counter from '../Components/Counter'
-import TimeLine from '../Components/TimeLine'
-import Footer from '../Components/Footer'
-import Verticals from '../Components/Verticals'
-import Certifications from '../Components/Certifications'
-import Customers from '../Components/OurCustomers'
+import React, { useEffect, lazy, Suspense } from 'react'
+
+const Navbar = lazy(() => import('../Components/Navbar'));
+const Hero = lazy(() => import('../Components/Hero'));
+const Counter = lazy(() => import('../Components/Counter'));
+const TimeLine = lazy(() => import('../Components/TimeLine'));
+const Footer = lazy(() => import('../Components/Footer'));
+const Verticals = lazy(() => import('../Components/Verticals'));
+const Certifications = lazy(() => import('../Components/Certifications'));
+const Customers = lazy(() => import('../Components/OurCustomers'));
 // import Chatbot from '../Components/Chatbot'
 
 /* ─────────────────────────────────────────────
@@ -39,9 +39,9 @@ const organizationSchema = {
   address: {
     "@type": "PostalAddress",
     addressCountry: "IN",
-    addressRegion: "Maharashtra",    // ← update with actual state
-    addressLocality: "Mumbai",       // ← update with actual city
-    postalCode: "400001",            // ← update with actual pin
+    addressRegion: "Telangana",
+    addressLocality: "Hyderabad",
+    postalCode: "500039",
   },
   contactPoint: [
     {
@@ -59,8 +59,8 @@ const organizationSchema = {
   ],
   sameAs: [
     "https://in.linkedin.com/company/aadona",
-    // "https://twitter.com/aadona",     // ← add if exists
-    // "https://www.facebook.com/aadona", // ← add if exists
+    "https://www.instagram.com/aadonacommunication?igsh=MTEweWJnb3Axc2RmOA%3D%3D",
+    "https://www.facebook.com/aadonacomm?rdid=cYcCVFPU2NoPsTrH&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1ADx5DXXHC%2F#"
   ],
   hasOfferCatalog: {
     "@type": "OfferCatalog",
@@ -225,8 +225,6 @@ const Home = () => {
         <meta name="twitter:image:alt" content="AADONA – IT Networking Solutions India" />
 
         {/* ── Performance Hints ── */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//www.google-analytics.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
 
@@ -254,55 +252,57 @@ const Home = () => {
         ─ <footer>  → Site-wide footer
       */}
       <header>
-        <Navbar />
+        <Suspense fallback={<div style={{height: '64px'}} />}>
+          <Navbar />
+        </Suspense>
       </header>
 
       <main id="main-content" aria-label="AADONA Home Page">
-        {/*
-          H1 Rules:
-          • Only ONE h1 per page.
-          • Must match the primary keyword intent of the page title.
-          • Visually hidden if design requires, but NEVER display:none or visibility:hidden
-            (use sr-only / clip technique instead so crawlers still read it).
-          • Current implementation is visible — ideal. Keep it that way.
-        */}
         <h1 className="sr-only">
           Made in India IT Networking &amp; Solutions by AADONA — Wireless, Switches, Storage
         </h1>
 
-        {/* Hero section — wrap in <section> with aria-label for landmark navigation */}
         <section aria-label="Hero – AADONA IT Networking Solutions">
-          <Hero />
+          <Suspense fallback={null}>
+            <Hero />
+          </Suspense>
         </section>
 
-        {/* Stats / Counter — helps E-E-A-T (Experience, Expertise, Authoritativeness, Trust) */}
         <section aria-label="Company Milestones and Statistics">
-          <Counter />
+          <Suspense fallback={null}>
+            <Counter />
+          </Suspense>
         </section>
 
-        {/* Company journey / timeline */}
         <section aria-label="AADONA Company Timeline and History">
-          <TimeLine />
+          <Suspense fallback={null}>
+            <TimeLine />
+          </Suspense>
         </section>
 
-        {/* Social proof — customer logos */}
         <section aria-label="Our Customers and Clients">
-          <Customers />
+          <Suspense fallback={null}>
+            <Customers />
+          </Suspense>
         </section>
 
-        {/* Service verticals */}
         <section aria-label="IT Networking Service Verticals">
-          <Verticals />
+          <Suspense fallback={null}>
+            <Verticals />
+          </Suspense>
         </section>
 
-        {/* Trust signals — certifications */}
         <section aria-label="Industry Certifications and Partnerships">
-          <Certifications />
+          <Suspense fallback={null}>
+            <Certifications />
+          </Suspense>
         </section>
       </main>
 
       <footer>
-        <Footer />
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
       </footer>
     </>
   )
