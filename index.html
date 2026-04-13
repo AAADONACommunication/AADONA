@@ -2,27 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
-    <!-- Title -->
     <title>AADONA – Truly Indian IT & Networking Solutions</title>
-
-    <!-- Viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="/linkLogo.jpg" />
     <link rel="apple-touch-icon" href="/linkLogo.jpg" />
 
-    <!-- SEO Description -->
+    <!-- SEO -->
     <meta name="description" content="AADONA delivers Made in India networking products including switches, servers, CCTV, wireless systems and reliable IT solutions for businesses." />
-
-    <!-- Keywords -->
     <meta name="keywords" content="AADONA, networking products, switches, CCTV, servers, NAS, CAT6 cables, Made in India IT solutions, network hardware India" />
-
-    <!-- Canonical -->
     <link rel="canonical" href="https://www.aadona.com/" />
 
-    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <!-- Open Graph -->
     <meta property="og:title" content="AADONA – Truly Indian IT & Networking Solutions" />
     <meta property="og:description" content="Made in India networking products including switches, servers, CCTV, wireless systems, racks and more." />
     <meta property="og:url" content="https://www.aadona.com/" />
@@ -35,7 +27,7 @@
     <meta name="twitter:description" content="Made in India networking products like switches, CCTV, servers and more." />
     <meta name="twitter:image" content="https://www.aadona.com/linkLogo.jpg" />
 
-    <!-- Schema.org (Organization) -->
+    <!-- Schema.org -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -52,15 +44,35 @@
         }
       }
     </script>
-    <!--  -->
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NQRFHLM335"></script>
+
+    <!-- Fonts — non-blocking preload trick -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+      onload="this.rel='stylesheet'" />
+    <noscript>
+      <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" />
+    </noscript>
+
+    <!-- Google Analytics — deferred -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-NQRFHLM335');
-      gtag('config', 'G-XEZL9ZGTXE'); 
+    </script>
+    <script>
+      window.addEventListener('load', function() {
+        var s = document.createElement('script');
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-NQRFHLM335';
+        s.async = true;
+        s.onload = function() {
+          gtag('config', 'G-NQRFHLM335');
+          gtag('config', 'G-XEZL9ZGTXE');
+        };
+        document.head.appendChild(s);
+      });
     </script>
   </head>
 
