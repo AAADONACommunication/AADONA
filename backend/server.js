@@ -302,6 +302,13 @@ app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 app.use("/assets", express.static("assets"));
 
+app.use((req, res, next) => {
+  if (req.method === "GET") {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  }
+  next();
+});
+
 // Chatbot route
 const chatbotRoute = require('./routes/chatbot');
 app.use(chatbotRoute);
