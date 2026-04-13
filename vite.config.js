@@ -6,16 +6,22 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Separate vendor chunks
-          'firebase': ['firebase/app', 'firebase/auth', 'firebase/storage'],
-          'quill': ['quill'],
-          'html2canvas': ['html2canvas'],
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        manualChunks(id) {
+          if (id.includes('firebase/auth')) return 'firebase-auth'
+          if (id.includes('firebase/storage')) return 'firebase-storage'
+          if (id.includes('firebase/app') || id.includes('firebase')) return 'firebase-app'
+
+          if (id.includes('quill')) return 'quill'
+          if (id.includes('html2canvas')) return 'html2canvas'
+
+          if (id.includes('react-dom')) return 'react-dom'
+          if (id.includes('react-router')) return 'react-router'
+          if (id.includes('react')) return 'react-vendor'
+
+          if (id.includes('node_modules')) return 'vendor'
         }
       }
     },
-    // Warn on large chunks
     chunkSizeWarningLimit: 500,
   }
 })
