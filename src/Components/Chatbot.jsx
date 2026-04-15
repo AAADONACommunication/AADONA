@@ -200,7 +200,7 @@ function BotMessage({ content, time, productCards, actionButtons, isStreaming })
           {isStreaming && <span className="inline-block w-0.5 h-3.5 bg-emerald-400 ml-0.5 animate-pulse rounded-sm" />}
         </div>
 
-        {/* Product Cards */}
+        {/* Product Cards — only render when streaming is complete */}
         {!isStreaming && productCards?.length > 0 && (
           productCards.length === 1 ? (
             <SingleProductCard product={productCards[0]} />
@@ -382,7 +382,7 @@ export default function Chatbot() {
   const inputRef = useRef(null);
   const callDrawerRef = useRef(null);
 
-  // Mail tracking refs — INSIDE component
+  // Mail tracking refs
   const lastSummaryRef = useRef({ messageCount: 0, sentAt: 0 });
   const inactivityTimerRef = useRef(null);
   const summaryMailSentRef = useRef(false);
@@ -451,11 +451,14 @@ export default function Chatbot() {
     };
   }, []);
 
-  // Tab/window close pe summary bhejo
+  // ── Tab/window close — only send if user actually chatted ─────────────────
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (!user?.phone) return;
-      if (!messages.some(m => m.role === 'user')) return;
+      // FIX: Only send summary if user actually sent at least one message
+      const userMessages = messages.filter(m => m.role === 'user');
+      if (!userMessages.length) return;
+
       const payload = JSON.stringify({
         name: user.name,
         phone: user.phone,
@@ -483,7 +486,7 @@ export default function Chatbot() {
   const sendChatSummaryMail = useCallback(async (chatMessages, isResume = false, trigger = 'inactivity') => {
     if (!user?.phone) return;
 
-    // ── Resume notification ──
+    // Resume notification — only if a summary was already sent
     if (isResume) {
       if (!summaryMailSentRef.current) return;
       try {
@@ -506,15 +509,11 @@ export default function Chatbot() {
       return;
     }
 
-    // ── Full summary ──
+    // FIX: Only send full summary if user actually sent at least one message
     if (!chatMessages?.length) return;
-    const hasRealChat = chatMessages.some(m => m.role === 'user');
-    if (!hasRealChat) return;
+    const userMessages = chatMessages.filter(m => m.role === 'user');
+    if (!userMessages.length) return;
 
-    // Sirf nayi messages honi chahiye jo pehle nahi gayi
-    if (!chatMessages.some(m => m.role === 'user')) return;
-
-    // Update tracking
     lastSummaryRef.current = { messageCount: chatMessages.length, sentAt: Date.now() };
     summaryMailSentRef.current = true;
 
@@ -543,7 +542,6 @@ export default function Chatbot() {
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
 
     inactivityTimerRef.current = setTimeout(() => {
-      // 10 min baad poori chat bhejo (purani + nayi sab)
       sendChatSummaryMail(chatMessages, false, 'inactivity');
     }, 10 * 60 * 1000);
   }, [sendChatSummaryMail]);
@@ -624,11 +622,9 @@ export default function Chatbot() {
     const trimmed = (text || input).trim();
     if (!trimmed || isLoading) return;
 
-    // Agar pehle summary ja chuki hai toh resume notification bhejo
+    // If summary was already sent, notify resume
     if (summaryMailSentRef.current) {
       sendChatSummaryMail(messages, true);
-      // summaryMailSentRef ko false mat karo —
-      // taaki agle 10 min baad poori updated chat jaaye
     }
 
     setInput('');
@@ -643,12 +639,26 @@ export default function Chatbot() {
     setApiHistory(newApiHistory);
     setIsLoading(true);
 
+    // ── FIX: Use a stable index key instead of array position ──
+    // We append the streaming placeholder and track it by a unique id
+    const botMsgId = `bot_${Date.now()}`;
+
     const streamingMsg = {
-      role: 'bot', content: '', time: getTime(),
-      isStreaming: true, productCards: null, actionButtons: null,
+      id: botMsgId,
+      role: 'bot',
+      content: '',
+      time: getTime(),
+      isStreaming: true,
+      productCards: null,
+      actionButtons: null,
     };
+
     setMessages(prev => [...prev, streamingMsg]);
-    const botIndex = newMessages.length;
+
+    // ── Accumulate full reply outside of React state ──────────────────────
+    let streamedText = '';
+    let finalProductCards = null;
+    let finalActionButtons = null;
 
     try {
       const response = await fetch(`${API_BASE}/chat`, {
@@ -669,9 +679,12 @@ export default function Chatbot() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let streamedText = '';
-      let productCards = null;
-      let actionButtons = null;
+
+      // ── FIX: Collect all tokens first, then type-animate ──────────────────
+      // This prevents the race condition where json.done arrives while
+      // char animation is still running, causing cards to get lost.
+      const rawTokens = [];
+      let donePayload = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -683,63 +696,89 @@ export default function Chatbot() {
           try {
             const json = JSON.parse(line.replace('data: ', ''));
             if (json.token) {
-              const chars = json.token.split('');
-              for (const char of chars) {
-                streamedText += char;
-                await new Promise(r => setTimeout(r, 12));
-                const snap = streamedText;
-                setMessages(prev => {
-                  const updated = [...prev];
-                  if (updated[botIndex]) updated[botIndex] = { ...updated[botIndex], content: snap, isStreaming: true };
-                  return updated;
-                });
-                scrollToBottom();
-              }
+              rawTokens.push(json.token);
             }
             if (json.done) {
-              productCards = json.productCards || null;
-              actionButtons = json.actionButtons || null;
-              setMessages(prev => {
-                const updated = [...prev];
-                if (updated[botIndex]) updated[botIndex] = {
-                  ...updated[botIndex],
-                  content: streamedText,
-                  isStreaming: false,
-                  productCards,
-                  actionButtons,
-                };
-                return updated;
-              });
+              donePayload = json;
             }
           } catch { }
         }
       }
 
-      const finalMessages = [...newMessages, {
-        role: 'bot',
-        content: streamedText,
-        time: getTime(),
-        productCards,
-        actionButtons,
-        isStreaming: false,
-      }];
+      // Extract final cards/buttons from done payload
+      if (donePayload) {
+        finalProductCards = donePayload.productCards || null;
+        finalActionButtons = donePayload.actionButtons || null;
+      }
+
+      // Full text assembled
+      streamedText = rawTokens.join('');
+
+      // ── Now type-animate char by char ─────────────────────────────────────
+      let displayed = '';
+      for (const token of rawTokens) {
+        for (const char of token.split('')) {
+          displayed += char;
+          const snap = displayed;
+          setMessages(prev => {
+            const updated = [...prev];
+            const idx = updated.findIndex(m => m.id === botMsgId);
+            if (idx !== -1) {
+              updated[idx] = { ...updated[idx], content: snap, isStreaming: true };
+            }
+            return updated;
+          });
+          scrollToBottom();
+          await new Promise(r => setTimeout(r, 12));
+        }
+      }
+
+      // ── Mark streaming complete and attach cards ──────────────────────────
+      setMessages(prev => {
+        const updated = [...prev];
+        const idx = updated.findIndex(m => m.id === botMsgId);
+        if (idx !== -1) {
+          updated[idx] = {
+            ...updated[idx],
+            content: streamedText,
+            isStreaming: false,
+            productCards: finalProductCards,
+            actionButtons: finalActionButtons,
+          };
+        }
+        return updated;
+      });
+
+      const finalMessages = [
+        ...newMessages,
+        {
+          id: botMsgId,
+          role: 'bot',
+          content: streamedText,
+          time: getTime(),
+          productCards: finalProductCards,
+          actionButtons: finalActionButtons,
+          isStreaming: false,
+        },
+      ];
 
       setApiHistory(prev => [...prev, { role: 'assistant', content: streamedText }]);
       setQuickReplies(getQuickReplies(trimmed));
       saveHistory(user?.phone, finalMessages);
-
-      // Har message ke baad inactivity timer reset karo
       resetInactivityTimer(finalMessages);
 
     } catch (err) {
       console.error('Chat error:', err);
       setMessages(prev => {
         const updated = [...prev];
-        if (updated[botIndex]) updated[botIndex] = {
-          ...updated[botIndex],
-          content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`,
-          isStreaming: false,
-        };
+        const idx = updated.findIndex(m => m.id === botMsgId);
+        if (idx !== -1) {
+          updated[idx] = {
+            ...updated[idx],
+            content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`,
+            isStreaming: false,
+          };
+        }
         return updated;
       });
       setQuickReplies(QUICK_REPLY_MAP.default);
@@ -761,7 +800,6 @@ export default function Chatbot() {
     setMessages([greeting]);
     setApiHistory([]);
     setQuickReplies(QUICK_REPLY_MAP.default);
-    // Mail tracking reset
     lastSummaryRef.current = { messageCount: 0, sentAt: 0 };
     summaryMailSentRef.current = false;
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
@@ -876,7 +914,7 @@ export default function Chatbot() {
                   <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 bg-slate-50/80 no-scrollbar">
                     {messages.map((msg, i) =>
                       msg.role === 'bot'
-                        ? <BotMessage key={i} content={msg.content} time={msg.time} productCards={msg.productCards} actionButtons={msg.actionButtons} isStreaming={msg.isStreaming} />
+                        ? <BotMessage key={msg.id || i} content={msg.content} time={msg.time} productCards={msg.productCards} actionButtons={msg.actionButtons} isStreaming={msg.isStreaming} />
                         : <UserMessage key={i} content={msg.content} time={msg.time} />
                     )}
                     {isLoading && !messages[messages.length - 1]?.isStreaming && (
