@@ -256,26 +256,26 @@ export default function Products({ products, setProducts, allCategories, reloadP
         await uploadBytes(asmRef, asmFile, { contentType: asmFile.type });
         assemblyDiagramUrl = await getDownloadURL(asmRef);
       }
-
-      const payload = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        features: form.features,
-        image: imageUrl,
-        type: form.type,
-        category: form.category.trim(),
-        subCategory: form.subCategory.trim(),
-        extraCategory: hasExtraOptions ? form.extraCategory.trim() : null,
-        overview: form.overview || {},
-        featuresDetail: (form.featuresDetail || []).map(item => ({
-          ...item,
-          itemType: item.itemType
-            ? item.itemType
-            : (item.title?.trim() ? "subheading" : "bullet"),
-        })),
-        specifications: form.specifications || {},
-        datasheet: datasheetUrl,
-      };
+const payload = {
+  name: form.name.trim(),
+  description: form.description.trim(),
+  features: form.features,
+  image: imageUrl,
+  type: form.type,
+  category: form.category.trim(),
+  subCategory: form.subCategory.trim(),
+  extraCategory: hasExtraOptions ? form.extraCategory.trim() : null,
+  overview: form.overview || {},
+  featuresDetail: (form.featuresDetail || []).map(item => ({
+    ...item,
+    itemType: item.itemType
+      ? item.itemType
+      : (item.title?.trim() ? "subheading" : "bullet"),
+  })),
+  specifications: form.specifications || {},
+  datasheet: datasheetUrl,
+  assemblyDiagram: assemblyDiagramUrl,
+};
 
       const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
