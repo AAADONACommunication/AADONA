@@ -312,6 +312,7 @@ const DownloadTab = memo(({ datasheet, assemblyDiagram }) => {
       </div>
 
       {/* ── Assembly Diagram — sirf tab show hoga jab URL ho ── */}
+
       {safeAssembly && (
         <div>
           <h3 className="text-[15px] font-black text-[#111] uppercase tracking-[0.12em] mb-6 border-l-[3px] border-[#00A859] pl-4">
@@ -322,13 +323,15 @@ const DownloadTab = memo(({ datasheet, assemblyDiagram }) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Download assembly diagram (opens in new tab)"
-             style={{
+            style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               padding: "14px 24px", borderRadius: 12,
-              background: "#f5f5f5", border: "1px solid #e8e8e8",
-              color: "#bbb", fontWeight: 700, fontSize: 13,
-              letterSpacing: "0.09em", textTransform: "uppercase",
-              cursor: "not-allowed"
+              background: "linear-gradient(135deg, #0072c6, #005fa3 55%, #004f8a)",
+              color: "#fff", fontWeight: 700, fontSize: 13,
+              letterSpacing: "0.06em", textTransform: "uppercase",
+              textDecoration: "none", whiteSpace: "nowrap",
+              boxShadow: "0 6px 22px rgba(0,114,198,0.28), inset 0 1px 0 rgba(255,255,255,0.14)",
+              transition: "all 0.2s ease"
             }}
           >
             <Download size={16} strokeWidth={2.5} aria-hidden="true" />
