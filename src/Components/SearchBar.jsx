@@ -34,7 +34,6 @@ const PAGES = [
   { name: "Leadership Team",        path: "/leadershipTeam",           desc: "Meet our leadership" },
   { name: "Media Center",           path: "/mediaCenter",              desc: "Press releases & media" },
   { name: "Mission & Vision",       path: "/missionVision",            desc: "Our goals and values" },
-  { name: "Our Customers",          path: "/ourCustomers",             desc: "Brands we work with" },
   { name: "Whistle Blower",         path: "/whistleBlower",            desc: "Report concerns confidentially" },
   { name: "Contact Us",             path: "/contactus",                desc: "Get in touch with our team" },
   { name: "Project Locking",        path: "/projectLocking",           desc: "Lock your project with us" },
