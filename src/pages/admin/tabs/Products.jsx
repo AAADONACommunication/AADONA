@@ -11,13 +11,15 @@ const API = `${import.meta.env.VITE_API_URL}/products`;
 
 export default function Products({ products, setProducts, allCategories, reloadProducts }) {
 
-  const [form, setForm] = useState({
-    name: "", type: "", category: "", subCategory: "",
-    description: "", features: [], extraCategory: "", imageFile: null,
-    overview: {}, highlights: [], specifications: {}, datasheet: "",
-    relatedType: "", relatedCategory: "", relatedSubCategory: "",
-    relatedExtraCategory: "", relatedProducts: [],
-  });
+ const [form, setForm] = useState({
+  name: "", type: "", category: "", subCategory: "",
+  description: "", features: [], extraCategory: "", imageFile: null,
+  overview: {}, highlights: [], specifications: {}, datasheet: "",
+  relatedType: "", relatedCategory: "", relatedSubCategory: "",
+  relatedExtraCategory: "", relatedProducts: [],
+  assemblyDiagramFile: null, 
+  assemblyDiagram: "",       
+});
   const [featureInput, setFeatureInput] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [btnLoading, setBtnLoading] = useState(false);
@@ -243,6 +245,18 @@ export default function Products({ products, setProducts, allCategories, reloadP
       await uploadBytes(pdfRef, pdfBlob, { contentType: "application/pdf" });
       const datasheetUrl = await getDownloadURL(pdfRef);
 
+      // Assembly diagram upload (optional)
+      let assemblyDiagramUrl = form.assemblyDiagram || "";
+      if (form.assemblyDiagramFile) {
+        const asmFile = form.assemblyDiagramFile;
+        const safeName = (form.name || "product").replace(/\s+/g, "_").toLowerCase();
+        const storage = await getFirebaseStorage();
+        const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+        const asmRef = ref(storage, `assembly-diagrams/${Date.now()}-${safeName}-${asmFile.name}`);
+        await uploadBytes(asmRef, asmFile, { contentType: asmFile.type });
+        assemblyDiagramUrl = await getDownloadURL(asmRef);
+      }
+
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -310,6 +324,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
     setForm({
       ...p,
       imageFile: null,
+      assemblyDiagramFile: null, 
       features: p.features || [],
       overview: p.overview || {},
       featuresDetail: (p.featuresDetail || []).map((item) => ({
@@ -334,15 +349,17 @@ export default function Products({ products, setProducts, allCategories, reloadP
   };
 
   const resetForm = () => {
-    setForm({
-      name: "", type: "", category: "", subCategory: "",
-      description: "", features: [], extraCategory: "", imageFile: null,
-      overview: {}, featuresDetail: [], specifications: {}, datasheet: "",
-      relatedType: "", relatedCategory: "", relatedSubCategory: "",
-      relatedExtraCategory: "", relatedProducts: [],
-    });
-    setEditingId(null);
-  };
+  setForm({
+    name: "", type: "", category: "", subCategory: "",
+    description: "", features: [], extraCategory: "", imageFile: null,
+    overview: {}, featuresDetail: [], specifications: {}, datasheet: "",
+    relatedType: "", relatedCategory: "", relatedSubCategory: "",
+    relatedExtraCategory: "", relatedProducts: [],
+    assemblyDiagramFile: null,  
+    assemblyDiagram: "",        
+  });
+  setEditingId(null);
+};
 
   const duplicateProduct = (product) => {
     const { _id, ...rest } = product;
@@ -587,6 +604,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
           </div>
         </div>
 
+
+
         {/* ── Detailed Section (Step 2) ── */}
         {basicCompleted && (
           <div className="mt-12 bg-white p-8 rounded-2xl border border-green-200 shadow-md">
@@ -602,6 +621,47 @@ export default function Products({ products, setProducts, allCategories, reloadP
                 onChange={(e) => setForm({ ...form, overview: { title: "Product Overview", content: e.target.value } })}
                 placeholder="Write a detailed product overview..." />
             </div>
+
+            {/* Assembly Diagram Upload */}
+<div className="md:col-span-2">
+  <label className="block text-sm font-bold text-green-800 mb-2">
+    Assembly Diagram <span className="text-xs text-gray-400 font-normal">(Optional — PDF or Image)</span>
+  </label>
+  <input type="file" id="assembly-diagram" className="hidden" accept=".pdf,image/*"
+    onChange={(e) => setForm({ ...form, assemblyDiagramFile: e.target.files[0] })} />
+  <label htmlFor="assembly-diagram"
+    className={`flex items-center justify-between w-full border-2 border-dashed rounded-2xl px-5 py-4 cursor-pointer transition-all ${
+      form.assemblyDiagramFile ? "border-green-500 bg-green-50" : "border-green-200 bg-white hover:border-green-400"
+    }`}>
+    <div className="flex items-center gap-3">
+      {form.assemblyDiagramFile
+        ? <CheckCircle2 className="text-green-500" />
+        : <Upload className="text-gray-400" />}
+      <span className={form.assemblyDiagramFile ? "text-green-800 font-semibold" : "text-gray-400"}>
+        {form.assemblyDiagramFile
+          ? form.assemblyDiagramFile.name
+          : form.assemblyDiagram
+            ? "Assembly diagram already uploaded — click to replace"
+            : "Click to upload assembly diagram (PDF or image)"}
+      </span>
+    </div>
+    <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md">
+      Browse
+    </span>
+  </label>
+  {form.assemblyDiagram && !form.assemblyDiagramFile && (
+    <div className="mt-2 flex items-center gap-2">
+      <a href={form.assemblyDiagram} target="_blank" rel="noopener noreferrer"
+        className="text-xs text-blue-600 underline hover:text-blue-800">
+        View current assembly diagram ↗
+      </a>
+      <button type="button" onClick={() => setForm({ ...form, assemblyDiagram: "" })}
+        className="text-xs text-red-400 hover:text-red-600 font-semibold">
+        ✕ Remove
+      </button>
+    </div>
+  )}
+</div>
 
             {/* Features Detail */}
             <div className="mb-6">

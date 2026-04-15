@@ -260,49 +260,83 @@ const SpecificationsTab = memo(({ specifications }) => {
   );
 });
 
-const DownloadTab = memo(({ datasheet }) => {
+const DownloadTab = memo(({ datasheet, assemblyDiagram }) => {
   const safeSrc = datasheet && isSafeUrl(datasheet) ? datasheet : null;
+  const safeAssembly = assemblyDiagram && isSafeUrl(assemblyDiagram) ? assemblyDiagram : null;
+
   return (
-    <div className="max-w-xl">
-      <h3 className="text-[15px] font-black text-[#111] uppercase tracking-[0.12em] mb-6 border-l-[3px] border-[#00A859] pl-4">
-        Product Datasheet
-      </h3>
-      {safeSrc ? (
-        <a
-          href={safeSrc}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Download product datasheet (opens in new tab)"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "14px 24px", borderRadius: 12,
-            background: "linear-gradient(135deg, #00c96e, #00A859 55%, #008f4c)",
-            color: "#fff", fontWeight: 700, fontSize: 13,
-            letterSpacing: "0.06em", textTransform: "uppercase",
-            textDecoration: "none", whiteSpace: "nowrap",
-            boxShadow: "0 6px 22px rgba(0,168,89,0.28), inset 0 1px 0 rgba(255,255,255,0.14)",
-            transition: "all 0.2s ease"
-          }}
-        >
-          <Download size={16} strokeWidth={2.5} aria-hidden="true" />
-          Download Datasheet
-        </a>
-      ) : (
-        <button
-          disabled
-          aria-disabled="true"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "14px 24px", borderRadius: 12,
-            background: "#f5f5f5", border: "1px solid #e8e8e8",
-            color: "#bbb", fontWeight: 700, fontSize: 13,
-            letterSpacing: "0.09em", textTransform: "uppercase",
-            cursor: "not-allowed"
-          }}
-        >
-          <Download size={16} strokeWidth={2} aria-hidden="true" />
-          Datasheet Not Available
-        </button>
+    <div className="max-w-xl space-y-10">
+
+      {/* ── Product Datasheet ── */}
+      <div>
+        <h3 className="text-[15px] font-black text-[#111] uppercase tracking-[0.12em] mb-6 border-l-[3px] border-[#00A859] pl-4">
+          Product Datasheet
+        </h3>
+        {safeSrc ? (
+          <a
+            href={safeSrc}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Download product datasheet (opens in new tab)"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "14px 24px", borderRadius: 12,
+              background: "linear-gradient(135deg, #00c96e, #00A859 55%, #008f4c)",
+              color: "#fff", fontWeight: 700, fontSize: 13,
+              letterSpacing: "0.06em", textTransform: "uppercase",
+              textDecoration: "none", whiteSpace: "nowrap",
+              boxShadow: "0 6px 22px rgba(0,168,89,0.28), inset 0 1px 0 rgba(255,255,255,0.14)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <Download size={16} strokeWidth={2.5} aria-hidden="true" />
+            Download Datasheet
+          </a>
+        ) : (
+          <button
+            disabled
+            aria-disabled="true"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "14px 24px", borderRadius: 12,
+              background: "#f5f5f5", border: "1px solid #e8e8e8",
+              color: "#bbb", fontWeight: 700, fontSize: 13,
+              letterSpacing: "0.09em", textTransform: "uppercase",
+              cursor: "not-allowed"
+            }}
+          >
+            <Download size={16} strokeWidth={2} aria-hidden="true" />
+            Datasheet Not Available
+          </button>
+        )}
+      </div>
+
+      {/* ── Assembly Diagram — sirf tab show hoga jab URL ho ── */}
+      {safeAssembly && (
+        <div>
+          <h3 className="text-[15px] font-black text-[#111] uppercase tracking-[0.12em] mb-6 border-l-[3px] border-[#00A859] pl-4">
+            Assembly Diagram
+          </h3>
+          <a
+            href={safeAssembly}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Download assembly diagram (opens in new tab)"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "14px 24px", borderRadius: 12,
+              background: "linear-gradient(135deg, #0072c6, #005fa3 55%, #004f8a)",
+              color: "#fff", fontWeight: 700, fontSize: 13,
+              letterSpacing: "0.06em", textTransform: "uppercase",
+              textDecoration: "none", whiteSpace: "nowrap",
+              boxShadow: "0 6px 22px rgba(0,114,198,0.28), inset 0 1px 0 rgba(255,255,255,0.14)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <Download size={16} strokeWidth={2.5} aria-hidden="true" />
+            Download Assembly Diagram
+          </a>
+        </div>
       )}
     </div>
   );
@@ -644,7 +678,7 @@ const ProductDetailPage = () => {
             {activeTab === "overview" && <OverviewTab product={product} />}
             {activeTab === "features" && <FeaturesTab items={product.featuresDetail} />}
             {activeTab === "specifications" && <SpecificationsTab specifications={product.specifications} />}
-            {activeTab === "download" && <DownloadTab datasheet={product.datasheet} />}
+            {activeTab === "download" && <DownloadTab datasheet={product.datasheet} assemblyDiagram={product.assemblyDiagram} />}
           </div>
         </section>
       </div>

@@ -353,6 +353,7 @@ const ProductSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, index: true },
     image: { type: String, required: true },
     datasheet: { type: String },
+    assemblyDiagram: { type: String, default: "" },
     type: { type: String, required: true },
     category: { type: String, required: true, index: true },
     subCategory: { type: String, default: null, index: true },
@@ -801,6 +802,7 @@ const deleteProductsCascade = async (query) => {
   for (const product of products) {
     await deleteFromFirebase(product.image);
     await deleteFromFirebase(product.datasheet);
+    await deleteFromFirebase(product.assemblyDiagram); 
     pdfCache.delete(product.slug); // clear PDF cache
     await Product.findByIdAndDelete(product._id);
     console.log("Cascade deleted product:", product.name);
@@ -1202,6 +1204,7 @@ app.delete("/products/:id", verifyToken, async (req, res) => {
 
     await deleteFromFirebase(product.image);
     await deleteFromFirebase(product.datasheet);
+    await deleteFromFirebase(product.assemblyDiagram); 
     pdfCache.delete(product.slug);
     await Product.findByIdAndDelete(req.params.id);
 
