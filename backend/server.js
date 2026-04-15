@@ -1735,6 +1735,41 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
 });
 
 /* =============================
+   BLOG AUTOMATION ROUTE
+============================= */
+
+const { spawn } = require("child_process");
+
+app.post("/admin/generate-blogs", verifyToken, (req, res) => {
+  const { topic } = req.body;
+
+  const py = spawn("python", ["../python-automation/main.py"]);
+
+  // HANDLE BOTH MODES
+  if (topic && topic.trim()) {
+    py.stdin.write(topic + "\n");
+  } else {
+    py.stdin.write("\n");
+  }
+
+  py.stdin.end();
+
+  // logs (optional but useful)
+  py.stdout.on("data", (data) => {
+    console.log(data.toString());
+  });
+
+  py.stderr.on("data", (err) => {
+    console.log(err.toString());
+  });
+
+  py.on("close", (code) => {
+    console.log("Process exited with code:", code);
+    res.send("Blog generated successfully");
+  });
+});
+
+/* =============================
    INQUIRY ROUTES
 ============================= */
 

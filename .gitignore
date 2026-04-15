@@ -40,3 +40,13 @@ Thumbs.db
 serviceAccountKey.json
 makeAdmin.js
 ga-service-account.json
+
+
+# Python Automation
+python-automation/.env
+python-automation/firebase_key.json
+python-automation/debug_section3.html
+python-automation/*.avif
+python-automation/*.png
+python-automation/__pycache__/
+python-automation/*.json

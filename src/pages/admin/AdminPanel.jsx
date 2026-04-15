@@ -14,6 +14,7 @@ import Inbox from "./tabs/Inbox";
 import History from "./tabs/History";
 import Insights from "./tabs/Insights";
 import Newsletter from "./tabs/Newsletter";
+import BlogAutomation from "./tabs/BlogAutomation";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
@@ -221,6 +222,7 @@ export default function AdminPanel() {
               { id: "products", label: "📦 Products" },
               { id: "categories", label: "🗂️ Categories" },
               { id: "blogs", label: "✍️ Blogs" },
+              { id: "automation", label: "⚡ Automation" },
               { id: "inbox", label: "📬 Inbox" },
               { id: "newsletter", label: "📧 Newsletter" },
               { id: "history", label: "📋 History" },
@@ -274,6 +276,8 @@ export default function AdminPanel() {
               loadInquiries={loadInquiries}
             />
           )}
+
+          {activeTab === "automation" && <BlogAutomation />}
 
           {activeTab === "newsletter" && <Newsletter />}
 
