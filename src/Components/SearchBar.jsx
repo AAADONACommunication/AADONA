@@ -97,7 +97,6 @@ export default function SearchBar() {
   const timer        = useRef(null);
   const containerRef = useRef(null);
 
-  // ── Fetch products from API on mount ────────────────────────────────────────
   useEffect(() => {
     const fetchProducts = async () => {
       setProductsLoading(true);
@@ -121,7 +120,7 @@ export default function SearchBar() {
         setAllProducts(normalized);
       } catch (err) {
         console.error("Products fetch failed:", err);
-        setProductsError("Products load nahi ho sake");
+        setProductsError(true); 
       } finally {
         setProductsLoading(false);
       }
@@ -130,7 +129,6 @@ export default function SearchBar() {
     fetchProducts();
   }, []);
 
-  // ── FIX: Re-run search when allProducts loads ────────────────────────────────
   useEffect(() => {
     if (value.trim() && allProducts.length > 0) {
       runSearch(value);
@@ -138,7 +136,6 @@ export default function SearchBar() {
     }
   }, [allProducts]);
 
-  // ── Typewriter ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (focused) return;
     const type = () => {
@@ -168,7 +165,6 @@ export default function SearchBar() {
     return () => clearTimeout(timer.current);
   }, [focused]);
 
-  // ── Search logic (with Fuzzy Matching) ──────────────────────────────────────
   const runSearch = useCallback(
     (q) => {
       if (!q.trim()) {
@@ -178,7 +174,6 @@ export default function SearchBar() {
         return;
       }
 
-      // Normalization to handle "asw 1200" vs "asw-1200"
       const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, "");
       const qNormalized = normalize(q);
       const ql = q.toLowerCase();
@@ -231,7 +226,6 @@ export default function SearchBar() {
     }
   };
 
-  // ── Outside click ────────────────────────────────────────────────────────────
   useEffect(() => {
     const h = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target))
@@ -241,14 +235,12 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  // ── ESC key ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") setDropdownOpen(false); };
     document.addEventListener("keydown", h);
     return () => document.removeEventListener("keydown", h);
   }, []);
 
-  // ── Navigation handlers ──────────────────────────────────────────────────────
   const handleProductClick = (product) => {
     setDropdownOpen(false);
     setValue(product.name);
@@ -262,26 +254,14 @@ export default function SearchBar() {
 
   const handleSearch = () => {
     if (!value.trim()) return;
-    
-    // Sirf dropdown update karega, naya page nahi kholega
     runSearch(value);
     setDropdownOpen(true);
 
-    /* --- Original Navigation Logic (Disabled as requested) ---
-    const exactPage = PAGES.find(
-      (p) => p.name.toLowerCase() === value.toLowerCase()
-    );
-    if (exactPage) {
-      navigate(exactPage.path);
-      return;
-    }
-    const exactProduct = allProducts.find(
-      (p) => p.name.toLowerCase() === value.toLowerCase()
-    );
-    if (exactProduct) {
-      navigate(`/${exactProduct.slug}`);
-      return;
-    }
+    /* --- Original Navigation Logic (Disabled) ---
+    const exactPage = PAGES.find(p => p.name.toLowerCase() === value.toLowerCase());
+    if (exactPage) { navigate(exactPage.path); return; }
+    const exactProduct = allProducts.find(p => p.name.toLowerCase() === value.toLowerCase());
+    if (exactProduct) { navigate(`/${exactProduct.slug}`); return; }
     navigate(`/${value.trim().toLowerCase().replace(/\s+/g, "-")}`);
     */
   };
@@ -293,7 +273,6 @@ export default function SearchBar() {
     }
   };
 
-  // ── Chip click ───────────────────────────────────────────────────────────────
   const handleChipClick = (chip) => {
     setValue(chip.query);
     runSearch(chip.query);
@@ -309,7 +288,6 @@ export default function SearchBar() {
 
   const noResults = productResults.length === 0 && pageResults.length === 0;
 
-  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <section className="flex flex-col items-center mb-0 gap-4 py-12 px-4">
 
@@ -319,23 +297,20 @@ export default function SearchBar() {
 
       <div className="w-full max-w-2xl relative" ref={containerRef}>
 
-        {/* Input box */}
         <div
-          className={`flex items-center gap-3 bg-white px-5 h-14 rounded-full border transition-all duration-200
+          className={`flex items-center bg-white pl-5 pr-1.5 h-14 rounded-full border transition-all duration-200
             ${focused
               ? "border-green-500 shadow-[0_0_0_3px_rgba(0,168,89,0.13)]"
               : "border-green-200 border-2"
             }`}
         >
-          {/* Search icon */}
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
             stroke="#00A859" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-            className="flex-shrink-0">
+            className="flex-shrink-0 mr-3">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
 
-          {/* Input + ghost placeholder */}
           <div className="flex-1 relative h-full flex items-center min-w-0">
             <input
               type="text"
@@ -354,47 +329,36 @@ export default function SearchBar() {
             )}
           </div>
 
-          {/* Loading spinner */}
           {productsLoading && (
-            <svg className="animate-spin flex-shrink-0 w-4 h-4 text-green-400"
+            <svg className="animate-spin flex-shrink-0 w-4 h-4 text-green-400 mx-2"
               viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
               <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
           )}
 
-          {/* Search button */}
           <button
             onClick={handleSearch}
             className="flex-shrink-0 bg-gradient-to-br from-green-400 via-green-600 to-green-700
               text-white text-[13px] font-semibold rounded-full px-6 py-2.5
-              hover:opacity-90 transition-opacity"
+              hover:opacity-90 transition-opacity ml-auto"
           >
             Search
           </button>
         </div>
 
-        {/* Dropdown */}
         {dropdownOpen && (
           <div className="absolute top-full mt-2.5 left-0 right-0 bg-white border border-gray-200
             rounded-2xl shadow-xl z-50 max-h-[420px] overflow-y-auto">
 
-            {/* API error */}
-            {productsError && (
-              <div className="px-4 py-2 text-xs text-red-400 border-b border-gray-100">
-                ⚠️ {productsError} — page results neeche hain
-              </div>
-            )}
-
             {noResults ? (
               <div className="py-8 text-center text-sm text-gray-400">
                 {productsLoading
-                  ? "Products load ho rahe hain..."
+                  ? "Loading products..."
                   : `No results for "${value}"`}
               </div>
             ) : (
               <>
-                {/* Products section */}
                 {productResults.length > 0 && (
                   <>
                     <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-4 pt-3 pb-1.5">
@@ -408,11 +372,7 @@ export default function SearchBar() {
                       >
                         <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center overflow-hidden flex-shrink-0">
                           {p.icon ? (
-                            <img
-                              src={p.icon}
-                              alt={p.name}
-                              className="w-full h-full object-contain p-1"
-                            />
+                            <img src={p.icon} alt={p.name} className="w-full h-full object-contain p-1" />
                           ) : (
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                               stroke="#00A859" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -421,7 +381,6 @@ export default function SearchBar() {
                             </svg>
                           )}
                         </div>
-
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
                             <Highlight text={p.name} query={value} />
@@ -430,7 +389,6 @@ export default function SearchBar() {
                             {p.category}{p.subCategory ? ` › ${p.subCategory}` : ""}
                           </p>
                         </div>
-
                         <span className="ml-auto text-[11px] font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full flex-shrink-0">
                           Product
                         </span>
@@ -439,12 +397,10 @@ export default function SearchBar() {
                   </>
                 )}
 
-                {/* Divider */}
                 {productResults.length > 0 && pageResults.length > 0 && (
                   <div className="h-px bg-gray-100 my-1" />
                 )}
 
-                {/* Pages section */}
                 {pageResults.length > 0 && (
                   <>
                     <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-4 pt-3 pb-1.5">
@@ -483,7 +439,6 @@ export default function SearchBar() {
         )}
       </div>
 
-      {/* Chips */}
       <div className="flex flex-wrap gap-2 justify-center">
         {chips.map((chip) => (
           <button
@@ -497,7 +452,6 @@ export default function SearchBar() {
           </button>
         ))}
       </div>
-
     </section>
   );
 }
