@@ -365,15 +365,22 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                 </button>
 
                 {showInboxFormData && selectedInquiry.formData && (
-                  <div className="mt-3 bg-gray-50 rounded-xl p-4 space-y-2">
-                    {Object.entries(selectedInquiry.formData).map(([key, val]) => (
-                      <div key={key} className="flex gap-3 text-xs">
-                        <span className="font-semibold text-gray-500 w-24 sm:w-28 flex-shrink-0 capitalize">
-                          {key.replace(/_/g, " ")}
-                        </span>
-                        <span className="text-gray-700 break-words">{String(val)}</span>
-                      </div>
-                    ))}
+                  <div className="mt-3 bg-gray-50 rounded-xl p-4">
+                    <table className="w-full text-xs border-collapse">
+                      {Object.entries(selectedInquiry.formData).map(([key, val]) => (
+                        <tr key={key} className="border-b border-gray-100 last:border-0">
+                          <td className="py-2 pr-4 font-semibold text-gray-500 whitespace-nowrap align-top w-[40%]">
+                            {key
+                              .replace(/([A-Z])/g, " $1")
+                              .replace(/_/g, " ")
+                              .trim()}
+                          </td>
+                          <td className="py-2 text-gray-700 break-words align-top">
+                            {String(val || "—")}
+                          </td>
+                        </tr>
+                      ))}
+                    </table>
                   </div>
                 )}
               </div>

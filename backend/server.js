@@ -1739,13 +1739,15 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
 ============================= */
 
 const { spawn } = require("child_process");
+const path = require("path");
 
 app.post("/admin/generate-blogs", verifyToken, (req, res) => {
   const { topic } = req.body;
 
-  const py = spawn("python", ["../python-automation/main.py"]);
+  const scriptPath = path.join(__dirname, "../python-automation/main.py");
 
-  // HANDLE BOTH MODES
+  const py = spawn("python3", [scriptPath]);
+
   if (topic && topic.trim()) {
     py.stdin.write(topic + "\n");
   } else {
@@ -1754,18 +1756,20 @@ app.post("/admin/generate-blogs", verifyToken, (req, res) => {
 
   py.stdin.end();
 
-  // logs (optional but useful)
   py.stdout.on("data", (data) => {
-    console.log(data.toString());
+    console.log("PYTHON:", data.toString());
   });
 
   py.stderr.on("data", (err) => {
-    console.log(err.toString());
+    console.log("PYTHON ERROR:", err.toString());
   });
 
-  py.on("close", (code) => {
-    console.log("Process exited with code:", code);
-    res.send("Blog generated successfully");
+  py.on("error", (err) => {
+    console.log("SPAWN ERROR:", err);
+  });
+
+  py.on("close", () => {
+    res.send("Blog process completed 🚀");
   });
 });
 
