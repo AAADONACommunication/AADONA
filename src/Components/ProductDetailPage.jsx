@@ -326,7 +326,7 @@ const DownloadTab = memo(({ datasheet, assemblyDiagram }) => {
               display: "inline-flex", alignItems: "center", gap: 8,
               padding: "14px 24px", borderRadius: 12,
               background: "linear-gradient(135deg, #0072c6, #005fa3 55%, #004f8a)",
-              color: "#fff", fontWeight: 700, fontSize: 13,
+              color: "#bbb", fontWeight: 700, fontSize: 13,
               letterSpacing: "0.06em", textTransform: "uppercase",
               textDecoration: "none", whiteSpace: "nowrap",
               boxShadow: "0 6px 22px rgba(0,114,198,0.28), inset 0 1px 0 rgba(255,255,255,0.14)",
