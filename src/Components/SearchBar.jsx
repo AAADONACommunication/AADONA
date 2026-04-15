@@ -323,7 +323,7 @@ export default function SearchBar() {
               className="w-full bg-transparent border-none outline-none text-[15px] text-gray-900 caret-green-600 relative z-10"
             />
             {!value && !focused && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[13px] sm:text-[18px] text-gray-400 pointer-events-none whitespace-nowrap z-0">
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[15px] sm:text-[18px] text-gray-400 pointer-events-none whitespace-nowrap z-0">
                 {placeholder}
               </span>
             )}
