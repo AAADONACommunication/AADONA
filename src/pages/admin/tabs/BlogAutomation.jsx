@@ -124,7 +124,7 @@ export default function BlogAutomation() {
       `}</style>
 
       <div className="auto">
-        <h1 className="auto-title">⚡ Blog Automation</h1>
+        <h1 className="auto-title">Blog Automation - AADONA Admin Panel</h1>
 
         <div className="auto-card">
           <div className="auto-inner">
