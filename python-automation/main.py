@@ -12,6 +12,17 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
+import time
+
+def retry_generate(func, *args, **kwargs):
+    for i in range(3):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            log.warning(f"Retry {i+1} failed: {e}")
+            time.sleep(5)
+    raise Exception("Failed after retries")
+
 # AVIF conversion via Pillow + pillow-avif-plugin
 # Install: pip install Pillow pillow-avif-plugin
 try:
@@ -24,7 +35,8 @@ except ImportError:
 # ==========================================
 # 0. LOAD ENV & SETUP LOGGING
 # ==========================================
-load_dotenv()
+from pathlib import Path
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 GEMINI_API_KEY          = os.getenv("GEMINI_API_KEY")
 LOGIN_URL               = os.getenv("LOGIN_URL")
@@ -337,7 +349,8 @@ BLOG_TITLE: <compelling, SEO-friendly blog title>
 EXCERPT: <2-sentence excerpt that hooks the reader>
 """
 
-    res = client.models.generate_content(
+    res = retry_generate(
+        client.models.generate_content,
         model="gemini-2.5-flash",
         contents=idea_prompt,
         config=types.GenerateContentConfig(temperature=0.7)
@@ -428,7 +441,8 @@ CONTENT_SERIES OPTIONS — prefer ideas that fit one of these formats:
 {chr(10).join(f"  - {s}" for s in CONTENT_SERIES)}
 """
 
-    res = client.models.generate_content(
+    res = retry_generate(
+        client.models.generate_content,
         model="gemini-2.5-flash",
         contents=idea_prompt,
         config=types.GenerateContentConfig(
@@ -594,7 +608,8 @@ OUTPUT ONLY THE HTML. No markdown fences, no explanations.
 """
 
     def attempt_generate(prompt: str) -> str:
-        res = client.models.generate_content(
+        res = retry_generate(
+            client.models.generate_content,
             model="gemini-2.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(max_output_tokens=8192, temperature=0.7)
@@ -732,12 +747,14 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
         filename = f"blog_mid_{int(time.time())}.avif"
 
     try:
-        result = client.models.generate_content(
+        result = retry_generate(
+            client.models.generate_content,
             model="gemini-2.5-flash-image",
             contents=prompt,
             config=types.GenerateContentConfig(response_modalities=["IMAGE", "TEXT"]),
         )
-        for part in result.candidates[0].content.parts:
+        parts = getattr(result.candidates[0].content, "parts", [])
+        for part in parts:
             if part.inline_data is not None:
                 image_bytes, content_type = convert_to_avif(part.inline_data.data)
                 url = upload_to_firebase(image_bytes, filename, content_type)
@@ -790,6 +807,8 @@ def publish_blog(idea: dict, body_html: str, header_image: str, mid_image: str) 
         timeout=20
     )
 
+    log.info(f"CMS Response: {res.status_code} - {res.text}")
+
     if res.status_code in [200, 201]:
         log.info(f"Draft blog '{idea['BLOG_TITLE']}' pushed! Awaiting approval.")
     else:
@@ -839,10 +858,17 @@ def run_auto_scheduled(count: int = AUTO_BLOG_COUNT) -> None:
             idea = generate_blog_idea_auto(already_used_this_run=generated_titles)
             generated_titles.append(idea["BLOG_TITLE"])
             build_and_publish(idea)
+            time.sleep(10)
         except Exception as e:
-            log.exception(f"Blog {i} failed: {e}")
-            # Continue to next blog instead of aborting the whole batch
-            continue
+            log.warning(f"Blog {i} failed, retrying once...")
+
+            try:
+                idea = generate_blog_idea_auto(already_used_this_run=generated_titles)
+                generated_titles.append(idea["BLOG_TITLE"])
+                build_and_publish(idea)
+                time.sleep(10)
+            except Exception as e2:
+                log.error(f"Blog {i} skipped after retry: {e2}")
 
     log.info(f"Scheduled run complete — {len(generated_titles)}/{count} blogs published.")
 
