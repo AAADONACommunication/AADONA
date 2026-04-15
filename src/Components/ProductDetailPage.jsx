@@ -323,16 +323,17 @@ const DownloadTab = memo(({ datasheet, assemblyDiagram }) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Download assembly diagram (opens in new tab)"
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "14px 24px", borderRadius: 12,
-              background: "linear-gradient(135deg, #00c96e, #00A859 55%, #008f4c)",              
-              color: "#fff", fontWeight: 700, fontSize: 13,
-              letterSpacing: "0.06em", textTransform: "uppercase",
-              textDecoration: "none", whiteSpace: "nowrap",
-              boxShadow: "0 6px 22px rgba(0,168,89,0.28), inset 0 1px 0 rgba(255,255,255,0.14)",              
-              transition: "all 0.2s ease"
-            }}
+           style={{
+  display: "inline-flex", alignItems: "center", gap: 8,
+  padding: "14px 24px", borderRadius: 12,
+  background: "linear-gradient(135deg, #00c96e, #00A859 55%, #008f4c)",
+  color: "#fff", fontWeight: 700, fontSize: 13,
+  letterSpacing: "0.06em", textTransform: "uppercase",
+  textDecoration: "none",
+  boxShadow: "0 6px 22px rgba(0,168,89,0.28), inset 0 1px 0 rgba(255,255,255,0.14)",
+  transition: "all 0.2s ease",
+  width: "100%", maxWidth: "320px", boxSizing: "border-box"
+}}
           >
             <Download size={16} strokeWidth={2.5} aria-hidden="true" />
             Download Assembly Diagram
