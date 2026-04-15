@@ -16,11 +16,11 @@ const phrases = [
 ];
 
 const chips = [
-  { label: "Warranty",          query: "Warranty",          path: "/warranty"       },
-  { label: "Customers",         query: "Customers",         path: "/customers"      },
   { label: "About Us",          query: "About Us",          path: "/about"          },
-  { label: "Careers",           query: "Careers",           path: "/careers"        },
   { label: "Privacy Policy",    query: "Privacy Policy",    path: "/privacy-policy" },
+  { label: "Careers",           query: "Careers",           path: "/careers"        },
+  { label: "Customers",         query: "Customers",         path: "/customers"      },
+  { label: "Warranty",          query: "Warranty",          path: "/warranty"       },
   { label: "Become a Partner",  query: "Become a Partner",  path: "/becomePartner"  },
 ];
 
