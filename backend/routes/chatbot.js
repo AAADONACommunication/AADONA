@@ -281,7 +281,8 @@ COMPANY:
 - Vision: "Indian MNC in the making" — India's premier networking brand
 - Mission: Smart, cost-efficient IT infrastructure for SMB & Enterprise
 - Trademark: AADONA® (Registered)
-- Certifications: ISO 9001, ISO 10002, ISO 14001, ISO 27001, DIPP, MSME, GeM Seller
+- Certifications: ISO 9001, ISO 10002, ISO 14001, ISO 27001, DIPP, MSME
+- GeM Status: Registered as OEM on GeM Portal. AADONA authorises its channel partners to sell AADONA products on GeM — AADONA itself is NOT a GeM seller.
 
 CONTACT:
 - HQ: 1st Floor, Phoenix Tech Tower, Plot 14/46, IDA–Uppal, Hyderabad, Telangana 500039
@@ -376,6 +377,11 @@ router.post('/chat/summary', async (req, res) => {
     const { name, phone, city, messages, isResume } = req.body;
     if (!name || !phone) return res.json({ success: true });
 
+    // FIX: Guard — only proceed if there are actual user messages
+    // This prevents mails when someone just opens/closes the site without chatting
+    const userMessages = (messages || []).filter(m => m.role === 'user');
+    if (!userMessages.length) return res.json({ success: true });
+
     const transporter = require('../mailer');
 
     // ── Resume notification ──
@@ -429,8 +435,6 @@ router.post('/chat/summary', async (req, res) => {
 
     // ── Full summary ──
     if (!messages?.length) return res.json({ success: true });
-    const hasRealChat = messages.some(m => m.role === 'user');
-    if (!hasRealChat) return res.json({ success: true });
 
     const chatRows = messages
       .filter(m => m.content?.trim())
