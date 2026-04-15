@@ -101,7 +101,7 @@ function CounterSection() {
         className="bg-white overflow-hidden"
         aria-labelledby="achievements-heading"
       >
-        <div className="bg-white px-8 pt-20 pb-6 text-center">
+        <div className="bg-white px-8 pt-10 pb-6 text-center">
           <h2
             id="achievements-heading"
             className="text-4xl font-extrabold text-green-700 m-0"

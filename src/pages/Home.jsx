@@ -8,6 +8,7 @@ import Footer from '../Components/Footer'
 import Verticals from '../Components/Verticals'
 import Certifications from '../Components/Certifications'
 import Customers from '../Components/OurCustomers'
+import SearchBar from '../Components/SearchBar'
 // import Chatbot from '../Components/Chatbot'
 
 /* ─────────────────────────────────────────────
@@ -272,6 +273,8 @@ const Home = () => {
         <section aria-label="Hero – AADONA IT Networking Solutions">
           <Hero />
         </section>
+
+        <SearchBar/>
 
         {/* Stats / Counter — helps E-E-A-T (Experience, Expertise, Authoritativeness, Trust) */}
         <section aria-label="Company Milestones and Statistics">
