@@ -312,7 +312,7 @@ const Footer = () => (
                 href={href}
                 aria-label={label}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer"           /* ✅ Security: prevents tab-napping */
                 className="transition duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 rounded"
               >
                 <img
