@@ -545,8 +545,13 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     // Smart token control
     const isDetailQuery = /detail|explain|why|kaise|how|specification/i.test(lastUserMessage);
+    const isListQuery = /list|all|show all|complete|sab|saare/i.test(lastUserMessage);
 
-    const maxTokens = isDetailQuery ? 300 : 220;
+    const maxTokens = isListQuery
+      ? 600
+      : isDetailQuery
+      ? 350
+      : 220;
 
     const genAI = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
@@ -590,9 +595,14 @@ router.post('/chat', chatLimiter, async (req, res) => {
           const json = JSON.parse(line.replace('data: ', ''));
           let token = '';
 
-          const parts = json?.candidates?.[0]?.content?.parts;
-          if (Array.isArray(parts)) {
+          if (json?.candidates?.[0]?.content?.parts) {
+            const parts = json.candidates[0].content.parts;
             token = parts.map(p => p.text || '').join('');
+          }
+
+          // fallback (rare cases)
+          if (!token && json?.candidates?.[0]?.output_text) {
+            token = json.candidates[0].output_text;
           }
 
           if (token) {
@@ -616,7 +626,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
 
-    if (fullReply.length > 400) {
+    if (!isListQuery && fullReply.length > 400) {
       let trimmed = fullReply.slice(0, 400);
 
       // Find last proper sentence end
