@@ -15,13 +15,21 @@ from dotenv import load_dotenv
 import time
 
 def retry_generate(func, *args, **kwargs):
-    for i in range(3):
+    delays = [5, 10, 20]
+
+    for i, delay in enumerate(delays):
         try:
             return func(*args, **kwargs)
         except Exception as e:
             log.warning(f"Retry {i+1} failed: {e}")
-            time.sleep(5)
-    raise Exception("Failed after retries")
+
+            if "503" in str(e) or "UNAVAILABLE" in str(e):
+                log.warning(f"Model busy — waiting {delay}s before retry...")
+                time.sleep(delay)
+            else:
+                raise e
+
+    raise Exception("Failed after retries (model overloaded)")
 
 # AVIF conversion via Pillow + pillow-avif-plugin
 # Install: pip install Pillow pillow-avif-plugin
@@ -351,7 +359,7 @@ EXCERPT: <2-sentence excerpt that hooks the reader>
 
     res = retry_generate(
         client.models.generate_content,
-        model="gemini-2.5-flash",
+        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
         contents=idea_prompt,
         config=types.GenerateContentConfig(temperature=0.7)
     )
@@ -443,7 +451,7 @@ CONTENT_SERIES OPTIONS — prefer ideas that fit one of these formats:
 
     res = retry_generate(
         client.models.generate_content,
-        model="gemini-2.5-flash",
+        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
         contents=idea_prompt,
         config=types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(thinking_budget=8000)
@@ -608,13 +616,34 @@ OUTPUT ONLY THE HTML. No markdown fences, no explanations.
 """
 
     def attempt_generate(prompt: str) -> str:
-        res = retry_generate(
-            client.models.generate_content,
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(max_output_tokens=8192, temperature=0.7)
-        )
-        return res.text.strip()
+        models = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash"  # fallback
+        ]
+
+        last_error = None
+
+        for model_name in models:
+            try:
+                log.info(f"Trying model: {model_name}")
+
+                res = retry_generate(
+                    client.models.generate_content,
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        max_output_tokens=8192,
+                        temperature=0.7
+                    )
+                )
+
+                return res.text.strip()
+
+            except Exception as e:
+                log.warning(f"{model_name} failed: {e}")
+                last_error = e
+
+        raise Exception(f"All models failed: {last_error}")
 
     def attempt_and_clean() -> tuple[bool, list[str], str]:
         raw = attempt_generate(body_prompt)
