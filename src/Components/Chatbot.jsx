@@ -187,7 +187,10 @@ function BotMessage({ content, time, productCards, actionButtons, isStreaming })
       <div className="flex flex-col gap-1.5 max-w-[84%]">
         <div className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[13px] leading-relaxed"
           style={{ fontFamily: "'DM Sans', sans-serif" }}>
-          {safeContent.split('\n').map((line, i, arr) => (
+          {safeContent
+            .replace(/\* /g, '\n* ')
+            .split('\n')
+            .map((line, i, arr) => (
             <span key={i}>
               {line.split(/(\*\*.*?\*\*)/g).map((part, j) =>
                 part.startsWith('**') && part.endsWith('**')
@@ -717,20 +720,21 @@ export default function Chatbot() {
       // ── Now type-animate char by char ─────────────────────────────────────
       let displayed = '';
       for (const token of rawTokens) {
-        for (const char of token.split('')) {
-          displayed += char;
-          const snap = displayed;
-          setMessages(prev => {
-            const updated = [...prev];
-            const idx = updated.findIndex(m => m.id === botMsgId);
-            if (idx !== -1) {
-              updated[idx] = { ...updated[idx], content: snap, isStreaming: true };
-            }
-            return updated;
-          });
-          scrollToBottom();
-          await new Promise(r => setTimeout(r, 8));
-        }
+        displayed += token;
+
+        const snap = displayed;
+
+        setMessages(prev => {
+          const updated = [...prev];
+          const idx = updated.findIndex(m => m.id === botMsgId);
+          if (idx !== -1) {
+            updated[idx] = { ...updated[idx], content: snap, isStreaming: true };
+          }
+          return updated;
+        });
+
+        scrollToBottom();
+        await new Promise(r => setTimeout(r, 20));
       }
 
       // ── Mark streaming complete and attach cards ──────────────────────────
