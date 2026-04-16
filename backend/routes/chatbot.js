@@ -576,6 +576,8 @@ router.post('/chat', chatLimiter, async (req, res) => {
     const reader = genAI.body.getReader();
     const decoder = new TextDecoder();
 
+    let buffer = '';
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -586,16 +588,51 @@ router.post('/chat', chatLimiter, async (req, res) => {
       for (const line of lines) {
         try {
           const json = JSON.parse(line.replace('data: ', ''));
-          const token = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          let token = '';
+
+          const parts = json?.candidates?.[0]?.content?.parts;
+          if (Array.isArray(parts)) {
+            token = parts.map(p => p.text || '').join('');
+          }
+
           if (token) {
             fullReply += token;
-            res.write(`data: ${JSON.stringify({ token })}\n\n`);
+            buffer += token;
+
+            // send only when meaningful chunk ready
+            if (buffer.length > 25 || buffer.endsWith(' ')) {
+              res.write(`data: ${JSON.stringify({ token: buffer })}\n\n`);
+              buffer = '';
+            }
           }
+
         } catch { }
       }
     }
 
+    if (buffer) {
+      res.write(`data: ${JSON.stringify({ token: buffer })}\n\n`);
+    }
+
     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
+
+    if (fullReply.length > 400) {
+      let trimmed = fullReply.slice(0, 400);
+
+      // Find last proper sentence end
+      const lastDot = Math.max(
+        trimmed.lastIndexOf('.'),
+        trimmed.lastIndexOf('!'),
+        trimmed.lastIndexOf('?')
+      );
+
+      if (lastDot > 150) {
+        fullReply = trimmed.slice(0, lastDot + 1);
+      } else {
+        // fallback: don't cut aggressively
+        fullReply = fullReply.slice(0, 500);
+      }
+    }
 
     const categories = await getCategoryMap();
 
