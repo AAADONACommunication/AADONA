@@ -1,41 +1,10 @@
-name: AADONA CI/CD + Automation
+name: Deploy to VPS
 on:
   push:
     branches:
       - main
-  schedule:
-    - cron: '30 14 * * 0'   # Sunday 8 PM IST
-  workflow_dispatch:
 jobs:
-  # JOB 1 — BLOG AUTOMATION
-  blog-bot:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install dependencies
-        run: |
-          pip install google-genai python-dotenv requests firebase-admin Pillow
-          pip install pillow-avif-plugin || true
-      - name: Write Firebase key
-        run: echo '${{ secrets.FIREBASE_KEY_JSON }}' > serviceAccountKey.json
-      - name: Run blog automation
-        env:
-          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
-          LOGIN_URL:                ${{ secrets.LOGIN_URL }}
-          BLOG_API_URL:             ${{ secrets.BLOG_API_URL }}
-          ADMIN_EMAIL:              ${{ secrets.ADMIN_EMAIL }}
-          ADMIN_PASSWORD:           ${{ secrets.ADMIN_PASSWORD }}
-          FIREBASE_STORAGE_BUCKET:  ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-        run: python python-automation/main.py --auto
-  # JOB 2 — DEPLOY
   deploy:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to VPS via SSH

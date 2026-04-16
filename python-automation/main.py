@@ -877,37 +877,33 @@ def run_auto_scheduled(count: int = AUTO_BLOG_COUNT) -> None:
 # ENTRYPOINT
 # ==========================================
 if __name__ == "__main__":
-    # ── Detect run mode ──────────────────────────────────────────────
-    # Scheduled / CI mode  →  no args, or --auto flag
-    # User-driven mode     →  pass topic as a CLI arg, or enter interactively
-    #
-    # Examples:
-    #   python main.py                          → interactive prompt
-    #   python main.py --auto                   → auto mode (2 blogs, no prompt)
-    #   python main.py "WiFi 7 for hospitals"   → user-driven with topic from CLI
-
     args = sys.argv[1:]
 
-    if not args:
-        # Interactive — ask user
-        print("=" * 60)
-        print(" AADONA BLOG GENERATOR")
-        print("=" * 60)
-        print("\nModes:")
-        print("  1) Enter a topic  → generate 1 blog from your topic")
-        print("  2) Press Enter    → auto mode (generate 2 blogs automatically)")
-        user_input = input("\nEnter a blog topic, or press Enter for auto mode:\n> ").strip()
+    try:
+        if not args:
+            print("=" * 60)
+            print(" AADONA BLOG GENERATOR")
+            print("=" * 60)
+            print("\nModes:")
+            print("  1) Enter a topic  → generate 1 blog from your topic")
+            print("  2) Press Enter    → auto mode (generate 2 blogs automatically)")
+            user_input = input("\nEnter a blog topic, or press Enter for auto mode:\n> ").strip()
 
-        if user_input:
-            run_user_driven(user_input)
+            if user_input:
+                run_user_driven(user_input)
+            else:
+                run_auto_scheduled()
+
+        elif args[0] == "--auto":
+            count = int(args[1]) if len(args) > 1 else AUTO_BLOG_COUNT
+            run_auto_scheduled(count=count)
+
         else:
-            run_auto_scheduled()
+            topic = " ".join(args)
+            run_user_driven(topic)
 
-    elif args[0] == "--auto":
-        # Explicitly forced auto mode (used by GitHub Actions cron)
-        run_auto_scheduled()
+        sys.exit(0)
 
-    else:
-        # Topic passed directly as CLI argument
-        topic = " ".join(args)
-        run_user_driven(topic)
+    except Exception as e:
+        log.error(f"Fatal error: {e}")
+        sys.exit(1)
