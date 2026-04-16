@@ -361,7 +361,7 @@ EXCERPT: <2-sentence excerpt that hooks the reader>
 
     res = retry_generate(
         client.models.generate_content,
-        model=os.getenv("PRIMARY_MODEL", "gemini-1.5-flash"),
+        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
         contents=idea_prompt,
         config=types.GenerateContentConfig(temperature=0.7)
     )
@@ -453,7 +453,7 @@ CONTENT_SERIES OPTIONS — prefer ideas that fit one of these formats:
 
     res = retry_generate(
         client.models.generate_content,
-        model=os.getenv("PRIMARY_MODEL", "gemini-1.5-flash"),
+        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
         contents=idea_prompt,
         config=types.GenerateContentConfig(
             temperature=0.7
@@ -619,9 +619,8 @@ OUTPUT ONLY THE HTML. No markdown fences, no explanations.
 
     def attempt_generate(prompt: str) -> str:
         models = [
-            "gemini-1.5-pro",
             "gemini-2.5-flash",
-            "gemini-1.5-flash",
+            "gemini-2.5-pro"
         ]
 
         last_error = None
