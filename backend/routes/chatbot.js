@@ -237,7 +237,12 @@ CRITICAL INSTRUCTIONS:
   * Hinglish → reply in Hinglish.
   * NEVER mix languages randomly in the same sentence.
 - TONE: Professional, concise, modern. No emojis. No filler words. No "ji". No "sure!", no "great!", no "absolutely!". Get straight to the point.
-- RESPONSE STYLE: Be direct. Answer in 3-4 lines max unless user asks for details. Use **bold** only for model numbers or key specs.
+- Use **bold** only for model numbers or key specs.
+- RESPONSE STYLE (STRICT):
+  * Max 2–3 lines ONLY.
+  * Max 40–60 words.
+  * Prefer 1–2 sentences when possible.
+  * No explanations unless user explicitly asks.
 - NEVER fabricate information. If unsure, provide: 1800-202-6599 or contact@aadona.com
 - ONLY answer AADONA-related questions. Politely decline everything else.
 - For product queries, ALWAYS reference the LIVE PRODUCT DATABASE. Use exact model numbers.
@@ -538,6 +543,11 @@ router.post('/chat', chatLimiter, async (req, res) => {
       };
     });
 
+    // Smart token control
+    const isDetailQuery = /detail|explain|why|kaise|how|specification/i.test(lastUserMessage);
+
+    const maxTokens = isDetailQuery ? 300 : 120;
+
     const genAI = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
       {
@@ -545,7 +555,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: geminiMessages,
-          generationConfig: { maxOutputTokens: 1000, temperature: 0.65 },
+          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.4 },
           systemInstruction: { parts: [{ text: systemContent }] }
         }),
       }
@@ -586,6 +596,11 @@ router.post('/chat', chatLimiter, async (req, res) => {
     }
 
     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
+
+    const words = fullReply.split(/\s+/);
+    if (words.length > 60) {
+      fullReply = words.slice(0, 60).join(' ') + '...';
+    }
 
     const categories = await getCategoryMap();
 

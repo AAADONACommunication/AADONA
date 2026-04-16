@@ -12,27 +12,6 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-import time
-
-def retry_generate(func, *args, **kwargs):
-    delays = [10, 30, 60, 120]
-
-    for i, delay in enumerate(delays):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            err = str(e)
-            if "503" in err or "UNAVAILABLE" in err:
-                log.warning(f"Retry {i+1} failed: 503 — waiting {delay}s...")
-                time.sleep(delay)
-            elif "429" in err or "RESOURCE_EXHAUSTED" in err:
-                log.warning(f"Retry {i+1} failed: 429 rate limit — waiting {delay}s...")
-                time.sleep(delay)
-            else:
-                raise e
-
-    raise Exception("Failed after retries (model overloaded)")
-
 # AVIF conversion via Pillow + pillow-avif-plugin
 # Install: pip install Pillow pillow-avif-plugin
 try:
@@ -54,6 +33,7 @@ BLOG_API_URL            = os.getenv("BLOG_API_URL")
 ADMIN_EMAIL             = os.getenv("ADMIN_EMAIL")
 ADMIN_PASSWORD          = os.getenv("ADMIN_PASSWORD")
 FIREBASE_STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET")
+PRIMARY_MODEL           = os.getenv("PRIMARY_MODEL", "gemini-2.5-flash")
 
 # How many blogs to auto-generate when running in scheduled/auto mode
 AUTO_BLOG_COUNT = 3
@@ -307,6 +287,54 @@ def convert_to_avif(png_bytes: bytes, quality: int = 60) -> tuple[bytes, str]:
 
 
 # ==========================================
+# UNIFIED FALLBACK MODEL CALLER
+# ==========================================
+def generate_with_fallback(contents, config) -> any:
+    """
+    Try models in order:
+      1. gemini-2.5-flash   (primary)
+      2. gemini-3-flash-preview  (fallback 1)
+      3. gemini-2.5-pro     (fallback 2)
+
+    Each model gets up to 3 attempts with increasing delays before moving to next.
+    """
+    models = [
+        "gemini-2.5-flash",
+        "gemini-3-flash-preview",
+        "gemini-2.5-pro",
+    ]
+    delays = [15, 45, 90]
+
+    for model_name in models:
+        for attempt, delay in enumerate(delays, 1):
+            try:
+                log.info(f"Trying {model_name} (attempt {attempt})...")
+                res = client.models.generate_content(
+                    model=model_name,
+                    contents=contents,
+                    config=config
+                )
+                log.info(f"Success with {model_name}.")
+                return res
+            except Exception as e:
+                err = str(e)
+                is_transient = any(code in err for code in ["503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED"])
+                if is_transient:
+                    if attempt < len(delays):
+                        log.warning(f"{model_name} attempt {attempt} failed (transient) — waiting {delay}s...")
+                        time.sleep(delay)
+                    else:
+                        log.warning(f"{model_name} exhausted all retries — trying next model...")
+                        break
+                else:
+                    # Non-transient error (bad request, auth, etc.) — don't retry
+                    log.error(f"{model_name} failed with non-transient error: {err}")
+                    raise
+
+    raise Exception("All models and retries exhausted (503/overloaded). Try again later.")
+
+
+# ==========================================
 # 4. TOPIC HISTORY  (persisted across runs)
 # ==========================================
 HISTORY_FILE = "used_topics.json"
@@ -359,9 +387,7 @@ BLOG_TITLE: <compelling, SEO-friendly blog title>
 EXCERPT: <2-sentence excerpt that hooks the reader>
 """
 
-    res = retry_generate(
-        client.models.generate_content,
-        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
+    res = generate_with_fallback(
         contents=idea_prompt,
         config=types.GenerateContentConfig(temperature=0.7)
     )
@@ -389,7 +415,7 @@ EXCERPT: <2-sentence excerpt that hooks the reader>
 # ==========================================
 def generate_blog_idea_auto(already_used_this_run: list[str] | None = None) -> dict:
     """
-    Auto-generate a trending blog idea using Gemini's thinking model.
+    Auto-generate a trending blog idea.
     already_used_this_run: list of BLOG_TITLE strings generated earlier in the same batch,
     so the second blog in a Sunday run doesn't repeat the first one.
     """
@@ -401,7 +427,6 @@ def generate_blog_idea_auto(already_used_this_run: list[str] | None = None) -> d
     for t in used_topics[-50:]:
         avoid_lines.append(f"  - [{t['date']}] \"{t['title']}\" (Product: {t['product']}, Trend: {t['trend']})")
 
-    # Also avoid anything generated earlier in this same batch run
     if already_used_this_run:
         for title in already_used_this_run:
             avoid_lines.append(f"  - [TODAY - same batch] \"{title}\"")
@@ -451,13 +476,9 @@ CONTENT_SERIES OPTIONS — prefer ideas that fit one of these formats:
 {chr(10).join(f"  - {s}" for s in CONTENT_SERIES)}
 """
 
-    res = retry_generate(
-        client.models.generate_content,
-        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
+    res = generate_with_fallback(
         contents=idea_prompt,
-        config=types.GenerateContentConfig(
-            temperature=0.7
-        )
+        config=types.GenerateContentConfig(temperature=0.7)
     )
 
     raw = res.text.strip()
@@ -618,34 +639,14 @@ OUTPUT ONLY THE HTML. No markdown fences, no explanations.
 """
 
     def attempt_generate(prompt: str) -> str:
-        models = [
-            "gemini-2.5-flash",
-            "gemini-2.5-pro"
-        ]
-
-        last_error = None
-
-        for model_name in models:
-            try:
-                log.info(f"Trying model: {model_name}")
-
-                res = retry_generate(
-                    client.models.generate_content,
-                    model=model_name,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        max_output_tokens=8192,
-                        temperature=0.7
-                    )
-                )
-
-                return res.text.strip()
-
-            except Exception as e:
-                log.warning(f"{model_name} failed: {e}")
-                last_error = e
-
-        raise Exception(f"All models failed: {last_error}")
+        res = generate_with_fallback(
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                max_output_tokens=8192,
+                temperature=0.7
+            )
+        )
+        return res.text.strip()
 
     def attempt_and_clean() -> tuple[bool, list[str], str]:
         raw = attempt_generate(body_prompt)
@@ -702,7 +703,6 @@ _firebase_initialized = False
 def init_firebase():
     global _firebase_initialized
     if not _firebase_initialized:
-        # Supports both filenames used across the two original scripts
         for key_name in ("serviceAccountKey.json", "firebase_key.json"):
             key_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), key_name)
             if os.path.exists(key_path):
@@ -777,25 +777,39 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
         )
         filename = f"blog_mid_{int(time.time())}.avif"
 
+    # Image generation uses its own dedicated model — no text fallback chain here
     try:
-        result = retry_generate(
-            client.models.generate_content,
-            model="gemini-2.0-flash-preview-image-generation",
-            contents=prompt,
-            config=types.GenerateContentConfig(response_modalities=["IMAGE", "TEXT"]),
-        )
-        parts = getattr(result.candidates[0].content, "parts", [])
-        for part in parts:
-            if part.inline_data is not None:
-                image_bytes, content_type = convert_to_avif(part.inline_data.data)
-                url = upload_to_firebase(image_bytes, filename, content_type)
-                if url:
-                    return url
-                with open(filename, "wb") as f:
-                    f.write(image_bytes)
-                log.warning(f"Firebase upload failed — image saved locally as {filename}.")
-                return fallback
-        raise ValueError("No image part found in Gemini response.")
+        delays = [15, 45, 90, 180]
+        last_error = None
+        for attempt, delay in enumerate(delays, 1):
+            try:
+                result = client.models.generate_content(
+                    model="gemini-2.0-flash-preview-image-generation",
+                    contents=prompt,
+                    config=types.GenerateContentConfig(response_modalities=["IMAGE", "TEXT"]),
+                )
+                parts = getattr(result.candidates[0].content, "parts", [])
+                for part in parts:
+                    if part.inline_data is not None:
+                        image_bytes, content_type = convert_to_avif(part.inline_data.data)
+                        url = upload_to_firebase(image_bytes, filename, content_type)
+                        if url:
+                            return url
+                        with open(filename, "wb") as f:
+                            f.write(image_bytes)
+                        log.warning(f"Firebase upload failed — image saved locally as {filename}.")
+                        return fallback
+                raise ValueError("No image part found in Gemini response.")
+            except Exception as e:
+                err = str(e)
+                is_transient = any(code in err for code in ["503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED"])
+                if is_transient and attempt < len(delays):
+                    log.warning(f"Image gen attempt {attempt} failed — waiting {delay}s...")
+                    time.sleep(delay)
+                    last_error = e
+                else:
+                    raise
+        raise last_error
     except Exception as e:
         log.warning(f"Image generation failed ({image_type}): {e}. Using fallback.")
         return fallback
@@ -873,7 +887,7 @@ def run_user_driven(user_topic: str) -> None:
 
 
 # ==========================================
-# 10B. SCHEDULED AUTO MODE  (Sunday × 2 blogs)
+# 10B. SCHEDULED AUTO MODE
 # ==========================================
 def run_auto_scheduled(count: int = AUTO_BLOG_COUNT) -> None:
     log.info("=" * 60)
@@ -885,14 +899,12 @@ def run_auto_scheduled(count: int = AUTO_BLOG_COUNT) -> None:
     for i in range(1, count + 1):
         log.info(f"--- Blog {i} of {count} ---")
         try:
-            # Pass already-generated titles so the second blog picks a different topic
             idea = generate_blog_idea_auto(already_used_this_run=generated_titles)
             generated_titles.append(idea["BLOG_TITLE"])
             build_and_publish(idea)
             time.sleep(10)
         except Exception as e:
-            log.warning(f"Blog {i} failed, retrying once...")
-
+            log.warning(f"Blog {i} failed, retrying once... ({e})")
             try:
                 idea = generate_blog_idea_auto(already_used_this_run=generated_titles)
                 generated_titles.append(idea["BLOG_TITLE"])

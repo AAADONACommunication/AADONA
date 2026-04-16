@@ -1858,9 +1858,7 @@ mongoose.connection.once("open", async () => {
         // Blog history se check karo — last blog kab bana
         const lastBlog = await Blog.findOne().sort({ createdAt: -1 });
         const lastRun = lastBlog ? new Date(lastBlog.createdAt) : null;
-
-        // Check karo — agar aaj scheduled day hai aur scheduled time nikal gaya
-        // aur last 24 ghante mein koi blog nahi bana
+        
         const scheduledDay = saved.dayOfWeek;
         const todayDay = nowIST.getDay();
         const scheduledHour = saved.hour;
