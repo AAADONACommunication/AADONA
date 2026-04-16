@@ -1734,7 +1734,7 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
   }
 });
 
-/* =============================
+/* ============================
    BLOG AUTOMATION ROUTE
 ============================= */
 
