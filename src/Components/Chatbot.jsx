@@ -741,15 +741,29 @@ export default function Chatbot() {
       setMessages(prev => {
         const updated = [...prev];
         const idx = updated.findIndex(m => m.id === botMsgId);
+
         if (idx !== -1) {
+          let finalText = (streamedText || '').trim();
+
+          if (finalText && !/[.!?]$/.test(finalText)) {
+            finalText += '...';
+          }
+
+          if (!finalText || finalText.length < 15) {
+            finalText = "Here are the available products from AADONA:";
+          }
+
+          finalText = finalText.replace(/\*\*(?!.*\*\*)/g, '');
+
           updated[idx] = {
             ...updated[idx],
-            content: streamedText,
+            content: finalText,
             isStreaming: false,
             productCards: finalProductCards,
             actionButtons: finalActionButtons,
           };
         }
+
         return updated;
       });
 
