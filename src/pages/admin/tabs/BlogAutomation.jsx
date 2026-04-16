@@ -6,6 +6,7 @@ const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Satur
 export default function BlogAutomation() {
   const [topic, setTopic]     = useState("");
   const [loading, setLoading] = useState(false);
+  const [result, setResult]   = useState(null);
 
   // Schedule state
   const [schedDay,     setSchedDay]     = useState(0);
@@ -40,8 +41,9 @@ export default function BlogAutomation() {
   }, []);
 
   const runAutomation = async () => {
-    if (!topic.trim()) return alert("Enter topic");
+    if (!topic.trim()) return alert("Enter a topic first");
     setLoading(true);
+    setResult(null); // pehle wala result clear karo
     try {
       const auth  = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
@@ -50,17 +52,17 @@ export default function BlogAutomation() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ topic }),
       });
-      
-      const data = await res.json();  // ← pehle sirf res.ok check hota tha
-      
+
+      const data = await res.json();
+
       if (res.ok && data.success) {
-        alert("✅ Blog generated & saved as draft");
-        setTopic("");
+        setResult({ type: "success", message: "✅ Blog generated & saved as draft!" });
+        setTopic(""); // topic box clear karo on success
       } else {
-        alert(`❌ ${data.message || "Failed to generate blog"}`);
+        setResult({ type: "error", message: `❌ ${data.message || "Failed. Try again later."}` });
       }
-    } catch { 
-      alert("❌ Error running automation"); 
+    } catch {
+      setResult({ type: "error", message: "❌ Network error. Try again later." });
     }
     setLoading(false);
   };
@@ -116,6 +118,15 @@ export default function BlogAutomation() {
         .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
         .toggle-label { font-size: 14px; font-weight: 600; color: #374151; }
         .sched-status { margin-top: 12px; font-size: 14px; font-weight: 600; }
+
+        /* ADDED: Result box styles */
+        .auto-result { margin-top: 14px; padding: 12px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; }
+        .auto-result.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .auto-result.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
+          display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+        .retry-btn { padding: 6px 14px; border-radius: 8px; background: #dc2626; color: white;
+          border: none; cursor: pointer; font-size: 13px; font-weight: 700; white-space: nowrap; }
+        .retry-btn:hover { background: #b91c1c; }
       `}</style>
 
       <div className="auto">
@@ -126,11 +137,30 @@ export default function BlogAutomation() {
           <div className="auto-inner">
             <h2 className="auto-heading">Generate Blog Now</h2>
             <p className="auto-desc">Enter a topic — AI will generate a complete blog and save it as draft.</p>
-            <input type="text" placeholder="e.g. WiFi 7 in Indian Enterprises"
-              value={topic} onChange={e => setTopic(e.target.value)} className="auto-input" />
+
+            <input
+              type="text"
+              placeholder="e.g. WiFi 7 in Indian Enterprises"
+              value={topic}
+              onChange={e => setTopic(e.target.value)}
+              className="auto-input"
+            />
+
             <button onClick={runAutomation} disabled={loading} className="auto-btn">
               {loading ? "Generating..." : "Generate Blog"}
             </button>
+
+            {result && (
+              <div className={`auto-result ${result.type}`}>
+                <span>{result.message}</span>
+                {result.type === "error" && (
+                  <button onClick={runAutomation} disabled={loading} className="retry-btn">
+                    🔄 Try Again
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="auto-info">
               💡 Tip: Use specific topics for better results (e.g. "PoE switches for CCTV networks")
             </div>

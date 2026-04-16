@@ -1741,6 +1741,7 @@ app.delete("/blogs/:id", verifyToken, async (req, res) => {
 const { spawn } = require("child_process");
 const path = require("path");
 
+// ── BLOG GENERATION ROUTE ──
 app.post("/admin/generate-blogs", verifyToken, (req, res) => {
   const { topic } = req.body;
   const scriptPath = path.join(__dirname, "../python-automation/main.py");
@@ -1753,9 +1754,11 @@ app.post("/admin/generate-blogs", verifyToken, (req, res) => {
   }
   py.stdin.end();
 
-  let errorOutput = "";
+  let stdoutOutput = "";
+  let errorOutput  = "";
 
   py.stdout.on("data", (data) => {
+    stdoutOutput += data.toString();
     console.log("PYTHON:", data.toString());
   });
 
@@ -1768,7 +1771,7 @@ app.post("/admin/generate-blogs", verifyToken, (req, res) => {
     console.log("SPAWN ERROR:", err);
     return res.status(500).json({ 
       success: false, 
-      message: "Failed to start Python process" 
+      message: "Failed to start Python process. Check server setup." 
     });
   });
 
@@ -1776,9 +1779,14 @@ app.post("/admin/generate-blogs", verifyToken, (req, res) => {
     if (code === 0) {
       res.json({ success: true, message: "Blog generated successfully 🚀" });
     } else {
+      const lastError = errorOutput
+        .split("\n")
+        .filter(l => l.includes("ERROR") || l.includes("failed") || l.includes("Failed"))
+        .pop() || "Blog generation failed. Try again later.";
+
       res.status(500).json({ 
         success: false, 
-        message: "Blog generation failed. Check server logs." 
+        message: lastError.replace(/.*ERROR\s+/, "").trim() || "Blog generation failed. Try again later."
       });
     }
   });
