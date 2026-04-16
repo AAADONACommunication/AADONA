@@ -546,7 +546,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
     // Smart token control
     const isDetailQuery = /detail|explain|why|kaise|how|specification/i.test(lastUserMessage);
 
-    const maxTokens = isDetailQuery ? 300 : 120;
+    const maxTokens = isDetailQuery ? 300 : 220;
 
     const genAI = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
@@ -555,7 +555,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: geminiMessages,
-          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.4 },
+          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.5 },
           systemInstruction: { parts: [{ text: systemContent }] }
         }),
       }
@@ -596,11 +596,6 @@ router.post('/chat', chatLimiter, async (req, res) => {
     }
 
     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
-
-    const words = fullReply.split(/\s+/);
-    if (words.length > 60) {
-      fullReply = words.slice(0, 60).join(' ') + '...';
-    }
 
     const categories = await getCategoryMap();
 

@@ -729,7 +729,7 @@ export default function Chatbot() {
             return updated;
           });
           scrollToBottom();
-          await new Promise(r => setTimeout(r, 12));
+          await new Promise(r => setTimeout(r, 8));
         }
       }
 
