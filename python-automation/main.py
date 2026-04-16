@@ -15,16 +15,18 @@ from dotenv import load_dotenv
 import time
 
 def retry_generate(func, *args, **kwargs):
-    delays = [5, 10, 20]
+    delays = [10, 30, 60, 120]
 
     for i, delay in enumerate(delays):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            log.warning(f"Retry {i+1} failed: {e}")
-
-            if "503" in str(e) or "UNAVAILABLE" in str(e):
-                log.warning(f"Model busy — waiting {delay}s before retry...")
+            err = str(e)
+            if "503" in err or "UNAVAILABLE" in err:
+                log.warning(f"Retry {i+1} failed: 503 — waiting {delay}s...")
+                time.sleep(delay)
+            elif "429" in err or "RESOURCE_EXHAUSTED" in err:
+                log.warning(f"Retry {i+1} failed: 429 rate limit — waiting {delay}s...")
                 time.sleep(delay)
             else:
                 raise e
@@ -359,7 +361,7 @@ EXCERPT: <2-sentence excerpt that hooks the reader>
 
     res = retry_generate(
         client.models.generate_content,
-        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
+        model=os.getenv("PRIMARY_MODEL", "gemini-1.5-flash"),
         contents=idea_prompt,
         config=types.GenerateContentConfig(temperature=0.7)
     )
@@ -451,10 +453,10 @@ CONTENT_SERIES OPTIONS — prefer ideas that fit one of these formats:
 
     res = retry_generate(
         client.models.generate_content,
-        model=os.getenv("PRIMARY_MODEL", "gemini-2.5-flash"),
+        model=os.getenv("PRIMARY_MODEL", "gemini-1.5-flash"),
         contents=idea_prompt,
         config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(thinking_budget=8000)
+            temperature=0.7
         )
     )
 
@@ -617,8 +619,9 @@ OUTPUT ONLY THE HTML. No markdown fences, no explanations.
 
     def attempt_generate(prompt: str) -> str:
         models = [
+            "gemini-1.5-pro",
             "gemini-2.5-flash",
-            "gemini-2.0-flash"  # fallback
+            "gemini-1.5-flash",
         ]
 
         last_error = None
@@ -778,7 +781,7 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
     try:
         result = retry_generate(
             client.models.generate_content,
-            model="gemini-2.5-flash-image",
+            model="gemini-2.0-flash-preview-image-generation",
             contents=prompt,
             config=types.GenerateContentConfig(response_modalities=["IMAGE", "TEXT"]),
         )

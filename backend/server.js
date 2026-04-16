@@ -1743,6 +1743,8 @@ const path = require("path");
 
 // ── BLOG GENERATION ROUTE ──
 app.post("/admin/generate-blogs", verifyToken, (req, res) => {
+  req.setTimeout(10 * 60 * 1000);
+  res.setTimeout(10 * 60 * 1000);
   const { topic } = req.body;
   const scriptPath = path.join(__dirname, "../python-automation/main.py");
   const py = spawn("python3", [scriptPath]);

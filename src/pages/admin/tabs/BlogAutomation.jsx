@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef} from "react";
 import { getFirebaseAuth } from "../../../firebase";
 
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -7,6 +7,7 @@ export default function BlogAutomation() {
   const [topic, setTopic]     = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult]   = useState(null);
+  const abortRef = useRef(null);
 
   // Schedule state
   const [schedDay,     setSchedDay]     = useState(0);
@@ -17,7 +18,6 @@ export default function BlogAutomation() {
   const [schedSaving,  setSchedSaving]  = useState(false);
   const [schedStatus,  setSchedStatus]  = useState("");
 
-  // Load saved schedule on mount
   useEffect(() => {
     (async () => {
       try {
@@ -40,31 +40,44 @@ export default function BlogAutomation() {
     })();
   }, []);
 
+  // ── FIX: proper abort + 5-min timeout ──────────────────────────
   const runAutomation = async () => {
     if (!topic.trim()) return alert("Enter a topic first");
+
     setLoading(true);
-    setResult(null); // pehle wala result clear karo
+    setResult(null);
+
     try {
       const auth  = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
-      const res   = await fetch(`${import.meta.env.VITE_API_URL}/admin/generate-blogs`, {
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/generate-blogs`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ topic }),
       });
 
-      const data = await res.json();
+      let data = {};
+      try { data = await res.json(); } catch {}
 
       if (res.ok && data.success) {
         setResult({ type: "success", message: "✅ Blog generated & saved as draft!" });
-        setTopic(""); // topic box clear karo on success
+        setTopic("");
       } else {
-        setResult({ type: "error", message: `❌ ${data.message || "Failed. Try again later."}` });
+        setResult({
+          type: "error",
+          message: data.message || `Server error (${res.status}). Try again.`
+        });
       }
-    } catch {
-      setResult({ type: "error", message: "❌ Network error. Try again later." });
+
+    } catch (err) {
+      setResult({ type: "error", message: "❌ Network error. Check connection and try again." });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const saveSchedule = async () => {
@@ -84,8 +97,8 @@ export default function BlogAutomation() {
           enabled:   schedEnabled,
         }),
       });
-      setSchedStatus(res.ok ? "✅ Schedule saved!" : "❌ Failed to save.");
-    } catch { setSchedStatus("❌ Error saving schedule."); }
+      setSchedStatus(res.ok ? "Schedule saved!" : "Failed to save.");
+    } catch { setSchedStatus("Error saving schedule."); }
     setSchedSaving(false);
   };
 
@@ -107,7 +120,7 @@ export default function BlogAutomation() {
           font-weight: 700; background: linear-gradient(135deg,#16a34a,#22c55e);
           color: white; border: none; cursor: pointer; transition: 0.2s; font-size: 15px; }
         .auto-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.3); }
-        .auto-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .auto-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .auto-info { margin-top: 20px; background: #f0fdf4; border: 1px dashed #bbf7d0;
           padding: 14px; border-radius: 12px; font-size: 13px; color: #166534; }
         .sched-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -118,51 +131,66 @@ export default function BlogAutomation() {
         .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
         .toggle-label { font-size: 14px; font-weight: 600; color: #374151; }
         .sched-status { margin-top: 12px; font-size: 14px; font-weight: 600; }
-
-        /* ADDED: Result box styles */
-        .auto-result { margin-top: 14px; padding: 12px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; }
+        .auto-result { margin-top: 14px; padding: 12px 16px; border-radius: 12px;
+          font-weight: 600; font-size: 14px; }
         .auto-result.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-        .auto-result.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
-          display: flex; align-items: center; gap: 10px; justify-content: space-between; }
-        .retry-btn { padding: 6px 14px; border-radius: 8px; background: #dc2626; color: white;
-          border: none; cursor: pointer; font-size: 13px; font-weight: 700; white-space: nowrap; }
+        .auto-result.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .retry-btn { margin-top: 10px; width: 100%; padding: 10px; border-radius: 999px;
+          background: #dc2626; color: white; border: none; cursor: pointer;
+          font-size: 13px; font-weight: 700; }
         .retry-btn:hover { background: #b91c1c; }
+        .retry-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .loading-hint { margin-top: 12px; font-size: 13px; color: #6b7280; text-align: center; }
       `}</style>
 
       <div className="auto">
         <h1 className="auto-title">Blog Automation — AADONA Admin</h1>
 
-        {/* Manual Generate */}
         <div className="auto-card">
           <div className="auto-inner">
             <h2 className="auto-heading">Generate Blog Now</h2>
-            <p className="auto-desc">Enter a topic — AI will generate a complete blog and save it as draft.</p>
+            <p className="auto-desc">
+              Enter a topic — AI will generate a complete blog and save it as draft.
+            </p>
 
             <input
               type="text"
               placeholder="e.g. WiFi 7 in Indian Enterprises"
               value={topic}
               onChange={e => setTopic(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !loading && runAutomation()}
+              disabled={loading}
               className="auto-input"
             />
 
             <button onClick={runAutomation} disabled={loading} className="auto-btn">
-              {loading ? "Generating..." : "Generate Blog"}
+              {loading ? "Generating... (2-3 min)" : "Generate Blog"}
             </button>
 
-            {result && (
+            {loading && (
+              <p className="loading-hint">
+                Python script is running on the server. This may take 2-3 minutes. Please wait and do not refresh or navigate away from the page.
+              </p>
+            )}
+
+            {!loading && result && (
               <div className={`auto-result ${result.type}`}>
                 <span>{result.message}</span>
                 {result.type === "error" && (
-                  <button onClick={runAutomation} disabled={loading} className="retry-btn">
-                    🔄 Try Again
+                  <button
+                    onClick={runAutomation}
+                    disabled={loading}
+                    className="retry-btn"
+                  >
+                    Try Again
                   </button>
                 )}
               </div>
             )}
 
             <div className="auto-info">
-              💡 Tip: Use specific topics for better results (e.g. "PoE switches for CCTV networks")
+              Tip: Use specific topics for better results
+              (e.g. "PoE switches for CCTV networks")
             </div>
           </div>
         </div>
