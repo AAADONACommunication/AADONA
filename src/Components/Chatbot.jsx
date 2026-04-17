@@ -720,21 +720,20 @@ export default function Chatbot() {
       // ── Now type-animate char by char ─────────────────────────────────────
       let displayed = '';
       for (const token of rawTokens) {
-        displayed += token;
-
-        const snap = displayed;
-
-        setMessages(prev => {
-          const updated = [...prev];
-          const idx = updated.findIndex(m => m.id === botMsgId);
-          if (idx !== -1) {
-            updated[idx] = { ...updated[idx], content: snap, isStreaming: true };
-          }
-          return updated;
-        });
-
-        scrollToBottom();
-        await new Promise(r => setTimeout(r, 20));
+        for (const char of token.split('')) {
+          displayed += char;
+          const snap = displayed;
+          setMessages(prev => {
+            const updated = [...prev];
+            const idx = updated.findIndex(m => m.id === botMsgId);
+            if (idx !== -1) {
+              updated[idx] = { ...updated[idx], content: snap, isStreaming: true };
+            }
+            return updated;
+          });
+          scrollToBottom();
+          await new Promise(r => setTimeout(r, 12));
+        }
       }
 
       // ── Mark streaming complete and attach cards ──────────────────────────
