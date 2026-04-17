@@ -291,7 +291,7 @@ export default function SearchBar() {
     <section className="flex flex-col items-center mb-0 gap-4 py-12 px-4">
 
       <p className="text-xs font-semibold tracking-widest uppercase text-gray-400">
-        Find what you need
+        Quick Search
       </p>
 
       <div className="w-full max-w-2xl relative" ref={containerRef}>
