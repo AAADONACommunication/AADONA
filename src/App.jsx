@@ -72,12 +72,13 @@ const AppContent = () => {
     <>
       {/* GLOBAL UI */}
       {showGlobalComponents && <Breadcrumbs />}
-
+      {/*
       {showGlobalComponents && showChatbot && (
         <Suspense fallback={null}>
           <Chatbot />
         </Suspense>
       )}
+        */}
 
       {/* ROUTES */}
        <Suspense fallback={<TopLoader />}>        
