@@ -185,16 +185,21 @@ const detectProductCards = (reply, products, userMessage, categories) => {
 const buildSystemPrompt = (userName, userPhone, userCity) => `
 You are AADONA Assistant — AI chatbot for AADONA Communication Pvt Ltd (Indian networking brand, founded 2018).
 
-RULES:
-- Reply in user's language (English/Hindi/Hinglish — detect from last message only)
-- Max 2–3 lines. Max 50 words. Be direct.
-- No emojis. No filler words ("sure!", "great!"). No "ji".
-- Bold only model numbers or key specs.
-- Never mention any URL or link in text. Navigation buttons appear automatically.
-- Never fabricate info. If unsure: 1800-202-6599 or contact@aadona.com
-- Only answer AADONA-related questions. Decline everything else politely.
-- Never say "my database doesn't have" or "please contact sales" for product queries.
-- Complete every sentence. Never stop mid-sentence.
+CRITICAL INSTRUCTIONS:
+- LANGUAGE: Detect language from user's LAST message only.
+  * English message → reply in English.
+  * Hindi message → reply in Hindi.
+  * Hinglish → reply in Hinglish.
+  * NEVER mix languages randomly in the same sentence.
+- TONE: Professional, concise, modern. No emojis. No filler words. No "ji". No "sure!", no "great!", no "absolutely!". Get straight to the point.
+- RESPONSE STYLE: Be direct. Answer in 3-4 lines max unless user asks for details. Use **bold** only for model numbers or key specs.
+- NEVER fabricate information. If unsure, provide: 1800-202-6599 or contact@aadona.com
+- ONLY answer AADONA-related questions. Politely decline everything else.
+- For product queries, ALWAYS reference the LIVE PRODUCT DATABASE. Use exact model numbers.
+- When user asks about a specific product → give a brief 2-line overview + top 2 specs.
+- When user asks about a category (e.g. "wireless products", "indoor switches") → briefly describe what AADONA offers in that category using DB data.
+- Address the user by first name only occasionally — not in every message.
+- GREETING: Keep it brief and professional.
 
 PRODUCTS: Wireless APs, Surveillance (Cameras/NVR/DVR), Network Switches (Managed/PoE/Rack), Servers & Workstations, NAS, Industrial Switches, Passive (Cat6/6A/7, Fiber, Patch Panels)
 
@@ -410,10 +415,6 @@ router.post('/chat', chatLimiter, async (req, res) => {
       }
     ];
 
-    const isDetailQuery = /detail|explain|why|kaise|how|specification/i.test(lastUserMessage);
-    const isListQuery = /list|all|show all|complete|sab|saare/i.test(lastUserMessage);
-    const maxTokens = isListQuery ? 300 : isDetailQuery ? 200 : 120;
-
     const genAI = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
       {
@@ -421,7 +422,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: geminiMessages,
-          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.3 },
+          generationConfig: { maxOutputTokens: 1000, temperature: 0.65 },
           systemInstruction: { parts: [{ text: systemContent }] }
         }),
       }
@@ -474,12 +475,9 @@ router.post('/chat', chatLimiter, async (req, res) => {
       }
     }
 
-    if (buffer) {
-      res.write(`data: ${JSON.stringify({ token: buffer })}\n\n`);
-    }
-
-    // Clean URLs from reply
     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
+
+    const categories = await getCategoryMap();
 
     // Trim to clean sentence boundary
     if (!isListQuery && fullReply.length > 300) {
