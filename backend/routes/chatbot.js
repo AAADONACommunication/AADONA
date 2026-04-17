@@ -477,8 +477,6 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     fullReply = fullReply.replace(/https?:\/\/[^\s]+/g, '');
 
-    const categories = await getCategoryMap();
-
     // Trim to clean sentence boundary
     if (!isListQuery && fullReply.length > 300) {
       const trimmed = fullReply.slice(0, 300);
