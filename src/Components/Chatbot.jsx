@@ -181,9 +181,37 @@ function TypingDots() {
   );
 }
 
+// ─── Markdown Renderer ────────────────────────────────────────────────────
+function renderMarkdown(text) {
+  // Remove raw URLs, strip incomplete trailing asterisks, clean up
+  const clean = text
+    .replace(/https?:\/\/[^\s]+/g, '')
+    .replace(/\*{1,2}$/, '')        // trailing incomplete bold/italic
+    .replace(/^\*{1,2}/gm, '')      // leading lone asterisks on line start (list markers without space)
+    .replace(/\* /g, '\n• ');       // bullet lists
+
+  const lines = clean.split('\n');
+  return lines.map((line, i, arr) => {
+    // Split by **bold** markers
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    const rendered = parts.map((part, j) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+        return <strong key={j} style={{ fontWeight: 600, color: '#0f172a' }}>{part.slice(2, -2)}</strong>;
+      }
+      // Strip any remaining stray asterisks
+      return <span key={j}>{part.replace(/\*/g, '')}</span>;
+    });
+    return (
+      <span key={i}>
+        {rendered}
+        {i < arr.length - 1 && <br />}
+      </span>
+    );
+  });
+}
+
 // ─── Bot Message ──────────────────────────────────────────────────────────
 function BotMessage({ content, time, productCards, actionButtons, isStreaming, escalate }) {
-  const safeContent = content.replace(/https?:\/\/[^\s]+/g, '');
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }} className="aadona-fadeIn">
       <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginBottom: '2px', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
@@ -193,16 +221,7 @@ function BotMessage({ content, time, productCards, actionButtons, isStreaming, e
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '85%' }}>
         <div style={{ padding: '11px 14px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px 14px 14px 4px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', fontSize: '13px', color: '#1e293b', lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>
-          {safeContent.replace(/\* /g, '\n• ').split('\n').map((line, i, arr) => (
-            <span key={i}>
-              {line.split(/(\*\*.*?\*\*)/g).map((part, j) =>
-                part.startsWith('**') && part.endsWith('**')
-                  ? <strong key={j} style={{ fontWeight: 600, color: '#0f172a' }}>{part.slice(2, -2)}</strong>
-                  : part
-              )}
-              {i < arr.length - 1 && <br />}
-            </span>
-          ))}
+          {renderMarkdown(content)}
           {isStreaming && <span style={{ display: 'inline-block', width: '2px', height: '14px', background: '#10b981', marginLeft: '2px', borderRadius: '2px', animation: 'aadonaPulse 1s ease infinite' }} />}
         </div>
 

@@ -499,27 +499,35 @@ router.post('/chat', chatLimiter, async (req, res) => {
     const [products, categories] = await Promise.all([getProducts(), getCategoryMap()]);
 
     // ── Cache Check ───────────────────────────────────────────────────────
-    const cacheKey = lastUserMessage.trim().toLowerCase();
-    const cached = getCached(cacheKey);
-    if (cached) {
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-      res.flushHeaders();
-      res.write(`data: ${JSON.stringify({ token: cached.reply })}\n\n`);
-      res.write(`data: ${JSON.stringify({ done: true, productCards: cached.productCards || null, actionButtons: cached.actionButtons || null, escalate: cached.escalate || null })}\n\n`);
-      return res.end();
+    // NOTE: Don't cache contextual queries that depend on conversation history
+    const isContextual = /which section|where is|category|section|type of|kind of|kahan|kis section|kya h yeh|what is this/i.test(lastUserMessage);
+    const cacheKey = isContextual ? null : lastUserMessage.trim().toLowerCase();
+    if (cacheKey) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders();
+        res.write(`data: ${JSON.stringify({ token: cached.reply })}\n\n`);
+        res.write(`data: ${JSON.stringify({ done: true, productCards: cached.productCards || null, actionButtons: cached.actionButtons || null, escalate: cached.escalate || null })}\n\n`);
+        return res.end();
+      }
     }
 
-    // ── 1. Structured Intent Check (11 new intents) ───────────────────────
+    // ── 0. ALWAYS: Try model number match from full conversation context ──
+    // Collect all model numbers mentioned in the entire conversation
+    const fullConvText = sanitized.map(m => m.content).join(' ');
+    const { cards: convCards } = detectProductCards('', products, fullConvText, categories);
+    // For the current message specifically
+    const { cards: currCards, categoryButton: currCatBtn } = detectProductCards('', products, lastUserMessage, categories);
+
+    // ── 1. Structured Intent Check (11 intents) ───────────────────────────
     for (const intent of STRUCTURED_INTENTS) {
       if (intent.regex.test(lastUserMessage)) {
         const result = intent.respond(userName);
-
-        // Also check if we can attach relevant product cards for this intent
-        let productCards = null;
-        const { cards } = detectProductCards('', products, lastUserMessage, categories);
-        if (cards.length) productCards = cards;
+        // Cards: prefer current message match, fallback to conversation context match
+        const productCards = currCards.length ? currCards : (convCards.length ? convCards.slice(0, 4) : null);
 
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
@@ -529,17 +537,12 @@ router.post('/chat', chatLimiter, async (req, res) => {
         res.write(`data: ${JSON.stringify({ token: result.text })}\n\n`);
         res.write(`data: ${JSON.stringify({
           done: true,
-          productCards: productCards,
+          productCards: productCards && productCards.length ? productCards : null,
           actionButtons: result.actionButtons || null,
           escalate: result.escalate ? result.escalateType : null,
         })}\n\n`);
 
-        setCache(cacheKey, {
-          reply: result.text,
-          productCards,
-          actionButtons: result.actionButtons || null,
-          escalate: result.escalate ? result.escalateType : null,
-        });
+        if (cacheKey) setCache(cacheKey, { reply: result.text, productCards, actionButtons: result.actionButtons || null, escalate: result.escalate ? result.escalateType : null });
         return res.end();
       }
     }
@@ -555,33 +558,62 @@ router.post('/chat', chatLimiter, async (req, res) => {
       const reply = "Here's what you're looking for.";
       res.write(`data: ${JSON.stringify({ token: reply })}\n\n`);
       res.write(`data: ${JSON.stringify({ done: true, actionButtons: staticButtons })}\n\n`);
-      setCache(cacheKey, { reply, productCards: null, actionButtons: staticButtons });
+      if (cacheKey) setCache(cacheKey, { reply, productCards: null, actionButtons: staticButtons });
       return res.end();
     }
 
-    // ── 3. Product Intent (DB-first, no LLM) ─────────────────────────────
+    // ── 3. Product Intent — current message or conversation context ────────
+    // Try current message first, then fall back to cards found in full conversation
     const isProductQuery = /price|model|buy|spec|feature|switch|camera|wifi|nas|wireless|surveillance|server|workstation|passive|patch|fiber|cat6|cat7|poe|rack|nvr|dvr|access.?point/i.test(lastUserMessage);
-    if (isProductQuery) {
-      const { cards, categoryButton } = detectProductCards('', products, lastUserMessage, categories);
-      if (cards.length) {
+    const bestCards = currCards.length ? currCards : (isProductQuery || isContextual ? convCards.slice(0, 4) : []);
+    const bestCatBtn = currCards.length ? currCatBtn : null;
+
+    if (bestCards.length) {
+      // If it's a contextual question ("which section"), go to LLM but attach cards
+      if (isContextual) {
+        // Fall through to Gemini but we'll attach cards to the final response
+        // (handled below after LLM response)
+      } else {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
         res.flushHeaders();
 
-        const reply = cards[0].overview || "Here are matching AADONA products for your query.";
-        const allButtons = categoryButton ? [categoryButton] : [];
+        const reply = bestCards[0].overview || "Here are matching AADONA products for your query.";
+        const allButtons = bestCatBtn ? [bestCatBtn] : [];
 
         res.write(`data: ${JSON.stringify({ token: reply })}\n\n`);
-        res.write(`data: ${JSON.stringify({ done: true, productCards: cards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
-        setCache(cacheKey, { reply, productCards: cards, actionButtons: allButtons.length ? allButtons : null });
+        res.write(`data: ${JSON.stringify({ done: true, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
+        if (cacheKey) setCache(cacheKey, { reply, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null });
         return res.end();
       }
     }
 
     // ── 4. Gemini LLM (fallback) ──────────────────────────────────────────
     const systemContent = buildSystemPrompt(userName || 'Guest', userPhone || '', userCity || '');
-    const geminiMessages = [{ role: 'user', parts: [{ text: lastUserMessage }] }];
+
+    // Build full conversation history for Gemini (last 10 turns max)
+    // Gemini requires alternating user/model roles — merge consecutive same-role messages
+    const recentHistory = sanitized.slice(-20); // last 20 messages
+    const geminiMessages = [];
+    for (const msg of recentHistory) {
+      const role = msg.role === 'assistant' ? 'model' : 'user';
+      const last = geminiMessages[geminiMessages.length - 1];
+      if (last && last.role === role) {
+        // Merge consecutive same-role messages
+        last.parts[0].text += '\n' + msg.content;
+      } else {
+        geminiMessages.push({ role, parts: [{ text: msg.content }] });
+      }
+    }
+    // Ensure it starts with user turn (Gemini requirement)
+    if (geminiMessages.length && geminiMessages[0].role === 'model') {
+      geminiMessages.shift();
+    }
+    // Ensure it ends with user turn
+    if (!geminiMessages.length || geminiMessages[geminiMessages.length - 1].role !== 'user') {
+      geminiMessages.push({ role: 'user', parts: [{ text: lastUserMessage }] });
+    }
 
     const genAI = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
@@ -645,20 +677,25 @@ router.post('/chat', chatLimiter, async (req, res) => {
       fullReply = lastDot > 100 ? trimmed.slice(0, lastDot + 1) : fullReply.slice(0, 400);
     }
 
-    const { cards: productCards, categoryButton } = detectProductCards(fullReply, products, lastUserMessage, categories);
+    // Post-LLM card detection: current msg > conversation context > reply text
+    const { cards: llmCards, categoryButton: llmCatBtn } = detectProductCards(fullReply, products, lastUserMessage, categories);
+    // For contextual queries ("which section"), attach cards from conversation history
+    const finalCards = llmCards.length ? llmCards : (isContextual ? (bestCards.length ? bestCards : convCards.slice(0, 4)) : []);
+    const finalCatBtn = llmCards.length ? llmCatBtn : (isContextual ? bestCatBtn : null);
+
     let actionButtons = [];
-    if (!productCards.length) {
+    if (!finalCards.length) {
       actionButtons = detectStaticPageIntent(lastUserMessage, fullReply);
     }
-    const allButtons = [...(categoryButton ? [categoryButton] : []), ...actionButtons].slice(0, 2);
+    const allButtons = [...(finalCatBtn ? [finalCatBtn] : []), ...actionButtons].slice(0, 2);
 
     const finalPayload = {
       done: true,
-      productCards: productCards.length ? productCards : null,
+      productCards: finalCards.length ? finalCards : null,
       actionButtons: allButtons.length ? allButtons : null,
     };
 
-    setCache(cacheKey, { reply: fullReply, productCards: finalPayload.productCards, actionButtons: finalPayload.actionButtons });
+    if (cacheKey) setCache(cacheKey, { reply: fullReply, productCards: finalPayload.productCards, actionButtons: finalPayload.actionButtons });
     res.write(`data: ${JSON.stringify(finalPayload)}\n\n`);
     res.end();
 
