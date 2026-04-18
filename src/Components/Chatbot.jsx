@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const STORAGE_KEY_USER = 'aadona_chat_user_v2';
+const STORAGE_KEY_USER = 'aadona_chat_user_v3';
 const STORAGE_KEY_HISTORY = (phone) => `aadona_chat_history_${phone}`;
 const MAX_HISTORY = 40;
 const TOLL_FREE = '18002026599';
@@ -9,19 +9,22 @@ const TOLL_FREE_DISPLAY = '1800-202-6599';
 
 const QUICK_REPLY_MAP = {
   default: ['Products', 'Support', 'Partner Info', 'About AADONA', 'Contact Us'],
-  products: ['Wireless', 'Surveillance', 'Network Switches', 'Servers & Workstations', 'NAS Storage', 'Industrial Switches'],
+  products: ['Wireless APs', 'Surveillance', 'Network Switches', 'Servers & NAS', 'Industrial Switches'],
   support: ['Warranty Check', 'Tech Squad', 'Request DOA', 'Product Registration', 'Product Support'],
   partner: ['Become a Partner', 'Project Locking', 'Request a Demo', 'Request Training'],
   contact: ['Call Us', 'Email Us', 'Office Address', 'Working Hours'],
+  technical: ['AP Configuration', 'Switch Configuration', 'NAS Configuration', 'CCTV Configuration'],
+  sales: ['Product Suggestion', 'MII Policy', 'GeM Authorization', 'Product Guide'],
 };
 
 function getQuickReplies(text) {
   const t = text.toLowerCase();
-  if (t.includes('product') || t.includes('wireless') || t.includes('switch') || t.includes('nas') || t.includes('server') || t.includes('surveillance')) return QUICK_REPLY_MAP.products;
-  if (t.includes('support') || t.includes('warranty') || t.includes('doa') || t.includes('tech squad') || t.includes('repair')) return QUICK_REPLY_MAP.support;
-  if (t.includes('partner') || t.includes('reseller') || t.includes('distributor') || t.includes('demo') || t.includes('training')) return QUICK_REPLY_MAP.partner;
-  if (t.includes('contact') || t.includes('address') || t.includes('phone') || t.includes('email') || t.includes('call')) return QUICK_REPLY_MAP.contact;
-  if (t.includes('price') || t.includes('cost')) return ['Get Pricing', 'Compare Models', 'Talk to Sales'];
+  if (t.includes('config') || t.includes('technical') || t.includes('setup')) return QUICK_REPLY_MAP.technical;
+  if (t.includes('product') || t.includes('wireless') || t.includes('switch') || t.includes('nas') || t.includes('server') || t.includes('surveillance') || t.includes('ap')) return QUICK_REPLY_MAP.products;
+  if (t.includes('support') || t.includes('warranty') || t.includes('doa') || t.includes('repair')) return QUICK_REPLY_MAP.support;
+  if (t.includes('partner') || t.includes('reseller') || t.includes('demo') || t.includes('training')) return QUICK_REPLY_MAP.partner;
+  if (t.includes('contact') || t.includes('address') || t.includes('call') || t.includes('email')) return QUICK_REPLY_MAP.contact;
+  if (t.includes('gem') || t.includes('mii') || t.includes('guide') || t.includes('suggest')) return QUICK_REPLY_MAP.sales;
   return QUICK_REPLY_MAP.default;
 }
 
@@ -29,109 +32,115 @@ function getTime() {
   return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── Product Card ──────────────────────────────────────────────────────────
+// ─── Escalation Badge ─────────────────────────────────────────────────────
+function EscalateBadge({ type }) {
+  const config = {
+    technical: { label: 'Technical Support', icon: 'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v10a2 2 0 002 2h6a2 2 0 002-2V3M9 13H5a2 2 0 00-2 2v4a2 2 0 002 2h4a2 2 0 002-2v-4a2 2 0 00-2-2z', color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
+    sales: { label: 'Sales Team', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v2h5v-2zm0 0v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0', color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
+    gem: { label: 'GeM Specialist', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z', color: '#7c3aed', bg: '#faf5ff', border: '#ddd6fe' },
+  };
+  const c = config[type] || config.technical;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: c.bg, border: `1px solid ${c.border}`, borderRadius: '10px', marginTop: '8px' }}>
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={c.color} strokeWidth={1.8} style={{ flexShrink: 0 }}>
+        <path strokeLinecap="round" strokeLinejoin="round" d={c.icon} />
+      </svg>
+      <div>
+        <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: c.color, fontFamily: "'DM Sans', sans-serif" }}>Connecting you to {c.label}</p>
+        <p style={{ margin: 0, fontSize: '10px', color: '#64748b', fontFamily: "'DM Sans', sans-serif" }}>We'll reach out to you at the registered contact</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Product Card (Grid) ──────────────────────────────────────────────────
 function ProductCard({ product }) {
   if (!product) return null;
   const [imgError, setImgError] = useState(false);
-
   return (
-    <div
-      className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex-shrink-0"
-      style={{ width: '172px', fontFamily: "'DM Sans', sans-serif" }}
-    >
-      <div className="w-full bg-slate-50 flex items-center justify-center overflow-hidden" style={{ height: '108px' }}>
+    <div style={{ width: '168px', flexShrink: 0, borderRadius: '14px', border: '1px solid #e2e8f0', background: '#fff', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+      <div style={{ height: '100px', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderBottom: '1px solid #f1f5f9' }}>
         {product.image && !imgError ? (
-          <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2" onError={() => setImgError(true)} />
+          <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '8px' }} onError={() => setImgError(true)} />
         ) : (
-          <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-slate-100 to-slate-50 gap-1">
-            <svg className="w-7 h-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" strokeWidth={1.2}>
               <rect x="2" y="3" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8M12 17v4" />
             </svg>
-            <span className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">No Image</span>
+            <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>No Image</span>
           </div>
         )}
       </div>
-      <div className="p-2.5">
+      <div style={{ padding: '10px' }}>
         {product.model && (
-          <div className="inline-block mb-1">
-            <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono tracking-wider">
-              {product.model}
-            </span>
+          <div style={{ display: 'inline-block', marginBottom: '6px' }}>
+            <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', fontFamily: 'monospace', letterSpacing: '0.5px' }}>{product.model}</span>
           </div>
         )}
-        <p className="text-[11.5px] font-semibold text-slate-800 leading-snug line-clamp-2 tracking-tight mb-1">{product.name}</p>
-        {product.overview && <p className="text-[10px] text-slate-500 leading-relaxed line-clamp-2 mb-1.5">{product.overview}</p>}
+        <p style={{ fontSize: '11.5px', fontWeight: 600, color: '#0f172a', lineHeight: 1.35, margin: '0 0 4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</p>
+        {product.overview && <p style={{ fontSize: '10px', color: '#64748b', lineHeight: 1.5, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.overview}</p>}
         {product.features?.length > 0 && (
-          <ul className="flex flex-col gap-0.5 mb-2">
+          <ul style={{ margin: '0 0 10px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {product.features.slice(0, 2).map((f, i) => (
-              <li key={i} className="flex items-start gap-1 text-[10px] text-slate-500">
-                <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
-                <span className="line-clamp-1">{f}</span>
+              <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '5px', fontSize: '10px', color: '#475569' }}>
+                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#10b981', marginTop: '5px', flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>{f}</span>
               </li>
             ))}
           </ul>
         )}
         <a href={product.url} target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1 text-[10.5px] font-semibold text-white py-1.5 rounded-lg transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#fff', padding: '7px', borderRadius: '9px', textDecoration: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', transition: 'opacity 0.15s' }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+          <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
-          {product.visitLabel || `View Product`}
+          {product.visitLabel || 'View Product'}
         </a>
       </div>
     </div>
   );
 }
 
-// ─── Single Product Card (Wide) ────────────────────────────────────────────
+// ─── Single Wide Product Card ─────────────────────────────────────────────
 function SingleProductCard({ product }) {
   if (!product) return null;
   const [imgError, setImgError] = useState(false);
-
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif", maxWidth: '100%' }}>
-      <div className="flex gap-3 p-3">
-        <div className="flex-shrink-0 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100" style={{ width: '80px', height: '80px' }}>
+    <div style={{ borderRadius: '14px', border: '1px solid #e2e8f0', background: '#fff', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+      <div style={{ display: 'flex', gap: '12px', padding: '12px' }}>
+        <div style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {product.image && !imgError ? (
-            <img src={product.image} alt={product.name} className="w-full h-full object-contain p-1.5" onError={() => setImgError(true)} />
+            <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }} onError={() => setImgError(true)} />
           ) : (
-            <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-slate-100 to-slate-50 gap-1">
-              <svg className="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
-                <rect x="2" y="3" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8M12 17v4" />
-              </svg>
-            </div>
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" strokeWidth={1.2}>
+              <rect x="2" y="3" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8M12 17v4" />
+            </svg>
           )}
         </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-between">
-          <div>
-            {product.model && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono tracking-wider inline-block mb-1">
-                {product.model}
-              </span>
-            )}
-            <p className="text-[12px] font-semibold text-slate-800 leading-snug tracking-tight mb-1 line-clamp-2">{product.name}</p>
-            {product.overview && <p className="text-[10.5px] text-slate-500 leading-relaxed line-clamp-2">{product.overview}</p>}
-          </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {product.model && <span style={{ display: 'inline-block', fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', fontFamily: 'monospace', letterSpacing: '0.5px', marginBottom: '5px' }}>{product.model}</span>}
+          <p style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</p>
+          {product.overview && <p style={{ fontSize: '11px', color: '#64748b', margin: 0, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.overview}</p>}
           {product.features?.length > 0 && (
-            <ul className="flex flex-col gap-0.5 mt-1.5">
+            <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {product.features.slice(0, 2).map((f, i) => (
-                <li key={i} className="flex items-start gap-1 text-[10px] text-slate-500">
-                  <span className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
-                  <span className="line-clamp-1">{f}</span>
+                <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '5px', fontSize: '10px', color: '#475569' }}>
+                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#10b981', marginTop: '5px', flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>{f}</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
       </div>
-      <div className="px-3 pb-3">
+      <div style={{ padding: '0 12px 12px' }}>
         <a href={product.url} target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-white py-2 rounded-lg transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5 w-full"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#fff', padding: '9px', borderRadius: '9px', textDecoration: 'none', background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
           {product.visitLabel || `View ${product.model || product.name}`}
@@ -145,12 +154,13 @@ function SingleProductCard({ product }) {
 function ActionButtons({ buttons }) {
   if (!buttons?.length) return null;
   return (
-    <div className="flex flex-wrap gap-1.5 mt-2">
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
       {buttons.map((btn, i) => (
         <a key={i} href={btn.url} target="_self"
-          className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3.5 py-2 rounded-full transition-all duration-150 shadow-sm hover:shadow-md hover:-translate-y-0.5"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff' }}>
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, padding: '7px 14px', borderRadius: '100px', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', boxShadow: '0 2px 8px rgba(16,185,129,0.3)', transition: 'transform 0.15s, box-shadow 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.4)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(16,185,129,0.3)'; }}>
+          <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
           {btn.label}
@@ -160,95 +170,85 @@ function ActionButtons({ buttons }) {
   );
 }
 
-// ─── Typing Dots ───────────────────────────────────────────────────────────
+// ─── Typing Dots ──────────────────────────────────────────────────────────
 function TypingDots() {
   return (
-    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm">
+    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '12px 14px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px 14px 14px 4px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
       {[0, 1, 2].map((i) => (
-        <span key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce"
-          style={{ animationDelay: `${i * 0.18}s`, animationDuration: '0.9s' }} />
+        <span key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block', animation: `aadonaBounce 0.9s ease ${i * 0.18}s infinite` }} />
       ))}
     </div>
   );
 }
 
-// ─── Bot Message ───────────────────────────────────────────────────────────
-function BotMessage({ content, time, productCards, actionButtons, isStreaming }) {
+// ─── Bot Message ──────────────────────────────────────────────────────────
+function BotMessage({ content, time, productCards, actionButtons, isStreaming, escalate }) {
   const safeContent = content.replace(/https?:\/\/[^\s]+/g, '');
-
   return (
-    <div className="flex items-end gap-2 animate-fadeIn">
-      <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mb-1 shadow-sm"
-        style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-        <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }} className="aadona-fadeIn">
+      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginBottom: '2px', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
+        <svg width="13" height="13" fill="#fff" viewBox="0 0 24 24">
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
         </svg>
       </div>
-      <div className="flex flex-col gap-1.5 max-w-[84%]">
-        <div className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm text-slate-700 text-[13px] leading-relaxed"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}>
-          {safeContent
-            .replace(/\* /g, '\n* ')
-            .split('\n')
-            .map((line, i, arr) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '85%' }}>
+        <div style={{ padding: '11px 14px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px 14px 14px 4px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', fontSize: '13px', color: '#1e293b', lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>
+          {safeContent.replace(/\* /g, '\n• ').split('\n').map((line, i, arr) => (
             <span key={i}>
               {line.split(/(\*\*.*?\*\*)/g).map((part, j) =>
                 part.startsWith('**') && part.endsWith('**')
-                  ? <strong key={j} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>
+                  ? <strong key={j} style={{ fontWeight: 600, color: '#0f172a' }}>{part.slice(2, -2)}</strong>
                   : part
               )}
               {i < arr.length - 1 && <br />}
             </span>
           ))}
-          {isStreaming && <span className="inline-block w-0.5 h-3.5 bg-emerald-400 ml-0.5 animate-pulse rounded-sm" />}
+          {isStreaming && <span style={{ display: 'inline-block', width: '2px', height: '14px', background: '#10b981', marginLeft: '2px', borderRadius: '2px', animation: 'aadonaPulse 1s ease infinite' }} />}
         </div>
 
-        {/* Product Cards — only render when streaming is complete */}
+        {!isStreaming && escalate && <EscalateBadge type={escalate} />}
+
         {!isStreaming && productCards?.length > 0 && (
           productCards.length === 1 ? (
             <SingleProductCard product={productCards[0]} />
           ) : (
-            <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 product-scroll"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
               {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
             </div>
           )
         )}
 
         {!isStreaming && <ActionButtons buttons={actionButtons} />}
-
-        {!isStreaming && time && (
-          <span className="text-[10px] text-slate-400 pl-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>{time}</span>
-        )}
+        {!isStreaming && time && <span style={{ fontSize: '10px', color: '#94a3b8', paddingLeft: '4px', fontFamily: "'DM Sans', sans-serif" }}>{time}</span>}
       </div>
     </div>
   );
 }
 
-// ─── User Message ──────────────────────────────────────────────────────────
+// ─── User Message ─────────────────────────────────────────────────────────
 function UserMessage({ content, time }) {
   return (
-    <div className="flex items-end justify-end gap-2 animate-fadeIn">
-      <div className="flex flex-col items-end gap-0.5 max-w-[78%]">
-        <div className="px-3.5 py-2.5 rounded-2xl rounded-br-sm text-white text-[13px] leading-relaxed shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', gap: '8px' }} className="aadona-fadeIn">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', maxWidth: '78%' }}>
+        <div style={{ padding: '11px 14px', borderRadius: '14px 14px 4px 14px', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', fontSize: '13px', lineHeight: 1.55, boxShadow: '0 2px 8px rgba(16,185,129,0.25)', fontFamily: "'DM Sans', sans-serif" }}>
           {content}
         </div>
-        {time && <span className="text-[10px] text-slate-400 pr-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>{time}</span>}
+        {time && <span style={{ fontSize: '10px', color: '#94a3b8', paddingRight: '4px', fontFamily: "'DM Sans', sans-serif" }}>{time}</span>}
       </div>
     </div>
   );
 }
 
-// ─── Quick Replies ─────────────────────────────────────────────────────────
+// ─── Quick Replies ────────────────────────────────────────────────────────
 function QuickReplies({ options, onSelect }) {
   if (!options?.length) return null;
   return (
-    <div className="flex flex-wrap gap-1.5 px-3 pb-2 pt-1">
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '8px 12px 10px' }}>
       {options.map((opt) => (
         <button key={opt} onClick={() => onSelect(opt)}
-          className="text-[11px] px-3 py-1.5 rounded-full border border-emerald-200 text-emerald-700 bg-white hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-150 font-medium"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}>
+          style={{ fontSize: '11px', padding: '6px 12px', borderRadius: '100px', border: '1px solid #a7f3d0', color: '#065f46', background: '#fff', cursor: 'pointer', fontWeight: 500, transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif" }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#10b981'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#065f46'; e.currentTarget.style.borderColor = '#a7f3d0'; }}>
           {opt}
         </button>
       ))}
@@ -256,7 +256,7 @@ function QuickReplies({ options, onSelect }) {
   );
 }
 
-// ─── Registration Form ─────────────────────────────────────────────────────
+// ─── Registration Form ────────────────────────────────────────────────────
 function RegistrationForm({ onStart }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -275,96 +275,77 @@ function RegistrationForm({ onStart }) {
     onStart(name.trim(), phone.trim(), city.trim());
   };
 
+  const inputStyle = { width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: '#fff', fontSize: '13px', color: '#1e293b', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' };
+
   return (
-    <div className="flex flex-col h-full" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      <div className="px-5 py-5 flex-shrink-0" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'DM Sans', sans-serif" }}>
+      {/* Header */}
+      <div style={{ padding: '20px', background: 'linear-gradient(135deg, #10b981, #059669)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
+            <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
               <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
             </svg>
           </div>
           <div>
-            <h2 className="text-white font-bold text-[15px] tracking-tight">AADONA Assistant</h2>
-            <p className="text-emerald-100 text-[11px]">Powered by AI · Always Online</p>
+            <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '16px', margin: 0, letterSpacing: '-0.3px' }}>AADONA Assistant</h2>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', margin: 0 }}>AI-Powered · Available 24/7</p>
           </div>
         </div>
-        <p className="text-white/80 text-[12px] leading-relaxed mt-1">Get instant answers about products, support, and partnerships.</p>
+        <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Get instant answers on products, support, GeM, and partnerships.</p>
       </div>
 
-      <div className="flex-1 px-5 py-5 flex flex-col gap-4 bg-slate-50 overflow-y-auto">
-        <div>
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Quick intro before we chat</p>
-          <div className="flex flex-col gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-500 mb-1.5">Full Name *</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()} placeholder="Enter your name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-500 mb-1.5">Mobile Number *</label>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-[13px] font-medium">+91</span>
-                <input type="tel" value={phone}
-                  onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  onKeyDown={e => e.key === 'Enter' && handleSubmit()} placeholder="10-digit number"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-500 mb-1.5">City *</label>
-              <input type="text" value={city} onChange={e => setCity(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()} placeholder="Enter your city"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition" />
+      {/* Capabilities Strip */}
+      <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', padding: '12px', background: '#f0fdf4', borderBottom: '1px solid #d1fae5', scrollbarWidth: 'none', flexShrink: 0 }}>
+        {['Products & Specs', 'Config Support', 'GeM / MII', 'Partner Programs', 'Warranty & DOA'].map(item => (
+          <span key={item} style={{ flexShrink: 0, fontSize: '10px', fontWeight: 600, padding: '4px 10px', borderRadius: '100px', background: '#fff', color: '#065f46', border: '1px solid #a7f3d0', whiteSpace: 'nowrap' }}>{item}</span>
+        ))}
+      </div>
+
+      {/* Form */}
+      <div style={{ flex: 1, padding: '16px', overflowY: 'auto', background: '#f8fafc' }}>
+        <p style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 12px' }}>Quick intro before we begin</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '5px' }}>Full Name *</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} placeholder="Enter your name" style={inputStyle}
+              onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '5px' }}>Mobile Number *</label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>+91</span>
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} onKeyDown={e => e.key === 'Enter' && handleSubmit()} placeholder="10-digit number" style={{ ...inputStyle, paddingLeft: '44px' }}
+                onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
             </div>
           </div>
-          {error && (
-            <p className="mt-2 text-[11px] text-red-500 flex items-center gap-1">
-              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              {error}
-            </p>
-          )}
-        </div>
-
-        <div className="bg-white rounded-xl p-3 border border-slate-200">
-          <p className="text-[10px] font-semibold text-slate-400 mb-2 uppercase tracking-wider">I can help with</p>
-          <div className="grid grid-cols-2 gap-1.5">
-            {['Products & Specs', 'Warranty & Support', 'Partner Programs', 'Contact & Location'].map(item => (
-              <div key={item} className="text-[11px] text-slate-600 font-medium">{item}</div>
-            ))}
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '5px' }}>City *</label>
+            <input type="text" value={city} onChange={e => setCity(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} placeholder="Enter your city" style={inputStyle}
+              onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
           </div>
         </div>
-
+        {error && (
+          <p style={{ marginTop: '8px', fontSize: '11px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+            {error}
+          </p>
+        )}
         <button onClick={handleSubmit} disabled={loading}
-          className="w-full py-3 rounded-xl text-white font-semibold text-[13px] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-emerald-200"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+          style={{ width: '100%', marginTop: '16px', padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.2px' }}>
           {loading ? (
-            <>
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Starting...
-            </>
+            <><svg style={{ animation: 'aadonaSpin 1s linear infinite' }} width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.4)" strokeWidth="4" /><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Starting...</>
           ) : (
-            <>
-              Start Chat
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </>
+            <>Start Chat<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg></>
           )}
         </button>
-        <p className="text-center text-[10px] text-slate-400">Your details are kept private · AADONA Communication Pvt Ltd</p>
+        <p style={{ textAlign: 'center', fontSize: '10px', color: '#94a3b8', marginTop: '12px' }}>Your details are kept private · AADONA Communication Pvt Ltd</p>
       </div>
     </div>
   );
 }
 
-// ─── Main Chatbot Component ────────────────────────────────────────────────
+// ─── Main Chatbot ─────────────────────────────────────────────────────────
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -379,18 +360,14 @@ export default function Chatbot() {
   const [showCallDrawer, setShowCallDrawer] = useState(false);
   const [showBubble, setShowBubble] = useState(false);
 
-  // ── Refs ──────────────────────────────────────────────────────────────────
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const callDrawerRef = useRef(null);
-
-  // Mail tracking refs
   const lastSummaryRef = useRef({ messageCount: 0, sentAt: 0 });
   const inactivityTimerRef = useRef(null);
   const summaryMailSentRef = useRef(false);
 
-  // ── Mobile detection ──────────────────────────────────────────────────────
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
     check();
@@ -398,7 +375,6 @@ export default function Chatbot() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // ── Smart scroll ──────────────────────────────────────────────────────────
   const scrollToBottom = useCallback((force = false) => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -408,15 +384,9 @@ export default function Chatbot() {
     }
   }, []);
 
-  useEffect(() => {
-    if (isLoading) scrollToBottom(true);
-  }, [isLoading]);
+  useEffect(() => { if (isLoading) scrollToBottom(true); }, [isLoading]);
+  useEffect(() => { if (isOpen && isRegistered) setTimeout(() => inputRef.current?.focus(), 100); }, [isOpen, isRegistered]);
 
-  useEffect(() => {
-    if (isOpen && isRegistered) setTimeout(() => inputRef.current?.focus(), 100);
-  }, [isOpen, isRegistered]);
-
-  // ── Load saved user on mount ──────────────────────────────────────────────
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY_USER);
     if (saved) {
@@ -431,138 +401,52 @@ export default function Chatbot() {
     }
   }, []);
 
-  // ── Call drawer outside click ──────────────────────────────────────────────
   useEffect(() => {
     if (!showCallDrawer) return;
-    const handler = (e) => {
-      if (callDrawerRef.current && !callDrawerRef.current.contains(e.target)) setShowCallDrawer(false);
-    };
+    const handler = (e) => { if (callDrawerRef.current && !callDrawerRef.current.contains(e.target)) setShowCallDrawer(false); };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showCallDrawer]);
 
-  // ── Bubble delay ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    const t = setTimeout(() => setShowBubble(true), 5000);
-    return () => clearTimeout(t);
-  }, []);
+  useEffect(() => { const t = setTimeout(() => setShowBubble(true), 5000); return () => clearTimeout(t); }, []);
+  useEffect(() => { return () => { if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current); }; }, []);
 
-  // ── Cleanup inactivity timer on unmount ───────────────────────────────────
-  useEffect(() => {
-    return () => {
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    };
-  }, []);
-
-  // ── Tab/window close — only send if user actually chatted ─────────────────
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (!user?.phone) return;
-      // FIX: Only send summary if user actually sent at least one message
       const userMessages = messages.filter(m => m.role === 'user');
       if (!userMessages.length) return;
-
-      const payload = JSON.stringify({
-        name: user.name,
-        phone: user.phone,
-        city: user.city,
-        trigger: 'close',
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content,
-          time: m.time,
-        })),
-        isResume: false,
-      });
-
-      navigator.sendBeacon(
-        `${API_BASE}/chat/summary`,
-        new Blob([payload], { type: 'application/json' })
-      );
+      navigator.sendBeacon(`${API_BASE}/chat/summary`, new Blob([JSON.stringify({ name: user.name, phone: user.phone, city: user.city, trigger: 'close', messages: messages.map(m => ({ role: m.role, content: m.content, time: m.time })), isResume: false })], { type: 'application/json' }));
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [messages, user]);
 
-  // ── Chat Summary Mail ─────────────────────────────────────────────────────
   const sendChatSummaryMail = useCallback(async (chatMessages, isResume = false, trigger = 'inactivity') => {
     if (!user?.phone) return;
-
-    // Resume notification — only if a summary was already sent
     if (isResume) {
       if (!summaryMailSentRef.current) return;
-      try {
-        await fetch(`${API_BASE}/chat/summary`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: user.name,
-            phone: user.phone,
-            city: user.city,
-            messages: chatMessages.map(m => ({
-              role: m.role,
-              content: m.content,
-              time: m.time,
-            })),
-            isResume: true,
-          }),
-        });
-      } catch { }
+      try { await fetch(`${API_BASE}/chat/summary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: user.name, phone: user.phone, city: user.city, messages: chatMessages.map(m => ({ role: m.role, content: m.content, time: m.time })), isResume: true }) }); } catch { }
       return;
     }
-
-    // FIX: Only send full summary if user actually sent at least one message
-    if (!chatMessages?.length) return;
-    const userMessages = chatMessages.filter(m => m.role === 'user');
-    if (!userMessages.length) return;
-
+    if (!chatMessages?.length || !chatMessages.filter(m => m.role === 'user').length) return;
     lastSummaryRef.current = { messageCount: chatMessages.length, sentAt: Date.now() };
     summaryMailSentRef.current = true;
-
-    try {
-      await fetch(`${API_BASE}/chat/summary`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: user.name,
-          phone: user.phone,
-          city: user.city,
-          trigger,
-          messages: chatMessages.map(m => ({
-            role: m.role,
-            content: m.content,
-            time: m.time,
-          })),
-          isResume: false,
-        }),
-      });
-    } catch { }
+    try { await fetch(`${API_BASE}/chat/summary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: user.name, phone: user.phone, city: user.city, trigger, messages: chatMessages.map(m => ({ role: m.role, content: m.content, time: m.time })), isResume: false }) }); } catch { }
   }, [user]);
 
-  // ── Inactivity timer reset ────────────────────────────────────────────────
   const resetInactivityTimer = useCallback((chatMessages) => {
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-
-    inactivityTimerRef.current = setTimeout(() => {
-      sendChatSummaryMail(chatMessages, false, 'inactivity');
-    }, 10 * 60 * 1000);
+    inactivityTimerRef.current = setTimeout(() => { sendChatSummaryMail(chatMessages, false, 'inactivity'); }, 10 * 60 * 1000);
   }, [sendChatSummaryMail]);
 
-  // ── History helpers ───────────────────────────────────────────────────────
   const loadHistory = (phone) => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_HISTORY(phone));
       if (!raw) return;
       const hist = JSON.parse(raw);
       if (Array.isArray(hist) && hist.length) {
-        setMessages(hist.map(m => ({
-          role: m.role === 'assistant' ? 'bot' : 'user',
-          content: m.content,
-          time: m.time || '',
-          productCards: m.productCards || null,
-          actionButtons: m.actionButtons || null,
-        })));
+        setMessages(hist.map(m => ({ role: m.role === 'assistant' ? 'bot' : 'user', content: m.content, time: m.time || '', productCards: m.productCards || null, actionButtons: m.actionButtons || null, escalate: m.escalate || null })));
         setApiHistory(hist.slice(-10).map(m => ({ role: m.role, content: m.content })));
         setQuickReplies(QUICK_REPLY_MAP.default);
       }
@@ -572,67 +456,39 @@ export default function Chatbot() {
   const saveHistory = useCallback((phone, allMessages) => {
     try {
       localStorage.setItem(STORAGE_KEY_HISTORY(phone), JSON.stringify(
-        allMessages.slice(-MAX_HISTORY).map(m => ({
-          role: m.role === 'bot' ? 'assistant' : 'user',
-          content: m.content,
-          time: m.time,
-          productCards: m.productCards || null,
-          actionButtons: m.actionButtons || null,
-        }))
+        allMessages.slice(-MAX_HISTORY).map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', content: m.content, time: m.time, productCards: m.productCards || null, actionButtons: m.actionButtons || null, escalate: m.escalate || null }))
       ));
     } catch { }
   }, []);
 
-  // ── Handle Start (Registration) ───────────────────────────────────────────
   const handleStart = async (name, phone, city) => {
     const userData = { name, phone, city, joinedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
-    fetch(`${API_BASE}/chat/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, city }),
-    }).catch(() => { });
+    fetch(`${API_BASE}/chat/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone, city }) }).catch(() => { });
     setUser(userData);
     setIsRegistered(true);
 
     const existingHistory = localStorage.getItem(STORAGE_KEY_HISTORY(phone));
     if (existingHistory) {
       loadHistory(phone);
-      const welcomeBack = {
-        role: 'bot',
-        content: `Welcome back, **${name}**. How can I assist you today?`,
-        time: getTime(),
-      };
-      setMessages(prev => {
-        const updated = [...prev, welcomeBack];
-        saveHistory(phone, updated);
-        return updated;
-      });
+      const welcomeBack = { role: 'bot', content: `Welcome back, **${name}**. How can I assist you today?`, time: getTime() };
+      setMessages(prev => { const updated = [...prev, welcomeBack]; saveHistory(phone, updated); return updated; });
     } else {
-      const greeting = {
-        role: 'bot',
-        content: `Hello **${name}**, welcome to **AADONA** — India's premier networking brand.\n\nI can assist with products, support, and partnership queries. What would you like to know?`,
-        time: getTime(),
-      };
+      const greeting = { role: 'bot', content: `Hello **${name}**, welcome to **AADONA** — India's leading networking solutions brand.\n\nI can assist you with products, technical configuration, GeM/MII queries, support, and partnership programs. What would you like to know?`, time: getTime() };
       setMessages([greeting]);
       saveHistory(phone, [greeting]);
     }
     setQuickReplies(QUICK_REPLY_MAP.default);
   };
 
-  // ── Send Message ──────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || isLoading) return;
 
-    // If summary was already sent, notify resume
-    if (summaryMailSentRef.current) {
-      sendChatSummaryMail(messages, true);
-    }
+    if (summaryMailSentRef.current) sendChatSummaryMail(messages, true);
 
     setInput('');
     setQuickReplies([]);
-
     const userMsg = { role: 'user', content: trimmed, time: getTime() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -642,50 +498,26 @@ export default function Chatbot() {
     setApiHistory(newApiHistory);
     setIsLoading(true);
 
-    // ── FIX: Use a stable index key instead of array position ──
-    // We append the streaming placeholder and track it by a unique id
     const botMsgId = `bot_${Date.now()}`;
-
-    const streamingMsg = {
-      id: botMsgId,
-      role: 'bot',
-      content: '',
-      time: getTime(),
-      isStreaming: true,
-      productCards: null,
-      actionButtons: null,
-    };
-
+    const streamingMsg = { id: botMsgId, role: 'bot', content: '', time: getTime(), isStreaming: true, productCards: null, actionButtons: null, escalate: null };
     setMessages(prev => [...prev, streamingMsg]);
 
-    // ── Accumulate full reply outside of React state ──────────────────────
     let streamedText = '';
     let finalProductCards = null;
     let finalActionButtons = null;
+    let finalEscalate = null;
 
     try {
       const response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: newApiHistory,
-          userName: user?.name || 'Guest',
-          userPhone: user?.phone || '',
-          userCity: user?.city || '',
-        }),
+        body: JSON.stringify({ messages: newApiHistory, userName: user?.name || 'Guest', userPhone: user?.phone || '', userCity: user?.city || '' }),
       });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || 'Server error');
-      }
+      if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.error || 'Server error'); }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-
-      // ── FIX: Collect all tokens first, then type-animate ──────────────────
-      // This prevents the race condition where json.done arrives while
-      // char animation is still running, causing cards to get lost.
       const rawTokens = [];
       let donePayload = null;
 
@@ -694,30 +526,24 @@ export default function Chatbot() {
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
-
         for (const line of lines) {
           try {
             const json = JSON.parse(line.replace('data: ', ''));
-            if (json.token) {
-              rawTokens.push(json.token);
-            }
-            if (json.done) {
-              donePayload = json;
-            }
+            if (json.token) rawTokens.push(json.token);
+            if (json.done) donePayload = json;
           } catch { }
         }
       }
 
-      // Extract final cards/buttons from done payload
       if (donePayload) {
         finalProductCards = donePayload.productCards || null;
         finalActionButtons = donePayload.actionButtons || null;
+        finalEscalate = donePayload.escalate || null;
       }
 
-      // Full text assembled
       streamedText = rawTokens.join('');
 
-      // ── Now type-animate char by char ─────────────────────────────────────
+      // Type animation
       let displayed = '';
       for (const token of rawTokens) {
         for (const char of token.split('')) {
@@ -726,59 +552,29 @@ export default function Chatbot() {
           setMessages(prev => {
             const updated = [...prev];
             const idx = updated.findIndex(m => m.id === botMsgId);
-            if (idx !== -1) {
-              updated[idx] = { ...updated[idx], content: snap, isStreaming: true };
-            }
+            if (idx !== -1) updated[idx] = { ...updated[idx], content: snap, isStreaming: true };
             return updated;
           });
           scrollToBottom();
-          await new Promise(r => setTimeout(r, 12));
+          await new Promise(r => setTimeout(r, 10));
         }
       }
 
-      // ── Mark streaming complete and attach cards ──────────────────────────
+      // Finalize
       setMessages(prev => {
         const updated = [...prev];
         const idx = updated.findIndex(m => m.id === botMsgId);
-
         if (idx !== -1) {
           let finalText = (streamedText || '').trim();
-
-          if (finalText && !/[.!?]$/.test(finalText)) {
-            finalText += '...';
-          }
-
-          if (!finalText || finalText.length < 15) {
-            finalText = "Here are the available products from AADONA:";
-          }
-
+          if (finalText && !/[.!?]$/.test(finalText)) finalText += '.';
+          if (!finalText || finalText.length < 15) finalText = 'Here are matching AADONA products:';
           finalText = finalText.replace(/\*\*(?!.*\*\*)/g, '');
-
-          updated[idx] = {
-            ...updated[idx],
-            content: finalText,
-            isStreaming: false,
-            productCards: finalProductCards,
-            actionButtons: finalActionButtons,
-          };
+          updated[idx] = { ...updated[idx], content: finalText, isStreaming: false, productCards: finalProductCards, actionButtons: finalActionButtons, escalate: finalEscalate };
         }
-
         return updated;
       });
 
-      const finalMessages = [
-        ...newMessages,
-        {
-          id: botMsgId,
-          role: 'bot',
-          content: streamedText,
-          time: getTime(),
-          productCards: finalProductCards,
-          actionButtons: finalActionButtons,
-          isStreaming: false,
-        },
-      ];
-
+      const finalMessages = [...newMessages, { id: botMsgId, role: 'bot', content: streamedText, time: getTime(), productCards: finalProductCards, actionButtons: finalActionButtons, escalate: finalEscalate, isStreaming: false }];
       setApiHistory(prev => [...prev, { role: 'assistant', content: streamedText }]);
       setQuickReplies(getQuickReplies(trimmed));
       saveHistory(user?.phone, finalMessages);
@@ -789,13 +585,7 @@ export default function Chatbot() {
       setMessages(prev => {
         const updated = [...prev];
         const idx = updated.findIndex(m => m.id === botMsgId);
-        if (idx !== -1) {
-          updated[idx] = {
-            ...updated[idx],
-            content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`,
-            isStreaming: false,
-          };
-        }
+        if (idx !== -1) updated[idx] = { ...updated[idx], content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`, isStreaming: false };
         return updated;
       });
       setQuickReplies(QUICK_REPLY_MAP.default);
@@ -805,15 +595,10 @@ export default function Chatbot() {
     }
   }, [input, messages, apiHistory, isLoading, user, saveHistory, scrollToBottom, sendChatSummaryMail, resetInactivityTimer]);
 
-  // ── Clear History ─────────────────────────────────────────────────────────
   const handleClearHistory = () => {
     if (!user?.phone) return;
     localStorage.removeItem(STORAGE_KEY_HISTORY(user.phone));
-    const greeting = {
-      role: 'bot',
-      content: `Conversation cleared. How can I assist you, **${user.name}**?`,
-      time: getTime(),
-    };
+    const greeting = { role: 'bot', content: `Conversation cleared. How can I assist you, **${user.name}**?`, time: getTime() };
     setMessages([greeting]);
     setApiHistory([]);
     setQuickReplies(QUICK_REPLY_MAP.default);
@@ -826,121 +611,111 @@ export default function Chatbot() {
   const handleCallDrawerToggle = () => { setShowCallDrawer(prev => !prev); setIsOpen(false); };
   const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
-  const winHeight = isRegistered ? 580 : 540;
-  const winWidth = isMobile ? 'calc(100vw - 24px)' : '368px';
+  const winWidth = isMobile ? 'calc(100vw - 20px)' : '375px';
 
   return (
     <>
       <style>{`
-        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.22s ease forwards; }
-        @keyframes slideUp { from { opacity:0; transform:scale(0.95) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
-        .chat-window-enter { animation: slideUp 0.28s cubic-bezier(0.34,1.18,0.64,1) forwards; }
-        .no-scrollbar::-webkit-scrollbar { display:none; }
-        .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
-        .product-scroll::-webkit-scrollbar { display:none; }
-        .product-scroll { -ms-overflow-style:none; scrollbar-width:none; }
-        @keyframes notif-bubble-in { 0% { opacity:0; transform:translateX(-70%) scale(0.9); } 100% { opacity:1; transform:translateX(-70%) scale(1); } }
-        @keyframes notif-bubble-bounce { 0%,100% { transform:translateX(-70%) translateY(0); } 50% { transform:translateX(-70%) translateY(-3px); } }
-        @keyframes drawerSlideUp { from { opacity:0; transform:translateY(8px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-        .call-drawer-enter { animation: drawerSlideUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
-        .notif-bubble {
-          position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-70%);
-          background:#1e293b; color:#f8fafc; font-family:'DM Sans',sans-serif;
+        @keyframes aadonaFadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .aadona-fadeIn { animation: aadonaFadeIn 0.2s ease forwards; }
+        @keyframes aadonaSlideUp { from { opacity:0; transform:scale(0.95) translateY(18px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        .aadona-window { animation: aadonaSlideUp 0.26s cubic-bezier(0.34,1.18,0.64,1) forwards; }
+        @keyframes aadonaBounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+        @keyframes aadonaPulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+        @keyframes aadonaSpin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+        @keyframes aadonaBlinkDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.82); } }
+        @keyframes aadonaBubbleIn { 0% { opacity:0; transform:translateX(-68%) scale(0.9); } 100% { opacity:1; transform:translateX(-68%) scale(1); } }
+        @keyframes aadonaBubbleBounce { 0%,100% { transform:translateX(-68%) translateY(0); } 50% { transform:translateX(-68%) translateY(-3px); } }
+        @keyframes aadonaDrawerUp { from { opacity:0; transform:translateY(8px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+        .aadona-drawer { animation: aadonaDrawerUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
+        .aadona-notif-bubble {
+          position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-68%);
+          background:#1e293b; color:#f8fafc;
           font-size:11px; font-weight:500; padding:7px 12px; border-radius:10px;
           white-space:nowrap; pointer-events:none;
-          animation: notif-bubble-in 0.4s 0.6s ease both, notif-bubble-bounce 2s 1.2s ease-in-out infinite;
-          box-shadow:0 4px 14px rgba(0,0,0,0.18);
+          animation: aadonaBubbleIn 0.4s 0.6s ease both, aadonaBubbleBounce 2s 1.2s ease-in-out infinite;
+          box-shadow:0 4px 16px rgba(0,0,0,0.2);
+          font-family:'DM Sans',sans-serif;
         }
-        .notif-bubble::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:#1e293b; }
-        .ac-tooltip {
+        .aadona-notif-bubble::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:#1e293b; }
+        .aadona-tooltip {
           position:absolute; right:calc(100% + 10px); top:50%; transform:translateY(-50%) translateX(4px);
-          background:#1e293b; color:#f8fafc; font-family:'DM Sans',sans-serif;
+          background:#1e293b; color:#f8fafc;
           font-size:11px; font-weight:500; padding:5px 11px; border-radius:8px;
           white-space:nowrap; pointer-events:none; opacity:0;
           transition:opacity 0.18s ease, transform 0.18s ease; z-index:99999;
+          font-family:'DM Sans',sans-serif;
         }
-        .ac-tooltip::after { content:''; position:absolute; left:100%; top:50%; transform:translateY(-50%); border:5px solid transparent; border-left-color:#1e293b; }
-        .ac-btn-wrap:hover .ac-tooltip { opacity:1; transform:translateY(-50%) translateX(0); }
-        .ac-btn-wrap { position:relative; display:flex; }
-        .call-number-row { display:flex; align-items:center; gap:9px; background:#f0fdf4; border-radius:10px; padding:10px 12px; text-decoration:none; border:1px solid #a7f3d0; transition:background 0.15s,border-color 0.15s; }
-        .call-number-row:hover { background:#d1fae5; border-color:#6ee7b7; }
-        @keyframes blink-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.55; transform:scale(0.85); } }
-        .notif-dot {
+        .aadona-tooltip::after { content:''; position:absolute; left:100%; top:50%; transform:translateY(-50%); border:5px solid transparent; border-left-color:#1e293b; }
+        .aadona-btn-wrap:hover .aadona-tooltip { opacity:1; transform:translateY(-50%) translateX(0); }
+        .aadona-btn-wrap { position:relative; display:flex; }
+        .aadona-notif-dot {
           position:absolute; top:-5px; right:-5px; width:17px; height:17px;
           background:#ef4444; border-radius:50%; border:2px solid #fff;
           display:flex; align-items:center; justify-content:center;
-          font-size:10px; font-weight:700; color:#fff; font-family:'DM Sans',sans-serif;
-          animation: blink-dot 1.4s ease-in-out infinite;
+          font-size:10px; font-weight:700; color:#fff;
+          font-family:'DM Sans',sans-serif;
+          animation: aadonaBlinkDot 1.4s ease-in-out infinite;
         }
-        .chat-close-btn { position:absolute; top:-11px; right:-11px; width:26px; height:26px; border-radius:50%; background:#ef4444; border:2.5px solid #fff; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:20; box-shadow:0 2px 10px rgba(239,68,68,0.55); transition:transform 0.15s,background 0.15s; outline:none; }
-        .chat-close-btn:hover { transform:scale(1.18); background:#dc2626; }
+        .aadona-close-btn { position:absolute; top:-10px; right:-10px; width:26px; height:26px; border-radius:50%; background:#ef4444; border:2.5px solid #fff; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:20; box-shadow:0 2px 10px rgba(239,68,68,0.5); transition:transform 0.15s,background 0.15s; outline:none; }
+        .aadona-close-btn:hover { transform:scale(1.15); background:#dc2626; }
+        .aadona-no-scroll::-webkit-scrollbar { display:none; }
+        .aadona-no-scroll { scrollbar-width:none; -ms-overflow-style:none; }
+        .aadona-call-row { display:flex; align-items:center; gap:9px; background:#f0fdf4; border-radius:10px; padding:10px 12px; text-decoration:none; border:1px solid #a7f3d0; transition:background 0.15s,border-color 0.15s; }
+        .aadona-call-row:hover { background:#d1fae5; border-color:#6ee7b7; }
+        .aadona-msg-container { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px; background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%); }
       `}</style>
 
       <div style={{ position: 'fixed', bottom: '20px', right: '16px', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px', fontFamily: "'DM Sans',sans-serif" }}>
 
-        {/* ── Chat Window ── */}
+        {/* Chat Window */}
         {isOpen && (
           <div style={{ position: 'relative' }}>
-            <button className="chat-close-btn" onClick={() => setIsOpen(false)} aria-label="Close chat" title="Close">
+            <button className="aadona-close-btn" onClick={() => setIsOpen(false)} aria-label="Close chat">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
-
-            <div
-              className="chat-window-enter bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
-              style={{ width: winWidth, maxHeight: 'calc(100dvh - 110px)', height: `min(${winHeight}px, calc(100dvh - 110px))` }}
-            >
+            <div className="aadona-window" style={{ width: winWidth, maxHeight: 'calc(100dvh - 110px)', height: 'min(590px, calc(100dvh - 110px))', background: '#fff', borderRadius: '20px', boxShadow: '0 24px 64px rgba(0,0,0,0.14), 0 8px 24px rgba(16,185,129,0.12)', border: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               {isRegistered ? (
                 <>
                   {/* Header */}
-                  <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-                    <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-                      </svg>
+                  <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-bold text-sm truncate">AADONA Assistant</h3>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse flex-shrink-0" />
-                        <span className="text-emerald-100 text-xs truncate">Chatting as {user?.name}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3 style={{ color: '#fff', fontWeight: 700, fontSize: '14px', margin: 0, letterSpacing: '-0.3px' }}>AADONA Assistant</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#a7f3d0', animation: 'aadonaPulse 2s ease infinite', flexShrink: 0 }} />
+                        <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Chatting as {user?.name}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 ml-auto">
-                      <button
-                        onClick={() => { setShowCallDrawer(prev => !prev); setIsOpen(false); }}
-                        aria-label={`Call ${TOLL_FREE_DISPLAY}`}
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/80 hover:text-white">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" />
-                        </svg>
+                    <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto' }}>
+                      <button onClick={handleCallDrawerToggle} style={{ padding: '7px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', display: 'flex', transition: 'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
                       </button>
-                      <button onClick={handleClearHistory} aria-label="Clear chat history" title="Clear chat"
-                        className="p-1.5 rounded-lg hover:bg-white/20 transition text-white/70 hover:text-white">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                      <button onClick={handleClearHistory} style={{ padding: '7px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', transition: 'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
                   </div>
 
                   {/* Messages */}
-                  <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 bg-slate-50/80 no-scrollbar">
+                  <div ref={messagesContainerRef} className="aadona-msg-container aadona-no-scroll">
                     {messages.map((msg, i) =>
                       msg.role === 'bot'
-                        ? <BotMessage key={msg.id || i} content={msg.content} time={msg.time} productCards={msg.productCards} actionButtons={msg.actionButtons} isStreaming={msg.isStreaming} />
+                        ? <BotMessage key={msg.id || i} content={msg.content} time={msg.time} productCards={msg.productCards} actionButtons={msg.actionButtons} isStreaming={msg.isStreaming} escalate={msg.escalate} />
                         : <UserMessage key={i} content={msg.content} time={msg.time} />
                     )}
                     {isLoading && !messages[messages.length - 1]?.isStreaming && (
-                      <div className="flex items-end gap-2 animate-fadeIn">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mb-1 shadow-sm"
-                          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-                          <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-                          </svg>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }} className="aadona-fadeIn">
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginBottom: '2px' }}>
+                          <svg width="13" height="13" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
                         </div>
                         <TypingDots />
                       </div>
@@ -954,37 +729,34 @@ export default function Chatbot() {
                   )}
 
                   {/* Input */}
-                  <div className="flex items-end gap-2 px-3 py-3 bg-white border-t border-slate-100 flex-shrink-0">
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', padding: '10px 12px 12px', background: '#fff', borderTop: '1px solid #f1f5f9', flexShrink: 0 }}>
                     <textarea
                       ref={inputRef}
                       value={input}
                       onChange={e => {
                         setInput(e.target.value);
                         e.target.style.height = 'auto';
-                        e.target.style.height = Math.min(e.target.scrollHeight, 90) + 'px';
+                        e.target.style.height = Math.min(e.target.scrollHeight, 88) + 'px';
                       }}
                       onKeyDown={handleKeyDown}
                       placeholder="Ask anything about AADONA..."
                       rows={1}
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-[13px] resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder:text-slate-400 transition leading-snug"
-                      style={{ minHeight: '40px', maxHeight: '90px', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif" }}
+                      style={{ flex: 1, padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: '#f8fafc', fontSize: '13px', color: '#1e293b', resize: 'none', outline: 'none', minHeight: '40px', maxHeight: '88px', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5, transition: 'border-color 0.15s' }}
+                      onFocus={e => e.target.style.borderColor = '#10b981'}
+                      onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                       disabled={isLoading}
                     />
-                    <button
-                      onClick={() => sendMessage()}
-                      aria-label="Send message"
-                      disabled={!input.trim() || isLoading}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
-                      style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <button onClick={() => sendMessage()} disabled={!input.trim() || isLoading}
+                      style={{ width: '40px', height: '40px', borderRadius: '12px', border: 'none', background: input.trim() && !isLoading ? 'linear-gradient(135deg, #10b981, #059669)' : '#e2e8f0', cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', boxShadow: input.trim() && !isLoading ? '0 2px 10px rgba(16,185,129,0.35)' : 'none' }}>
+                      <svg width="16" height="16" fill={input.trim() && !isLoading ? '#fff' : '#94a3b8'} viewBox="0 0 24 24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                       </svg>
                     </button>
                   </div>
 
                   {/* Footer */}
-                  <div className="text-center py-1.5 bg-white border-t border-slate-100 flex-shrink-0">
-                    <span className="text-[9.5px] text-slate-400 tracking-wide" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                  <div style={{ textAlign: 'center', padding: '6px', background: '#fff', borderTop: '1px solid #f8fafc', flexShrink: 0 }}>
+                    <span style={{ fontSize: '9.5px', color: '#94a3b8', fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.2px' }}>
                       AADONA Communication · {TOLL_FREE_DISPLAY} · contact@aadona.com
                     </span>
                   </div>
@@ -996,67 +768,63 @@ export default function Chatbot() {
           </div>
         )}
 
-        {/* ── Launcher ── */}
+        {/* Launcher */}
         <div ref={callDrawerRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {!isOpen && hasUnread && showBubble && <div className="notif-bubble">Need help? Ask us anything.</div>}
+          {!isOpen && hasUnread && showBubble && <div className="aadona-notif-bubble">Need help? Ask us anything.</div>}
 
           {/* Call Drawer */}
           {showCallDrawer && (
-            <div className="call-drawer-enter" style={{ position: 'absolute', bottom: 'calc(100% + 12px)', right: 0, width: '240px', background: '#ffffff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.13)', zIndex: 100, fontFamily: "'DM Sans',sans-serif" }}>
-              <div style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <div className="aadona-drawer" style={{ position: 'absolute', bottom: 'calc(100% + 12px)', right: 0, width: '248px', background: '#fff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '18px', overflow: 'hidden', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', zIndex: 100, fontFamily: "'DM Sans',sans-serif" }}>
+              <div style={{ background: 'linear-gradient(135deg,#10b981,#059669)', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
-                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: 600 }}>Contact Support</span>
+                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}>Contact Support</span>
                 </div>
                 <button onClick={() => setShowCallDrawer(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.75)', padding: '2px', display: 'flex' }}>
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
               <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
-                <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Toll Free Support</p>
-                <a href={`tel:${TOLL_FREE}`} className="call-number-row" onClick={() => setShowCallDrawer(false)}>
-                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#0d9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <p style={{ margin: 0, fontSize: '10px', color: '#64748b', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Toll Free Support</p>
+                <a href={`tel:${TOLL_FREE}`} className="aadona-call-row" onClick={() => setShowCallDrawer(false)}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
                   </div>
                   <div>
-                    <div style={{ fontSize: '10px', color: '#0d9488', fontWeight: 600 }}>Tap to call →</div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>{TOLL_FREE_DISPLAY}</div>
+                    <div style={{ fontSize: '10px', color: '#0d9488', fontWeight: 700 }}>Tap to call →</div>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.4px' }}>{TOLL_FREE_DISPLAY}</div>
                   </div>
                 </a>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}><circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M12 6v6l4 2" /></svg>
                   <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Mon – Fri · 10:30 AM – 6:30 PM IST</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#ecfdf5', borderRadius: '8px', padding: '6px 10px', border: '1px solid #a7f3d0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#ecfdf5', borderRadius: '8px', padding: '7px 10px', border: '1px solid #a7f3d0' }}>
                   <svg width="11" height="11" fill="#10b981" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  <span style={{ fontSize: '10px', color: '#065f46', fontWeight: 500 }}>Free from all Indian networks</span>
+                  <span style={{ fontSize: '10px', color: '#065f46', fontWeight: 600 }}>Free from all Indian networks</span>
                 </div>
               </div>
             </div>
           )}
 
           {/* Pill Launcher */}
-          <div style={{ display: 'flex', flexDirection: 'column', borderRadius: '9999px', overflow: 'visible', border: '1px solid rgba(5,150,105,0.3)', boxShadow: '0 4px 20px rgba(16,185,129,0.35)', width: '56px' }}>
-            <div className="ac-btn-wrap" style={{ borderRadius: '9999px 9999px 0 0', overflow: 'visible' }}>
-              <span className="ac-tooltip">{isOpen ? 'Minimise' : 'Chat with us'}</span>
-              {!isOpen && hasUnread && showBubble && <span className="notif-dot">1</span>}
-              <button
-                onClick={isOpen ? () => setIsOpen(false) : handleOpen}
-                aria-label={isOpen ? 'Minimise chat' : 'Chat with us'}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', borderRadius: '9999px', overflow: 'visible', border: '1px solid rgba(5,150,105,0.3)', boxShadow: '0 8px 28px rgba(16,185,129,0.3), 0 2px 8px rgba(0,0,0,0.1)', width: '56px' }}>
+            <div className="aadona-btn-wrap" style={{ borderRadius: '9999px 9999px 0 0', overflow: 'visible' }}>
+              <span className="aadona-tooltip">{isOpen ? 'Minimise' : 'Chat with us'}</span>
+              {!isOpen && hasUnread && showBubble && <span className="aadona-notif-dot">1</span>}
+              <button onClick={isOpen ? () => setIsOpen(false) : handleOpen}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden', transition: 'background 0.15s' }}>
                 {isOpen
                   ? <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                   : <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
                 }
               </button>
             </div>
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
-            <div className="ac-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
-              <span className="ac-tooltip">Call us</span>
-              <button
-                onClick={handleCallDrawerToggle}
-                aria-label="Call us"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', transition: 'background 0.15s', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden' }}>
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
+            <div className="aadona-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
+              <span className="aadona-tooltip">Call us</span>
+              <button onClick={handleCallDrawerToggle}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden', transition: 'background 0.15s' }}>
                 <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
               </button>
             </div>
