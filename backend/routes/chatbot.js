@@ -75,99 +75,128 @@ const buildProductUrl = (p) => {
 const specMatchProducts = (userMessage, products) => {
   const msg = userMessage.toLowerCase();
 
-  // Extract port count
+  // ── Extract specs ──────────────────────────────────────────────────────
   const portMatch = msg.match(/(\d+)\s*[-\s]*port/i);
   const portCount = portMatch ? parseInt(portMatch[1]) : null;
 
-  // Extract SFP+ / uplink count
   const sfpMatch = msg.match(/(\d+)\s*(?:nos?\.?\s*)?(?:10g\s*)?sfp\+?/i) ||
                    msg.match(/sfp\+?\s*[-x×]?\s*(\d+)/i) ||
                    msg.match(/(\d+)\s*(?:nos?\.?)?\s*sfp/i);
   const sfpCount = sfpMatch ? parseInt(sfpMatch[1]) : null;
 
-  // PoE / Non-PoE detection
-  const wantsPoE = /\bpoe\b/i.test(msg) && !/non.?poe|without.?poe/i.test(msg);
-  const wantsNonPoE = /non.?poe|without.?poe/i.test(msg);
+  const wantsPoE    = /\bpoe\b/i.test(msg) && !/non.?poe|without.?poe/i.test(msg);
+  const wantsNonPoE = /non.?poe|without.?poe|non\s*poe/i.test(msg);
 
-  // Speed: 10G, 25G, 40G, 100G
-  const speedMatch = msg.match(/\b(10g|25g|40g|100g|1g|gigabit)\b/i);
+  const speedMatch   = msg.match(/\b(10g|25g|40g|100g|1g|gigabit)\b/i);
   const speedKeyword = speedMatch ? speedMatch[1].toLowerCase() : null;
 
-  // Category: switch / AP / NAS / camera etc.
-  const wantsSwitch = /switch/i.test(msg);
-  const wantsAP = /access.?point|wireless ap|wifi ap|\bap\b/i.test(msg);
-  const wantsNAS = /\bnas\b|network.?attached.?storage/i.test(msg);
-  const wantsCamera = /camera|nvr|dvr|cctv|surveillance/i.test(msg);
-
-  // Layer: L2 / L3
   const wantsL3 = /\bl3\b|layer.?3/i.test(msg);
   const wantsL2 = /\bl2\b|layer.?2/i.test(msg);
 
-  // If no spec keywords at all, return empty (not a spec query)
+  // ── Category detection — from message keywords ─────────────────────────
+  const wantsSwitch     = /\bswitch\b/i.test(msg);
+  const wantsAP         = /access.?point|wireless\s*ap|wifi\s*ap|\bap\b/i.test(msg);
+  const wantsNAS        = /\bnas\b|network.?attached.?storage/i.test(msg);
+  const wantsCamera     = /\bcamera\b|\bnvr\b|\bdvr\b|\bcctv\b|surveillance/i.test(msg);
+  const wantsServer     = /\bserver\b|\bworkstation\b/i.test(msg);
+  const wantsIndustrial = /\bindustrial\b/i.test(msg);
+  const wantsPassive    = /\bpassive\b|\bcat6\b|\bcat7\b|\bpatch\b|\bfiber\b|\bfibre\b/i.test(msg);
+
+  // ── No spec keywords at all → not a spec query ────────────────────────
   if (!portCount && !sfpCount && !wantsPoE && !wantsNonPoE && !speedKeyword && !wantsL3 && !wantsL2) {
     return [];
   }
 
   const scored = products.map(p => {
     let score = 0;
-    const pName = (p.name + ' ' + p.fullName + ' ' + (p.description || '') + ' ' + JSON.stringify(p.features || []) + ' ' + JSON.stringify(p.specifications || {})).toLowerCase();
-    const pModel = (p.model || '').toLowerCase();
+
     const pCat = (p.category || '').toLowerCase();
     const pSub = (p.subCategory || '').toLowerCase();
+    const pModel = (p.model || '').toLowerCase();
+    const pText = (
+      p.name + ' ' + (p.fullName || '') + ' ' +
+      (p.description || '') + ' ' +
+      JSON.stringify(p.features || []) + ' ' +
+      JSON.stringify(p.specifications || {})
+    ).toLowerCase();
 
-    // Category filter — hard exclusion
-    if (wantsSwitch && !pCat.includes('switch') && !pSub.includes('switch')) return { p, score: -1 };
-    if (wantsAP && !pCat.includes('wireless') && !pSub.includes('access') && !pSub.includes('ap')) return { p, score: -1 };
-    if (wantsNAS && !pCat.includes('nas') && !pSub.includes('nas') && !pName.includes('nas')) return { p, score: -1 };
-    if (wantsCamera && !pCat.includes('surveillance') && !pSub.includes('camera') && !pSub.includes('nvr')) return { p, score: -1 };
+    // ── HARD CATEGORY EXCLUSION ───────────────────────────────────────────
+    if (wantsSwitch && !pCat.includes('switch') && !pSub.includes('switch')) return { p, score: -999 };
+    if (wantsAP && !pCat.includes('wireless') && !pSub.includes('access') && !pSub.includes('ap')) return { p, score: -999 };
+    if (wantsNAS && !pCat.includes('nas') && !pSub.includes('nas') && !pText.includes('nas')) return { p, score: -999 };
+    if (wantsCamera && !pCat.includes('surveillance') && !pSub.includes('camera') && !pSub.includes('nvr') && !pSub.includes('dvr')) return { p, score: -999 };
+    if (wantsServer && !pCat.includes('server') && !pSub.includes('server') && !pSub.includes('workstation')) return { p, score: -999 };
+    if (wantsIndustrial && !pCat.includes('industrial') && !pSub.includes('industrial')) return { p, score: -999 };
+    if (wantsPassive && !pCat.includes('passive') && !pSub.includes('passive') && !pSub.includes('cat') && !pSub.includes('fiber') && !pSub.includes('patch')) return { p, score: -999 };
 
-    // Port count match
-    if (portCount) {
-      const portRegex = new RegExp(`\\b${portCount}\\s*(?:x\\s*)?(?:port|rj45|ge|fe|gbe|gigabit)`, 'i');
-      const modelPortMatch = pModel.includes(`${portCount}p`) || pModel.includes(`-${portCount}`) || pModel.includes(`${portCount}g`);
-      if (portRegex.test(pName) || modelPortMatch) {
+    const noCatSpecified = !wantsSwitch && !wantsAP && !wantsNAS && !wantsCamera && !wantsServer && !wantsIndustrial && !wantsPassive;
+    if (noCatSpecified) {
+      if (pCat.includes('passive')) return { p, score: -50 };
+    }
+
+    // ── PORT COUNT ────────────────────────────────────────────────────────
+    if (portCount !== null) {
+      // Strong match: pText mein exact port count as port/rj45/ge mention ho
+      const portRegex = new RegExp(`\\b${portCount}\\s*(?:x\\s*)?(?:port|rj45|ge|gbe|gigabit|fe)`, 'i');
+      // Model mein portCount-based patterns
+      const modelHasPort = pModel.includes(`${portCount}p`) ||
+                           pModel.match(new RegExp(`[-_]${portCount}(?:[^0-9]|$)`)) ||
+                           pModel.includes(`${portCount}ge`) ||
+                           pModel.includes(`g${portCount}`);
+
+      if (portRegex.test(pText) || modelHasPort) {
+        score += 50; // strong match
+      } else if (pText.includes(`${portCount} port`) || pText.includes(`${portCount}-port`)) {
         score += 40;
       } else {
-        // Partial: if model contains port count anywhere
-        if (pName.includes(`${portCount} port`) || pName.includes(`${portCount}-port`)) score += 35;
-        else score -= 5; // penalise mismatches slightly
+        score -= 30; // port count clearly doesn't match — heavy penalty
       }
     }
 
-    // SFP+ uplink count match
-    if (sfpCount) {
-      const sfpRegex = new RegExp(`${sfpCount}\\s*(?:x\\s*)?(?:10g\\s*)?sfp\\+?`, 'i');
-      const sfpRegex2 = new RegExp(`sfp\\+?\\s*(?:x\\s*)?${sfpCount}`, 'i');
-      if (sfpRegex.test(pName) || sfpRegex2.test(pName) || pModel.includes(`${sfpCount}sfp`) || pModel.includes(`sfp${sfpCount}`)) {
-        score += 35;
+    // ── SFP+ COUNT ────────────────────────────────────────────────────────
+    if (sfpCount !== null) {
+      const sfpRx1 = new RegExp(`${sfpCount}\\s*(?:x\\s*)?(?:10g\\s*)?sfp\\+?`, 'i');
+      const sfpRx2 = new RegExp(`sfp\\+?\\s*(?:x\\s*)?${sfpCount}`, 'i');
+      const modelHasSfp = pModel.includes(`${sfpCount}sfp`) || pModel.includes(`sfp${sfpCount}`) || pModel.includes(`s${sfpCount}`);
+
+      if (sfpRx1.test(pText) || sfpRx2.test(pText) || modelHasSfp) {
+        score += 40;
+      } else {
+        score -= 20; // sfp count doesn't match
       }
     }
 
-    // PoE matching
+    // ── PoE ───────────────────────────────────────────────────────────────
     if (wantsPoE) {
-      if (/\bpoe\b/i.test(pName) || /\bpoe\b/i.test(pModel)) score += 30;
-      else score -= 20;
+      if (/\bpoe\b/i.test(pText) || /\bpoe\b/i.test(pModel)) score += 35;
+      else score -= 30;
     }
     if (wantsNonPoE) {
-      if (!/\bpoe\b/i.test(pName) && !/\bpoe\b/i.test(pModel)) score += 25;
-      else if (/non.?poe/i.test(pName)) score += 30;
-      else score -= 20;
+      if (/non.?poe/i.test(pText) || /non.?poe/i.test(pModel)) score += 40;
+      else if (!/\bpoe\b/i.test(pText) && !/\bpoe\b/i.test(pModel)) score += 25;
+      else score -= 35; // product has PoE but user wants non-PoE
     }
 
-    // Speed matching
+    // ── SPEED ─────────────────────────────────────────────────────────────
     if (speedKeyword) {
-      if (pName.includes(speedKeyword) || pModel.includes(speedKeyword.replace('g', 'g'))) score += 20;
+      if (pText.includes(speedKeyword) || pModel.includes(speedKeyword)) score += 20;
+      else score -= 10;
     }
 
-    // L2/L3
-    if (wantsL3 && (pName.includes('l3') || pName.includes('layer 3') || pName.includes('layer-3'))) score += 20;
-    if (wantsL2 && (pName.includes('l2') || pName.includes('layer 2') || pName.includes('layer-2'))) score += 15;
+    // ── L2 / L3 ───────────────────────────────────────────────────────────
+    if (wantsL3) {
+      if (/\bl3\b|layer.?3/i.test(pText)) score += 25;
+      else score -= 15;
+    }
+    if (wantsL2) {
+      if (/\bl2\b|layer.?2/i.test(pText)) score += 20;
+    }
 
     return { p, score };
   });
 
   return scored
-    .filter(s => s.score > 0)
+    .filter(s => s.score > 0) // sirf positive score wale
     .sort((a, b) => b.score - a.score)
     .slice(0, 4)
     .map(s => s.p);
