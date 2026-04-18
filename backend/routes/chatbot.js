@@ -197,17 +197,9 @@ const findExactProduct = (userMessage, products) => {
 
 // ─── Build Product Info Text ──────────────────────────────────────────────
 const buildProductInfoText = (product) => {
-  const model = product.model || '';
-  const name = product.fullName || product.name || '';
-  const features = (product.features || []).slice(0, 3);
-
-  let text = model ? `**${model}**` : `**${name}**`;
-  if (features.length) {
-    text += `\n\n**Key Features:**\n`;
-    features.forEach(f => { text += `• ${f}\n`; });
-  }
-  text += `\nFor configuration support, connect with our technical team.`;
-  return text.trim();
+  const model = product.model || (product.fullName || product.name);
+  const overview = (product.overview?.content || product.description || '').slice(0, 120);
+  return `**${model}**${overview ? `\n${overview}` : ''}\n\nDetails in the card below.`.trim();
 };
 
 // ─── Build Spec Match Response Text ───────────────────────────────────────
@@ -516,6 +508,11 @@ CONTENT RULES:
 - When user asks for product recommendation with specs → describe the matching products well, then offer technical team connection for detailed discussion.
 - When user asks about a category → describe what AADONA offers.
 - CRITICAL: Never modify, shorten, or add suffixes to product model numbers. Use exact model names from the database only. Example: if DB has "ASC1200", never write "ASC1200 Lite".
+
+RESPONSE LENGTH (CRITICAL):
+- Maximum 2-3 sentences per reply. Never exceed this.
+- Product cards handle details — you only need to introduce/confirm.
+- Never write paragraphs. If answer needs more than 3 lines, stop after 3.
 
 IMPORTANT — PRODUCT INFO RESPONSES:
 - DO give proper product information first (overview, specs, features).
@@ -847,7 +844,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
-      const reply = bestCards[0].overview || "Here are matching AADONA products for your query.";
+      const reply = "Here are matching AADONA products for your query.";
       const allButtons = bestCatBtn ? [bestCatBtn] : [];
 
       res.write(`data: ${JSON.stringify({ token: reply })}\n\n`);
@@ -883,7 +880,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: geminiMessages,
-          generationConfig: { maxOutputTokens: 1000, temperature: 0.6 },
+          generationConfig: { maxOutputTokens: 200, temperature: 0.6 },
           systemInstruction: { parts: [{ text: systemContent }] }
         }),
       }
