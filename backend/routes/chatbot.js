@@ -197,42 +197,36 @@ const findExactProduct = (userMessage, products) => {
 
 // ─── Build Product Info Text ──────────────────────────────────────────────
 const buildProductInfoText = (product) => {
-  const name = product.fullName || product.name;
-  const model = product.model ? `**${product.model}**` : '';
-  const overview = product.overview?.content || product.description || '';
-  const features = (product.features || []).slice(0, 4);
+  const model = product.model || '';
+  const name = product.fullName || product.name || '';
+  const features = (product.features || []).slice(0, 3);
 
-  let text = `${model}${model && name ? ' — ' : ''}${name}\n\n`;
-  if (overview) text += `${overview.slice(0, 200)}\n\n`;
+  let text = model ? `**${model}**` : `**${name}**`;
   if (features.length) {
-    text += `**Key Features:**\n`;
+    text += `\n\n**Key Features:**\n`;
     features.forEach(f => { text += `• ${f}\n`; });
   }
-  text += `\nFor detailed specs or configuration support, connect with our technical team.`;
+  text += `\nFor configuration support, connect with our technical team.`;
   return text.trim();
 };
 
 // ─── Build Spec Match Response Text ───────────────────────────────────────
 const buildSpecMatchText = (matchedProducts, userMessage) => {
   if (!matchedProducts.length) {
-    return `Based on your requirement, let me connect you with our technical team who can suggest the most suitable AADONA product.\n\nTo provide an accurate recommendation, please also share:\n• **Application** — CCTV / Office / Data Center / Wi-Fi\n• **Number of users/devices**\n• **Network size** — Small / Medium / Large`;
+    return `Please share your application and network size — our technical team will suggest the right product.`;
   }
 
   if (matchedProducts.length === 1) {
     const p = matchedProducts[0];
-    const name = p.fullName || p.name;
-    const model = p.model ? `**${p.model}**` : name;
-    const overview = (p.overview?.content || p.description || '').slice(0, 150);
-    return `Based on your requirement, ${model} is the best match from AADONA's lineup.\n\n${overview}\n\nFor configuration support or detailed specs, connect with our technical team.`;
+    const model = p.model ? `**${p.model}**` : (p.fullName || p.name);
+    return `${model} matches your requirement. Details are in the card below.`;
   }
 
-  let text = `Based on your requirement, here are the best matching AADONA products:\n\n`;
+  let text = `Here are the best matching products for your requirement:\n\n`;
   matchedProducts.forEach((p, i) => {
     const model = p.model ? `**${p.model}**` : (p.fullName || p.name);
-    const shortDesc = (p.overview?.content || p.description || '').slice(0, 80);
-    text += `${i + 1}. ${model}${shortDesc ? ` — ${shortDesc}` : ''}\n`;
+    text += `${i + 1}. ${model}\n`;
   });
-  text += `\nFor detailed specs or configuration support, our technical team will assist you.`;
   return text.trim();
 };
 
@@ -521,6 +515,7 @@ CONTENT RULES:
 - When user asks about a specific product → give proper overview + top 3 specs + key features. Then mention technical team for config support.
 - When user asks for product recommendation with specs → describe the matching products well, then offer technical team connection for detailed discussion.
 - When user asks about a category → describe what AADONA offers.
+- CRITICAL: Never modify, shorten, or add suffixes to product model numbers. Use exact model names from the database only. Example: if DB has "ASC1200", never write "ASC1200 Lite".
 
 IMPORTANT — PRODUCT INFO RESPONSES:
 - DO give proper product information first (overview, specs, features).
@@ -937,10 +932,17 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     // Trim to clean sentence boundary
     const isListQuery = /list|all.*product|show.*all|categories|what.*do.*you.*offer/i.test(lastUserMessage);
-    if (!isListQuery && fullReply.length > 400) {
-      const trimmed = fullReply.slice(0, 400);
-      const lastDot = Math.max(trimmed.lastIndexOf('.'), trimmed.lastIndexOf('!'), trimmed.lastIndexOf('?'));
-      fullReply = lastDot > 100 ? trimmed.slice(0, lastDot + 1) : fullReply.slice(0, 450);
+    if (!isListQuery && fullReply.length > 350) {
+      const trimmed = fullReply.slice(0, 400); // thoda zyada lo
+      const lastEnd = Math.max(
+        trimmed.lastIndexOf('. '),
+        trimmed.lastIndexOf('.\n'),
+        trimmed.lastIndexOf('! '),
+        trimmed.lastIndexOf('? ')
+      );
+      if (lastEnd > 80) {
+        fullReply = fullReply.slice(0, lastEnd + 1).trim();
+      }
     }
 
     // Post-LLM card detection: current msg > conversation context > reply text
