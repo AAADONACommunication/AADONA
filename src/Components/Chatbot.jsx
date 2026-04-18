@@ -35,22 +35,103 @@ function getTime() {
 // ─── Escalation Badge ─────────────────────────────────────────────────────
 function EscalateBadge({ type }) {
   const config = {
-    technical: { label: 'Technical Support', icon: 'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v10a2 2 0 002 2h6a2 2 0 002-2V3M9 13H5a2 2 0 00-2 2v4a2 2 0 002 2h4a2 2 0 002-2v-4a2 2 0 00-2-2z', color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
-    sales: { label: 'Sales Team', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v2h5v-2zm0 0v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0', color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
-    gem: { label: 'GeM Specialist', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z', color: '#7c3aed', bg: '#faf5ff', border: '#ddd6fe' },
+    technical: {
+      label: 'Technical Support',
+      icon: 'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v10a2 2 0 002 2h6a2 2 0 002-2V3M9 13H5a2 2 0 00-2 2v4a2 2 0 002 2h4a2 2 0 002-2v-4a2 2 0 00-2-2z',
+      color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd'
+    },
+    sales: {
+      label: 'Sales Team',
+      icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v2h5v-2zm0 0v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0',
+      color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4'
+    },
+    gem: {
+      label: 'GeM Specialist',
+      icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+      color: '#7c3aed', bg: '#faf5ff', border: '#ddd6fe'
+    },
   };
   const c = config[type] || config.technical;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: c.bg, border: `1px solid ${c.border}`, borderRadius: '10px', marginTop: '8px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: c.bg, border: `1px solid ${c.border}`, borderRadius: '10px', marginTop: '6px' }}>
       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={c.color} strokeWidth={1.8} style={{ flexShrink: 0 }}>
         <path strokeLinecap="round" strokeLinejoin="round" d={c.icon} />
       </svg>
       <div>
         <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: c.color, fontFamily: "'DM Sans', sans-serif" }}>Connecting you to {c.label}</p>
-        <p style={{ margin: 0, fontSize: '10px', color: '#64748b', fontFamily: "'DM Sans', sans-serif" }}>We'll reach out to you at the registered contact</p>
+        <p style={{ margin: 0, fontSize: '10px', color: '#64748b', fontFamily: "'DM Sans', sans-serif" }}>We'll reach out at your registered contact</p>
       </div>
     </div>
   );
+}
+
+// ─── Markdown Renderer ────────────────────────────────────────────────────
+function renderMarkdown(text) {
+  if (!text) return null;
+
+  // Strip raw URLs
+  const clean = text.replace(/https?:\/\/[^\s)]+/g, '').trim();
+
+  // Split into lines and render each
+  const lines = clean.split('\n');
+  const elements = [];
+
+  lines.forEach((line, lineIdx) => {
+    const trimmed = line.trim();
+
+    // Bullet points
+    if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const content = trimmed.replace(/^[•\-\*]\s+/, '');
+      elements.push(
+        <div key={lineIdx} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', marginBottom: '2px' }}>
+          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981', marginTop: '7px', flexShrink: 0 }} />
+          <span style={{ lineHeight: 1.5 }}>{renderInline(content)}</span>
+        </div>
+      );
+    }
+    // Numbered list
+    else if (/^\d+\.\s/.test(trimmed)) {
+      const num = trimmed.match(/^(\d+)\./)[1];
+      const content = trimmed.replace(/^\d+\.\s+/, '');
+      elements.push(
+        <div key={lineIdx} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', marginBottom: '2px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#10b981', minWidth: '14px', marginTop: '1px', flexShrink: 0 }}>{num}.</span>
+          <span style={{ lineHeight: 1.5 }}>{renderInline(content)}</span>
+        </div>
+      );
+    }
+    // Empty line → spacing
+    else if (!trimmed) {
+      if (lineIdx > 0 && lineIdx < lines.length - 1) {
+        elements.push(<div key={lineIdx} style={{ height: '6px' }} />);
+      }
+    }
+    // Regular line
+    else {
+      elements.push(
+        <div key={lineIdx} style={{ lineHeight: 1.6, marginBottom: '1px' }}>
+          {renderInline(trimmed)}
+        </div>
+      );
+    }
+  });
+
+  return <>{elements}</>;
+}
+
+// Renders inline **bold** and strips stray asterisks
+function renderInline(text) {
+  if (!text) return null;
+  // Split by **bold** markers — handle incomplete trailing bold gracefully
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return <strong key={i} style={{ fontWeight: 700, color: '#0f172a' }}>{part.slice(2, -2)}</strong>;
+    }
+    // Strip any remaining stray asterisks
+    const cleaned = part.replace(/\*+/g, '');
+    return cleaned ? <span key={i}>{cleaned}</span> : null;
+  });
 }
 
 // ─── Product Card (Grid) ──────────────────────────────────────────────────
@@ -91,9 +172,7 @@ function ProductCard({ product }) {
           </ul>
         )}
         <a href={product.url} target="_blank" rel="noopener noreferrer"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#fff', padding: '7px', borderRadius: '9px', textDecoration: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', transition: 'opacity 0.15s' }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#fff', padding: '7px', borderRadius: '9px', textDecoration: 'none', background: 'linear-gradient(135deg, #10b981, #059669)' }}>
           <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
@@ -122,9 +201,15 @@ function SingleProductCard({ product }) {
           )}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {product.model && <span style={{ display: 'inline-block', fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', fontFamily: 'monospace', letterSpacing: '0.5px', marginBottom: '5px' }}>{product.model}</span>}
+          {product.model && (
+            <span style={{ display: 'inline-block', fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', fontFamily: 'monospace', letterSpacing: '0.5px', marginBottom: '5px' }}>
+              {product.model}
+            </span>
+          )}
           <p style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</p>
-          {product.overview && <p style={{ fontSize: '11px', color: '#64748b', margin: 0, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.overview}</p>}
+          {product.overview && (
+            <p style={{ fontSize: '11px', color: '#64748b', margin: 0, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.overview}</p>
+          )}
           {product.features?.length > 0 && (
             <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {product.features.slice(0, 2).map((f, i) => (
@@ -157,9 +242,7 @@ function ActionButtons({ buttons }) {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
       {buttons.map((btn, i) => (
         <a key={i} href={btn.url} target="_self"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, padding: '7px 14px', borderRadius: '100px', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', boxShadow: '0 2px 8px rgba(16,185,129,0.3)', transition: 'transform 0.15s, box-shadow 0.15s' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.4)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(16,185,129,0.3)'; }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, padding: '7px 14px', borderRadius: '100px', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
           <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
@@ -181,35 +264,6 @@ function TypingDots() {
   );
 }
 
-// ─── Markdown Renderer ────────────────────────────────────────────────────
-function renderMarkdown(text) {
-  // Remove raw URLs, strip incomplete trailing asterisks, clean up
-  const clean = text
-    .replace(/https?:\/\/[^\s]+/g, '')
-    .replace(/\*{1,2}$/, '')        // trailing incomplete bold/italic
-    .replace(/^\*{1,2}/gm, '')      // leading lone asterisks on line start (list markers without space)
-    .replace(/\* /g, '\n• ');       // bullet lists
-
-  const lines = clean.split('\n');
-  return lines.map((line, i, arr) => {
-    // Split by **bold** markers
-    const parts = line.split(/(\*\*[^*]+\*\*)/g);
-    const rendered = parts.map((part, j) => {
-      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-        return <strong key={j} style={{ fontWeight: 600, color: '#0f172a' }}>{part.slice(2, -2)}</strong>;
-      }
-      // Strip any remaining stray asterisks
-      return <span key={j}>{part.replace(/\*/g, '')}</span>;
-    });
-    return (
-      <span key={i}>
-        {rendered}
-        {i < arr.length - 1 && <br />}
-      </span>
-    );
-  });
-}
-
 // ─── Bot Message ──────────────────────────────────────────────────────────
 function BotMessage({ content, time, productCards, actionButtons, isStreaming, escalate }) {
   return (
@@ -220,25 +274,40 @@ function BotMessage({ content, time, productCards, actionButtons, isStreaming, e
         </svg>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '85%' }}>
+        {/* Message bubble */}
         <div style={{ padding: '11px 14px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px 14px 14px 4px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', fontSize: '13px', color: '#1e293b', lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>
-          {renderMarkdown(content)}
-          {isStreaming && <span style={{ display: 'inline-block', width: '2px', height: '14px', background: '#10b981', marginLeft: '2px', borderRadius: '2px', animation: 'aadonaPulse 1s ease infinite' }} />}
+          {isStreaming
+            ? (
+              <>
+                {renderMarkdown(content)}
+                <span style={{ display: 'inline-block', width: '2px', height: '14px', background: '#10b981', marginLeft: '2px', borderRadius: '2px', animation: 'aadonaPulse 1s ease infinite', verticalAlign: 'middle' }} />
+              </>
+            )
+            : renderMarkdown(content)
+          }
         </div>
 
+        {/* Escalation badge */}
         {!isStreaming && escalate && <EscalateBadge type={escalate} />}
 
+        {/* Product cards */}
         {!isStreaming && productCards?.length > 0 && (
-          productCards.length === 1 ? (
-            <SingleProductCard product={productCards[0]} />
-          ) : (
-            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-              {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
-            </div>
-          )
+          productCards.length === 1
+            ? <SingleProductCard product={productCards[0]} />
+            : (
+              <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+                {productCards.map((p, i) => <ProductCard key={i} product={p} />)}
+              </div>
+            )
         )}
 
+        {/* Action buttons */}
         {!isStreaming && <ActionButtons buttons={actionButtons} />}
-        {!isStreaming && time && <span style={{ fontSize: '10px', color: '#94a3b8', paddingLeft: '4px', fontFamily: "'DM Sans', sans-serif" }}>{time}</span>}
+
+        {/* Timestamp */}
+        {!isStreaming && time && (
+          <span style={{ fontSize: '10px', color: '#94a3b8', paddingLeft: '4px', fontFamily: "'DM Sans', sans-serif" }}>{time}</span>
+        )}
       </div>
     </div>
   );
@@ -265,9 +334,7 @@ function QuickReplies({ options, onSelect }) {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '8px 12px 10px' }}>
       {options.map((opt) => (
         <button key={opt} onClick={() => onSelect(opt)}
-          style={{ fontSize: '11px', padding: '6px 12px', borderRadius: '100px', border: '1px solid #a7f3d0', color: '#065f46', background: '#fff', cursor: 'pointer', fontWeight: 500, transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif" }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#10b981'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#065f46'; e.currentTarget.style.borderColor = '#a7f3d0'; }}>
+          style={{ fontSize: '11px', padding: '6px 12px', borderRadius: '100px', border: '1px solid #a7f3d0', color: '#065f46', background: '#fff', cursor: 'pointer', fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>
           {opt}
         </button>
       ))}
@@ -294,20 +361,25 @@ function RegistrationForm({ onStart }) {
     onStart(name.trim(), phone.trim(), city.trim());
   };
 
-  const inputStyle = { width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: '#fff', fontSize: '13px', color: '#1e293b', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' };
+  const inputStyle = {
+    width: '100%', padding: '10px 14px', borderRadius: '10px',
+    border: '1.5px solid #e2e8f0', background: '#fff',
+    fontSize: '13px', color: '#1e293b', fontFamily: "'DM Sans', sans-serif",
+    outline: 'none', boxSizing: 'border-box'
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header */}
       <div style={{ padding: '20px', background: 'linear-gradient(135deg, #10b981, #059669)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
               <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
             </svg>
           </div>
           <div>
-            <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '16px', margin: 0, letterSpacing: '-0.3px' }}>AADONA Assistant</h2>
+            <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '16px', margin: 0 }}>AADONA Assistant</h2>
             <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', margin: 0 }}>AI-Powered · Available 24/7</p>
           </div>
         </div>
@@ -351,7 +423,7 @@ function RegistrationForm({ onStart }) {
           </p>
         )}
         <button onClick={handleSubmit} disabled={loading}
-          style={{ width: '100%', marginTop: '16px', padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.2px' }}>
+          style={{ width: '100%', marginTop: '16px', padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', fontFamily: "'DM Sans', sans-serif" }}>
           {loading ? (
             <><svg style={{ animation: 'aadonaSpin 1s linear infinite' }} width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.4)" strokeWidth="4" /><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Starting...</>
           ) : (
@@ -435,7 +507,12 @@ export default function Chatbot() {
       if (!user?.phone) return;
       const userMessages = messages.filter(m => m.role === 'user');
       if (!userMessages.length) return;
-      navigator.sendBeacon(`${API_BASE}/chat/summary`, new Blob([JSON.stringify({ name: user.name, phone: user.phone, city: user.city, trigger: 'close', messages: messages.map(m => ({ role: m.role, content: m.content, time: m.time })), isResume: false })], { type: 'application/json' }));
+      navigator.sendBeacon(`${API_BASE}/chat/summary`, new Blob([JSON.stringify({
+        name: user.name, phone: user.phone, city: user.city,
+        trigger: 'close',
+        messages: messages.map(m => ({ role: m.role, content: m.content, time: m.time })),
+        isResume: false
+      })], { type: 'application/json' }));
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -465,7 +542,13 @@ export default function Chatbot() {
       if (!raw) return;
       const hist = JSON.parse(raw);
       if (Array.isArray(hist) && hist.length) {
-        setMessages(hist.map(m => ({ role: m.role === 'assistant' ? 'bot' : 'user', content: m.content, time: m.time || '', productCards: m.productCards || null, actionButtons: m.actionButtons || null, escalate: m.escalate || null })));
+        setMessages(hist.map(m => ({
+          role: m.role === 'assistant' ? 'bot' : 'user',
+          content: m.content, time: m.time || '',
+          productCards: m.productCards || null,
+          actionButtons: m.actionButtons || null,
+          escalate: m.escalate || null
+        })));
         setApiHistory(hist.slice(-10).map(m => ({ role: m.role, content: m.content })));
         setQuickReplies(QUICK_REPLY_MAP.default);
       }
@@ -475,7 +558,13 @@ export default function Chatbot() {
   const saveHistory = useCallback((phone, allMessages) => {
     try {
       localStorage.setItem(STORAGE_KEY_HISTORY(phone), JSON.stringify(
-        allMessages.slice(-MAX_HISTORY).map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', content: m.content, time: m.time, productCards: m.productCards || null, actionButtons: m.actionButtons || null, escalate: m.escalate || null }))
+        allMessages.slice(-MAX_HISTORY).map(m => ({
+          role: m.role === 'bot' ? 'assistant' : 'user',
+          content: m.content, time: m.time,
+          productCards: m.productCards || null,
+          actionButtons: m.actionButtons || null,
+          escalate: m.escalate || null
+        }))
       ));
     } catch { }
   }, []);
@@ -493,7 +582,11 @@ export default function Chatbot() {
       const welcomeBack = { role: 'bot', content: `Welcome back, **${name}**. How can I assist you today?`, time: getTime() };
       setMessages(prev => { const updated = [...prev, welcomeBack]; saveHistory(phone, updated); return updated; });
     } else {
-      const greeting = { role: 'bot', content: `Hello **${name}**, welcome to **AADONA** — India's leading networking solutions brand.\n\nI can assist you with products, technical configuration, GeM/MII queries, support, and partnership programs. What would you like to know?`, time: getTime() };
+      const greeting = {
+        role: 'bot',
+        content: `Hello **${name}**, welcome to **AADONA** — India's leading networking solutions brand.\n\nI can assist you with products, technical configuration, GeM/MII queries, support, and partnership programs. What would you like to know?`,
+        time: getTime()
+      };
       setMessages([greeting]);
       saveHistory(phone, [greeting]);
     }
@@ -530,7 +623,12 @@ export default function Chatbot() {
       const response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newApiHistory, userName: user?.name || 'Guest', userPhone: user?.phone || '', userCity: user?.city || '' }),
+        body: JSON.stringify({
+          messages: newApiHistory,
+          userName: user?.name || 'Guest',
+          userPhone: user?.phone || '',
+          userCity: user?.city || ''
+        }),
       });
 
       if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.error || 'Server error'); }
@@ -579,21 +677,31 @@ export default function Chatbot() {
         }
       }
 
-      // Finalize
+      // Finalize message
       setMessages(prev => {
         const updated = [...prev];
         const idx = updated.findIndex(m => m.id === botMsgId);
         if (idx !== -1) {
           let finalText = (streamedText || '').trim();
-          if (finalText && !/[.!?]$/.test(finalText)) finalText += '.';
-          if (!finalText || finalText.length < 15) finalText = 'Here are matching AADONA products:';
-          finalText = finalText.replace(/\*\*(?!.*\*\*)/g, '');
-          updated[idx] = { ...updated[idx], content: finalText, isStreaming: false, productCards: finalProductCards, actionButtons: finalActionButtons, escalate: finalEscalate };
+          // Fix trailing incomplete bold
+          finalText = finalText.replace(/\*\*(?![^*]*\*\*)/, '');
+          if (!finalText || finalText.length < 10) finalText = 'Here are matching AADONA products:';
+          updated[idx] = {
+            ...updated[idx],
+            content: finalText,
+            isStreaming: false,
+            productCards: finalProductCards,
+            actionButtons: finalActionButtons,
+            escalate: finalEscalate
+          };
         }
         return updated;
       });
 
-      const finalMessages = [...newMessages, { id: botMsgId, role: 'bot', content: streamedText, time: getTime(), productCards: finalProductCards, actionButtons: finalActionButtons, escalate: finalEscalate, isStreaming: false }];
+      const finalMessages = [
+        ...newMessages,
+        { id: botMsgId, role: 'bot', content: streamedText, time: getTime(), productCards: finalProductCards, actionButtons: finalActionButtons, escalate: finalEscalate, isStreaming: false }
+      ];
       setApiHistory(prev => [...prev, { role: 'assistant', content: streamedText }]);
       setQuickReplies(getQuickReplies(trimmed));
       saveHistory(user?.phone, finalMessages);
@@ -604,7 +712,7 @@ export default function Chatbot() {
       setMessages(prev => {
         const updated = [...prev];
         const idx = updated.findIndex(m => m.id === botMsgId);
-        if (idx !== -1) updated[idx] = { ...updated[idx], content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** (Toll Free) or email contact@aadona.com`, isStreaming: false };
+        if (idx !== -1) updated[idx] = { ...updated[idx], content: `Something went wrong. Please call **${TOLL_FREE_DISPLAY}** or email contact@aadona.com`, isStreaming: false };
         return updated;
       });
       setQuickReplies(QUICK_REPLY_MAP.default);
@@ -653,8 +761,7 @@ export default function Chatbot() {
           font-size:11px; font-weight:500; padding:7px 12px; border-radius:10px;
           white-space:nowrap; pointer-events:none;
           animation: aadonaBubbleIn 0.4s 0.6s ease both, aadonaBubbleBounce 2s 1.2s ease-in-out infinite;
-          box-shadow:0 4px 16px rgba(0,0,0,0.2);
-          font-family:'DM Sans',sans-serif;
+          box-shadow:0 4px 16px rgba(0,0,0,0.2); font-family:'DM Sans',sans-serif;
         }
         .aadona-notif-bubble::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:#1e293b; }
         .aadona-tooltip {
@@ -672,17 +779,17 @@ export default function Chatbot() {
           position:absolute; top:-5px; right:-5px; width:17px; height:17px;
           background:#ef4444; border-radius:50%; border:2px solid #fff;
           display:flex; align-items:center; justify-content:center;
-          font-size:10px; font-weight:700; color:#fff;
-          font-family:'DM Sans',sans-serif;
+          font-size:10px; font-weight:700; color:#fff; font-family:'DM Sans',sans-serif;
           animation: aadonaBlinkDot 1.4s ease-in-out infinite;
         }
         .aadona-close-btn { position:absolute; top:-10px; right:-10px; width:26px; height:26px; border-radius:50%; background:#ef4444; border:2.5px solid #fff; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:20; box-shadow:0 2px 10px rgba(239,68,68,0.5); transition:transform 0.15s,background 0.15s; outline:none; }
         .aadona-close-btn:hover { transform:scale(1.15); background:#dc2626; }
         .aadona-no-scroll::-webkit-scrollbar { display:none; }
         .aadona-no-scroll { scrollbar-width:none; -ms-overflow-style:none; }
-        .aadona-call-row { display:flex; align-items:center; gap:9px; background:#f0fdf4; border-radius:10px; padding:10px 12px; text-decoration:none; border:1px solid #a7f3d0; transition:background 0.15s,border-color 0.15s; }
-        .aadona-call-row:hover { background:#d1fae5; border-color:#6ee7b7; }
+        .aadona-call-row { display:flex; align-items:center; gap:9px; background:#f0fdf4; border-radius:10px; padding:10px 12px; text-decoration:none; border:1px solid #a7f3d0; transition:background 0.15s; }
+        .aadona-call-row:hover { background:#d1fae5; }
         .aadona-msg-container { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px; background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%); }
+        .aadona-qr-btn:hover { background:#10b981 !important; color:#fff !important; border-color:#10b981 !important; }
       `}</style>
 
       <div style={{ position: 'fixed', bottom: '20px', right: '16px', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px', fontFamily: "'DM Sans',sans-serif" }}>
@@ -704,21 +811,17 @@ export default function Chatbot() {
                       <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <h3 style={{ color: '#fff', fontWeight: 700, fontSize: '14px', margin: 0, letterSpacing: '-0.3px' }}>AADONA Assistant</h3>
+                      <h3 style={{ color: '#fff', fontWeight: 700, fontSize: '14px', margin: 0 }}>AADONA Assistant</h3>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#a7f3d0', animation: 'aadonaPulse 2s ease infinite', flexShrink: 0 }} />
                         <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Chatting as {user?.name}</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '2px', marginLeft: 'auto' }}>
-                      <button onClick={handleCallDrawerToggle} style={{ padding: '7px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', display: 'flex', transition: 'background 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <button onClick={handleCallDrawerToggle} style={{ padding: '7px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', display: 'flex' }}>
                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
                       </button>
-                      <button onClick={handleClearHistory} style={{ padding: '7px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', transition: 'background 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <button onClick={handleClearHistory} style={{ padding: '7px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex' }}>
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
@@ -760,13 +863,13 @@ export default function Chatbot() {
                       onKeyDown={handleKeyDown}
                       placeholder="Ask anything about AADONA..."
                       rows={1}
-                      style={{ flex: 1, padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: '#f8fafc', fontSize: '13px', color: '#1e293b', resize: 'none', outline: 'none', minHeight: '40px', maxHeight: '88px', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5, transition: 'border-color 0.15s' }}
+                      style={{ flex: 1, padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: '#f8fafc', fontSize: '13px', color: '#1e293b', resize: 'none', outline: 'none', minHeight: '40px', maxHeight: '88px', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}
                       onFocus={e => e.target.style.borderColor = '#10b981'}
                       onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                       disabled={isLoading}
                     />
                     <button onClick={() => sendMessage()} disabled={!input.trim() || isLoading}
-                      style={{ width: '40px', height: '40px', borderRadius: '12px', border: 'none', background: input.trim() && !isLoading ? 'linear-gradient(135deg, #10b981, #059669)' : '#e2e8f0', cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', boxShadow: input.trim() && !isLoading ? '0 2px 10px rgba(16,185,129,0.35)' : 'none' }}>
+                      style={{ width: '40px', height: '40px', borderRadius: '12px', border: 'none', background: input.trim() && !isLoading ? 'linear-gradient(135deg, #10b981, #059669)' : '#e2e8f0', cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: input.trim() && !isLoading ? '0 2px 10px rgba(16,185,129,0.35)' : 'none' }}>
                       <svg width="16" height="16" fill={input.trim() && !isLoading ? '#fff' : '#94a3b8'} viewBox="0 0 24 24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                       </svg>
@@ -775,7 +878,7 @@ export default function Chatbot() {
 
                   {/* Footer */}
                   <div style={{ textAlign: 'center', padding: '6px', background: '#fff', borderTop: '1px solid #f8fafc', flexShrink: 0 }}>
-                    <span style={{ fontSize: '9.5px', color: '#94a3b8', fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.2px' }}>
+                    <span style={{ fontSize: '9.5px', color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>
                       AADONA Communication · {TOLL_FREE_DISPLAY} · contact@aadona.com
                     </span>
                   </div>
@@ -832,7 +935,7 @@ export default function Chatbot() {
               <span className="aadona-tooltip">{isOpen ? 'Minimise' : 'Chat with us'}</span>
               {!isOpen && hasUnread && showBubble && <span className="aadona-notif-dot">1</span>}
               <button onClick={isOpen ? () => setIsOpen(false) : handleOpen}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden', transition: 'background 0.15s' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: isOpen ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#10b981,#059669)', border: 'none', cursor: 'pointer', outline: 'none', borderRadius: '9999px 9999px 0 0', overflow: 'hidden' }}>
                 {isOpen
                   ? <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                   : <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
@@ -843,7 +946,7 @@ export default function Chatbot() {
             <div className="aadona-btn-wrap" style={{ borderRadius: '0 0 9999px 9999px', overflow: 'visible' }}>
               <span className="aadona-tooltip">Call us</span>
               <button onClick={handleCallDrawerToggle}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden', transition: 'background 0.15s' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px', width: '56px', background: showCallDrawer ? 'linear-gradient(135deg,#0f766e,#115e59)' : 'linear-gradient(135deg,#0d9488,#0f766e)', border: 'none', cursor: 'pointer', outline: 'none', borderRadius: '0 0 9999px 9999px', overflow: 'hidden' }}>
                 <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.36.27 2.67.76 3.88a1 1 0 01-.23 1.12l-2.41 1.79z" /></svg>
               </button>
             </div>

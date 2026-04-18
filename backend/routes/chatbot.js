@@ -35,7 +35,7 @@ const getProducts = async () => {
     const Product = mongoose.model('Product');
     const products = await Product.find(
       {},
-      'name fullName model category subCategory description overview features image slug'
+      'name fullName model category subCategory description overview features image slug specifications ports sfpPorts uplinks speed poe'
     ).sort({ category: 1 }).limit(500);
     return products;
   } catch { return []; }
@@ -70,14 +70,179 @@ const buildProductUrl = (p) => {
   return `${BASE_URL}/${cat}/${p.slug}`;
 };
 
+// ─── Spec-Based Product Matching ──────────────────────────────────────────
+// Extracts specs from user query and scores products by how many specs match
+const specMatchProducts = (userMessage, products) => {
+  const msg = userMessage.toLowerCase();
+
+  // Extract port count
+  const portMatch = msg.match(/(\d+)\s*[-\s]*port/i);
+  const portCount = portMatch ? parseInt(portMatch[1]) : null;
+
+  // Extract SFP+ / uplink count
+  const sfpMatch = msg.match(/(\d+)\s*(?:nos?\.?\s*)?(?:10g\s*)?sfp\+?/i) ||
+                   msg.match(/sfp\+?\s*[-x×]?\s*(\d+)/i) ||
+                   msg.match(/(\d+)\s*(?:nos?\.?)?\s*sfp/i);
+  const sfpCount = sfpMatch ? parseInt(sfpMatch[1]) : null;
+
+  // PoE / Non-PoE detection
+  const wantsPoE = /\bpoe\b/i.test(msg) && !/non.?poe|without.?poe/i.test(msg);
+  const wantsNonPoE = /non.?poe|without.?poe/i.test(msg);
+
+  // Speed: 10G, 25G, 40G, 100G
+  const speedMatch = msg.match(/\b(10g|25g|40g|100g|1g|gigabit)\b/i);
+  const speedKeyword = speedMatch ? speedMatch[1].toLowerCase() : null;
+
+  // Category: switch / AP / NAS / camera etc.
+  const wantsSwitch = /switch/i.test(msg);
+  const wantsAP = /access.?point|wireless ap|wifi ap|\bap\b/i.test(msg);
+  const wantsNAS = /\bnas\b|network.?attached.?storage/i.test(msg);
+  const wantsCamera = /camera|nvr|dvr|cctv|surveillance/i.test(msg);
+
+  // Layer: L2 / L3
+  const wantsL3 = /\bl3\b|layer.?3/i.test(msg);
+  const wantsL2 = /\bl2\b|layer.?2/i.test(msg);
+
+  // If no spec keywords at all, return empty (not a spec query)
+  if (!portCount && !sfpCount && !wantsPoE && !wantsNonPoE && !speedKeyword && !wantsL3 && !wantsL2) {
+    return [];
+  }
+
+  const scored = products.map(p => {
+    let score = 0;
+    const pName = (p.name + ' ' + p.fullName + ' ' + (p.description || '') + ' ' + JSON.stringify(p.features || []) + ' ' + JSON.stringify(p.specifications || {})).toLowerCase();
+    const pModel = (p.model || '').toLowerCase();
+    const pCat = (p.category || '').toLowerCase();
+    const pSub = (p.subCategory || '').toLowerCase();
+
+    // Category filter — hard exclusion
+    if (wantsSwitch && !pCat.includes('switch') && !pSub.includes('switch')) return { p, score: -1 };
+    if (wantsAP && !pCat.includes('wireless') && !pSub.includes('access') && !pSub.includes('ap')) return { p, score: -1 };
+    if (wantsNAS && !pCat.includes('nas') && !pSub.includes('nas') && !pName.includes('nas')) return { p, score: -1 };
+    if (wantsCamera && !pCat.includes('surveillance') && !pSub.includes('camera') && !pSub.includes('nvr')) return { p, score: -1 };
+
+    // Port count match
+    if (portCount) {
+      const portRegex = new RegExp(`\\b${portCount}\\s*(?:x\\s*)?(?:port|rj45|ge|fe|gbe|gigabit)`, 'i');
+      const modelPortMatch = pModel.includes(`${portCount}p`) || pModel.includes(`-${portCount}`) || pModel.includes(`${portCount}g`);
+      if (portRegex.test(pName) || modelPortMatch) {
+        score += 40;
+      } else {
+        // Partial: if model contains port count anywhere
+        if (pName.includes(`${portCount} port`) || pName.includes(`${portCount}-port`)) score += 35;
+        else score -= 5; // penalise mismatches slightly
+      }
+    }
+
+    // SFP+ uplink count match
+    if (sfpCount) {
+      const sfpRegex = new RegExp(`${sfpCount}\\s*(?:x\\s*)?(?:10g\\s*)?sfp\\+?`, 'i');
+      const sfpRegex2 = new RegExp(`sfp\\+?\\s*(?:x\\s*)?${sfpCount}`, 'i');
+      if (sfpRegex.test(pName) || sfpRegex2.test(pName) || pModel.includes(`${sfpCount}sfp`) || pModel.includes(`sfp${sfpCount}`)) {
+        score += 35;
+      }
+    }
+
+    // PoE matching
+    if (wantsPoE) {
+      if (/\bpoe\b/i.test(pName) || /\bpoe\b/i.test(pModel)) score += 30;
+      else score -= 20;
+    }
+    if (wantsNonPoE) {
+      if (!/\bpoe\b/i.test(pName) && !/\bpoe\b/i.test(pModel)) score += 25;
+      else if (/non.?poe/i.test(pName)) score += 30;
+      else score -= 20;
+    }
+
+    // Speed matching
+    if (speedKeyword) {
+      if (pName.includes(speedKeyword) || pModel.includes(speedKeyword.replace('g', 'g'))) score += 20;
+    }
+
+    // L2/L3
+    if (wantsL3 && (pName.includes('l3') || pName.includes('layer 3') || pName.includes('layer-3'))) score += 20;
+    if (wantsL2 && (pName.includes('l2') || pName.includes('layer 2') || pName.includes('layer-2'))) score += 15;
+
+    return { p, score };
+  });
+
+  return scored
+    .filter(s => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map(s => s.p);
+};
+
+// ─── Single Product Info Extractor ───────────────────────────────────────
+// Returns the best single product when user asks about a specific product by model/name
+const findExactProduct = (userMessage, products) => {
+  const msg = userMessage.toLowerCase().replace(/-/g, '');
+  // Try exact model match first
+  const byModel = products.filter(p => {
+    if (!p.model) return false;
+    const m = p.model.toLowerCase().replace(/-/g, '');
+    return msg.includes(m) && m.length > 2;
+  });
+  if (byModel.length) {
+    // Sort by model length desc (prefer longer/more specific match)
+    return byModel.sort((a, b) => b.model.length - a.model.length)[0];
+  }
+  // Try name match
+  const byName = products.filter(p => {
+    const n = (p.name || '').toLowerCase().replace(/-/g, '');
+    return n.length > 3 && msg.includes(n);
+  });
+  return byName.length ? byName[0] : null;
+};
+
+// ─── Build Product Info Text ──────────────────────────────────────────────
+const buildProductInfoText = (product) => {
+  const name = product.fullName || product.name;
+  const model = product.model ? `**${product.model}**` : '';
+  const overview = product.overview?.content || product.description || '';
+  const features = (product.features || []).slice(0, 4);
+
+  let text = `${model}${model && name ? ' — ' : ''}${name}\n\n`;
+  if (overview) text += `${overview.slice(0, 200)}\n\n`;
+  if (features.length) {
+    text += `**Key Features:**\n`;
+    features.forEach(f => { text += `• ${f}\n`; });
+  }
+  text += `\nFor detailed specs or configuration support, connect with our technical team.`;
+  return text.trim();
+};
+
+// ─── Build Spec Match Response Text ───────────────────────────────────────
+const buildSpecMatchText = (matchedProducts, userMessage) => {
+  if (!matchedProducts.length) {
+    return `Based on your requirement, let me connect you with our technical team who can suggest the most suitable AADONA product.\n\nTo provide an accurate recommendation, please also share:\n• **Application** — CCTV / Office / Data Center / Wi-Fi\n• **Number of users/devices**\n• **Network size** — Small / Medium / Large`;
+  }
+
+  if (matchedProducts.length === 1) {
+    const p = matchedProducts[0];
+    const name = p.fullName || p.name;
+    const model = p.model ? `**${p.model}**` : name;
+    const overview = (p.overview?.content || p.description || '').slice(0, 150);
+    return `Based on your requirement, ${model} is the best match from AADONA's lineup.\n\n${overview}\n\nFor configuration support or detailed specs, connect with our technical team.`;
+  }
+
+  let text = `Based on your requirement, here are the best matching AADONA products:\n\n`;
+  matchedProducts.forEach((p, i) => {
+    const model = p.model ? `**${p.model}**` : (p.fullName || p.name);
+    const shortDesc = (p.overview?.content || p.description || '').slice(0, 80);
+    text += `${i + 1}. ${model}${shortDesc ? ` — ${shortDesc}` : ''}\n`;
+  });
+  text += `\nFor detailed specs or configuration support, our technical team will assist you.`;
+  return text.trim();
+};
+
 // ─── Intent Definitions ────────────────────────────────────────────────────
-// Each intent: regex to match, response text, optional action buttons, optional escalate flag
 const STRUCTURED_INTENTS = [
   // ── Support / Technical Config Intents ──
   {
     id: 'ap_config',
-    regex: /access.?point.*config|ap.*config|wireless.*config|config.*access.?point|config.*ap|ssid.*setup|vlan.*wireless|wifi.*setup|configure.*wireless/i,
-    respond: (userName) => ({
+    regex: /access.?point.*config|ap.*config|wireless.*config|config.*access.?point|config.*ap|ssid.*setup|vlan.*wireless|configure.*wireless/i,
+    respond: () => ({
       text: `Yes, AADONA provides complete configuration support for wireless access points — including SSID creation, VLAN setup, security configuration (WPA2/WPA3), and controller integration.\n\nOur technical team will assist you directly.`,
       actionButtons: [
         { label: 'Product Support', url: `${BASE_URL}/productSupport` },
@@ -203,37 +368,23 @@ const STRUCTURED_INTENTS = [
       escalateType: 'sales'
     })
   },
-  {
-    id: 'product_suggestion',
-    regex: /suggest.*product|recommend.*product|which.*product|what.*product.*should|product.*for.*project|solution.*suggest|right.*product|best.*product.*for/i,
-    respond: () => ({
-      text: `AADONA can recommend the right products based on your project requirements. To propose an optimized solution, please share:\n\n**Application** — CCTV / Office / Data Center / Wi-Fi\n**Devices/Users** — Expected count\n**Network size** — Small / Medium / Large\n**Compliance** — Any specific requirements (GeM / MII / ISO)\n\nOur technical team will connect with you shortly.`,
-      actionButtons: [
-        { label: 'Contact Us', url: `${BASE_URL}/contactUs` },
-        { label: 'Request Demo', url: `${BASE_URL}/requestDemo` }
-      ],
-      escalate: true,
-      escalateType: 'technical'
-    })
-  },
 ];
 
 // ─── Static Page Intent Detection ─────────────────────────────────────────
 const detectStaticPageIntent = (userMessage, aiReply) => {
   const msg = (userMessage + ' ' + aiReply).toLowerCase();
   const staticPages = [
-    { regex: /career|job|hiring|vacancy|internship|intern|fresher|नौकरी/, label: 'View Careers', url: `${BASE_URL}/careers` },
-    { regex: /tech squad|on.?site|technician.*visit|घर पे.*technician/, label: 'Tech Squad', url: `${BASE_URL}/techSquad` },
+    { regex: /career|job|hiring|vacancy|internship|intern|fresher/, label: 'View Careers', url: `${BASE_URL}/careers` },
+    { regex: /tech squad|on.?site|technician.*visit/, label: 'Tech Squad', url: `${BASE_URL}/techSquad` },
     { regex: /warranty|वारंटी/, label: 'Warranty Check', url: `${BASE_URL}/warranty` },
     { regex: /doa|dead on arrival/, label: 'Request DOA', url: `${BASE_URL}/requestDoa` },
-    { regex: /register.*product|product.*registration|रजिस्टर/, label: 'Product Registration', url: `${BASE_URL}/warrantyRegistration` },
-    { regex: /issue|problem|fault|not.?working|error|disconnect|hang|slow|repair|खराब|technical|firmware|product.*support|support.*product/, label: 'Product Support', url: `${BASE_URL}/productSupport` },
-    { regex: /partner|reseller|distributor|पार्टनर/, label: 'Become a Partner', url: `${BASE_URL}/becomePartner` },
+    { regex: /register.*product|product.*registration/, label: 'Product Registration', url: `${BASE_URL}/warrantyRegistration` },
+    { regex: /issue|problem|fault|not.?working|error|disconnect|hang|slow|repair|technical|firmware|product.*support|support.*product/, label: 'Product Support', url: `${BASE_URL}/productSupport` },
+    { regex: /partner|reseller|distributor/, label: 'Become a Partner', url: `${BASE_URL}/becomePartner` },
     { regex: /project lock|tender|project register/, label: 'Project Locking', url: `${BASE_URL}/projectLocking` },
-    { regex: /demo|demonstration|डेमो/, label: 'Request Demo', url: `${BASE_URL}/requestDemo` },
-    { regex: /training|train|ट्रेनिंग/, label: 'Request Training', url: `${BASE_URL}/requestTraining` },
-    { regex: /contact|reach|call|email|संपर्क/, label: 'Contact Us', url: `${BASE_URL}/contactUs` },
-    { regex: /whistle|complaint|misconduct/, label: 'Whistleblower', url: `${BASE_URL}/whistleBlower` },
+    { regex: /demo|demonstration/, label: 'Request Demo', url: `${BASE_URL}/requestDemo` },
+    { regex: /training|train/, label: 'Request Training', url: `${BASE_URL}/requestTraining` },
+    { regex: /contact|reach|call|email/, label: 'Contact Us', url: `${BASE_URL}/contactUs` },
     { regex: /about.*aadona|aadona.*about|company.*info|who.*aadona/, label: 'About AADONA', url: `${BASE_URL}/about` },
     { regex: /csr|social responsibility/, label: 'CSR', url: `${BASE_URL}/csr` },
     { regex: /blog|article|news/, label: 'Blog', url: `${BASE_URL}/blog` },
@@ -256,7 +407,7 @@ const detectStaticPageIntent = (userMessage, aiReply) => {
   return buttons;
 };
 
-// ─── Product Card Detection ────────────────────────────────────────────────
+// ─── Product Card Detection (Category-based) ─────────────────────────────
 const detectProductCards = (reply, products, userMessage, categories) => {
   if (!products?.length) return { cards: [], categoryButton: null };
 
@@ -264,6 +415,7 @@ const detectProductCards = (reply, products, userMessage, categories) => {
   const replyLower = reply.toLowerCase();
   const userNormalized = userLower.replace(/-/g, '');
 
+  // Model-based matching
   const matchedByModel = products.filter(p => {
     if (!p.model) return false;
     const modelLower = p.model.toLowerCase();
@@ -298,7 +450,7 @@ const detectProductCards = (reply, products, userMessage, categories) => {
     }
 
     if (!categoryButton) {
-      const mainCats = sortedCats.filter(c => !c.parentName);
+      const mainCats = [...categories].filter(c => !c.parentName).sort((a, b) => b.name.length - a.name.length);
       for (const cat of mainCats) {
         const catNameLower = cat.name.toLowerCase();
         if (replyLower.includes(catNameLower) && userLower.includes(catNameLower)) {
@@ -328,6 +480,24 @@ const detectProductCards = (reply, products, userMessage, categories) => {
   return { cards, categoryButton };
 };
 
+// ─── Is Product Info Query ────────────────────────────────────────────────
+// Detect if user is asking about a specific product (info/spec/features)
+const isProductInfoQuery = (msg) => {
+  return /\b(about|spec|feature|detail|info|overview|tell me|batao|kya h|what is|what are|price|cost|kya hai|describe)\b/i.test(msg) ||
+    /\b(model|version|variant)\b/i.test(msg);
+};
+
+// ─── Is Spec-Based Query ─────────────────────────────────────────────────
+// User is specifying requirements (port count, SFP+, PoE, etc.)
+const isSpecQuery = (msg) => {
+  return /\d+\s*[-\s]*port|\d+\s*(?:nos?\.?\s*)?sfp\+?|non.?poe|\bpoe\b|layer\s*[23]|\bl[23]\b|10g\s*uplink|gigabit\s*switch|\d+g\s*sfp/i.test(msg);
+};
+
+// ─── Is Product Suggestion Query ─────────────────────────────────────────
+const isProductSuggestionQuery = (msg) => {
+  return /suggest|recommend|which.*product|what.*product|product.*for|best.*for|suitable.*for|requirement|chahiye|chahta|chahti|need.*switch|need.*ap|need.*camera|need.*nas/i.test(msg);
+};
+
 // ─── System Prompt ─────────────────────────────────────────────────────────
 const buildSystemPrompt = (userName, userPhone, userCity) => `
 You are AADONA Assistant — AI-powered chatbot for AADONA Communication Pvt Ltd (Indian networking brand, founded 2018, HQ: Hyderabad).
@@ -340,16 +510,22 @@ LANGUAGE RULES (CRITICAL):
 TONE & FORMAT:
 - Professional, concise, direct. No emojis. No filler words.
 - No "ji", no "sure!", no "great!", no "absolutely!".
-- Max 3-4 lines unless user asks for details.
+- Max 3-4 lines unless user asks for details or it's a product info query.
 - Use **bold** only for model numbers, key specs, or section headers.
-- Bullet points allowed only for structured lists (requirements, specs).
+- Bullet points allowed only for structured lists (requirements, specs, features).
 
 CONTENT RULES:
 - NEVER fabricate information. If unsure → provide: 1800-202-6599 or contact@aadona.com
 - Answer ONLY AADONA-related questions. Politely decline everything else.
 - For product queries → reference live DB. Use exact model numbers.
-- When user asks about a specific product → 2-line overview + top 2 specs.
-- When user asks about a category → describe what AADONA offers using DB data.
+- When user asks about a specific product → give proper overview + top 3 specs + key features. Then mention technical team for config support.
+- When user asks for product recommendation with specs → describe the matching products well, then offer technical team connection for detailed discussion.
+- When user asks about a category → describe what AADONA offers.
+
+IMPORTANT — PRODUCT INFO RESPONSES:
+- DO give proper product information first (overview, specs, features).
+- DO show product details before suggesting to contact technical team.
+- Only suggest escalation AFTER giving useful product info.
 
 PRODUCTS: Wireless APs, Surveillance (Cameras/NVR/DVR), Network Switches (Managed/PoE/Rack), Servers & Workstations, NAS, Industrial Switches, Passive (Cat6/6A/7, Fiber, Patch Panels)
 
@@ -498,9 +674,8 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     const [products, categories] = await Promise.all([getProducts(), getCategoryMap()]);
 
-    // ── Cache Check ───────────────────────────────────────────────────────
-    // NOTE: Don't cache contextual queries that depend on conversation history
-    const isContextual = /which section|where is|category|section|type of|kind of|kahan|kis section|kya h yeh|what is this/i.test(lastUserMessage);
+    // ── Cache check (skip contextual queries) ─────────────────────────────
+    const isContextual = /which section|where is|category|section|type of|kind of|kahan|kis section|kya h yeh|what is this|is it in|kon si category/i.test(lastUserMessage);
     const cacheKey = isContextual ? null : lastUserMessage.trim().toLowerCase();
     if (cacheKey) {
       const cached = getCached(cacheKey);
@@ -515,18 +690,16 @@ router.post('/chat', chatLimiter, async (req, res) => {
       }
     }
 
-    // ── 0. ALWAYS: Try model number match from full conversation context ──
-    // Collect all model numbers mentioned in the entire conversation
+    // ── Full conversation context for model detection ──────────────────────
     const fullConvText = sanitized.map(m => m.content).join(' ');
-    const { cards: convCards } = detectProductCards('', products, fullConvText, categories);
-    // For the current message specifically
-    const { cards: currCards, categoryButton: currCatBtn } = detectProductCards('', products, lastUserMessage, categories);
 
-    // ── 1. Structured Intent Check (11 intents) ───────────────────────────
+    // ── 0. STRUCTURED INTENTS (11 defined) ────────────────────────────────
     for (const intent of STRUCTURED_INTENTS) {
       if (intent.regex.test(lastUserMessage)) {
         const result = intent.respond(userName);
-        // Cards: prefer current message match, fallback to conversation context match
+        // Try to attach relevant product cards from conversation context
+        const { cards: convCards } = detectProductCards('', products, fullConvText, categories);
+        const { cards: currCards } = detectProductCards('', products, lastUserMessage, categories);
         const productCards = currCards.length ? currCards : (convCards.length ? convCards.slice(0, 4) : null);
 
         res.setHeader('Content-Type', 'text/event-stream');
@@ -547,9 +720,115 @@ router.post('/chat', chatLimiter, async (req, res) => {
       }
     }
 
-    // ── 2. Static Page Intent ─────────────────────────────────────────────
+    // ── 1. EXACT PRODUCT MODEL QUERY ──────────────────────────────────────
+    // User asking about a specific product by model number
+    const exactProduct = findExactProduct(lastUserMessage, products);
+    if (exactProduct) {
+      const replyText = buildProductInfoText(exactProduct);
+      const card = {
+        name: exactProduct.fullName || exactProduct.name,
+        model: exactProduct.model,
+        image: exactProduct.image || null,
+        slug: exactProduct.slug,
+        category: exactProduct.category,
+        subCategory: exactProduct.subCategory,
+        overview: exactProduct.overview?.content?.slice(0, 120) || exactProduct.description?.slice(0, 120) || '',
+        features: (exactProduct.features || []).slice(0, 3),
+        url: buildProductUrl(exactProduct),
+        visitLabel: `View ${exactProduct.model || exactProduct.name}`
+      };
+
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders();
+
+      res.write(`data: ${JSON.stringify({ token: replyText })}\n\n`);
+      res.write(`data: ${JSON.stringify({
+        done: true,
+        productCards: [card],
+        actionButtons: [
+          { label: 'Product Support', url: `${BASE_URL}/productSupport` },
+          { label: 'Contact Us', url: `${BASE_URL}/contactUs` }
+        ],
+        escalate: null,
+      })}\n\n`);
+
+      if (cacheKey) setCache(cacheKey, { reply: replyText, productCards: [card], actionButtons: [{ label: 'Product Support', url: `${BASE_URL}/productSupport` }, { label: 'Contact Us', url: `${BASE_URL}/contactUs` }] });
+      return res.end();
+    }
+
+    // ── 2. SPEC-BASED PRODUCT SUGGESTION ─────────────────────────────────
+    // User gives specs: "24 port non-poe switch with 6 SFP+"
+    if (isSpecQuery(lastUserMessage) || isProductSuggestionQuery(lastUserMessage)) {
+      const specMatched = specMatchProducts(lastUserMessage, products);
+
+      if (specMatched.length > 0) {
+        const replyText = buildSpecMatchText(specMatched, lastUserMessage);
+        const cards = specMatched.map(p => ({
+          name: p.fullName || p.name,
+          model: p.model,
+          image: p.image || null,
+          slug: p.slug,
+          category: p.category,
+          subCategory: p.subCategory,
+          overview: p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '',
+          features: (p.features || []).slice(0, 3),
+          url: buildProductUrl(p),
+          visitLabel: `View ${p.model || p.name}`
+        }));
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders();
+
+        res.write(`data: ${JSON.stringify({ token: replyText })}\n\n`);
+        res.write(`data: ${JSON.stringify({
+          done: true,
+          productCards: cards,
+          actionButtons: [
+            { label: 'Contact Us', url: `${BASE_URL}/contactUs` },
+            { label: 'Request Demo', url: `${BASE_URL}/requestDemo` }
+          ],
+          escalate: 'technical',
+        })}\n\n`);
+
+        if (cacheKey) setCache(cacheKey, { reply: replyText, productCards: cards, actionButtons: [{ label: 'Contact Us', url: `${BASE_URL}/contactUs` }], escalate: 'technical' });
+        return res.end();
+      }
+
+      // Spec query but no DB match → still respond properly
+      if (isProductSuggestionQuery(lastUserMessage)) {
+        const suggestText = `To suggest the most suitable AADONA product for your requirement, our technical team needs a few more details:\n\n• **Application** — CCTV / Office / Data Center / Wi-Fi\n• **Number of users/devices**\n• **Network size** — Small / Medium / Large\n• **Compliance** — GeM / MII / ISO (if applicable)\n\nOur team will propose an optimized solution.`;
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders();
+
+        res.write(`data: ${JSON.stringify({ token: suggestText })}\n\n`);
+        res.write(`data: ${JSON.stringify({
+          done: true,
+          productCards: null,
+          actionButtons: [
+            { label: 'Contact Us', url: `${BASE_URL}/contactUs` },
+            { label: 'Request Demo', url: `${BASE_URL}/requestDemo` }
+          ],
+          escalate: 'technical',
+        })}\n\n`);
+        return res.end();
+      }
+    }
+
+    // ── 3. CONTEXTUAL / FOLLOW-UP QUERY ───────────────────────────────────
+    // Check full conversation for model mentions, attach cards
+    const { cards: convCards } = detectProductCards('', products, fullConvText, categories);
+    const { cards: currCards, categoryButton: currCatBtn } = detectProductCards('', products, lastUserMessage, categories);
+
+    // ── 4. STATIC PAGE INTENT ─────────────────────────────────────────────
     const staticButtons = detectStaticPageIntent(lastUserMessage, '');
-    if (staticButtons.length) {
+    if (staticButtons.length && !currCards.length && !convCards.length) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
@@ -562,55 +841,42 @@ router.post('/chat', chatLimiter, async (req, res) => {
       return res.end();
     }
 
-    // ── 3. Product Intent — current message or conversation context ────────
-    // Try current message first, then fall back to cards found in full conversation
-    const isProductQuery = /price|model|buy|spec|feature|switch|camera|wifi|nas|wireless|surveillance|server|workstation|passive|patch|fiber|cat6|cat7|poe|rack|nvr|dvr|access.?point/i.test(lastUserMessage);
-    const bestCards = currCards.length ? currCards : (isProductQuery || isContextual ? convCards.slice(0, 4) : []);
+    // ── 5. CATEGORY BROWSE ────────────────────────────────────────────────
+    const isProductBrowse = /price|model|buy|spec|feature|switch|camera|wifi|nas|wireless|surveillance|server|workstation|passive|patch|fiber|cat6|cat7|poe|rack|nvr|dvr|access.?point/i.test(lastUserMessage);
+    const bestCards = currCards.length ? currCards : (isProductBrowse || isContextual ? convCards.slice(0, 4) : []);
     const bestCatBtn = currCards.length ? currCatBtn : null;
 
-    if (bestCards.length) {
-      // If it's a contextual question ("which section"), go to LLM but attach cards
-      if (isContextual) {
-        // Fall through to Gemini but we'll attach cards to the final response
-        // (handled below after LLM response)
-      } else {
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
-        res.flushHeaders();
+    if (bestCards.length && !isContextual) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders();
 
-        const reply = bestCards[0].overview || "Here are matching AADONA products for your query.";
-        const allButtons = bestCatBtn ? [bestCatBtn] : [];
+      const reply = bestCards[0].overview || "Here are matching AADONA products for your query.";
+      const allButtons = bestCatBtn ? [bestCatBtn] : [];
 
-        res.write(`data: ${JSON.stringify({ token: reply })}\n\n`);
-        res.write(`data: ${JSON.stringify({ done: true, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
-        if (cacheKey) setCache(cacheKey, { reply, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null });
-        return res.end();
-      }
+      res.write(`data: ${JSON.stringify({ token: reply })}\n\n`);
+      res.write(`data: ${JSON.stringify({ done: true, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
+      if (cacheKey) setCache(cacheKey, { reply, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null });
+      return res.end();
     }
 
-    // ── 4. Gemini LLM (fallback) ──────────────────────────────────────────
+    // ── 6. GEMINI LLM FALLBACK ────────────────────────────────────────────
     const systemContent = buildSystemPrompt(userName || 'Guest', userPhone || '', userCity || '');
 
-    // Build full conversation history for Gemini (last 10 turns max)
-    // Gemini requires alternating user/model roles — merge consecutive same-role messages
-    const recentHistory = sanitized.slice(-20); // last 20 messages
+    // Build full conversation history — last 20 messages, alternating user/model
+    const recentHistory = sanitized.slice(-20);
     const geminiMessages = [];
     for (const msg of recentHistory) {
       const role = msg.role === 'assistant' ? 'model' : 'user';
       const last = geminiMessages[geminiMessages.length - 1];
       if (last && last.role === role) {
-        // Merge consecutive same-role messages
         last.parts[0].text += '\n' + msg.content;
       } else {
         geminiMessages.push({ role, parts: [{ text: msg.content }] });
       }
     }
-    // Ensure it starts with user turn (Gemini requirement)
-    if (geminiMessages.length && geminiMessages[0].role === 'model') {
-      geminiMessages.shift();
-    }
-    // Ensure it ends with user turn
+    if (geminiMessages.length && geminiMessages[0].role === 'model') geminiMessages.shift();
     if (!geminiMessages.length || geminiMessages[geminiMessages.length - 1].role !== 'user') {
       geminiMessages.push({ role: 'user', parts: [{ text: lastUserMessage }] });
     }
@@ -671,15 +937,14 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     // Trim to clean sentence boundary
     const isListQuery = /list|all.*product|show.*all|categories|what.*do.*you.*offer/i.test(lastUserMessage);
-    if (!isListQuery && fullReply.length > 350) {
-      const trimmed = fullReply.slice(0, 350);
+    if (!isListQuery && fullReply.length > 400) {
+      const trimmed = fullReply.slice(0, 400);
       const lastDot = Math.max(trimmed.lastIndexOf('.'), trimmed.lastIndexOf('!'), trimmed.lastIndexOf('?'));
-      fullReply = lastDot > 100 ? trimmed.slice(0, lastDot + 1) : fullReply.slice(0, 400);
+      fullReply = lastDot > 100 ? trimmed.slice(0, lastDot + 1) : fullReply.slice(0, 450);
     }
 
     // Post-LLM card detection: current msg > conversation context > reply text
     const { cards: llmCards, categoryButton: llmCatBtn } = detectProductCards(fullReply, products, lastUserMessage, categories);
-    // For contextual queries ("which section"), attach cards from conversation history
     const finalCards = llmCards.length ? llmCards : (isContextual ? (bestCards.length ? bestCards : convCards.slice(0, 4)) : []);
     const finalCatBtn = llmCards.length ? llmCatBtn : (isContextual ? bestCatBtn : null);
 
