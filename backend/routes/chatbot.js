@@ -35,7 +35,7 @@ const getProducts = async () => {
     const Product = mongoose.model('Product');
     const products = await Product.find(
       {},
-      'name fullName model category subCategory description overview features image slug specifications ports sfpPorts uplinks speed poe'
+      'name fullName model category subCategory extraCategory description overview features image slug specifications ports sfpPorts uplinks speed poe'
     ).sort({ category: 1 }).limit(500);
     return products;
   } catch { return []; }
@@ -84,7 +84,7 @@ const specMatchProducts = (userMessage, products) => {
                    msg.match(/(\d+)\s*(?:nos?\.?)?\s*sfp/i);
   const sfpCount = sfpMatch ? parseInt(sfpMatch[1]) : null;
 
-  const wantsPoE    = /\bpoe\b/i.test(msg) && !/non.?poe|without.?poe/i.test(msg);
+  const wantsPoE    = /\bpoe\b/i.test(msg) && !/non.?poe|without.?poe|non\s*poe/i.test(msg);
   const wantsNonPoE = /non.?poe|without.?poe|non\s*poe/i.test(msg);
 
   const speedMatch   = msg.match(/\b(10g|25g|40g|100g|1g|gigabit)\b/i);
@@ -93,63 +93,131 @@ const specMatchProducts = (userMessage, products) => {
   const wantsL3 = /\bl3\b|layer.?3/i.test(msg);
   const wantsL2 = /\bl2\b|layer.?2/i.test(msg);
 
-  // ── Category detection — from message keywords ─────────────────────────
-  const wantsSwitch     = /\bswitch\b/i.test(msg);
-  const wantsAP         = /access.?point|wireless\s*ap|wifi\s*ap|\bap\b/i.test(msg);
+  // ── Category detection ────────────────────────────────────────────────
+  const wantsSwitch     = /\bswitch(es)?\b/i.test(msg);
+  const wantsAP         = /access.?point|wireless\s*ap|wifi\s*ap|\bap\b|\baccess\s*points?\b/i.test(msg);
   const wantsNAS        = /\bnas\b|network.?attached.?storage/i.test(msg);
   const wantsCamera     = /\bcamera\b|\bnvr\b|\bdvr\b|\bcctv\b|surveillance/i.test(msg);
   const wantsServer     = /\bserver\b|\bworkstation\b/i.test(msg);
   const wantsIndustrial = /\bindustrial\b/i.test(msg);
-  const wantsPassive    = /\bpassive\b|\bcat6\b|\bcat7\b|\bpatch\b|\bfiber\b|\bfibre\b/i.test(msg);
+  const wantsPassive    = /\bpassive\b|\bcat6\b|\bcat7\b|\bcat6a\b|\bpatch\s*panel\b|\bfiber\b|\bfibre\b|\boptic\b/i.test(msg);
 
-  // ── No spec keywords at all → not a spec query ────────────────────────
-  if (!portCount && !sfpCount && !wantsPoE && !wantsNonPoE && !speedKeyword && !wantsL3 && !wantsL2) {
+  // ── Implicit switch detection ─────────────────────────────────────────
+  const wantsUnmanaged = /\bunmanaged\b/i.test(msg);
+  const wantsManaged   = /\bmanaged\b|\bwebsmart\b|\bsmart\s*switch\b/i.test(msg);
+  const impliedSwitch  = wantsUnmanaged || wantsManaged || wantsL2 || wantsL3;
+
+  // Effective switch flag
+  const effectiveSwitch = wantsSwitch || impliedSwitch;
+
+  // ── No spec keywords → not a spec query ──────────────────────────────
+  if (!portCount && !sfpCount && !wantsPoE && !wantsNonPoE && !speedKeyword &&
+      !wantsL3 && !wantsL2 && !wantsUnmanaged && !wantsManaged) {
     return [];
   }
+
+  // ── isSpecQuery mein bhi add: unmanaged/managed/websmart ─────────────
 
   const scored = products.map(p => {
     let score = 0;
 
-    const pCat = (p.category || '').toLowerCase();
-    const pSub = (p.subCategory || '').toLowerCase();
+    const pCat   = (p.category || '').toLowerCase();
+    const pSub   = (p.subCategory || '').toLowerCase();
+    const pExtra = (p.extraCategory || '').toLowerCase(); // DB se extra category
     const pModel = (p.model || '').toLowerCase();
+
+    // Full searchable text — category bhi shamil karo
     const pText = (
-      p.name + ' ' + (p.fullName || '') + ' ' +
+      p.name + ' ' +
+      (p.fullName || '') + ' ' +
       (p.description || '') + ' ' +
+      (p.category || '') + ' ' +
+      (p.subCategory || '') + ' ' +
+      (p.extraCategory || '') + ' ' +
       JSON.stringify(p.features || []) + ' ' +
       JSON.stringify(p.specifications || {})
     ).toLowerCase();
 
     // ── HARD CATEGORY EXCLUSION ───────────────────────────────────────────
-    if (wantsSwitch && !pCat.includes('switch') && !pSub.includes('switch')) return { p, score: -999 };
-    if (wantsAP && !pCat.includes('wireless') && !pSub.includes('access') && !pSub.includes('ap')) return { p, score: -999 };
-    if (wantsNAS && !pCat.includes('nas') && !pSub.includes('nas') && !pText.includes('nas')) return { p, score: -999 };
-    if (wantsCamera && !pCat.includes('surveillance') && !pSub.includes('camera') && !pSub.includes('nvr') && !pSub.includes('dvr')) return { p, score: -999 };
-    if (wantsServer && !pCat.includes('server') && !pSub.includes('server') && !pSub.includes('workstation')) return { p, score: -999 };
-    if (wantsIndustrial && !pCat.includes('industrial') && !pSub.includes('industrial')) return { p, score: -999 };
-    if (wantsPassive && !pCat.includes('passive') && !pSub.includes('passive') && !pSub.includes('cat') && !pSub.includes('fiber') && !pSub.includes('patch')) return { p, score: -999 };
+    // Switch (including implied via managed/unmanaged/L2/L3)
+    if (effectiveSwitch) {
+      const isSwitch = pCat.includes('switch') || pSub.includes('switch') || pExtra.includes('switch');
+      if (!isSwitch) return { p, score: -999 };
+    }
 
-    const noCatSpecified = !wantsSwitch && !wantsAP && !wantsNAS && !wantsCamera && !wantsServer && !wantsIndustrial && !wantsPassive;
-    if (noCatSpecified) {
-      if (pCat.includes('passive')) return { p, score: -50 };
+    // AP
+    if (wantsAP) {
+      const isAP = pCat.includes('wireless') || pSub.includes('access') ||
+                   pSub.includes('ap') || pExtra.includes('wireless') || pExtra.includes('access point');
+      if (!isAP) return { p, score: -999 };
+    }
+
+    // NAS
+    if (wantsNAS) {
+      const isNAS = pCat.includes('nas') || pSub.includes('nas') ||
+                    pExtra.includes('nas') || pText.includes('nas');
+      if (!isNAS) return { p, score: -999 };
+    }
+
+    // Camera / Surveillance
+    if (wantsCamera) {
+      const isCam = pCat.includes('surveillance') || pSub.includes('camera') ||
+                    pSub.includes('nvr') || pSub.includes('dvr') ||
+                    pExtra.includes('surveillance') || pExtra.includes('camera');
+      if (!isCam) return { p, score: -999 };
+    }
+
+    // Server / Workstation
+    if (wantsServer) {
+      const isServer = pCat.includes('server') || pSub.includes('server') ||
+                       pSub.includes('workstation') || pExtra.includes('server');
+      if (!isServer) return { p, score: -999 };
+    }
+
+    // Industrial
+    if (wantsIndustrial) {
+      const isIndustrial = pCat.includes('industrial') || pSub.includes('industrial') ||
+                           pExtra.includes('industrial');
+      if (!isIndustrial) return { p, score: -999 };
+    }
+
+    // Passive
+    if (wantsPassive) {
+      const isPassive = pCat.includes('passive') || pSub.includes('passive') ||
+                        pSub.includes('cat') || pSub.includes('fiber') ||
+                        pSub.includes('patch') || pExtra.includes('passive');
+      if (!isPassive) return { p, score: -999 };
+    }
+
+    // ── Agar koi category specify nahi, passive products penalise karo ──
+    const noCatSpecified = !effectiveSwitch && !wantsAP && !wantsNAS &&
+                           !wantsCamera && !wantsServer && !wantsIndustrial && !wantsPassive;
+    if (noCatSpecified && pCat.includes('passive')) return { p, score: -999 };
+
+    // ── Managed / Unmanaged sub-type scoring ─────────────────────────────
+    if (wantsUnmanaged) {
+      if (/unmanaged/i.test(pText) || /unmanaged/i.test(pSub) || /unmanaged/i.test(pExtra)) score += 30;
+      else if (/\bmanaged\b/i.test(pText)) score -= 25; // managed product, user wants unmanaged
+    }
+    if (wantsManaged && !/unmanaged/i.test(msg)) {
+      if (/\bmanaged\b/i.test(pText) || /websmart/i.test(pText)) score += 30;
+      else score -= 15;
     }
 
     // ── PORT COUNT ────────────────────────────────────────────────────────
     if (portCount !== null) {
-      // Strong match: pText mein exact port count as port/rj45/ge mention ho
-      const portRegex = new RegExp(`\\b${portCount}\\s*(?:x\\s*)?(?:port|rj45|ge|gbe|gigabit|fe)`, 'i');
-      // Model mein portCount-based patterns
+      const portRegex = new RegExp(`\\b${portCount}\\s*(?:x\\s*)?(?:port|rj45|ge|gbe|gigabit|fe|tx)`, 'i');
       const modelHasPort = pModel.includes(`${portCount}p`) ||
-                           pModel.match(new RegExp(`[-_]${portCount}(?:[^0-9]|$)`)) ||
+                           !!pModel.match(new RegExp(`[-_]${portCount}(?:[^0-9]|$)`)) ||
                            pModel.includes(`${portCount}ge`) ||
                            pModel.includes(`g${portCount}`);
 
       if (portRegex.test(pText) || modelHasPort) {
-        score += 50; // strong match
+        score += 50;
       } else if (pText.includes(`${portCount} port`) || pText.includes(`${portCount}-port`)) {
         score += 40;
       } else {
-        score -= 30; // port count clearly doesn't match — heavy penalty
+        score -= 30;
       }
     }
 
@@ -157,13 +225,12 @@ const specMatchProducts = (userMessage, products) => {
     if (sfpCount !== null) {
       const sfpRx1 = new RegExp(`${sfpCount}\\s*(?:x\\s*)?(?:10g\\s*)?sfp\\+?`, 'i');
       const sfpRx2 = new RegExp(`sfp\\+?\\s*(?:x\\s*)?${sfpCount}`, 'i');
-      const modelHasSfp = pModel.includes(`${sfpCount}sfp`) || pModel.includes(`sfp${sfpCount}`) || pModel.includes(`s${sfpCount}`);
+      const modelHasSfp = pModel.includes(`${sfpCount}sfp`) ||
+                          pModel.includes(`sfp${sfpCount}`) ||
+                          pModel.includes(`s${sfpCount}`);
 
-      if (sfpRx1.test(pText) || sfpRx2.test(pText) || modelHasSfp) {
-        score += 40;
-      } else {
-        score -= 20; // sfp count doesn't match
-      }
+      if (sfpRx1.test(pText) || sfpRx2.test(pText) || modelHasSfp) score += 40;
+      else score -= 20;
     }
 
     // ── PoE ───────────────────────────────────────────────────────────────
@@ -174,7 +241,7 @@ const specMatchProducts = (userMessage, products) => {
     if (wantsNonPoE) {
       if (/non.?poe/i.test(pText) || /non.?poe/i.test(pModel)) score += 40;
       else if (!/\bpoe\b/i.test(pText) && !/\bpoe\b/i.test(pModel)) score += 25;
-      else score -= 35; // product has PoE but user wants non-PoE
+      else score -= 35;
     }
 
     // ── SPEED ─────────────────────────────────────────────────────────────
@@ -196,7 +263,7 @@ const specMatchProducts = (userMessage, products) => {
   });
 
   return scored
-    .filter(s => s.score > 0) // sirf positive score wale
+    .filter(s => s.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, 4)
     .map(s => s.p);
