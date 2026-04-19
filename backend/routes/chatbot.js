@@ -302,6 +302,54 @@ const findExactProduct = (userMessage, products) => {
   return byName.length ? byName[0] : null;
 };
 
+// ─── Smart DB Search using Gemini ────────────────────────────────────────
+const findProductsByQuery = async (userMessage, products, apiKey) => {
+  try {
+    const productList = products.map(p => ({
+      model: p.model || '',
+      name: p.fullName || p.name || '',
+      category: p.category || '',
+      subCategory: p.subCategory || '',
+      extraCategory: p.extraCategory || '',
+      description: (p.description || '').slice(0, 150),
+      features: (p.features || []).slice(0, 4),
+    }));
+
+    const prompt = `You are a product matcher for AADONA — an Indian networking brand.
+
+User query: "${userMessage}"
+
+Products (JSON):
+${JSON.stringify(productList)}
+
+Find TOP 4 most relevant products matching the user query. Consider category, subCategory, features, description carefully.
+Return ONLY a JSON array of matching model names. Example: ["SUL-8GP2S", "ASC1200"]
+If nothing matches, return: []
+No explanation, no markdown, only the JSON array.`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 150, temperature: 0.1 }
+        })
+      }
+    );
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const matchedModels = JSON.parse(clean);
+    return products.filter(p => matchedModels.includes(p.model));
+  } catch (err) {
+    console.error('findProductsByQuery error:', err.message);
+    return [];
+  }
+};
+
 // ─── Build Product Info Text ──────────────────────────────────────────────
 const buildProductInfoText = (product) => {
   const model = product.model || (product.fullName || product.name);
@@ -860,10 +908,11 @@ router.post('/chat', chatLimiter, async (req, res) => {
     // User gives specs: "24 port non-poe switch with 6 SFP+"
     if (isSpecQuery(lastUserMessage) || isProductSuggestionQuery(lastUserMessage)) {
       const specMatched = specMatchProducts(lastUserMessage, products);
+      const matched = specMatched.length ? specMatched : await findProductsByQuery(lastUserMessage, products, apiKey);
 
-      if (specMatched.length > 0) {
-        const replyText = buildSpecMatchText(specMatched, lastUserMessage);
-        const cards = specMatched.map(p => ({
+      if (matched.length > 0) {
+        const replyText = buildSpecMatchText(matched, lastUserMessage);
+        const cards = matched.map(p => ({
           name: p.fullName || p.name,
           model: p.model,
           image: p.image || null,
@@ -896,7 +945,6 @@ router.post('/chat', chatLimiter, async (req, res) => {
         return res.end();
       }
 
-      // Spec query but no DB match → still respond properly
       if (isProductSuggestionQuery(lastUserMessage)) {
         const suggestText = `To suggest the most suitable AADONA product for your requirement, our technical team needs a few more details:\n\n• **Application** — CCTV / Office / Data Center / Wi-Fi\n• **Number of users/devices**\n• **Network size** — Small / Medium / Large\n• **Compliance** — GeM / MII / ISO (if applicable)\n\nOur team will propose an optimized solution.`;
 
@@ -907,8 +955,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
         res.write(`data: ${JSON.stringify({ token: suggestText })}\n\n`);
         res.write(`data: ${JSON.stringify({
-          done: true,
-          productCards: null,
+          done: true, productCards: null,
           actionButtons: [
             { label: 'Contact Us', url: `${BASE_URL}/contactUs` },
             { label: 'Request Demo', url: `${BASE_URL}/requestDemo` }
@@ -918,6 +965,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
         return res.end();
       }
     }
+
 
     // ── 3. CONTEXTUAL / FOLLOW-UP QUERY ───────────────────────────────────
     // Check full conversation for model mentions, attach cards
@@ -944,20 +992,30 @@ router.post('/chat', chatLimiter, async (req, res) => {
     const bestCards = currCards.length ? currCards : (isProductBrowse || isContextual ? convCards.slice(0, 4) : []);
     const bestCatBtn = currCards.length ? currCatBtn : null;
 
-    if (bestCards.length && !isContextual) {
+   if (bestCards.length && !isContextual) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
+      const smartCards = await findProductsByQuery(lastUserMessage, products, apiKey);
+      const finalBestCards = smartCards.length ? smartCards.map(p => ({
+        name: p.fullName || p.name, model: p.model, image: p.image || null,
+        slug: p.slug, category: p.category, subCategory: p.subCategory,
+        overview: p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '',
+        features: (p.features || []).slice(0, 3),
+        url: buildProductUrl(p), visitLabel: `View ${p.model || p.name}`
+      })) : bestCards;
+
       const reply = "Here are matching AADONA products for your query.";
       const allButtons = bestCatBtn ? [bestCatBtn] : [];
 
       res.write(`data: ${JSON.stringify({ token: reply })}\n\n`);
-      res.write(`data: ${JSON.stringify({ done: true, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
-      if (cacheKey) setCache(cacheKey, { reply, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null });
+      res.write(`data: ${JSON.stringify({ done: true, productCards: finalBestCards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
+      if (cacheKey) setCache(cacheKey, { reply, productCards: finalBestCards, actionButtons: allButtons.length ? allButtons : null });
       return res.end();
     }
+
 
     // ── 6. GEMINI LLM FALLBACK ────────────────────────────────────────────
     const systemContent = buildSystemPrompt(userName || 'Guest', userPhone || '', userCity || '');
