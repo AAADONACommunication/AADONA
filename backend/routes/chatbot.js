@@ -280,22 +280,6 @@ const specMatchProducts = (userMessage, products) => {
     .map(s => s.p);
 };
 
-// specMatchProducts ke baad
-const matched = specMatched.length 
-  ? specMatched 
-  : await findProductsByQuery(
-      lastUserMessage, 
-      products, 
-      apiKey,
-      wantsAP ? 'wireless' :
-      wantsCamera ? 'surveillance' :
-      wantsSwitch || effectiveSwitch ? 'switch' :
-      wantsNAS ? 'nas' :
-      wantsServer ? 'server' :
-      wantsPassive ? 'passive' :
-      wantsIndustrial ? 'industrial' : null
-    );
-
 // ─── Smart DB Search using Gemini ────────────────────────────────────────
 const findProductsByQuery = async (userMessage, products, apiKey, categoryHint = null) => {
   try {
