@@ -844,7 +844,8 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     // ── Cache check (skip contextual queries) ─────────────────────────────
     const isContextual = /which section|where is|category|section|type of|kind of|kahan|kis section|kya h yeh|what is this|is it in|kon si category/i.test(lastUserMessage);
-    const cacheKey = isContextual ? null : lastUserMessage.trim().toLowerCase();
+    const isProductQuery = isSpecQuery(lastUserMessage) || isProductSuggestionQuery(lastUserMessage);
+    const cacheKey = (isContextual || isProductQuery) ? null : lastUserMessage.trim().toLowerCase();
     if (cacheKey) {
       const cached = getCached(cacheKey);
       if (cached) {
@@ -1150,6 +1151,11 @@ router.post('/chat', chatLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify({ done: true, error: 'Something went wrong.' })}\n\n`);
     res.end();
   }
+});
+
+router.get('/chat/clear-cache', (req, res) => {
+  replyCache.clear();
+  res.json({ success: true, message: `Cache cleared. ${replyCache.size} entries removed.` });
 });
 
 module.exports = router;
