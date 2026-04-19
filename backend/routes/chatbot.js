@@ -307,25 +307,45 @@ const findProductsByQuery = async (userMessage, products, apiKey) => {
   try {
     const productList = products.map(p => ({
       model: p.model || '',
-      name: p.fullName || p.name || '',
+      name: p.name || '',
+      fullName: p.fullName || '',
       category: p.category || '',
       subCategory: p.subCategory || '',
       extraCategory: p.extraCategory || '',
-      description: (p.description || '').slice(0, 150),
-      features: (p.features || []).slice(0, 4),
+      type: p.type || '',
+      overview: (p.overview?.content || '').slice(0, 300),
+      description: (p.description || '').slice(0, 300),
+      features: (p.features || []).slice(0, 6),
+      highlights: (p.highlights || []).slice(0, 4),
+      specifications: p.specifications
+        ? Object.entries(p.specifications).slice(0, 5).map(([cat, specs]) => ({
+            category: cat,
+            keys: typeof specs === 'object' && !Array.isArray(specs)
+              ? Object.keys(specs).filter(k => !k.startsWith('__')).slice(0, 8)
+              : []
+          }))
+        : [],
     }));
 
-    const prompt = `You are a product matcher for AADONA — an Indian networking brand.
+    const prompt = `You are a product matcher for AADONA — an Indian networking brand selling networking equipment.
 
 User query: "${userMessage}"
 
-Products (JSON):
+Match the query against ALL fields — name, fullName, category, subCategory, extraCategory, type, overview, description, features, highlights, specifications.
+
+Rules:
+- Match semantically, not just keywords. "wifi for indoor" = indoor wireless access point.
+- "cat6 patch cord" = passive category, patch cord subcategory.
+- "unmanaged poe switch" = switch category, unmanaged, poe.
+- If user asks for a specific use case, match products that serve that use case.
+- Return MAX 4 most relevant model names.
+- If truly nothing matches, return [].
+
+Products JSON:
 ${JSON.stringify(productList)}
 
-Find TOP 4 most relevant products matching the user query. Consider category, subCategory, features, description carefully.
-Return ONLY a JSON array of matching model names. Example: ["SUL-8GP2S", "ASC1200"]
-If nothing matches, return: []
-No explanation, no markdown, only the JSON array.`;
+Return ONLY a valid JSON array of model names. Example: ["ASW-1200", "AOXI-1800"]
+No explanation. No markdown. No extra text. Only the JSON array.`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -343,7 +363,9 @@ No explanation, no markdown, only the JSON array.`;
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
     const clean = text.replace(/```json|```/g, '').trim();
     const matchedModels = JSON.parse(clean);
-    return products.filter(p => matchedModels.includes(p.model));
+
+    if (!Array.isArray(matchedModels)) return [];
+    return products.filter(p => p.model && matchedModels.includes(p.model));
   } catch (err) {
     console.error('findProductsByQuery error:', err.message);
     return [];
