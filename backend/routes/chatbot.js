@@ -652,7 +652,7 @@ const isProductInfoQuery = (msg) => {
 // ─── Is Spec-Based Query ─────────────────────────────────────────────────
 // User is specifying requirements (port count, SFP+, PoE, etc.)
 const isSpecQuery = (msg) => {
-  return /\d+\s*[-\s]*port|\d+\s*(?:nos?\.?\s*)?sfp\+?|non.?poe|\bpoe\b|layer\s*[23]|\bl[23]\b|10g\s*uplink|gigabit\s*switch|\d+g\s*sfp|\bunmanaged\b|\bmanaged\b|\bwebsmart\b|\bcat6\b|\bcat6a\b|\bcat7\b|\bpatch\s*cord\b|\bpatch\s*panel\b|\bfiber\b|\bfibre\b|\boptic\b|\bpassive\b|\b\d+\s*mbps\b|\bwi.?fi\b|\b11ax\b|\b11ac\b|\bmu.?mimo\b|\bdual\s*band\b/i.test(msg);
+  return /\d+\s*[-\s]*port|\d+\s*(?:nos?\.?\s*)?sfp\+?|non.?poe|\bpoe\b|layer\s*[23]|\bl[23]\b|10g\s*uplink|gigabit\s*switch|\d+g\s*sfp|\bunmanaged\b|\bmanaged\b|\bwebsmart\b|\bcat6\b|\bcat6a\b|\bcat7\b|\bpatch\s*cord\b|\bpatch\s*panel\b|\bfiber\b|\bfibre\b|\boptic\b|\bpassive\b|\b\d+\s*mbps\b|\bwi.?fi\b|\b11ax\b|\b11ac\b|\bmu.?mimo\b|\bdual\s*band\b|\bindoor\b|\boutdoor\b|\bwireless\b|\bcctv\b|\bnvr\b|\bdvr\b|\bsurveillance\b|\bip\s*camera\b/i.test(msg);
 };
 
 // ─── Is Product Suggestion Query ─────────────────────────────────────────
@@ -929,8 +929,10 @@ router.post('/chat', chatLimiter, async (req, res) => {
     // ── 2. SPEC-BASED PRODUCT SUGGESTION ─────────────────────────────────
     // User gives specs: "24 port non-poe switch with 6 SFP+"
     if (isSpecQuery(lastUserMessage) || isProductSuggestionQuery(lastUserMessage)) {
-      const specMatched = specMatchProducts(lastUserMessage, products);
-      const matched = specMatched.length ? specMatched : await findProductsByQuery(lastUserMessage, products, apiKey);
+    const specMatched = specMatchProducts(lastUserMessage, products);
+    const matched = specMatched.length 
+      ? specMatched 
+      : await findProductsByQuery(lastUserMessage, products, apiKey);
 
       if (matched.length > 0) {
         const replyText = buildSpecMatchText(matched, lastUserMessage);
@@ -1020,21 +1022,12 @@ router.post('/chat', chatLimiter, async (req, res) => {
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
-      const smartCards = await findProductsByQuery(lastUserMessage, products, apiKey);
-      const finalBestCards = smartCards.length ? smartCards.map(p => ({
-        name: p.fullName || p.name, model: p.model, image: p.image || null,
-        slug: p.slug, category: p.category, subCategory: p.subCategory,
-        overview: p.overview?.content?.slice(0, 120) || p.description?.slice(0, 120) || '',
-        features: (p.features || []).slice(0, 3),
-        url: buildProductUrl(p), visitLabel: `View ${p.model || p.name}`
-      })) : bestCards;
-
       const reply = "Here are matching AADONA products for your query.";
       const allButtons = bestCatBtn ? [bestCatBtn] : [];
 
       res.write(`data: ${JSON.stringify({ token: reply })}\n\n`);
-      res.write(`data: ${JSON.stringify({ done: true, productCards: finalBestCards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
-      if (cacheKey) setCache(cacheKey, { reply, productCards: finalBestCards, actionButtons: allButtons.length ? allButtons : null });
+      res.write(`data: ${JSON.stringify({ done: true, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null })}\n\n`);
+      if (cacheKey) setCache(cacheKey, { reply, productCards: bestCards, actionButtons: allButtons.length ? allButtons : null });
       return res.end();
     }
 
