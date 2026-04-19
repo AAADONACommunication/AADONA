@@ -112,7 +112,8 @@ const specMatchProducts = (userMessage, products) => {
 
   // ── No spec keywords → not a spec query ──────────────────────────────
   if (!portCount && !sfpCount && !wantsPoE && !wantsNonPoE && !speedKeyword &&
-      !wantsL3 && !wantsL2 && !wantsUnmanaged && !wantsManaged) {
+      !wantsL3 && !wantsL2 && !wantsUnmanaged && !wantsManaged &&
+      !wantsPassive && !wantsCamera && !wantsNAS && !wantsServer) {
     return [];
   }
 
@@ -572,12 +573,12 @@ const isProductInfoQuery = (msg) => {
 // ─── Is Spec-Based Query ─────────────────────────────────────────────────
 // User is specifying requirements (port count, SFP+, PoE, etc.)
 const isSpecQuery = (msg) => {
-  return /\d+\s*[-\s]*port|\d+\s*(?:nos?\.?\s*)?sfp\+?|non.?poe|\bpoe\b|layer\s*[23]|\bl[23]\b|10g\s*uplink|gigabit\s*switch|\d+g\s*sfp/i.test(msg);
+  return /\d+\s*[-\s]*port|\d+\s*(?:nos?\.?\s*)?sfp\+?|non.?poe|\bpoe\b|layer\s*[23]|\bl[23]\b|10g\s*uplink|gigabit\s*switch|\d+g\s*sfp|\bunmanaged\b|\bmanaged\b|\bwebsmart\b|\bcat6\b|\bcat6a\b|\bcat7\b|\bpatch\s*cord\b|\bpatch\s*panel\b|\bfiber\b|\bfibre\b|\boptic\b|\bpassive\b/i.test(msg);
 };
 
 // ─── Is Product Suggestion Query ─────────────────────────────────────────
 const isProductSuggestionQuery = (msg) => {
-  return /suggest|recommend|which.*product|what.*product|product.*for|best.*for|suitable.*for|requirement|chahiye|chahta|chahti|need.*switch|need.*ap|need.*camera|need.*nas/i.test(msg);
+  return /suggest|recommend|which.*product|what.*product|product.*for|best.*for|suitable.*for|requirement|chahiye|chahta|chahti|need.*switch|need.*ap|need.*camera|need.*nas|\bcat6\b|\bcat7\b|\bpatch\s*cord\b|\bpatch\s*panel\b|\bfiber\s*cable\b|\bnvr\b|\bdvr\b/i.test(msg);
 };
 
 // ─── System Prompt ─────────────────────────────────────────────────────────
