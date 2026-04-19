@@ -95,12 +95,12 @@ const specMatchProducts = (userMessage, products) => {
 
   // ── Category detection ────────────────────────────────────────────────
   const wantsSwitch     = /\bswitch(es)?\b/i.test(msg);
-  const wantsAP         = /access.?point|wireless\s*ap|wifi\s*ap|\bap\b|\baccess\s*points?\b/i.test(msg);
+  const wantsAP = /access.?point|wireless\s*ap|wifi\s*ap|\bap\b|\baccess\s*points?\b|\bwi.?fi\b|\b11ax\b|\b11ac\b|\bmu.?mimo\b|\bdual\s*band\b|\b\d+\s*mbps\b/i.test(msg);
   const wantsNAS        = /\bnas\b|network.?attached.?storage/i.test(msg);
   const wantsCamera     = /\bcamera\b|\bnvr\b|\bdvr\b|\bcctv\b|surveillance/i.test(msg);
   const wantsServer     = /\bserver\b|\bworkstation\b/i.test(msg);
   const wantsIndustrial = /\bindustrial\b/i.test(msg);
-  const wantsPassive    = /\bpassive\b|\bcat6\b|\bcat7\b|\bcat6a\b|\bpatch\s*panel\b|\bfiber\b|\bfibre\b|\boptic\b/i.test(msg);
+  const wantsPassive = /\bpassive\b|\bcat6\b|\bcat7\b|\bcat6a\b|\bpatch\s*panel\b|\bpatch\s*cord\b|\bfiber\b|\bfibre\b|\boptic\b|\bcable\b/i.test(msg);
 
   // ── Implicit switch detection ─────────────────────────────────────────
   const wantsUnmanaged = /\bunmanaged\b/i.test(msg);
@@ -190,10 +190,20 @@ const specMatchProducts = (userMessage, products) => {
       if (!isPassive) return { p, score: -999 };
     }
 
-    // ── Agar koi category specify nahi, passive products penalise karo ──
     const noCatSpecified = !effectiveSwitch && !wantsAP && !wantsNAS &&
                            !wantsCamera && !wantsServer && !wantsIndustrial && !wantsPassive;
     if (noCatSpecified && pCat.includes('passive')) return { p, score: -999 };
+
+    if (wantsPassive) {
+      score += 20;
+      if (/cat6a/i.test(msg) && /cat6a/i.test(pText)) score += 30;
+      else if (/cat6/i.test(msg) && /cat6/i.test(pText)) score += 25;
+      else if (/cat7/i.test(msg) && /cat7/i.test(pText)) score += 25;
+      if (/patch\s*cord/i.test(msg) && /patch\s*cord/i.test(pText)) score += 30;
+      if (/patch\s*panel/i.test(msg) && /patch\s*panel/i.test(pText)) score += 30;
+      if (/fiber|fibre|optic/i.test(msg) && /fiber|fibre|optic/i.test(pText)) score += 30;
+      if (/cable/i.test(msg) && /cable/i.test(pText)) score += 20;
+    }
 
     // ── Managed / Unmanaged sub-type scoring ─────────────────────────────
     if (wantsUnmanaged) {
@@ -295,8 +305,7 @@ const findExactProduct = (userMessage, products) => {
 // ─── Build Product Info Text ──────────────────────────────────────────────
 const buildProductInfoText = (product) => {
   const model = product.model || (product.fullName || product.name);
-  const overview = (product.overview?.content || product.description || '').slice(0, 120);
-  return `**${model}**${overview ? `\n${overview}` : ''}\n\nDetails in the card below.`.trim();
+  return `**${model}**\n\nDetails in the card below.`.trim();
 };
 
 // ─── Build Spec Match Response Text ───────────────────────────────────────
@@ -573,7 +582,7 @@ const isProductInfoQuery = (msg) => {
 // ─── Is Spec-Based Query ─────────────────────────────────────────────────
 // User is specifying requirements (port count, SFP+, PoE, etc.)
 const isSpecQuery = (msg) => {
-  return /\d+\s*[-\s]*port|\d+\s*(?:nos?\.?\s*)?sfp\+?|non.?poe|\bpoe\b|layer\s*[23]|\bl[23]\b|10g\s*uplink|gigabit\s*switch|\d+g\s*sfp|\bunmanaged\b|\bmanaged\b|\bwebsmart\b|\bcat6\b|\bcat6a\b|\bcat7\b|\bpatch\s*cord\b|\bpatch\s*panel\b|\bfiber\b|\bfibre\b|\boptic\b|\bpassive\b/i.test(msg);
+  return /\d+\s*[-\s]*port|\d+\s*(?:nos?\.?\s*)?sfp\+?|non.?poe|\bpoe\b|layer\s*[23]|\bl[23]\b|10g\s*uplink|gigabit\s*switch|\d+g\s*sfp|\bunmanaged\b|\bmanaged\b|\bwebsmart\b|\bcat6\b|\bcat6a\b|\bcat7\b|\bpatch\s*cord\b|\bpatch\s*panel\b|\bfiber\b|\bfibre\b|\boptic\b|\bpassive\b|\b\d+\s*mbps\b|\bwi.?fi\b|\b11ax\b|\b11ac\b|\bmu.?mimo\b|\bdual\s*band\b/i.test(msg);
 };
 
 // ─── Is Product Suggestion Query ─────────────────────────────────────────
