@@ -280,32 +280,34 @@ const specMatchProducts = (userMessage, products) => {
     .map(s => s.p);
 };
 
-// ─── Single Product Info Extractor ───────────────────────────────────────
-// Returns the best single product when user asks about a specific product by model/name
-const findExactProduct = (userMessage, products) => {
-  const msg = userMessage.toLowerCase().replace(/-/g, '');
-  // Try exact model match first
-  const byModel = products.filter(p => {
-    if (!p.model) return false;
-    const m = p.model.toLowerCase().replace(/-/g, '');
-    return msg.includes(m) && m.length > 2;
-  });
-  if (byModel.length) {
-    // Sort by model length desc (prefer longer/more specific match)
-    return byModel.sort((a, b) => b.model.length - a.model.length)[0];
-  }
-  // Try name match
-  const byName = products.filter(p => {
-    const n = (p.name || '').toLowerCase().replace(/-/g, '');
-    return n.length > 3 && msg.includes(n);
-  });
-  return byName.length ? byName[0] : null;
-};
+// specMatchProducts ke baad
+const matched = specMatched.length 
+  ? specMatched 
+  : await findProductsByQuery(
+      lastUserMessage, 
+      products, 
+      apiKey,
+      wantsAP ? 'wireless' :
+      wantsCamera ? 'surveillance' :
+      wantsSwitch || effectiveSwitch ? 'switch' :
+      wantsNAS ? 'nas' :
+      wantsServer ? 'server' :
+      wantsPassive ? 'passive' :
+      wantsIndustrial ? 'industrial' : null
+    );
 
 // ─── Smart DB Search using Gemini ────────────────────────────────────────
-const findProductsByQuery = async (userMessage, products, apiKey) => {
+const findProductsByQuery = async (userMessage, products, apiKey, categoryHint = null) => {
   try {
-    const productList = products.map(p => ({
+    const filteredProducts = categoryHint 
+      ? products.filter(p => {
+          const pCat = (p.category || '').toLowerCase();
+          const pSub = (p.subCategory || '').toLowerCase();
+          return pCat.includes(categoryHint) || pSub.includes(categoryHint);
+        })
+      : products;
+
+    const productList = filteredProducts.map(p => ({
       model: p.model || '',
       name: p.name || '',
       fullName: p.fullName || '',
@@ -327,25 +329,14 @@ const findProductsByQuery = async (userMessage, products, apiKey) => {
         : [],
     }));
 
-    const prompt = `You are a product matcher for AADONA — an Indian networking brand selling networking equipment.
-
+    const prompt = `You are a product matcher for AADONA — an Indian networking brand.
 User query: "${userMessage}"
-
-Match the query against ALL fields — name, fullName, category, subCategory, extraCategory, type, overview, description, features, highlights, specifications.
-
-Rules:
-- Match semantically, not just keywords. "wifi for indoor" = indoor wireless access point.
-- "cat6 patch cord" = passive category, patch cord subcategory.
-- "unmanaged poe switch" = switch category, unmanaged, poe.
-- If user asks for a specific use case, match products that serve that use case.
-- Return MAX 4 most relevant model names.
-- If truly nothing matches, return [].
-
-Products JSON:
-${JSON.stringify(productList)}
-
-Return ONLY a valid JSON array of model names. Example: ["ASW-1200", "AOXI-1800"]
-No explanation. No markdown. No extra text. Only the JSON array.`;
+Match against ALL fields — name, fullName, category, subCategory, overview, description, features.
+Return MAX 4 most relevant model names as JSON array.
+If nothing matches return [].
+Only JSON array, no explanation.
+Products:
+${JSON.stringify(productList)}`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -363,13 +354,34 @@ No explanation. No markdown. No extra text. Only the JSON array.`;
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
     const clean = text.replace(/```json|```/g, '').trim();
     const matchedModels = JSON.parse(clean);
-
     if (!Array.isArray(matchedModels)) return [];
-    return products.filter(p => p.model && matchedModels.includes(p.model));
+    return filteredProducts.filter(p => p.model && matchedModels.includes(p.model));
   } catch (err) {
     console.error('findProductsByQuery error:', err.message);
     return [];
   }
+};
+
+// ─── Single Product Info Extractor ───────────────────────────────────────
+// Returns the best single product when user asks about a specific product by model/name
+const findExactProduct = (userMessage, products) => {
+  const msg = userMessage.toLowerCase().replace(/-/g, '');
+  // Try exact model match first
+  const byModel = products.filter(p => {
+    if (!p.model) return false;
+    const m = p.model.toLowerCase().replace(/-/g, '');
+    return msg.includes(m) && m.length > 2;
+  });
+  if (byModel.length) {
+    // Sort by model length desc (prefer longer/more specific match)
+    return byModel.sort((a, b) => b.model.length - a.model.length)[0];
+  }
+  // Try name match
+  const byName = products.filter(p => {
+    const n = (p.name || '').toLowerCase().replace(/-/g, '');
+    return n.length > 3 && msg.includes(n);
+  });
+  return byName.length ? byName[0] : null;
 };
 
 // ─── Build Product Info Text ──────────────────────────────────────────────
@@ -862,6 +874,23 @@ router.post('/chat', chatLimiter, async (req, res) => {
     // ── Full conversation context for model detection ──────────────────────
     const fullConvText = sanitized.map(m => m.content).join(' ');
 
+    const msgLower = lastUserMessage.toLowerCase();
+    const detectedAP = /access.?point|wireless\s*ap|\bwi.?fi\b|\b11ax\b|\bindoor\b|\boutdoor\b|\bap\b/i.test(msgLower);
+    const detectedCamera = /\bcamera\b|\bnvr\b|\bdvr\b|\bcctv\b|surveillance/i.test(msgLower);
+    const detectedSwitch = /\bswitch(es)?\b|\bunmanaged\b|\bmanaged\b|\bwebsmart\b|\bl[23]\b/i.test(msgLower);
+    const detectedNAS = /\bnas\b/i.test(msgLower);
+    const detectedServer = /\bserver\b|\bworkstation\b/i.test(msgLower);
+    const detectedPassive = /\bcat6\b|\bcat7\b|\bpatch\b|\bfiber\b|\bpassive\b/i.test(msgLower);
+    const detectedIndustrial = /\bindustrial\b/i.test(msgLower);
+    const categoryHint = 
+      detectedAP ? 'wireless' :
+      detectedCamera ? 'surveillance' :
+      detectedSwitch ? 'switch' :
+      detectedNAS ? 'nas' :
+      detectedServer ? 'server' :
+      detectedPassive ? 'passive' :
+      detectedIndustrial ? 'industrial' : null;
+
     // ── 0. STRUCTURED INTENTS (11 defined) ────────────────────────────────
     for (const intent of STRUCTURED_INTENTS) {
       if (intent.regex.test(lastUserMessage)) {
@@ -933,7 +962,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
     const specMatched = specMatchProducts(lastUserMessage, products);
     const matched = specMatched.length 
       ? specMatched 
-      : await findProductsByQuery(lastUserMessage, products, apiKey);
+      : await findProductsByQuery(lastUserMessage, products, apiKey, categoryHint);
 
       if (matched.length > 0) {
         const replyText = buildSpecMatchText(matched, lastUserMessage);
@@ -1159,5 +1188,3 @@ router.get('/chat/clear-cache', (req, res) => {
 });
 
 module.exports = router;
-
-/* */
