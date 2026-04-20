@@ -294,7 +294,7 @@ const Navbar = () => {
               width="160"
               height="64"
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
             />
           </Link>
 

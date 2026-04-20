@@ -35,7 +35,7 @@ const Hero = () => {
           src={hero}
           alt="AADONA – Empowering Bharat with Indian IT solutions"
           className="absolute inset-0 w-full h-full object-cover object-center"
-          fetchpriority="high"
+          fetchPriority="high"
           decoding="async"
           loading="eager"
           draggable="false"
