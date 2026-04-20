@@ -119,7 +119,7 @@ export default function SearchBar() {
         setAllProducts(normalized);
       } catch (err) {
         console.error("Products fetch failed:", err);
-        setProductsError(true); 
+        setProductsError(true);
       } finally {
         setProductsLoading(false);
       }
@@ -223,6 +223,11 @@ export default function SearchBar() {
       charIdx.current = 0;
       deleting.current = false;
     }
+
+    // ✅ Fix 1: Mobile keyboard hatne ke baad viewport reset
+    setTimeout(() => {
+      window.scrollTo({ top: window.scrollY, behavior: "instant" });
+    }, 300);
   };
 
   useEffect(() => {
@@ -255,19 +260,11 @@ export default function SearchBar() {
     if (!value.trim()) return;
     runSearch(value);
     setDropdownOpen(true);
-
-    /* --- Original Navigation Logic (Disabled) ---
-    const exactPage = PAGES.find(p => p.name.toLowerCase() === value.toLowerCase());
-    if (exactPage) { navigate(exactPage.path); return; }
-    const exactProduct = allProducts.find(p => p.name.toLowerCase() === value.toLowerCase());
-    if (exactProduct) { navigate(`/${exactProduct.slug}`); return; }
-    navigate(`/${value.trim().toLowerCase().replace(/\s+/g, "-")}`);
-    */
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      e.preventDefault(); 
+      e.preventDefault();
       handleSearch();
     }
   };
@@ -311,6 +308,7 @@ export default function SearchBar() {
           </svg>
 
           <div className="flex-1 relative h-full flex items-center min-w-0">
+            {/* ✅ Fix 2: text-[16px] — iOS auto-zoom band karta hai (16px se kam hone par zoom hota hai) */}
             <input
               type="text"
               value={value}
@@ -319,7 +317,7 @@ export default function SearchBar() {
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               autoComplete="off"
-              className="w-full bg-transparent border-none outline-none text-[15px] text-gray-900 caret-green-600 relative z-10"
+              className="w-full bg-transparent border-none outline-none text-[16px] text-gray-900 caret-green-600 relative z-10"
             />
             {!value && !focused && (
               <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[15px] sm:text-[18px] text-gray-400 pointer-events-none whitespace-nowrap z-0">
@@ -339,7 +337,7 @@ export default function SearchBar() {
           <button
             onClick={handleSearch}
             className="flex-shrink-0 bg-gradient-to-br from-green-400 via-green-600 to-green-700
-              text-white text-[13px] font-semibold rounded-full px-6 py-2.5
+              text-white text-[12px] sm:text-[13px] font-semibold rounded-full px-4 py-2 sm:px-6 sm:py-2.5
               hover:opacity-90 transition-opacity ml-auto"
           >
             Search
