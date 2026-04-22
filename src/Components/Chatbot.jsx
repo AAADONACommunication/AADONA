@@ -734,9 +734,9 @@ export default function Chatbot() {
         @keyframes aadonaDrawerUp { from { opacity:0; transform:translateY(8px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
         .aadona-drawer { animation: aadonaDrawerUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
         .aadona-notif-bubble {
-          position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-68%);
+          position:absolute; bottom:calc(100% + 10px); left:35%; transform:translateX(-68%);
           background:#1e293b; color:#f8fafc;
-          font-size:11px; font-weight:500; padding:7px 12px; border-radius:10px;
+          font-size:11px; font-weight:500; padding:6px 7px; border-radius:10px;
           white-space:nowrap; pointer-events:none;
           animation: aadonaBubbleIn 0.4s 0.6s ease both, aadonaBubbleBounce 2s 1.2s ease-in-out infinite;
           box-shadow:0 4px 16px rgba(0,0,0,0.2); font-family:'DM Sans',sans-serif;
