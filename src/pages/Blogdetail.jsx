@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import bg from '../assets/bg.jpg'
@@ -64,6 +65,7 @@ const BlogDetail = () => {
   const [commentSuccess, setCommentSuccess] = useState(false);
   const [viewsCount, setViewsCount] = useState(0);
   const [shareCopied, setShareCopied] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -181,28 +183,67 @@ const BlogDetail = () => {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
-    const shareData = {
-      title: blog?.title || "Blog Post",
-      text: blog?.excerpt || "",
-      url,
-    };
+    if (shareLoading) return;
+    setShareLoading(true);
 
-    if (navigator.share) {
+    const url = window.location.href;
+
+    // ── Layer 1: Try sharing with image file (Android Chrome/Edge) ──
+    if (navigator.share && navigator.canShare && blog?.image) {
       try {
-        await navigator.share(shareData);
+        const imageResponse = await fetch(blog.image);
+        const imageBlob = await imageResponse.blob();
+        const ext = imageBlob.type.includes("png") ? "png"
+          : imageBlob.type.includes("webp") ? "webp"
+          : imageBlob.type.includes("avif") ? "avif"
+          : "jpg";
+        const imageFile = new File(
+          [imageBlob],
+          `blog-cover.${ext}`,
+          { type: imageBlob.type || "image/jpeg" }
+        );
+
+        const shareDataWithFile = {
+          title: blog.title || "Blog Post",
+          text: `${blog.excerpt || ""}\n\n🔗 ${url}`,
+          files: [imageFile],
+        };
+
+        if (navigator.canShare(shareDataWithFile)) {
+          await navigator.share(shareDataWithFile);
+          setShareLoading(false);
+          return;
+        }
       } catch (err) {
-        // user cancelled — ignore
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        setShareCopied(true);
-        setTimeout(() => setShareCopied(false), 2500);
-      } catch {
-        prompt("Copy this link:", url);
+        // File fetch or share failed — fall through
       }
     }
+
+    // ── Layer 2: Share URL only (OG tags handle image preview) ──
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: blog?.title || "Blog Post",
+          text: blog?.excerpt || "",
+          url,
+        });
+        setShareLoading(false);
+        return;
+      } catch (err) {
+        // User cancelled — fall through
+      }
+    }
+
+    // ── Layer 3: Copy link to clipboard ──
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch {
+      prompt("Copy this link:", url);
+    }
+
+    setShareLoading(false);
   };
 
   const handleCommentSubmit = async () => {
@@ -259,8 +300,41 @@ const BlogDetail = () => {
     );
   }
 
+  // ── Canonical URL & OG image ──
+  const canonicalUrl = `${window.location.origin}/blog/${blog.slug || slug}`;
+  const ogImage = blog.image || "";
+
   return (
     <div className="min-h-screen font-sans bg-white">
+
+      {/* ── OG / SEO Meta Tags ── */}
+      <Helmet>
+        <title>{blog.title}</title>
+        <meta name="description" content={blog.excerpt || ""} />
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph — WhatsApp, Facebook, Telegram */}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={blog.title} />
+        <meta property="og:description" content={blog.excerpt || ""} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:site_name" content="Our Blog" />
+
+        {/* Article specific */}
+        {blog.author && <meta property="article:author" content={blog.author} />}
+        {blog.date && <meta property="article:published_time" content={blog.date} />}
+        {blog.category && <meta property="article:section" content={blog.category} />}
+
+        {/* Twitter / X Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={blog.title} />
+        <meta name="twitter:description" content={blog.excerpt || ""} />
+        <meta name="twitter:image" content={ogImage} />
+      </Helmet>
+
       <Navbar />
 
       {/* HERO SECTION */}
@@ -319,13 +393,14 @@ const BlogDetail = () => {
               {/* Share Button */}
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all cursor-pointer"
+                disabled={shareLoading}
+                className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span className="text-lg leading-none" style={{ fontSize: "18px" }}>
-                  {shareCopied ? "✅" : "🔗"}
+                  {shareLoading ? "⏳" : shareCopied ? "✅" : "🔗"}
                 </span>
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base">
-                  {shareCopied ? "Copied!" : "Share"}
+                  {shareLoading ? "Sharing..." : shareCopied ? "Copied!" : "Share"}
                 </span>
               </button>
             </div>

@@ -62,34 +62,73 @@ const generateSlug = (title) =>
 
 const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick }) => {
   const [shareCopied, setShareCopied] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
 
   const handleShare = async (e) => {
-    // Prevent card click from firing
     e.stopPropagation();
+
+    if (shareLoading) return;
+    setShareLoading(true);
 
     const slug = post.slug || generateSlug(post.title);
     const url = `${window.location.origin}/blog/${encodeURIComponent(slug)}`;
-    const shareData = {
-      title: post.title,
-      text: post.excerpt || "",
-      url,
-    };
 
-    if (navigator.share) {
+    // ── Layer 1: Try sharing with image file (Android Chrome/Edge) ──
+    if (navigator.share && navigator.canShare) {
       try {
-        await navigator.share(shareData);
+        const imageResponse = await fetch(post.image);
+        const imageBlob = await imageResponse.blob();
+        const ext = imageBlob.type.includes("png") ? "png"
+          : imageBlob.type.includes("webp") ? "webp"
+          : imageBlob.type.includes("avif") ? "avif"
+          : "jpg";
+        const imageFile = new File(
+          [imageBlob],
+          `blog-cover.${ext}`,
+          { type: imageBlob.type || "image/jpeg" }
+        );
+
+        const shareDataWithFile = {
+          title: post.title,
+          text: `${post.excerpt || ""}\n\n🔗 ${url}`,
+          files: [imageFile],
+        };
+
+        if (navigator.canShare(shareDataWithFile)) {
+          await navigator.share(shareDataWithFile);
+          setShareLoading(false);
+          return;
+        }
       } catch (err) {
-        // user cancelled — ignore
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        setShareCopied(true);
-        setTimeout(() => setShareCopied(false), 2500);
-      } catch {
-        prompt("Copy this link:", url);
+        // File fetch or share failed — fall through
       }
     }
+
+    // ── Layer 2: Share URL only (OG tags handle image preview) ──
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt || "",
+          url,
+        });
+        setShareLoading(false);
+        return;
+      } catch (err) {
+        // User cancelled or not supported — fall through
+      }
+    }
+
+    // ── Layer 3: Copy link to clipboard ──
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch {
+      prompt("Copy this link:", url);
+    }
+
+    setShareLoading(false);
   };
 
   return (
@@ -153,15 +192,18 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
             {/* Share button */}
             <button
               onClick={handleShare}
+              disabled={shareLoading}
               title="Share this post"
-              className="flex items-center gap-1 font-semibold transition-all duration-200 hover:scale-110 active:scale-95"
-              style={{ color: shareCopied ? "#059669" : "#6b7280" }}
+              className="flex items-center gap-1 font-semibold transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{
+                color: shareCopied ? "#059669" : shareLoading ? "#9ca3af" : "#6b7280",
+              }}
             >
               <span style={{ fontSize: "14px" }}>
-                {shareCopied ? "✅" : "🔗"}
+                {shareLoading ? "⏳" : shareCopied ? "✅" : "🔗"}
               </span>
               <span className="text-xs font-semibold">
-                {shareCopied ? "Copied!" : "Share"}
+                {shareLoading ? "Sharing..." : shareCopied ? "Copied!" : "Share"}
               </span>
             </button>
           </div>
