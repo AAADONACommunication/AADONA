@@ -65,71 +65,26 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
   const [shareLoading, setShareLoading] = useState(false);
 
   const handleShare = async (e) => {
-    e.stopPropagation();
+  e.stopPropagation();
 
-    if (shareLoading) return;
-    setShareLoading(true);
+  const slug = post.slug || generateSlug(post.title);
+  const url = `${window.location.origin}/blog/${encodeURIComponent(slug)}`;
 
-    const slug = post.slug || generateSlug(post.title);
-    const url = `${window.location.origin}/blog/${encodeURIComponent(slug)}`;
-
-    // ── Layer 1: Try sharing with image file (Android Chrome/Edge) ──
-    if (navigator.share && navigator.canShare) {
-      try {
-        const imageResponse = await fetch(post.image);
-        const imageBlob = await imageResponse.blob();
-        const ext = imageBlob.type.includes("png") ? "png"
-          : imageBlob.type.includes("webp") ? "webp"
-          : imageBlob.type.includes("avif") ? "avif"
-          : "jpg";
-        const imageFile = new File(
-          [imageBlob],
-          `blog-cover.${ext}`,
-          { type: imageBlob.type || "image/jpeg" }
-        );
-
-        const shareDataWithFile = {
-          title: post.title,
-          text: `${post.excerpt || ""}\n\n🔗 ${url}`,
-          files: [imageFile],
-        };
-
-        if (navigator.canShare(shareDataWithFile)) {
-          await navigator.share(shareDataWithFile);
-          setShareLoading(false);
-          return;
-        }
-      } catch (err) {
-        // File fetch or share failed — fall through
-      }
-    }
-
-    // ── Layer 2: Share URL only (OG tags handle image preview) ──
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: post.title,
-          text: post.excerpt || "",
-          url,
-        });
-        setShareLoading(false);
-        return;
-      } catch (err) {
-        // User cancelled or not supported — fall through
-      }
-    }
-
-    // ── Layer 3: Copy link to clipboard ──
+  if (navigator.share) {
     try {
-      await navigator.clipboard.writeText(url);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2500);
-    } catch {
-      prompt("Copy this link:", url);
-    }
+      await navigator.share({ url });
+      return;
+    } catch (err) {}
+  }
 
-    setShareLoading(false);
-  };
+  try {
+    await navigator.clipboard.writeText(url);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2500);
+  } catch {
+    prompt("Copy this link:", url);
+  }
+};
 
   return (
     <article
