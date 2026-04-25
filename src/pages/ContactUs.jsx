@@ -202,7 +202,7 @@ const ContactDetails = () => (
       </a>
     </p>
 
-    <address className="not-italic text-xl font-bold text-green-700 mb-4 space-y-1">
+    {/* <address className="not-italic text-xl font-bold text-green-700 mb-4 space-y-1">
       <p className="font-extrabold">Email:</p>
       <p>
         Sales:{' '}
@@ -222,7 +222,7 @@ const ContactDetails = () => (
           contact@aadona.com
         </a>
       </p>
-    </address>
+    </address> */}
   </aside>
 );
 
