@@ -182,25 +182,70 @@ const BlogDetail = () => {
     }
   };
 
-  // ── UPDATED: Direct image URL + link text mein bhejo ──
- const handleShare = async () => {
-  const url = window.location.href;
+  const handleShare = async () => {
+    if (shareLoading) return;
+    setShareLoading(true);
 
-  if (navigator.share) {
+    const url = window.location.href;
+
+    // ── Layer 1: Try sharing with image file (Android Chrome/Edge) ──
+    if (navigator.share && navigator.canShare && blog?.image) {
+      try {
+        const imageResponse = await fetch(blog.image);
+        const imageBlob = await imageResponse.blob();
+        const ext = imageBlob.type.includes("png") ? "png"
+          : imageBlob.type.includes("webp") ? "webp"
+          : imageBlob.type.includes("avif") ? "avif"
+          : "jpg";
+        const imageFile = new File(
+          [imageBlob],
+          `blog-cover.${ext}`,
+          { type: imageBlob.type || "image/jpeg" }
+        );
+
+        const shareDataWithFile = {
+          title: blog.title || "Blog Post",
+          text: `${blog.excerpt || ""}\n\n🔗 ${url}`,
+          files: [imageFile],
+        };
+
+        if (navigator.canShare(shareDataWithFile)) {
+          await navigator.share(shareDataWithFile);
+          setShareLoading(false);
+          return;
+        }
+      } catch (err) {
+        // File fetch or share failed — fall through
+      }
+    }
+
+    // ── Layer 2: Share URL only (OG tags handle image preview) ──
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: blog?.title || "Blog Post",
+          text: blog?.excerpt || "",
+          url,
+        });
+        setShareLoading(false);
+        return;
+      } catch (err) {
+        // User cancelled — fall through
+      }
+    }
+
+    // ── Layer 3: Copy link to clipboard ──
     try {
-      await navigator.share({ url });
-      return;
-    } catch (err) {}
-  }
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch {
+      prompt("Copy this link:", url);
+    }
 
-  try {
-    await navigator.clipboard.writeText(url);
-    setShareCopied(true);
-    setTimeout(() => setShareCopied(false), 2500);
-  } catch {
-    prompt("Copy this link:", url);
-  }
-};
+    setShareLoading(false);
+  };
+
   const handleCommentSubmit = async () => {
     if (!commentName.trim() || !commentText.trim()) {
       alert("Please enter your name and comment.");
@@ -321,7 +366,6 @@ const BlogDetail = () => {
             </h1>
 
             <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-
               {/* Author */}
               <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
                 <UserIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
@@ -359,7 +403,6 @@ const BlogDetail = () => {
                   {shareLoading ? "Sharing..." : shareCopied ? "Copied!" : "Share"}
                 </span>
               </button>
-
             </div>
           </div>
         </div>
