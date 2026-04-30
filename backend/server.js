@@ -1517,6 +1517,7 @@ app.put("/related-products/remove", verifyToken, async (req, res) => {
 /* =============================
    BLOG OG PREVIEW ROUTE
 ============================= */
+
 app.get("/share/blog/:slug", async (req, res) => {
   try {
     const blog = await Blog.findOne({
@@ -1528,59 +1529,35 @@ app.get("/share/blog/:slug", async (req, res) => {
 
     const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-    // SAFE IMAGE (IMPORTANT)
+    // FIXED IMAGE
     const image =
       blog.image && blog.image.startsWith("http")
         ? blog.image
         : `${baseUrl}/default.jpg`;
 
-    const title = blog.title || "AADONA Blog";
-    const description =
-      blog.excerpt || "Read this blog on AADONA website";
-
     res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
+      <html>
         <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>${blog.title}</title>
 
-          <title>${title}</title>
-
-          <!-- OPEN GRAPH (Facebook / LinkedIn / WhatsApp) -->
-          <meta property="og:title" content="${title}" />
-          <meta property="og:description" content="${description}" />
+          <meta property="og:title" content="${blog.title}" />
+          <meta property="og:description" content="${blog.excerpt || ""}" />
           <meta property="og:image" content="${image}" />
           <meta property="og:url" content="${baseUrl}/share/blog/${blog.slug}" />
           <meta property="og:type" content="article" />
-          <meta property="og:site_name" content="AADONA" />
 
-          <!-- IMAGE SIZE (VERY IMPORTANT FOR FB) -->
-          <meta property="og:image:width" content="1200" />
-          <meta property="og:image:height" content="630" />
-
-          <!-- TWITTER / LINKEDIN SUPPORT -->
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content="${title}" />
-          <meta name="twitter:description" content="${description}" />
-          <meta name="twitter:image" content="${image}" />
-
-          <!-- REDIRECT (DELAYED) -->
+          <!-- delay redirect -->
           <script>
             setTimeout(() => {
               window.location.href = "/#/blog/${blog.slug}";
-            }, 300);
+            }, 100);
           </script>
         </head>
-
-        <body>
-          <p>Loading blog...</p>
-        </body>
+        <body>Loading...</body>
       </html>
     `);
-
   } catch (err) {
-    console.log("OG ERROR:", err.message);
+    console.log(err);
     res.status(500).send("Server Error");
   }
 });
