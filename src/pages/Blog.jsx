@@ -71,7 +71,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
     setShareLoading(true);
 
     const slug = post.slug || generateSlug(post.title);
-    const url = `${window.location.origin}/blog/${encodeURIComponent(slug)}`;
+    const url = `${window.location.origin}/share/blog/${slug}`;
 
     // ── Layer 1: Try sharing with image file (Android Chrome/Edge) ──
     if (navigator.share && navigator.canShare) {
