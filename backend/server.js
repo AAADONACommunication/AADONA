@@ -1528,35 +1528,59 @@ app.get("/share/blog/:slug", async (req, res) => {
 
     const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-    // FIXED IMAGE
+    // SAFE IMAGE (IMPORTANT)
     const image =
       blog.image && blog.image.startsWith("http")
         ? blog.image
         : `${baseUrl}/default.jpg`;
 
-    res.send(`
-      <html>
-        <head>
-          <title>${blog.title}</title>
+    const title = blog.title || "AADONA Blog";
+    const description =
+      blog.excerpt || "Read this blog on AADONA website";
 
-          <meta property="og:title" content="${blog.title}" />
-          <meta property="og:description" content="${blog.excerpt || ""}" />
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+          <title>${title}</title>
+
+          <!-- OPEN GRAPH (Facebook / LinkedIn / WhatsApp) -->
+          <meta property="og:title" content="${title}" />
+          <meta property="og:description" content="${description}" />
           <meta property="og:image" content="${image}" />
           <meta property="og:url" content="${baseUrl}/share/blog/${blog.slug}" />
           <meta property="og:type" content="article" />
+          <meta property="og:site_name" content="AADONA" />
 
-          <!-- delay redirect -->
+          <!-- IMAGE SIZE (VERY IMPORTANT FOR FB) -->
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+
+          <!-- TWITTER / LINKEDIN SUPPORT -->
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="${title}" />
+          <meta name="twitter:description" content="${description}" />
+          <meta name="twitter:image" content="${image}" />
+
+          <!-- REDIRECT (DELAYED) -->
           <script>
             setTimeout(() => {
               window.location.href = "/#/blog/${blog.slug}";
-            }, 100);
+            }, 300);
           </script>
         </head>
-        <body>Loading...</body>
+
+        <body>
+          <p>Loading blog...</p>
+        </body>
       </html>
     `);
+
   } catch (err) {
-    console.log(err);
+    console.log("OG ERROR:", err.message);
     res.status(500).send("Server Error");
   }
 });
