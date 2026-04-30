@@ -1514,6 +1514,39 @@ app.put("/related-products/remove", verifyToken, async (req, res) => {
    BLOG ROUTES
 ============================= */
 
+/* =============================
+   BLOG OG PREVIEW ROUTE
+============================= */
+
+app.get("/share/blog/:slug", async (req, res) => {
+  try {
+    const blog = await Blog.findOne({ slug: req.params.slug, published: true });
+    if (!blog) return res.send("Blog not found");
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const image = blog.image?.startsWith("http")
+      ? blog.image
+      : `${baseUrl}/default.jpg`;
+
+    res.send(`
+      <html>
+        <head>
+          <title>${blog.title}</title>
+          <meta property="og:title" content="${blog.title}" />
+          <meta property="og:description" content="${blog.excerpt}" />
+          <meta property="og:image" content="${image}" />
+          <meta property="og:url" content="${baseUrl}/blog/${blog.slug}" />
+          <meta property="og:type" content="article" />
+          <script>window.location.href = "/blog/${blog.slug}";</script>
+        </head>
+        <body>Loading...</body>
+      </html>
+    `);
+  } catch (err) {
+    res.status(500).send("Server Error");
+  }
+});
+
 app.get("/blogs/drafts", verifyToken, async (req, res) => {
   try {
     const drafts = await Blog.find({ published: false })
