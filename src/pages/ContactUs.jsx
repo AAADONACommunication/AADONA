@@ -221,7 +221,7 @@ const EnquiryEmailDropdown = () => {
           onClick={() => setOpen((prev) => !prev)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 font-semibold text-sm hover:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150"
+          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 font-semibold text-sm hover:border-green-400  transition duration-150"
         >
           <span className="flex items-center gap-2">
             {/* Mail icon */}
