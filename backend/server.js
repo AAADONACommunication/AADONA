@@ -1537,28 +1537,39 @@ app.get("/blogs", async (req, res) => {
   }
 });
 app.get("/blog/:slug", async (req, res) => {
-  const blog = await Blog.findOne({ slug: req.params.slug });
+  try {
+    const blog = await Blog.findOne({ slug: req.params.slug });
 
-  if (!blog) return res.send("Blog not found");
+    if (!blog) return res.send("Blog not found");
 
-  res.send(`
-    <html>
-      <head>
-        <title>${blog.title}</title>
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-        <meta property="og:title" content="${blog.title}" />
-        <meta property="og:description" content="${blog.excerpt}" />
-        <meta property="og:image" content="${blog.image}" />
-        <meta property="og:url" content="https://aadona.co.in/blog/${blog.slug}" />
+    const image = blog.image && blog.image.startsWith("http")
+      ? blog.image
+      : `${baseUrl}/default.jpg`;
 
-        <!-- 🔥 IMPORTANT FIX -->
-        <script>
-          window.location.href = "/#/blog/${blog.slug}";
-        </script>
-      </head>
-      <body>Loading...</body>
-    </html>
-  `);
+    res.send(`
+      <html>
+        <head>
+          <title>${blog.title}</title>
+
+          <meta property="og:title" content="${blog.title}" />
+          <meta property="og:description" content="${blog.excerpt}" />
+          <meta property="og:image" content="${image}" />
+          <meta property="og:url" content="${baseUrl}/blog/${blog.slug}" />
+
+          <script>
+            window.location.href = "/#/blog/${blog.slug}";
+          </script>
+        </head>
+        <body>Loading...</body>
+      </html>
+    `);
+
+  } catch (err) {
+    console.log("BLOG OG ERROR:", err.message);
+    res.status(500).send("Server Error");
+  }
 });
 
 app.get("/blogs/slug/:slug", async (req, res) => {
