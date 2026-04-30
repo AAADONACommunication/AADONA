@@ -1541,12 +1541,6 @@ app.get("/blog/:slug", async (req, res) => {
 
   if (!blog) return res.send("Blog not found");
 
-  const baseUrl = `${req.protocol}://${req.get("host")}`;
-
-  const image = blog.image && blog.image.startsWith("http")
-    ? blog.image
-    : `${baseUrl}/default.jpg`;
-
   res.send(`
     <html>
       <head>
@@ -1554,10 +1548,10 @@ app.get("/blog/:slug", async (req, res) => {
 
         <meta property="og:title" content="${blog.title}" />
         <meta property="og:description" content="${blog.excerpt}" />
-        <meta property="og:image" content="${image}" />
-        <meta property="og:url" content="${baseUrl}/blog/${blog.slug}" />
+        <meta property="og:image" content="${blog.image}" />
+        <meta property="og:url" content="https://aadona.co.in/blog/${blog.slug}" />
 
-        <!-- redirect to React -->
+        <!-- 🔥 IMPORTANT FIX -->
         <script>
           window.location.href = "/#/blog/${blog.slug}";
         </script>
@@ -1579,10 +1573,6 @@ app.get("/blogs/slug/:slug", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(...);
 });
 
 app.post("/blogs/slug/:slug/view", async (req, res) => {
