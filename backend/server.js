@@ -1517,32 +1517,46 @@ app.put("/related-products/remove", verifyToken, async (req, res) => {
 /* =============================
    BLOG OG PREVIEW ROUTE
 ============================= */
-
 app.get("/share/blog/:slug", async (req, res) => {
   try {
-    const blog = await Blog.findOne({ slug: req.params.slug, published: true });
-    if (!blog) return res.send("Blog not found");
+    const blog = await Blog.findOne({
+      slug: req.params.slug,
+      published: true,
+    });
+
+    if (!blog) return res.status(404).send("Blog not found");
 
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const image = blog.image?.startsWith("http")
-      ? blog.image
-      : `${baseUrl}/default.jpg`;
+
+    // FIXED IMAGE
+    const image =
+      blog.image && blog.image.startsWith("http")
+        ? blog.image
+        : `${baseUrl}/default.jpg`;
 
     res.send(`
       <html>
         <head>
           <title>${blog.title}</title>
+
           <meta property="og:title" content="${blog.title}" />
-          <meta property="og:description" content="${blog.excerpt}" />
+          <meta property="og:description" content="${blog.excerpt || ""}" />
           <meta property="og:image" content="${image}" />
-          <meta property="og:url" content="${baseUrl}/blog/${blog.slug}" />
+          <meta property="og:url" content="${baseUrl}/share/blog/${blog.slug}" />
           <meta property="og:type" content="article" />
-          <script>window.location.href = "/blog/${blog.slug}";</script>
+
+          <!-- delay redirect -->
+          <script>
+            setTimeout(() => {
+              window.location.href = "/#/blog/${blog.slug}";
+            }, 100);
+          </script>
         </head>
         <body>Loading...</body>
       </html>
     `);
   } catch (err) {
+    console.log(err);
     res.status(500).send("Server Error");
   }
 });
