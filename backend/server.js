@@ -1536,7 +1536,7 @@ app.get("/blogs", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get("/share/blog/:slug", async (req, res) => {
+app.get("/blog/:slug", async (req, res) => {
   try {
     const blog = await Blog.findOne({ slug: req.params.slug });
 
