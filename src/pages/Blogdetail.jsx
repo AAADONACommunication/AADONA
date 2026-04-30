@@ -302,10 +302,7 @@ const BlogDetail = () => {
 
   // ── Canonical URL & OG image ──
   const canonicalUrl = `${window.location.origin}/blog/${blog.slug || slug}`;
-  const ogImage =
-  blog.image && blog.image.startsWith("http")
-    ? blog.image
-    : "https://aadona.com/default.jpg";
+  const ogImage = blog.image || "";
 
   return (
     <div className="min-h-screen font-sans bg-white">

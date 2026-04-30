@@ -1536,30 +1536,6 @@ app.get("/blogs", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get("/blog/:slug", async (req, res) => {
-  const blog = await Blog.findOne({ slug: req.params.slug });
-
-  if (!blog) return res.send("Blog not found");
-
-  res.send(`
-    <html>
-      <head>
-        <title>${blog.title}</title>
-
-        <meta property="og:title" content="${blog.title}" />
-        <meta property="og:description" content="${blog.excerpt}" />
-        <meta property="og:image" content="${blog.image}" />
-        <meta property="og:url" content="https://aadona.co.in/blog/${blog.slug}" />
-
-        <!-- 🔥 IMPORTANT FIX -->
-        <script>
-          window.location.href = "/#/blog/${blog.slug}";
-        </script>
-      </head>
-      <body>Loading...</body>
-    </html>
-  `);
-});
 
 app.get("/blogs/slug/:slug", async (req, res) => {
   try {
