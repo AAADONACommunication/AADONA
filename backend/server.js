@@ -151,15 +151,22 @@ const sanitizeFileName = (name) =>
 
 const uploadToFirebase = async (file, folder) => {
   if (!file) return null;
+
   const bucket = admin.storage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
-  const safeName = sanitizeFileName(file.originalname);
-  const fileName = `${folder}/${Date.now()}-${crypto.randomBytes(6).toString("hex")}-${safeName}`;
+
+  const fileName = `${folder}/${Date.now()}-${file.originalname}`;
   const fileUpload = bucket.file(fileName);
+
   await fileUpload.save(file.buffer, {
     metadata: { contentType: file.mimetype },
   });
-  await fileUpload.makePublic();
-  return `https://firebasestorage.googleapis.com/v0/b/${process.env.FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(fileName)}?alt=media`;
+
+  const [url] = await fileUpload.getSignedUrl({
+    action: "read",
+    expires: "03-01-2500", // long expiry
+  });
+
+  return url;
 };
 
 /* =============================
