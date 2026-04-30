@@ -176,6 +176,100 @@ const FieldError = ({ msg }) =>
     </p>
   ) : null;
 
+// ─── Email Dropdown (Enquiry Filed) ───────────────────────────────────────────
+
+const EMAIL_OPTIONS = [
+  { label: 'Sales', email: 'sales@aadona.com' },
+  { label: 'Support', email: 'support@aadona.com' },
+  { label: 'General', email: 'contact@aadona.com' },
+];
+
+const EnquiryEmailDropdown = () => {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  return (
+    <div className="mt-2" ref={dropdownRef}>
+      <h2 className="text-xl font-bold text-green-700 mb-2 border-b pb-2 border-green-100">
+        Enquiry Filed:
+      </h2>
+
+      {/* Dropdown trigger button */}
+      <div className="relative inline-block w-full">
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 font-semibold text-sm hover:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150"
+        >
+          <span className="flex items-center gap-2">
+            {/* Mail icon */}
+            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Enquiry Type
+          </span>
+          {/* Chevron */}
+          <svg
+            className={`w-4 h-4 text-green-600 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Dropdown list */}
+        {open && (
+          <ul
+            role="listbox"
+            aria-label="Enquiry email options"
+            className="absolute z-20 mt-1 w-full bg-white border border-green-200 rounded-lg shadow-lg overflow-hidden"
+          >
+            {EMAIL_OPTIONS.map(({ label, email }) => (
+              <li key={email} role="option">
+                <a
+                  href={`mailto:${email}`}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-800 transition-colors duration-100 group"
+                >
+                  <span className="font-semibold text-green-700">{label}</span>
+                  <span className="text-gray-500 group-hover:text-green-600 text-xs">{email}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      
+    </div>
+  );
+};
+
 const ContactDetails = () => (
   <aside aria-label="Contact information" className="md:pl-10 pt-10 md:pt-0">
     <h2 className="text-xl font-bold text-green-700 mb-4 border-b pb-2 border-green-100">
@@ -202,27 +296,8 @@ const ContactDetails = () => (
       </a>
     </p>
 
-    {/* <address className="not-italic text-xl font-bold text-green-700 mb-4 space-y-1">
-      <p className="font-extrabold">Email:</p>
-      <p>
-        Sales:{' '}
-        <a href="mailto:sales@aadona.com" className="hover:underline focus:outline-none">
-          sales@aadona.com
-        </a>
-      </p>
-      <p>
-        Support:{' '}
-        <a href="mailto:support@aadona.com" className="hover:underline focus:outline-none">
-          support@aadona.com
-        </a>
-      </p>
-      <p>
-        General:{' '}
-        <a href="mailto:contact@aadona.com" className="hover:underline focus:outline-none">
-          contact@aadona.com
-        </a>
-      </p>
-    </address> */}
+    {/* ── Enquiry Filed Email Dropdown ── */}
+    <EnquiryEmailDropdown />
   </aside>
 );
 
@@ -807,11 +882,12 @@ export default function ContactPage() {
                   </div>
 
                   {/* Submit */}
+                  <div className="flex justify-center">
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     aria-busy={isSubmitting}
-                    className={`w-1/2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg 
+                    className={`w-full sm:w-1/2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg 
                       shadow-md transition duration-300 ease-in-out flex items-center justify-center
                       ${isSubmitting
                         ? 'bg-green-400 cursor-not-allowed'
@@ -821,6 +897,7 @@ export default function ContactPage() {
                     {isSubmitting && <Spinner />}
                     {isSubmitting ? 'Sending…' : 'Send Message'}
                   </button>
+                  </div>
                 </form>
               )}
             </section>
