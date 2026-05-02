@@ -183,68 +183,59 @@ const BlogDetail = () => {
   };
 
   const handleShare = async () => {
-    if (shareLoading) return;
-    setShareLoading(true);
+  if (shareLoading) return;
+  setShareLoading(true);
 
-    const url = window.location.href;
+  // ✅ Use /share/ URL for OG preview instead of direct blog URL
+  const shareUrl = `${window.location.origin}/share/blog/${encodeURIComponent(slug)}`;
 
-    // ── Layer 1: Try sharing with image file (Android Chrome/Edge) ──
-    if (navigator.share && navigator.canShare && blog?.image) {
-      try {
-        const imageResponse = await fetch(blog.image);
-        const imageBlob = await imageResponse.blob();
-        const ext = imageBlob.type.includes("png") ? "png"
-          : imageBlob.type.includes("webp") ? "webp"
-          : imageBlob.type.includes("avif") ? "avif"
-          : "jpg";
-        const imageFile = new File(
-          [imageBlob],
-          `blog-cover.${ext}`,
-          { type: imageBlob.type || "image/jpeg" }
-        );
-
-        const shareDataWithFile = {
-          title: blog.title || "Blog Post",
-          text: `${blog.excerpt || ""}\n\n🔗 ${url}`,
-          files: [imageFile],
-        };
-
-        if (navigator.canShare(shareDataWithFile)) {
-          await navigator.share(shareDataWithFile);
-          setShareLoading(false);
-          return;
-        }
-      } catch (err) {
-        // File fetch or share failed — fall through
-      }
-    }
-
-    // ── Layer 2: Share URL only (OG tags handle image preview) ──
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: blog?.title || "Blog Post",
-          text: blog?.excerpt || "",
-          url,
-        });
+  // Layer 1: Share with image file
+  if (navigator.share && navigator.canShare && blog?.image) {
+    try {
+      const imageResponse = await fetch(blog.image);
+      const imageBlob = await imageResponse.blob();
+      const ext = imageBlob.type.includes("png") ? "png"
+        : imageBlob.type.includes("webp") ? "webp"
+        : imageBlob.type.includes("avif") ? "avif"
+        : "jpg";
+      const imageFile = new File([imageBlob], `blog-cover.${ext}`, { type: imageBlob.type || "image/jpeg" });
+      const shareDataWithFile = {
+        title: blog.title || "Blog Post",
+        text: `${blog.excerpt || ""}\n\n🔗 ${shareUrl}`,
+        files: [imageFile],
+      };
+      if (navigator.canShare(shareDataWithFile)) {
+        await navigator.share(shareDataWithFile);
         setShareLoading(false);
         return;
-      } catch (err) {
-        // User cancelled — fall through
       }
-    }
+    } catch (err) {}
+  }
 
-    // ── Layer 3: Copy link to clipboard ──
+  // Layer 2: Share URL only
+  if (navigator.share) {
     try {
-      await navigator.clipboard.writeText(url);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2500);
-    } catch {
-      prompt("Copy this link:", url);
-    }
+      await navigator.share({
+        title: blog?.title || "Blog Post",
+        text: blog?.excerpt || "",
+        url: shareUrl, // ✅ /share/ URL
+      });
+      setShareLoading(false);
+      return;
+    } catch (err) {}
+  }
 
-    setShareLoading(false);
-  };
+  // Layer 3: Clipboard
+  try {
+    await navigator.clipboard.writeText(shareUrl); // ✅ /share/ URL
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2500);
+  } catch {
+    prompt("Copy this link:", shareUrl);
+  }
+
+  setShareLoading(false);
+};
 
   const handleCommentSubmit = async () => {
     if (!commentName.trim() || !commentText.trim()) {

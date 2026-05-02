@@ -1527,35 +1527,75 @@ app.get("/share/blog/:slug", async (req, res) => {
 
     if (!blog) return res.status(404).send("Blog not found");
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const baseUrl = "https://aadona.com"; // ✅ Hardcode your domain
 
-    // FIXED IMAGE
-    const image =
-      blog.image && blog.image.startsWith("http")
-        ? blog.image
-        : `${baseUrl}/default.jpg`;
+    const image = blog.image && blog.image.startsWith("http")
+      ? blog.image
+      : `${baseUrl}/default.jpg`;
 
-    res.send(`
-      <html>
-        <head>
-          <title>${blog.title}</title>
+    const title = blog.title?.replace(/"/g, "&quot;") || "AADONA Blog";
+    const excerpt = (blog.excerpt || "Read this article on AADONA")
+      .replace(/"/g, "&quot;").substring(0, 200);
 
-          <meta property="og:title" content="${blog.title}" />
-          <meta property="og:description" content="${blog.excerpt || ""}" />
-          <meta property="og:image" content="${image}" />
-          <meta property="og:url" content="${baseUrl}/share/blog/${blog.slug}" />
-          <meta property="og:type" content="article" />
+    const canonicalUrl = `${baseUrl}/share/blog/${blog.slug}`;
+    const blogUrl = `${baseUrl}/#/blog/${blog.slug}`;
 
-          <!-- delay redirect -->
-          <script>
-            setTimeout(() => {
-              window.location.href = "/#/blog/${blog.slug}";
-            }, 100);
-          </script>
-        </head>
-        <body>Loading...</body>
-      </html>
-    `);
+    // ✅ No JavaScript redirect delay — use HTTP redirect + full OG HTML
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.send(`<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>${title}</title>
+  <meta name="description" content="${excerpt}" />
+  <link rel="canonical" href="${canonicalUrl}" />
+
+  <!-- ✅ Open Graph (Facebook, WhatsApp, Telegram, LinkedIn) -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="AADONA Communication" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${excerpt}" />
+  <meta property="og:url" content="${canonicalUrl}" />
+  <meta property="og:image" content="${image}" />
+  <meta property="og:image:secure_url" content="${image}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="${title}" />
+  <meta property="og:locale" content="en_IN" />
+
+  <!-- ✅ Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${excerpt}" />
+  <meta name="twitter:image" content="${image}" />
+  <meta name="twitter:image:alt" content="${title}" />
+
+  <!-- ✅ WhatsApp specific (extra safety) -->
+  <meta itemprop="name" content="${title}" />
+  <meta itemprop="description" content="${excerpt}" />
+  <meta itemprop="image" content="${image}" />
+
+  <!-- ✅ Article meta -->
+  ${blog.author ? `<meta property="article:author" content="${blog.author}" />` : ""}
+  ${blog.date ? `<meta property="article:published_time" content="${blog.date}" />` : ""}
+
+  <!-- Redirect humans to the actual blog (crawlers stop at meta tags) -->
+  <meta http-equiv="refresh" content="0; url=${blogUrl}" />
+  <script>window.location.replace("${blogUrl}");</script>
+</head>
+<body style="margin:0;background:#f9fafb;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+  <div style="text-align:center;padding:40px;">
+    <div style="width:48px;height:48px;border:4px solid #16a34a;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;"></div>
+    <p style="color:#374151;font-size:16px;">Redirecting to article...</p>
+    <a href="${blogUrl}" style="color:#16a34a;text-decoration:none;font-weight:bold;">Click here if not redirected</a>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  </div>
+</body>
+</html>`);
   } catch (err) {
     console.log(err);
     res.status(500).send("Server Error");
