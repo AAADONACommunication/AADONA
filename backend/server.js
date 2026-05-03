@@ -1529,17 +1529,14 @@ app.get("/share/blog/:slug", async (req, res) => {
 
     const baseUrl = "https://aadona.com";
 
-    // Ensure valid public image
     let image = blog.image && blog.image.startsWith("http")
       ? blog.image
       : `${baseUrl}/default.jpg`;
 
-    // Force fallback if AVIF (WhatsApp unsupported)
     if (image.endsWith(".avif")) {
       image = `${baseUrl}/default.jpg`;
     }
 
-    // Escape strings safely
     const escapeHtml = (str = "") =>
       str.replace(/&/g, "&amp;")
          .replace(/</g, "&lt;")
@@ -1552,17 +1549,18 @@ app.get("/share/blog/:slug", async (req, res) => {
       (blog.excerpt || "Read this article on AADONA").substring(0, 200)
     );
 
-    const canonicalUrl = `${baseUrl}/share/blog/${blog.slug}`;
+    // ✅ BOTH og:url and redirect stay on /share/ URL
+    const shareUrl = `${baseUrl}/share/blog/${blog.slug}`;
     
-    // FIXED (no hash routing)
+    // ✅ React app route — only used for the visible link in body
     const blogUrl = `${baseUrl}/blog/${blog.slug}`;
 
-    // Detect image type dynamically
     let imageType = "image/jpeg";
     if (image.includes(".png")) imageType = "image/png";
     else if (image.includes(".webp")) imageType = "image/webp";
 
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    // ✅ Cache for 1 hour so WhatsApp re-crawl works fast
+    res.setHeader("Cache-Control", "public, max-age=3600");
 
     res.send(`<!DOCTYPE html>
     <html lang="en" prefix="og: https://ogp.me/ns#">
@@ -1572,14 +1570,14 @@ app.get("/share/blog/:slug", async (req, res) => {
 
       <title>${title}</title>
       <meta name="description" content="${excerpt}" />
-      <link rel="canonical" href="${canonicalUrl}" />
+      <link rel="canonical" href="${shareUrl}" />
 
       <!-- OPEN GRAPH -->
       <meta property="og:type" content="article" />
       <meta property="og:site_name" content="AADONA Communication" />
       <meta property="og:title" content="${title}" />
       <meta property="og:description" content="${excerpt}" />
-      <meta property="og:url" content="${canonicalUrl}" />
+      <meta property="og:url" content="${shareUrl}" />
       <meta property="og:image" content="${image}" />
       <meta property="og:image:secure_url" content="${image}" />
       <meta property="og:image:type" content="${imageType}" />
@@ -1593,7 +1591,7 @@ app.get("/share/blog/:slug", async (req, res) => {
       <meta name="twitter:description" content="${excerpt}" />
       <meta name="twitter:image" content="${image}" />
 
-      <!-- WHATSAPP SAFE -->
+      <!-- SCHEMA.ORG -->
       <meta itemprop="name" content="${title}" />
       <meta itemprop="description" content="${excerpt}" />
       <meta itemprop="image" content="${image}" />
@@ -1602,11 +1600,13 @@ app.get("/share/blog/:slug", async (req, res) => {
       ${blog.author ? `<meta property="article:author" content="${escapeHtml(blog.author)}" />` : ""}
       ${blog.date ? `<meta property="article:published_time" content="${blog.date}" />` : ""}
 
-      <!-- DELAYED REDIRECT (important) -->
-      <meta http-equiv="refresh" content="2; url=${blogUrl}" />
+      <!-- JS REDIRECT (faster than meta refresh, bots ignore JS) -->
+      <script>window.location.replace("${blogUrl}");</script>
+
+      <!-- Fallback meta refresh for non-JS bots -->
+      <meta http-equiv="refresh" content="0; url=${blogUrl}" />
 
     </head>
-
     <body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
       <div style="text-align:center">
         <p>Opening article...</p>
