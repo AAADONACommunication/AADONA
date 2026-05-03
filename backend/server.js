@@ -3380,7 +3380,6 @@ process.on("SIGINT", async () => {
    SERVE REACT BUILD + CATCH-ALL
 ============================= */
 
-const path = require("path");
 app.use(express.static(path.join(__dirname, "../client/build")));
 
 app.get("*", (req, res) => {
