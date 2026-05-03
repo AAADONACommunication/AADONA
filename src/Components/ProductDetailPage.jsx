@@ -121,7 +121,7 @@ const OverviewTab = memo(({ product }) => {
 });
 
 const FeaturesTab = memo(({ items = [] }) => (
-  <div className="space-y-5 max-w-3xl">
+  <div className="space-y-5 w-full">
     {items.map((item, i) =>
       item._type === "subheading" || item.title ? (
         <div key={i}>
@@ -129,7 +129,9 @@ const FeaturesTab = memo(({ items = [] }) => (
             {item.title}
           </h3>
           {item.description && (
-            <p className="text-[15px] text-[#555] leading-relaxed pl-5">{item.description}</p>
+            <p className="text-[15px] text-[#555] leading-relaxed pl-5" style={{ textAlign: "justify" }}>
+              {item.description}
+            </p>
           )}
         </div>
       ) : (
@@ -137,7 +139,9 @@ const FeaturesTab = memo(({ items = [] }) => (
           <div className="w-[22px] h-[22px] rounded-full bg-[#00A859]/10 flex-shrink-0 mt-[2px] flex items-center justify-center" aria-hidden="true">
             <span className="text-[#00A859] text-[11px] font-black">✓</span>
           </div>
-          <span className="text-[#444] text-[15px] font-medium leading-relaxed">{item.description}</span>
+          <span className="text-[#444] text-[15px] font-medium leading-relaxed" style={{ textAlign: "justify" }}>
+            {item.description}
+          </span>
         </div>
       )
     )}
