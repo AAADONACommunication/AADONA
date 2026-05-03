@@ -1621,6 +1621,87 @@ app.get("/share/blog/:slug", async (req, res) => {
   }
 });
 
+/* =============================
+   PRODUCT OG PREVIEW ROUTE
+============================= */
+
+app.get("/share/product/:slug", async (req, res) => {
+  try {
+    const product = await Product.findOne({ slug: req.params.slug });
+
+    if (!product) return res.status(404).send("Product not found");
+
+    const baseUrl = "https://aadona.com";
+
+    let image = product.image && product.image.startsWith("http")
+      ? product.image
+      : `${baseUrl}/default.jpg`;
+
+    if (image.endsWith(".avif")) {
+      image = `${baseUrl}/default.jpg`;
+    }
+
+    const escapeHtml = (str = "") =>
+      str.replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+
+    const title = escapeHtml(product.name || "AADONA Product");
+    const excerpt = escapeHtml(
+      (product.description || "View this product on AADONA").substring(0, 200)
+    );
+
+    const shareUrl = `${baseUrl}/share/product/${product.slug}`;
+    const productUrl = `${baseUrl}/${product.category.trim().toLowerCase().replace(/\s+/g, "")}/${product.slug}`;
+
+    let imageType = "image/jpeg";
+    if (image.includes(".png")) imageType = "image/png";
+    else if (image.includes(".webp")) imageType = "image/webp";
+
+    res.setHeader("Cache-Control", "public, max-age=3600");
+
+    res.send(`<!DOCTYPE html>
+    <html lang="en" prefix="og: https://ogp.me/ns#">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>${title}</title>
+      <meta name="description" content="${excerpt}" />
+      <link rel="canonical" href="${shareUrl}" />
+      <meta property="og:type" content="product" />
+      <meta property="og:site_name" content="AADONA Communication" />
+      <meta property="og:title" content="${title}" />
+      <meta property="og:description" content="${excerpt}" />
+      <meta property="og:url" content="${shareUrl}" />
+      <meta property="og:image" content="${image}" />
+      <meta property="og:image:secure_url" content="${image}" />
+      <meta property="og:image:type" content="${imageType}" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content="${title}" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="${title}" />
+      <meta name="twitter:description" content="${excerpt}" />
+      <meta name="twitter:image" content="${image}" />
+      <script>window.location.replace("${productUrl}");</script>
+      <meta http-equiv="refresh" content="0; url=${productUrl}" />
+    </head>
+    <body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
+      <div style="text-align:center">
+        <p>Opening product...</p>
+        <a href="${productUrl}">Click here if not redirected</a>
+      </div>
+    </body>
+    </html>`);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
 app.get("/blogs/drafts", verifyToken, async (req, res) => {
   try {
     const drafts = await Blog.find({ published: false })
