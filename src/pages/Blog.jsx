@@ -64,6 +64,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
   const [shareCopied, setShareCopied] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
 
+  // ✅ FIXED: Removed Layer 1 (file sharing) — WhatsApp crawls OG tags from URL automatically
   const handleShare = async (e) => {
     e.stopPropagation();
 
@@ -73,38 +74,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
     const slug = post.slug || generateSlug(post.title);
     const url = `${window.location.origin}/share/blog/${encodeURIComponent(slug)}`;
 
-    // ── Layer 1: Try sharing with image file (Android Chrome/Edge) ──
-    if (navigator.share && navigator.canShare) {
-      try {
-        const imageResponse = await fetch(post.image);
-        const imageBlob = await imageResponse.blob();
-        const ext = imageBlob.type.includes("png") ? "png"
-          : imageBlob.type.includes("webp") ? "webp"
-          : imageBlob.type.includes("avif") ? "avif"
-          : "jpg";
-        const imageFile = new File(
-          [imageBlob],
-          `blog-cover.${ext}`,
-          { type: imageBlob.type || "image/jpeg" }
-        );
-
-        const shareDataWithFile = {
-          title: post.title,
-          text: `${post.excerpt || ""}\n\n🔗 ${url}`,
-          files: [imageFile],
-        };
-
-        if (navigator.canShare(shareDataWithFile)) {
-          await navigator.share(shareDataWithFile);
-          setShareLoading(false);
-          return;
-        }
-      } catch (err) {
-        // File fetch or share failed — fall through
-      }
-    }
-
-    // ── Layer 2: Share URL only (OG tags handle image preview) ──
+    // Layer 1: Share URL only — WhatsApp will crawl OG tags and show preview automatically
     if (navigator.share) {
       try {
         await navigator.share({
@@ -119,7 +89,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
       }
     }
 
-    // ── Layer 3: Copy link to clipboard ──
+    // Layer 2: Copy link to clipboard
     try {
       await navigator.clipboard.writeText(url);
       setShareCopied(true);

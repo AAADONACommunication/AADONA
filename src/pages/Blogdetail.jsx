@@ -182,60 +182,37 @@ const BlogDetail = () => {
     }
   };
 
+  // ✅ FIXED: Removed Layer 1 (file sharing) — WhatsApp crawls OG tags from URL automatically
   const handleShare = async () => {
-  if (shareLoading) return;
-  setShareLoading(true);
+    if (shareLoading) return;
+    setShareLoading(true);
 
-  // ✅ Use /share/ URL for OG preview instead of direct blog URL
-  const shareUrl = `${window.location.origin}/share/blog/${encodeURIComponent(slug)}`;
+    const shareUrl = `${window.location.origin}/share/blog/${encodeURIComponent(slug)}`;
 
-  // Layer 1: Share with image file
-  if (navigator.share && navigator.canShare && blog?.image) {
-    try {
-      const imageResponse = await fetch(blog.image);
-      const imageBlob = await imageResponse.blob();
-      const ext = imageBlob.type.includes("png") ? "png"
-        : imageBlob.type.includes("webp") ? "webp"
-        : imageBlob.type.includes("avif") ? "avif"
-        : "jpg";
-      const imageFile = new File([imageBlob], `blog-cover.${ext}`, { type: imageBlob.type || "image/jpeg" });
-      const shareDataWithFile = {
-        title: blog.title || "Blog Post",
-        text: `${blog.excerpt || ""}\n\n🔗 ${shareUrl}`,
-        files: [imageFile],
-      };
-      if (navigator.canShare(shareDataWithFile)) {
-        await navigator.share(shareDataWithFile);
+    // Layer 1: Share URL only — WhatsApp will crawl OG tags and show preview automatically
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: blog?.title || "Blog Post",
+          text: blog?.excerpt || "",
+          url: shareUrl,
+        });
         setShareLoading(false);
         return;
-      }
-    } catch (err) {}
-  }
+      } catch (err) {}
+    }
 
-  // Layer 2: Share URL only
-  if (navigator.share) {
+    // Layer 2: Clipboard fallback
     try {
-      await navigator.share({
-        title: blog?.title || "Blog Post",
-        text: blog?.excerpt || "",
-        url: shareUrl, // ✅ /share/ URL
-      });
-      setShareLoading(false);
-      return;
-    } catch (err) {}
-  }
+      await navigator.clipboard.writeText(shareUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch {
+      prompt("Copy this link:", shareUrl);
+    }
 
-  // Layer 3: Clipboard
-  try {
-    await navigator.clipboard.writeText(shareUrl); // ✅ /share/ URL
-    setShareCopied(true);
-    setTimeout(() => setShareCopied(false), 2500);
-  } catch {
-    prompt("Copy this link:", shareUrl);
-  }
-
-  setShareLoading(false);
-};
+    setShareLoading(false);
+  };
 
   const handleCommentSubmit = async () => {
     if (!commentName.trim() || !commentText.trim()) {
