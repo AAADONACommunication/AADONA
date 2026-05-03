@@ -1159,7 +1159,7 @@ app.put("/products/:id", verifyToken, async (req, res) => {
     }
     pdfCache.delete(existing.slug); // invalidate cache on update
 
-    // ✅ FIX: datasheetUrl declared outside if block (was a ReferenceError before)
+    // FIX: datasheetUrl declared outside if block (was a ReferenceError before)
     let datasheetUrl = null;
     if (
       req.body.name ||
@@ -1549,17 +1549,17 @@ app.get("/share/blog/:slug", async (req, res) => {
       (blog.excerpt || "Read this article on AADONA").substring(0, 200)
     );
 
-    // ✅ BOTH og:url and redirect stay on /share/ URL
+    // BOTH og:url and redirect stay on /share/ URL
     const shareUrl = `${baseUrl}/share/blog/${blog.slug}`;
     
-    // ✅ React app route — only used for the visible link in body
+    // React app route — only used for the visible link in body
     const blogUrl = `${baseUrl}/blog/${blog.slug}`;
 
     let imageType = "image/jpeg";
     if (image.includes(".png")) imageType = "image/png";
     else if (image.includes(".webp")) imageType = "image/webp";
 
-    // ✅ Cache for 1 hour so WhatsApp re-crawl works fast
+    // Cache for 1 hour so WhatsApp re-crawl works fast
     res.setHeader("Cache-Control", "public, max-age=3600");
 
     res.send(`<!DOCTYPE html>
@@ -1636,7 +1636,7 @@ app.get("/blogs", async (req, res) => {
   try {
     const blogs = await Blog.find({ published: true })
       .sort({ createdAt: -1 })
-      .select("-comments"); // Don't send comments in list view (faster)
+      .select("-comments");
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.json(blogs);
   } catch (err) {
@@ -3374,6 +3374,17 @@ process.on("SIGINT", async () => {
     console.log("Puppeteer browser closed");
   }
   process.exit();
+});
+
+/* =============================
+   SERVE REACT BUILD + CATCH-ALL
+============================= */
+
+const path = require("path");
+app.use(express.static(path.join(__dirname, "../client/build")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
 });
 
 /* =============================
