@@ -3356,9 +3356,6 @@ app.get("/share/blog/:slug", async (req, res) => {
       <!-- JS REDIRECT (faster than meta refresh, bots ignore JS) -->
       <script>window.location.replace("${blogUrl}");</script>
 
-      <!-- Fallback meta refresh for non-JS bots -->
-      <meta http-equiv="refresh" content="0; url=${blogUrl}" />
-
     </head>
     <body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
       <div style="text-align:center">
