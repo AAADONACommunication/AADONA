@@ -3,4 +3,3 @@ python-dotenv
 requests
 firebase-admin
 Pillow
-pillow-avif-plugin

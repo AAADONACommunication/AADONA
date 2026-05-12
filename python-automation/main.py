@@ -12,14 +12,12 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-# AVIF conversion via Pillow + pillow-avif-plugin
-# Install: pip install Pillow pillow-avif-plugin
+
 try:
-    import pillow_avif  # noqa: F401 — registers AVIF encoder with Pillow
     from PIL import Image
-    AVIF_SUPPORTED = True
+    WEBP_SUPPORTED = True
 except ImportError:
-    AVIF_SUPPORTED = False
+    WEBP_SUPPORTED = False
 
 # ==========================================
 # 0. LOAD ENV & SETUP LOGGING
@@ -267,22 +265,22 @@ def get_auth_token() -> str:
 
 
 # ==========================================
-# AVIF CONVERTER
+# WEBP CONVERTER
 # ==========================================
-def convert_to_avif(png_bytes: bytes, quality: int = 60) -> tuple[bytes, str]:
-    if not AVIF_SUPPORTED:
-        log.warning("pillow-avif-plugin not installed — uploading as PNG.")
+def convert_to_webp(png_bytes: bytes, quality: int = 85) -> tuple[bytes, str]:
+    if not WEBP_SUPPORTED:
+        log.warning("Pillow not installed — uploading as PNG.")
         return png_bytes, "image/png"
     try:
         img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
         buf = io.BytesIO()
-        img.save(buf, format="AVIF", quality=quality)
-        avif_bytes = buf.getvalue()
-        saving_pct = round((1 - len(avif_bytes) / len(png_bytes)) * 100, 1)
-        log.info(f"AVIF conversion: {len(png_bytes):,} PNG → {len(avif_bytes):,} AVIF ({saving_pct}% smaller)")
-        return avif_bytes, "image/avif"
+        img.save(buf, format="WEBP", quality=quality)
+        webp_bytes = buf.getvalue()
+        saving_pct = round((1 - len(webp_bytes) / len(png_bytes)) * 100, 1)
+        log.info(f"WebP conversion: {len(png_bytes):,} PNG → {len(webp_bytes):,} WebP ({saving_pct}% smaller)")
+        return webp_bytes, "image/webp"
     except Exception as e:
-        log.warning(f"AVIF conversion failed: {e} — falling back to PNG.")
+        log.warning(f"WebP conversion failed: {e} — falling back to PNG.")
         return png_bytes, "image/png"
 
 
@@ -721,7 +719,7 @@ def init_firebase():
 # ==========================================
 # 7. STAGE 3 — IMAGE GENERATION & UPLOAD
 # ==========================================
-def upload_to_firebase(image_bytes: bytes, filename: str, content_type: str = "image/avif") -> str | None:
+def upload_to_firebase(image_bytes: bytes, filename: str, content_type: str = "image/webp") -> str | None:
     try:
         init_firebase()
         bucket = fb_storage.bucket()
@@ -761,7 +759,7 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
             f"IMPORTANT: horizontal landscape orientation, much wider than tall. "
             f"{IMAGE_NEGATIVE_PROMPT} No text, no logos, no watermarks."
         )
-        filename = f"blog_header_{int(time.time())}.avif"
+        filename = f"blog_header_{int(time.time())}.webp"
     else:
         log.info("Stage 3b: Generating mid-blog image...")
         prompt = (
@@ -775,7 +773,7 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
             f"IMPORTANT: horizontal landscape orientation, much wider than tall. "
             f"{IMAGE_NEGATIVE_PROMPT} No text, no logos, no watermarks."
         )
-        filename = f"blog_mid_{int(time.time())}.avif"
+        filename = f"blog_mid_{int(time.time())}.webp"
 
     # Image generation uses its own dedicated model — no text fallback chain here
     try:
@@ -791,7 +789,7 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
                 parts = getattr(result.candidates[0].content, "parts", [])
                 for part in parts:
                     if part.inline_data is not None:
-                        image_bytes, content_type = convert_to_avif(part.inline_data.data)
+                        image_bytes, content_type = convert_to_webp(part.inline_data.data)
                         url = upload_to_firebase(image_bytes, filename, content_type)
                         if url:
                             return url
