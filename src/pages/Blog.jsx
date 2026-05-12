@@ -64,7 +64,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
   const [shareCopied, setShareCopied] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
 
-  // ✅ FIXED: Removed Layer 1 (file sharing) — WhatsApp crawls OG tags from URL automatically
+  // Removed Layer 1 (file sharing) — WhatsApp crawls OG tags from URL automatically
   const handleShare = async (e) => {
     e.stopPropagation();
 
