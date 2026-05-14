@@ -176,6 +176,50 @@ const FieldError = ({ msg }) =>
     </p>
   ) : null;
 
+const BusinessDropdown = ({ value, onChange, disabled, error }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => !disabled && setOpen(p => !p)}
+        className={`mt-1 w-full flex items-center justify-between px-4 py-3 bg-white border rounded-lg shadow-sm 
+          text-green-800 text-sm font-semibold transition duration-150
+          focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500
+          hover:border-green-400 ${error ? 'border-red-500' : 'border-green-200'}`}
+      >
+        <span className={value === BUSINESS_OPTIONS[0] ? 'text-gray-400 font-normal' : ''}>{value}</span>
+        <svg className={`w-5 h-5 text-green-600 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <ul className="absolute z-20 mt-1 w-full bg-white border border-green-200 rounded-lg shadow-lg overflow-hidden">
+          {BUSINESS_OPTIONS.slice(1).map(opt => (
+            <li key={opt}>
+              <button type="button"
+                onClick={() => { onChange({ target: { name: 'natureOfBusiness', value: opt } }); setOpen(false); }}
+                className={`w-full text-left px-4 py-3 text-sm transition-colors duration-100
+                  ${value === opt ? 'bg-green-50 text-green-800 font-semibold' : 'text-gray-700 hover:bg-green-50 hover:text-green-800'}`}
+              >{opt}</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 // ─── Email Dropdown (Enquiry Field) ───────────────────────────────────────────
 
 const EMAIL_OPTIONS = [
@@ -222,14 +266,15 @@ const EnquiryEmailDropdown = () => {
           onClick={() => setOpen((prev) => !prev)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 font-semibold text-sm hover:border-green-400 transition duration-150"
-        >
+          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 text-sm hover:border-green-400 transition duration-150"        >
           <span className="flex items-center gap-2">
             {/* Mail icon */}
             <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            {selected ? selected.label : 'Enquiry Type'}
+            <span className={selected ? '' : 'text-gray-400 font-normal'}>
+              {selected ? selected.label : 'Enquiry Type'}
+            </span>
           </span>
           {/* Chevron */}
           <svg
@@ -785,33 +830,12 @@ export default function ContactPage() {
                       <label htmlFor="natureOfBusiness" className="block text-sm font-semibold text-gray-700">
                         Nature of Business <span aria-hidden="true" className="text-red-500">*</span>
                       </label>
-                      <div className="relative">
-                        <select
-                          id="natureOfBusiness"
-                          name="natureOfBusiness"
-                          disabled={isSubmitting}
-                          aria-required="true"
-                          aria-invalid={!!errors.natureOfBusiness}
-                          className={fieldClass('natureOfBusiness')}
-                          value={formData.natureOfBusiness}
-                          onChange={handleChange}
-                        >
-                          {BUSINESS_OPTIONS.map((opt) => (
-                            <option key={opt} value={opt} disabled={opt === BUSINESS_OPTIONS[0]}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                        <svg
-                          className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-600 pointer-events-none"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
+                      <BusinessDropdown
+                        value={formData.natureOfBusiness}
+                        onChange={handleChange}
+                        disabled={isSubmitting}
+                        error={errors.natureOfBusiness}
+                      />
                       <FieldError msg={errors.natureOfBusiness} />
                     </div>
                   </div>
