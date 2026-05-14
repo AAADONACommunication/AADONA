@@ -26,7 +26,7 @@ const TimeLineItem = ({ data, index }) => {
         {/* Content */}
         <div className="w-full sm:w-1/2 px-0 sm:px-4">
           <div className={`py-4 sm:p-6 ${!isEven ? 'sm:text-right' : 'sm:text-left'}`}>
-            <div className="inline-block px-3 py-1 mb-2 text-xs sm:text-sm font-semibold text-green-500 bg-green-100 rounded-full">
+            <div className="inline-block px-3 py-1 mb-2 text-xs sm:text-sm font-semibold text-green-800 bg-green-100 rounded-full">
               {data?.year}
             </div>
             <h3 className="text-xl sm:text-2xl font-bold mb-2">{data?.title}</h3>

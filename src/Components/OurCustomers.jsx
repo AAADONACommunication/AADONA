@@ -182,7 +182,7 @@ const OurCustomers = () => {
               type="button"
               onClick={handleSeeMore}
               aria-label="See more AADONA customers"
-              className="group inline-flex items-center justify-center px-8 py-3 border border-green-600 text-green-600 font-semibold rounded-lg hover:bg-green-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg"
+              className="group inline-flex items-center justify-center px-8 py-3 border border-green-700 text-green-700 font-semibold rounded-lg hover:bg-green-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg"
             >
               See More
               <img

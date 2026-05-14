@@ -72,7 +72,7 @@ const CountUp = ({ target, label, icon, orbBg, tickColor, duration = 1500 }) => 
 
       <div className="w-7 h-[3px] rounded-full mt-2" style={{ background: tickColor }} aria-hidden="true" />
 
-      <div className="text-[12px] sm:text-[13px] font-semibold tracking-[0.14em] uppercase text-slate-400 mt-2.5 text-center">
+      <div className="text-[12px] sm:text-[13px] font-semibold tracking-[0.14em] uppercase text-gray-600 mt-2.5 text-center">
         {label}
       </div>
     </div>
