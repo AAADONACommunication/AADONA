@@ -176,7 +176,7 @@ const FieldError = ({ msg }) =>
     </p>
   ) : null;
 
-// ─── Email Dropdown (Enquiry Filed) ───────────────────────────────────────────
+// ─── Email Dropdown (Enquiry Field) ───────────────────────────────────────────
 
 const EMAIL_OPTIONS = [
   { label: 'Sales', email: 'sales@aadona.com' },
@@ -212,7 +212,7 @@ const EnquiryEmailDropdown = () => {
   return (
     <div className="mb-8" ref={dropdownRef}>
       <label className="block text-sm font-semibold text-gray-700 mb-1">
-        Enquiry Filed
+        Enquiry Field
       </label>
 
       {/* Dropdown trigger button */}
@@ -862,6 +862,9 @@ export default function ContactPage() {
                     </div>
                   </div>
 
+                  {/* ── Enquiry Filed Dropdown (moved from sidebar into form) ── */}
+                  <EnquiryEmailDropdown />
+
                   {/* Message */}
                   <div className="mb-6 space-y-1">
                     <label htmlFor="message" className="block text-sm font-semibold text-gray-700">
@@ -882,9 +885,6 @@ export default function ContactPage() {
                     />
                     <FieldError msg={errors.message} />
                   </div>
-
-                  {/* ── Enquiry Filed Dropdown (moved from sidebar into form) ── */}
-                  <EnquiryEmailDropdown />
 
                   {/* Submit */}
                   <div className="flex justify-center">
