@@ -186,6 +186,7 @@ const EMAIL_OPTIONS = [
 
 const EnquiryEmailDropdown = () => {
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
   const dropdownRef = useRef(null);
 
   // Close dropdown on outside click
@@ -209,10 +210,10 @@ const EnquiryEmailDropdown = () => {
   }, []);
 
   return (
-    <div className="mt-2" ref={dropdownRef}>
-      <h2 className="text-xl font-bold text-green-700 mb-2 border-b pb-2 border-green-100">
-        Enquiry Filed:
-      </h2>
+    <div className="mb-8" ref={dropdownRef}>
+      <label className="block text-sm font-semibold text-gray-700 mb-1">
+        Enquiry Filed
+      </label>
 
       {/* Dropdown trigger button */}
       <div className="relative inline-block w-full">
@@ -221,14 +222,14 @@ const EnquiryEmailDropdown = () => {
           onClick={() => setOpen((prev) => !prev)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 font-semibold text-sm hover:border-green-400  transition duration-150"
+          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 font-semibold text-sm hover:border-green-400 transition duration-150"
         >
           <span className="flex items-center gap-2">
             {/* Mail icon */}
             <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            Enquiry Type
+            {selected ? selected.label : 'Enquiry Type'}
           </span>
           {/* Chevron */}
           <svg
@@ -249,26 +250,30 @@ const EnquiryEmailDropdown = () => {
             aria-label="Enquiry email options"
             className="absolute z-20 mt-1 w-full bg-white border border-green-200 rounded-lg shadow-lg overflow-hidden"
           >
-            {EMAIL_OPTIONS.map(({ label, email }) => (
-              <li key={email} role="option">
-                <a
-                  href={`mailto:${email}`}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-800 transition-colors duration-100 group"
+            {EMAIL_OPTIONS.map((option) => (
+              <li key={option.email} role="option" aria-selected={selected?.email === option.email}>
+                <button
+                  type="button"
+                  onClick={() => { setSelected(option); setOpen(false); }}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors duration-100 group
+                    ${selected?.email === option.email
+                      ? 'bg-green-50 text-green-800'
+                      : 'text-gray-700 hover:bg-green-50 hover:text-green-800'
+                    }`}
                 >
-                  <span className="font-semibold text-green-700">{label}</span>
-                  <span className="text-gray-500 group-hover:text-green-600 text-xs">{email}</span>
-                </a>
+                  <span className="font-semibold text-green-700">{option.label}</span>
+                  <span className="text-gray-500 group-hover:text-green-600 text-xs">{option.email}</span>
+                </button>
               </li>
             ))}
           </ul>
         )}
       </div>
-
-      
     </div>
   );
 };
+
+// ─── Contact Details Sidebar (Enquiry dropdown removed) ───────────────────────
 
 const ContactDetails = () => (
   <aside aria-label="Contact information" className="md:pl-10 pt-10 md:pt-0">
@@ -295,9 +300,6 @@ const ContactDetails = () => (
         Board: +91-77149-20035
       </a>
     </p>
-
-    {/* ── Enquiry Filed Email Dropdown ── */}
-    <EnquiryEmailDropdown />
   </aside>
 );
 
@@ -736,7 +738,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700">
-                        Last name
+                        Last name <span aria-hidden="true" className="text-red-500">*</span>
                       </label>
                       <input
                         id="lastName"
@@ -861,7 +863,7 @@ export default function ContactPage() {
                   </div>
 
                   {/* Message */}
-                  <div className="mb-8 space-y-1">
+                  <div className="mb-6 space-y-1">
                     <label htmlFor="message" className="block text-sm font-semibold text-gray-700">
                       Your message <span aria-hidden="true" className="text-red-500">*</span>
                     </label>
@@ -880,6 +882,9 @@ export default function ContactPage() {
                     />
                     <FieldError msg={errors.message} />
                   </div>
+
+                  {/* ── Enquiry Filed Dropdown (moved from sidebar into form) ── */}
+                  <EnquiryEmailDropdown />
 
                   {/* Submit */}
                   <div className="flex justify-center">
