@@ -1,7 +1,7 @@
 /**
  * ContactPage.jsx
- * ✅ SEO Optimized  — react-helmet-async meta tags, JSON-LD structured data, semantic HTML
- * ✅ Security Hardened — input sanitization, XSS prevention, honeypot, rate-limit guard, strict validation
+ * SEO Optimized  — react-helmet-async meta tags, JSON-LD structured data, semantic HTML
+ * Security Hardened — input sanitization, XSS prevention, honeypot, rate-limit guard, strict validation
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';

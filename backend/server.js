@@ -2764,19 +2764,20 @@ app.post("/submit-contact", formLimiter, async (req, res) => {
       replyTo: form.email,
       to: process.env.COMPANY_EMAIL,
       subject: `New Contact Message - ${form.subject || "Unknown"}`,
-      html: `
-        <h2 style="color:#166534">New Contact Message</h2>
-        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif">
-          <tr style="background:#f0fdf4"><td><b>Name</b></td><td>${form.firstName} ${form.lastName}</td></tr>
-          <tr><td><b>Email</b></td><td>${form.email}</td></tr>
-          <tr style="background:#f0fdf4"><td><b>Phone</b></td><td>${form.phone || "-"}</td></tr>
-          <tr><td><b>Subject</b></td><td>${form.subject || "-"}</td></tr>
-          <tr style="background:#f0fdf4"><td><b>Nature of Business</b></td><td>${form.natureOfBusiness || "-"}</td></tr>
-          <tr><td><b>City</b></td><td>${form.city || "-"}</td></tr>
-          <tr style="background:#f0fdf4"><td><b>ZIP / PIN Code</b></td><td>${form.zipCode || "-"}</td></tr>
-          <tr><td><b>Message</b></td><td>${form.message || "-"}</td></tr>
-        </table>
-      `,
+        html: `
+          <h2 style="color:#166534">New Contact Message</h2>
+          <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif">
+            <tr style="background:#f0fdf4"><td><b>Name</b></td><td>${form.firstName} ${form.lastName}</td></tr>
+            <tr><td><b>Email</b></td><td>${form.email}</td></tr>
+            <tr style="background:#f0fdf4"><td><b>Phone</b></td><td>${form.phone || "-"}</td></tr>
+            <tr><td><b>Subject</b></td><td>${form.subject || "-"}</td></tr>
+            <tr style="background:#f0fdf4"><td><b>Nature of Business</b></td><td>${form.natureOfBusiness || "-"}</td></tr>
+            <tr><td><b>City</b></td><td>${form.city || "-"}</td></tr>
+            <tr style="background:#f0fdf4"><td><b>ZIP / PIN Code</b></td><td>${form.zipCode || "-"}</td></tr>
+            <tr><td><b>Enquiry Type</b></td><td>${form.enquiryType || "-"}</td></tr>
+            <tr style="background:#f0fdf4"><td><b>Message</b></td><td>${form.message || "-"}</td></tr>
+          </table>
+        `,
     });
 
     res.json({ success: true, message: "Message sent successfully" });
