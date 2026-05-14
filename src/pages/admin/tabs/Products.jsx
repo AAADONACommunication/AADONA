@@ -522,7 +522,7 @@ const payload = {
       {/* ══════════════════════════════════════
           PRODUCT FORM
       ══════════════════════════════════════ */}
-      <div className="bg-white p-8 rounded-3xl shadow-xl border border-green-100 mb-12">
+      <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-green-100 mb-12">
         <div className="grid md:grid-cols-2 gap-6">
 
           <select className={inputStyle} value={form.type || ""}
@@ -608,7 +608,7 @@ const payload = {
 
         {/* ── Detailed Section (Step 2) ── */}
         {basicCompleted && (
-          <div className="mt-12 bg-white p-8 rounded-2xl border border-green-200 shadow-md">
+          <div className="mt-12 bg-white p-4 sm:p-8 rounded-2xl border border-green-200 shadow-md">
             <h2 className="text-xl font-bold text-green-800 mb-6 flex items-center gap-2">
               <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Step 2</span>
               Detailed Product Information
@@ -770,7 +770,7 @@ const payload = {
 
     return (
       <div key={category} className="mb-6 border border-green-200 p-5 rounded-xl bg-green-50/60">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
 
           <div className="flex flex-col gap-0.5">
             <button type="button" onClick={() => moveCat(-1)} disabled={catIndex === 0}
@@ -804,7 +804,7 @@ const payload = {
               setCopiedSpecCategory(data);
               localStorage.setItem("copiedSpecCategory", JSON.stringify(data));
             }}
-            className={`text-xs px-3 py-1.5 rounded-lg border font-semibold transition ${
+            className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border font-semibold transition ${
               copiedSpecCategory?.name === category
                 ? "bg-blue-600 text-white border-blue-600"
                 : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-600 hover:text-white"
@@ -812,7 +812,7 @@ const payload = {
           >
             {copiedSpecCategory?.name === category ? "✓ Copied!" : "Copy"}
           </button>
-          <button type="button" className="text-red-400 hover:text-red-600 transition"
+          <button type="button" className="shrink-0 text-red-400 hover:text-red-600 transition"
             onClick={() => {
               const newSpecs = { ...form.specifications };
               delete newSpecs[category];
@@ -825,7 +825,7 @@ const payload = {
         {Object.entries(specs).filter(([key]) => !key.startsWith("__sub__")).map(([key, value], idx) => {
           const totalRows = Object.entries(specs).length;
           return (
-            <div key={idx} className="flex gap-2 mb-2 items-start">
+            <div key={idx} className="flex flex-col sm:flex-row gap-2 mb-2 items-start">
 
               <div className="flex flex-col gap-0.5 pt-2">
                 <button type="button" onClick={() => moveRow(idx, -1)} disabled={idx === 0}
@@ -838,7 +838,7 @@ const payload = {
                 </button>
               </div>
 
-              <div className="w-5/12 flex flex-col gap-1">
+              <div className="w-full sm:w-5/12 flex flex-col gap-1">
                 <input
                   className="w-full border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                   placeholder="Key"
@@ -917,7 +917,7 @@ const payload = {
                 </div>
               </div>
 
-              <div className="w-5/12 flex flex-col gap-1">
+              <div className="w-full sm:w-5/12 flex flex-col gap-1">
                 {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
                   <div key={vi} className="flex gap-1">
                     <input
@@ -1065,13 +1065,13 @@ const payload = {
 
               <div className="border border-blue-100 rounded-xl overflow-hidden bg-white">
                 {subEntries.map(([key, value], idx) => (
-                  <div key={idx} className={`flex gap-2 items-center px-3 py-2 border-b border-gray-100 last:border-0 ${idx % 2 === 0 ? "bg-white" : "bg-blue-50/30"}`}>
+                  <div key={idx} className={`flex flex-col sm:flex-row gap-2 items-start sm:items-center px-3 py-2 border-b border-gray-100 last:border-0 ${idx % 2 === 0 ? "bg-white" : "bg-blue-50/30"}`}>
                     <input
                       ref={(el) => {
                         if (!subInputRefs.current[subKey]) subInputRefs.current[subKey] = [];
                         subInputRefs.current[subKey][idx * 2] = el;
                       }}
-                      className="w-5/12 border border-gray-200 bg-white px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full sm:w-5/12 border border-gray-200 bg-white px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                       placeholder="Key"
                       value={key.startsWith("__empty__") ? "" : key}
                       onChange={(e) => {
@@ -1106,7 +1106,7 @@ const payload = {
   }
 }}
                     />
-                    <div className="w-5/12 flex flex-col gap-1">
+                    <div className="w-full sm:w-5/12 flex flex-col gap-1">
                       {(Array.isArray(value) ? value : value ? [value] : [""]).map((val, vi) => (
                         <div key={vi} className="flex gap-1">
                           <input
@@ -1276,7 +1276,7 @@ const payload = {
       {/* ══════════════════════════════════════
           RELATED PRODUCTS FORM
       ══════════════════════════════════════ */}
-      <div className="bg-white p-8 rounded-3xl shadow-xl border border-green-100 mb-12">
+      <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-green-100 mb-12">
         <h2 className="text-xl font-bold text-green-800 mb-6">Related Products Configuration</h2>
 
         <div className="grid md:grid-cols-4 gap-6 mb-6">

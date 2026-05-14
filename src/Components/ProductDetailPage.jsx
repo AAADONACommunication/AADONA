@@ -170,12 +170,12 @@ const SpecificationsTab = memo(({ specifications }) => {
         return (
           <div
             key={key}
-            className={`grid grid-cols-1 md:grid-cols-3 text-[14.5px] border-b border-gray-200 last:border-0 ${(rowIdx + bgOffset) % 2 === 0 ? "bg-white" : "bg-[#fafafa]"}`}
+            className={`grid grid-cols-3 text-[14.5px] border-b border-gray-200 last:border-0 ${(rowIdx + bgOffset) % 2 === 0 ? "bg-white" : "bg-[#fafafa]"}`}
           >
-            <div className="p-3 px-[18px] font-semibold text-[#333] bg-[#fafafa] border-r border-gray-100 tracking-tight flex items-center justify-center text-center">
+            <div className="p-3 px-[10px] font-semibold text-[#333] bg-[#fafafa] border-r border-gray-100 tracking-tight flex items-center justify-center text-center text-[13px]">
               {displayKey}
             </div>
-            <div className="md:col-span-2 p-3 px-[18px] text-[#555] leading-relaxed">
+            <div className="col-span-2 p-3 px-[10px] text-[#555] leading-relaxed text-[13px]">
               {isTableMode ? (
                 <table className="w-full text-[13.5px] border-collapse">
                   <thead>
