@@ -31,6 +31,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
   const [filterCategory, setFilterCategory] = useState("");
   const [filterSubCategory, setFilterSubCategory] = useState("");
   const [filterExtraCategory, setFilterExtraCategory] = useState("");
+  const [filterSearch, setFilterSearch] = useState("");
 
   const [viewRelatedFor, setViewRelatedFor] = useState(null);
   const [savedRelatedIds, setSavedRelatedIds] = useState([]);
@@ -90,6 +91,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
     if (filterCategory && p.category !== filterCategory) return false;
     if (filterSubCategory && p.subCategory !== filterSubCategory) return false;
     if (filterExtraCategory && p.extraCategory !== filterExtraCategory) return false;
+    if (filterSearch && !p.name.toLowerCase().includes(filterSearch.toLowerCase())) return false;
     return true;
   });
 
@@ -1465,6 +1467,13 @@ const payload = {
       <div className="bg-white rounded-3xl shadow-lg border border-green-100 mb-8 overflow-hidden">
         <div className="p-6 border-b border-green-100">
           <h3 className="text-lg font-bold text-green-800 mb-4">Filter Listed Products</h3>
+          <input
+            type="text"
+            placeholder="🔍 Search products by name..."
+            value={filterSearch}
+            onChange={(e) => setFilterSearch(e.target.value)}
+            className="w-full mb-4 px-4 py-2 border border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+          />
           <div className="grid md:grid-cols-4 gap-4">
             <select className={inputStyle} value={filterType}
               onChange={(e) => { setFilterType(e.target.value); setFilterCategory(""); setFilterSubCategory(""); setFilterExtraCategory(""); }}>
