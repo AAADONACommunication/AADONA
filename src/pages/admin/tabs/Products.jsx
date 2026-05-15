@@ -1527,7 +1527,9 @@ const payload = {
                 <tr key={p?._id} className="hover:bg-green-50/40 transition group">
                   <td className="p-5 border-r border-gray-200">
                     <div className="flex items-center gap-4">
-                      {filterType && filterCategory && filterSubCategory && (
+                      {filterType && filterCategory && (
+                        getSubCategories(filterType, filterCategory).length === 0 || filterSubCategory
+                      ) && (
                         <div className="flex flex-col gap-1">
                           <button onClick={() => moveProduct(index, -1)} disabled={index === 0 || reorderLoading}
                             className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
