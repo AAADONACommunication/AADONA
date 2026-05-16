@@ -591,18 +591,39 @@ const payload = {
           {/* Image Upload */}
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-green-800 mb-2">Product Image</label>
-            <input type="file" id="product-img" className="hidden"
+            <input type="file" id="product-img" className="hidden" accept="image/*"
               onChange={(e) => setForm({ ...form, imageFile: e.target.files[0] })} />
-            <label htmlFor="product-img"
-              className={`flex items-center justify-between w-full border-2 border-dashed rounded-2xl px-5 py-4 cursor-pointer transition-all ${form.imageFile ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"}`}>
-              <div className="flex items-center gap-3">
-                {form.imageFile ? <CheckCircle2 className="text-green-600" /> : <Upload className="text-gray-400" />}
-                <span className={form.imageFile ? "text-green-800 font-semibold" : "text-gray-400"}>
-                  {form.imageFile ? form.imageFile.name : "Click to upload product image"}
-                </span>
-              </div>
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md">Browse</span>
-            </label>
+
+            <div className="flex items-center gap-4">
+              {/* Preview Box */}
+              {(form.imageFile || form.image) && (
+                <div className="shrink-0 w-20 h-20 rounded-xl border-2 border-green-300 bg-white shadow-sm overflow-hidden flex items-center justify-center">
+                  <img
+                    src={form.imageFile ? URL.createObjectURL(form.imageFile) : form.image}
+                    alt="Preview"
+                    className="w-full h-full object-contain p-1"
+                  />
+                </div>
+              )}
+
+              {/* Upload Label */}
+              <label htmlFor="product-img"
+                className={`flex-1 flex items-center justify-between border-2 border-dashed rounded-2xl px-5 py-4 cursor-pointer transition-all ${
+                  form.imageFile ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"
+                }`}>
+                <div className="flex items-center gap-3">
+                  {form.imageFile ? <CheckCircle2 className="text-green-600" /> : <Upload className="text-gray-400" />}
+                  <span className={form.imageFile ? "text-green-800 font-semibold" : "text-gray-400"}>
+                    {form.imageFile
+                      ? form.imageFile.name
+                      : form.image
+                        ? "Image already uploaded — click to replace"
+                        : "Click to upload product image"}
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md">Browse</span>
+              </label>
+            </div>
           </div>
         </div>
 
