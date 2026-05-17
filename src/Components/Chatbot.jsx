@@ -696,16 +696,15 @@ export default function Chatbot() {
   const handleCallDrawerToggle = () => { setShowCallDrawer(prev => !prev); setIsOpen(false); };
   const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
-  // ─── FIXED: Mobile chat window styles ─────────────────────────────────
+  // ─── Mobile chat window styles ─────────────────────────────────
   const chatWindowStyle = isMobile
     ? {
-        // Mobile: position fixed, screen ke corners se safe distance
         position: 'fixed',
-        bottom: '90px',   // launcher ke upar
-        right: '10px',    // right edge se 10px
-        left: '10px',     // left edge se 10px (cut nahi hoga)
-        width: 'auto',    // left+right se auto width
-        height: 'calc(100dvh - 110px)', // screen height minus launcher + margin
+        bottom: '90px',
+        right: '10px',
+        left: '10px',
+        width: 'auto',
+        height: 'calc(100dvh - 110px)',
         maxHeight: 'calc(100dvh - 110px)',
       }
     : {
@@ -720,6 +719,17 @@ export default function Chatbot() {
 
   return (
     <>
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99997,
+            background: 'transparent',
+          }}
+        />
+      )}    
       <style>{`
         @keyframes aadonaFadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         .aadona-fadeIn { animation: aadonaFadeIn 0.2s ease forwards; }
