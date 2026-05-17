@@ -729,19 +729,25 @@ export default function Chatbot() {
         @keyframes aadonaPulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
         @keyframes aadonaSpin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
         @keyframes aadonaBlinkDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.82); } }
-        @keyframes aadonaBubbleIn { 0% { opacity:0; transform:translateX(-68%) scale(0.9); } 100% { opacity:1; transform:translateX(-68%) scale(1); } }
-        @keyframes aadonaBubbleBounce { 0%,100% { transform:translateX(-68%) translateY(0); } 50% { transform:translateX(-68%) translateY(-3px); } }
+        @keyframes aadonaBubbleIn2 { 
+          0% { opacity:0; transform:scale(0.9); } 
+          100% { opacity:1; transform:scale(1); } 
+        }
+        @keyframes aadonaBubbleBounce2 { 
+          0%,100% { transform:translateY(0); } 
+          50% { transform:translateY(-3px); } 
+        }
         @keyframes aadonaDrawerUp { from { opacity:0; transform:translateY(8px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
         .aadona-drawer { animation: aadonaDrawerUp 0.2s cubic-bezier(0.34,1.18,0.64,1) forwards; }
         .aadona-notif-bubble {
-          position:absolute; bottom:calc(100% + 10px); left:35%; transform:translateX(-68%);
+          position:absolute; bottom:calc(100% + 10px); right:0; left:auto; transform:none;
           background:#1e293b; color:#f8fafc;
-          font-size:11px; font-weight:500; padding:6px 7px; border-radius:10px;
+          font-size:11px; font-weight:500; padding:6px 12px; border-radius:10px;
           white-space:nowrap; pointer-events:none;
-          animation: aadonaBubbleIn 0.4s 0.6s ease both, aadonaBubbleBounce 2s 1.2s ease-in-out infinite;
+          animation: aadonaBubbleIn2 0.4s 0.6s ease both, aadonaBubbleBounce2 2s 1.2s ease-in-out infinite;
           box-shadow:0 4px 16px rgba(0,0,0,0.2); font-family:'DM Sans',sans-serif;
         }
-        .aadona-notif-bubble::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:#1e293b; }
+        .aadona-notif-bubble::after { content:''; position:absolute; top:100%; right:24px; left:auto; border:6px solid transparent; border-top-color:#1e293b; }
         .aadona-tooltip {
           position:absolute; right:calc(100% + 10px); top:50%; transform:translateY(-50%) translateX(4px);
           background:#1e293b; color:#f8fafc;
