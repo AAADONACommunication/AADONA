@@ -419,6 +419,7 @@ export default function Chatbot() {
   const lastSummaryRef = useRef({ messageCount: 0, sentAt: 0 });
   const inactivityTimerRef = useRef(null);
   const summaryMailSentRef = useRef(false);
+  const hasNewMessageRef = useRef(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -466,6 +467,7 @@ export default function Chatbot() {
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (!user?.phone) return;
+      if (!hasNewMessageRef.current) return;
       const userMessages = messages.filter(m => m.role === 'user');
       if (!userMessages.length) return;
       navigator.sendBeacon(`${API_BASE}/chat/summary`, new Blob([JSON.stringify({
@@ -557,7 +559,7 @@ export default function Chatbot() {
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || isLoading) return;
-
+    hasNewMessageRef.current = true;
     if (summaryMailSentRef.current) sendChatSummaryMail(messages, true);
 
     setInput('');
@@ -690,6 +692,7 @@ export default function Chatbot() {
     lastSummaryRef.current = { messageCount: 0, sentAt: 0 };
     summaryMailSentRef.current = false;
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    hasNewMessageRef.current = false;
   };
 
   const handleOpen = () => { setIsOpen(true); setHasUnread(false); setShowCallDrawer(false); };
