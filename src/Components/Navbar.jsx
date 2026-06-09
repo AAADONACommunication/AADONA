@@ -64,7 +64,7 @@ const ABOUT_LINKS = [
   { to: "/whistleBlower", label: "Whistle Blower" },
   { to: "/customers", label: "Our Customers" },
   { to: "/missionVision", label: "Mission & Vision" },
-  { to: "/about", label: "Our Story" },
+  { to: "/ourStory", label: "Our Story" },
   { to: "/leadershipTeam", label: "Leadership Team" },
 ];
 
