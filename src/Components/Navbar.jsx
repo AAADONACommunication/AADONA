@@ -59,12 +59,12 @@ const SUPPORT_LINKS = [
 const ABOUT_LINKS = [
   { to: "/csr", label: "CSR" },
   { to: "/careers", label: "Careers" },
+  { to: "/ourStory", label: "Our Story" },
   { to: "/contactUs", label: "Contact Us" },
   { to: "/mediaCenter", label: "Media Center" },
   { to: "/whistleBlower", label: "Whistle Blower" },
   { to: "/customers", label: "Our Customers" },
   { to: "/missionVision", label: "Mission & Vision" },
-  { to: "/ourStory", label: "Our Story" },
   { to: "/leadershipTeam", label: "Leadership Team" },
 ];
 
