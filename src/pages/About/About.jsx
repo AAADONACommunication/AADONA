@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import bg from '../../assets/bg.jpg';
-import aboutusbanner from '../../assets/aboutusbanner.avif';
+import aboutusbanner from '../../assets/ourstory.avif';
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -130,7 +130,7 @@ const About = () => {
 
       {/* ── HERO ── */}
       <header
-        className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+        className="pt-32 pb-16 bg-cover sm:bg-center bg-left bg-no-repeat"
         style={{ backgroundImage: `url(${aboutusbanner})` }}
         aria-label="Our Story hero banner"
       >
