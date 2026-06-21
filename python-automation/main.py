@@ -169,30 +169,78 @@ Do NOT stuff them. Weave them in where they fit contextually.
 # PRODUCT-SPECIFIC SCENE LOOKUP
 # ==========================================
 PRODUCT_SCENES = {
-    "Diana Series PoE Switches": (
-        "network rack in a clean, well-lit server room with neatly organized patch cables "
-        "and a Diana Series PoE switch mounted prominently in the foreground"
-    ),
-    "Apollo WiFi 7 Access Points": (
-        "modern open-plan Indian office with a ceiling-mounted Apollo WiFi 7 access point "
-        "visible above a collaborative workspace with employees working"
-    ),
-    "Helios Enterprise NAS": (
-        "bright enterprise data center with a Helios NAS storage unit in a rack, "
-        "drives visible, status LEDs lit, organized cabling behind"
-    ),
-    "Cat6 AADONA Cabling": (
-        "structured cabling installation in a commercial building IT room, "
-        "Cat6 cables neatly routed through conduits into a patch panel"
-    ),
-    "AADONA IP Surveillance / CCTV Systems": (
-        "bright retail or warehouse environment with dome IP cameras mounted on ceiling, "
-        "NVR unit visible in a nearby rack, clean and professional installation"
-    ),
-    "AADONA Rack Servers": (
-        "modern edge computing room with 1U/2U rack servers mounted in an open rack, "
-        "status LEDs green, cables organized with velcro ties, bright overhead lighting"
-    ),
+    "Diana Series PoE Switches": {
+        "header": (
+            "A cheerful Indian IT engineer in a bright orange safety vest smiling while "
+            "configuring a network rack in a modern glass-walled server room, colleagues "
+            "visible working in the background, warm natural light from large windows"
+        ),
+        "mid": (
+            "Isometric flat illustration of a PoE network switch at the center, "
+            "with colorful cable lines connecting to IP cameras, VoIP phones, WiFi APs "
+            "and IoT sensors arranged around it, clean white background, vibrant tech-infographic style"
+        ),
+    },
+    "Apollo WiFi 7 Access Points": {
+        "header": (
+            "Diverse group of Indian professionals in a modern open-plan office — "
+            "one person on a video call, another on a laptop, a third walking with a tablet — "
+            "ceiling-mounted access point subtly visible above them, bright and airy atmosphere"
+        ),
+        "mid": (
+            "Isometric illustration of a building floor plan with WiFi signal waves radiating "
+            "from access points across rooms, people icons in each zone with connected devices, "
+            "pastel color palette, clean tech-diagram aesthetic"
+        ),
+    },
+    "Helios Enterprise NAS": {
+        "header": (
+            "Indian data center technician in smart casuals reviewing a holographic-style "
+            "dashboard on a large monitor, NAS storage rack glowing softly behind her, "
+            "clean modern facility, confident professional expression"
+        ),
+        "mid": (
+            "Flat vector illustration showing data flowing as glowing streams from "
+            "office buildings, hospitals, and banks into a central NAS vault icon, "
+            "RAID shield symbol, padlock, and cloud sync icons surrounding it, teal and navy palette"
+        ),
+    },
+    "Cat6 AADONA Cabling": {
+        "header": (
+            "Young Indian cabling technician neatly routing colorful Cat6 cables through "
+            "a cable tray in a bright commercial building, kneeling and focused, "
+            "tool belt visible, warm construction-site lighting"
+        ),
+        "mid": (
+            "Cross-section isometric diagram of a multi-floor office building showing "
+            "structured cabling running floor to floor, color-coded cable paths, "
+            "patch panels and server rooms at each level, blueprint illustration style"
+        ),
+    },
+    "AADONA IP Surveillance / CCTV Systems": {
+        "header": (
+            "Indian security manager in a control room monitoring a wall of screens "
+            "showing live camera feeds from a mall, confident posture, blue ambient "
+            "screen glow on face, modern professional setting"
+        ),
+        "mid": (
+            "Top-down isometric illustration of a retail store and warehouse with "
+            "dome camera coverage zones shown as translucent colored arcs, "
+            "NVR unit in corner, clean and graphic, security-infographic style"
+        ),
+    },
+    "AADONA Rack Servers": {
+        "header": (
+            "Two Indian developers in a startup office high-fiving in front of a "
+            "deployed edge server rack, laptops and coffee cups on nearby desks, "
+            "energetic and celebratory atmosphere, bright modern coworking space"
+        ),
+        "mid": (
+            "Isometric illustration of a 1U rack server exploded-view diagram showing "
+            "CPU, RAM sticks, NVMe drives, and PSU labeled with callout lines, "
+            "clean white background, technical-but-friendly infographic style"
+        ),
+    },
 }
 
 SHOT_TYPES = [
@@ -201,12 +249,15 @@ SHOT_TYPES = [
     "detail close-up of the hardware front panel and ports",
 ]
 
-IMAGE_NEGATIVE_PROMPT = (
-    "STRICTLY AVOID: neon lighting, cyberpunk aesthetics, glowing blue or teal light trails, "
-    "HDR color grading, sci-fi elements, dark moody backgrounds, robotic arms, holographic displays, "
-    "overly dramatic shadows, fantasy server rooms, green matrix effects, glowing shields, "
-    "unrealistic color casts, extreme bokeh that hides the subject. "
-    "This must look like an authentic corporate IT photograph taken by a professional photographer."
+IMAGE_NEGATIVE_PROMPT_HEADER = (
+    "AVOID: empty rooms with no people, pure stock-photo server rooms with zero humans, "
+    "dark moody lighting, sci-fi neon, holographic displays, robotic arms, "
+    "text overlays, watermarks, logos, blurry faces, overly staged poses."
+)
+
+IMAGE_NEGATIVE_PROMPT_MID = (
+    "AVOID: photorealistic rendering, dark backgrounds, neon cyberpunk glow, "
+    "cluttered layouts, 3D renders with heavy shadows, text labels, watermarks, logos."
 )
 
 # ==========================================
@@ -740,38 +791,39 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
         f"?text=AADONA+{idea['WINNER_PRODUCT'].replace(' ', '+')}"
     )
 
-    scene = PRODUCT_SCENES.get(
-        idea['WINNER_PRODUCT'],
-        f"enterprise IT infrastructure in a modern Indian office related to {idea['WINNER_PRODUCT']}"
-    )
-    shot = get_shot_type(idea['BLOG_TITLE'])
+    scene_data = PRODUCT_SCENES.get(idea['WINNER_PRODUCT'], None)
+
+    if scene_data:
+        scene = scene_data[image_type]
+    else:
+        # fallback
+        if image_type == "header":
+            scene = f"Indian IT professional working with {idea['WINNER_PRODUCT']} in a modern office"
+        else:
+            scene = f"isometric flat illustration of {idea['WINNER_PRODUCT']} in an enterprise network diagram"
 
     if image_type == "header":
         log.info("Stage 3a: Generating header image...")
         prompt = (
-            f"LANDSCAPE WIDE PHOTO, 16:9 aspect ratio. "
-            f"Professional enterprise IT photography, realistic and authentic. "
-            f"Scene: {scene}. Shot type: {shot}. "
-            f"Lighting: bright, neutral white overhead lighting — realistic corporate environment. "
-            f"Color grading: natural, accurate colors, no heavy post-processing. "
-            f"Style: editorial corporate photography, clean and professional. "
-            f"Context: related to {idea['WINNER_TREND']} in Indian enterprise. "
-            f"IMPORTANT: horizontal landscape orientation, much wider than tall. "
-            f"{IMAGE_NEGATIVE_PROMPT} No text, no logos, no watermarks."
+            f"DIGITAL ILLUSTRATION or EDITORIAL PHOTO, landscape 16:9. "
+            f"Style: warm, human, professional — could be flat illustration OR cinematic editorial. "
+            f"Scene: {scene}. "
+            f"Mood: optimistic, modern, trustworthy — fits a premium Indian tech brand's website. "
+            f"Color palette: clean whites, warm neutrals, with one accent color (blue or orange). "
+            f"Topic context: {idea['WINNER_TREND']} in Indian enterprise IT. "
+            f"{IMAGE_NEGATIVE_PROMPT_HEADER}"
         )
         filename = f"blog_header_{int(time.time())}.webp"
     else:
         log.info("Stage 3b: Generating mid-blog image...")
         prompt = (
-            f"LANDSCAPE PRODUCT PHOTO, 16:9 aspect ratio. "
-            f"Clean professional hardware product photography of {idea['WINNER_PRODUCT']}. "
-            f"Setting: white or light grey studio background with soft, diffused studio lighting. "
-            f"Show clearly: front panel design, physical ports, indicator LEDs, form factor. "
-            f"Shot type: detail close-up of the hardware, sharp focus across the entire product. "
-            f"Style: catalogue-quality hardware photography with accurate, true-to-life colors. "
-            f"Context: {idea['WINNER_PRODUCT']} hardware used for {idea['WINNER_TREND']}. "
-            f"IMPORTANT: horizontal landscape orientation, much wider than tall. "
-            f"{IMAGE_NEGATIVE_PROMPT} No text, no logos, no watermarks."
+            f"FLAT VECTOR ILLUSTRATION or ISOMETRIC DIAGRAM, landscape 16:9. "
+            f"Style: clean tech infographic — like a SaaS website hero illustration. "
+            f"Scene: {scene}. "
+            f"Context: explaining {idea['WINNER_PRODUCT']} capabilities for {idea['WINNER_TREND']}. "
+            f"Color palette: 3–4 colors max, professional blues/teals/oranges on white or light grey. "
+            f"Everything clearly readable, visually balanced, no clutter. "
+            f"{IMAGE_NEGATIVE_PROMPT_MID}"
         )
         filename = f"blog_mid_{int(time.time())}.webp"
 
