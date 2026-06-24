@@ -170,76 +170,190 @@ Do NOT stuff them. Weave them in where they fit contextually.
 # ==========================================
 PRODUCT_SCENES = {
     "Diana Series PoE Switches": {
-        "header": (
-            "A cheerful Indian IT engineer in a bright orange safety vest smiling while "
-            "configuring a network rack in a modern glass-walled server room, colleagues "
-            "visible working in the background, warm natural light from large windows"
-        ),
-        "mid": (
-            "Isometric flat illustration of a PoE network switch at the center, "
-            "with colorful cable lines connecting to IP cameras, VoIP phones, WiFi APs "
-            "and IoT sensors arranged around it, clean white background, vibrant tech-infographic style"
-        ),
+        "header": [
+            (
+                "A cheerful Indian IT engineer in a bright orange safety vest smiling while "
+                "configuring a network rack in a modern glass-walled server room, colleagues "
+                "visible working in the background, warm natural light from large windows"
+            ),
+            (
+                "Indian network engineer crouching beside an open server rack, carefully "
+                "plugging in patch cables, focused expression, bright and clean IT room, "
+                "cable management visible in background"
+            ),
+            (
+                "Two Indian IT professionals in a modern office discussing a network diagram "
+                "on a laptop, PoE switch visible on the desk between them, bright collaborative "
+                "workspace, natural daylight"
+            ),
+        ],
+        "mid": [
+            (
+                "Isometric flat illustration of a PoE network switch at the center, "
+                "with colorful cable lines connecting to IP cameras, VoIP phones, WiFi APs "
+                "and IoT sensors arranged around it, clean white background, vibrant tech-infographic style"
+            ),
+            (
+                "Flat vector diagram showing a PoE switch powering a smart building — "
+                "icons of cameras, phones, access points, and sensors branching out from "
+                "a central switch icon, connected by clean colored lines, minimal SaaS illustration style"
+            ),
+        ],
     },
     "Apollo WiFi 7 Access Points": {
-        "header": (
-            "Diverse group of Indian professionals in a modern open-plan office — "
-            "one person on a video call, another on a laptop, a third walking with a tablet — "
-            "ceiling-mounted access point subtly visible above them, bright and airy atmosphere"
-        ),
-        "mid": (
-            "Isometric illustration of a building floor plan with WiFi signal waves radiating "
-            "from access points across rooms, people icons in each zone with connected devices, "
-            "pastel color palette, clean tech-diagram aesthetic"
-        ),
+        "header": [
+            (
+                "Diverse group of Indian professionals in a modern open-plan office — "
+                "one person on a video call, another on a laptop, a third walking with a tablet — "
+                "ceiling-mounted access point subtly visible above them, bright and airy atmosphere"
+            ),
+            (
+                "Indian hotel concierge helping a guest check in on a tablet in a bright modern "
+                "hotel lobby, ceiling WiFi access point visible above, warm welcoming lighting, "
+                "professional hospitality setting"
+            ),
+            (
+                "University students collaborating around laptops in a modern Indian campus "
+                "library, ceiling-mounted access points visible, bright natural light, "
+                "energetic and focused atmosphere"
+            ),
+        ],
+        "mid": [
+            (
+                "Isometric illustration of a building floor plan with WiFi signal waves radiating "
+                "from access points across rooms, people icons in each zone with connected devices, "
+                "pastel color palette, clean tech-diagram aesthetic"
+            ),
+            (
+                "Flat vector diagram of a hospital floor plan showing WiFi APs covering each ward, "
+                "patient icons, nurse station, and connected medical devices, teal and white palette, "
+                "clean infographic style"
+            ),
+        ],
     },
     "Helios Enterprise NAS": {
-        "header": (
-            "Indian data center technician in smart casuals reviewing a holographic-style "
-            "dashboard on a large monitor, NAS storage rack glowing softly behind her, "
-            "clean modern facility, confident professional expression"
-        ),
-        "mid": (
-            "Flat vector illustration showing data flowing as glowing streams from "
-            "office buildings, hospitals, and banks into a central NAS vault icon, "
-            "RAID shield symbol, padlock, and cloud sync icons surrounding it, teal and navy palette"
-        ),
+        "header": [
+            (
+                "Indian data center technician in smart casuals reviewing a dashboard "
+                "on a large monitor, NAS storage rack behind her, "
+                "clean modern facility, confident professional expression"
+            ),
+            (
+                "Indian IT manager in a glass-walled server room pointing at a large NAS unit "
+                "in a rack, explaining to a colleague, both in business casuals, "
+                "bright overhead lighting, professional enterprise setting"
+            ),
+            (
+                "Young Indian woman in smart casuals working on a laptop in a modern office, "
+                "large external NAS storage unit visible on the desk beside her, "
+                "warm natural light, focused and productive atmosphere"
+            ),
+        ],
+        "mid": [
+            (
+                "Flat vector illustration showing data flowing as streams from "
+                "office buildings, hospitals, and banks into a central NAS vault icon, "
+                "RAID shield symbol, padlock, and cloud sync icons surrounding it, teal and navy palette"
+            ),
+            (
+                "Isometric diagram of a NAS storage unit with RAID drive bays labeled, "
+                "arrows showing backup flows to cloud and local devices, "
+                "clean white background, enterprise infographic style"
+            ),
+        ],
     },
-    "Cat6 AADONA Cabling": {
-        "header": (
-            "Young Indian cabling technician neatly routing colorful Cat6 cables through "
-            "a cable tray in a bright commercial building, kneeling and focused, "
-            "tool belt visible, warm construction-site lighting"
-        ),
-        "mid": (
-            "Cross-section isometric diagram of a multi-floor office building showing "
-            "structured cabling running floor to floor, color-coded cable paths, "
-            "patch panels and server rooms at each level, blueprint illustration style"
-        ),
+    "AADONA Cat6 / Cat6A Structured Cabling": {
+        "header": [
+            (
+                "Young Indian cabling technician neatly routing colorful Cat6 cables through "
+                "a cable tray in a bright commercial building, kneeling and focused, "
+                "tool belt visible, warm construction-site lighting"
+            ),
+            (
+                "Indian infrastructure technician in a hard hat organizing patch cables "
+                "in a wall-mounted patch panel, bright data center corridor, "
+                "professional and precise work environment"
+            ),
+            (
+                "Two Indian engineers in hi-vis vests running structured cabling through "
+                "a raised floor in a new office build, cable reels visible, "
+                "bright construction lighting, teamwork atmosphere"
+            ),
+        ],
+        "mid": [
+            (
+                "Cross-section isometric diagram of a multi-floor office building showing "
+                "structured cabling running floor to floor, color-coded cable paths, "
+                "patch panels and server rooms at each level, blueprint illustration style"
+            ),
+            (
+                "Flat vector illustration of a Cat6 cable anatomy — outer jacket, foil shield, "
+                "twisted pairs color-coded, with callout labels for each layer, "
+                "clean white background, technical explainer style"
+            ),
+        ],
     },
     "AADONA IP Surveillance / CCTV Systems": {
-        "header": (
-            "Indian security manager in a control room monitoring a wall of screens "
-            "showing live camera feeds from a mall, confident posture, blue ambient "
-            "screen glow on face, modern professional setting"
-        ),
-        "mid": (
-            "Top-down isometric illustration of a retail store and warehouse with "
-            "dome camera coverage zones shown as translucent colored arcs, "
-            "NVR unit in corner, clean and graphic, security-infographic style"
-        ),
+        "header": [
+            (
+                "Indian security manager in a control room monitoring a wall of screens "
+                "showing live camera feeds from a mall, confident posture, blue ambient "
+                "screen glow on face, modern professional setting"
+            ),
+            (
+                "Indian retail store manager reviewing CCTV footage on a monitor in a back office, "
+                "dome cameras visible through the glass partition into the store floor, "
+                "bright and professional setting"
+            ),
+            (
+                "Indian warehouse supervisor in a safety vest walking the floor while "
+                "dome cameras are clearly visible mounted on ceiling above, "
+                "large organized warehouse, bright industrial lighting"
+            ),
+        ],
+        "mid": [
+            (
+                "Top-down isometric illustration of a retail store and warehouse with "
+                "dome camera coverage zones shown as translucent colored arcs, "
+                "NVR unit in corner, clean and graphic, security-infographic style"
+            ),
+            (
+                "Flat vector diagram showing a CCTV ecosystem — IP cameras connecting via "
+                "PoE switch to an NVR, NVR connecting to a monitor and cloud storage, "
+                "clean flow diagram style, blue and orange palette"
+            ),
+        ],
     },
     "AADONA Rack Servers": {
-        "header": (
-            "Two Indian developers in a startup office high-fiving in front of a "
-            "deployed edge server rack, laptops and coffee cups on nearby desks, "
-            "energetic and celebratory atmosphere, bright modern coworking space"
-        ),
-        "mid": (
-            "Isometric illustration of a 1U rack server exploded-view diagram showing "
-            "CPU, RAM sticks, NVMe drives, and PSU labeled with callout lines, "
-            "clean white background, technical-but-friendly infographic style"
-        ),
+        "header": [
+            (
+                "Two Indian developers in a startup office high-fiving in front of a "
+                "deployed edge server rack, laptops and coffee cups on nearby desks, "
+                "energetic and celebratory atmosphere, bright modern coworking space"
+            ),
+            (
+                "Indian system administrator in a clean server room typing on a laptop "
+                "connected to a 1U rack server, status LEDs visible, "
+                "organized cables, focused professional environment"
+            ),
+            (
+                "Indian IT team of three gathered around a newly installed server rack "
+                "in a small edge computing room, one person pointing at the unit, "
+                "others looking at a tablet, collaborative and excited atmosphere"
+            ),
+        ],
+        "mid": [
+            (
+                "Isometric illustration of a 1U rack server exploded-view diagram showing "
+                "CPU, RAM sticks, NVMe drives, and PSU labeled with callout lines, "
+                "clean white background, technical-but-friendly infographic style"
+            ),
+            (
+                "Flat vector diagram of an edge computing setup — rack server at center "
+                "connecting to local IoT devices, cloud, and end-user devices, "
+                "arrows showing data flow, minimal SaaS illustration style, navy and orange palette"
+            ),
+        ],
     },
 }
 
@@ -794,14 +908,18 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
     scene_data = PRODUCT_SCENES.get(idea['WINNER_PRODUCT'], None)
 
     if scene_data:
-        scene = scene_data[image_type]
+        variants = scene_data[image_type]
+        if isinstance(variants, list):
+            idx = int(hashlib.md5(idea['BLOG_TITLE'].encode()).hexdigest(), 16)
+            scene = variants[idx % len(variants)]
+        else:
+            scene = variants
     else:
-        # fallback
         if image_type == "header":
             scene = f"Indian IT professional working with {idea['WINNER_PRODUCT']} in a modern office"
         else:
             scene = f"isometric flat illustration of {idea['WINNER_PRODUCT']} in an enterprise network diagram"
-
+            
     if image_type == "header":
         log.info("Stage 3a: Generating header image...")
         prompt = (
