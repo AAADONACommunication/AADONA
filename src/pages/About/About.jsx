@@ -50,12 +50,13 @@ const useFadeIn = () => {
 };
 
 /* -------- Animated wrapper -------- */
-const FadeCard = ({ children, delay = '0ms' }) => {
+/* visible=true → already in view on load, no hidden start */
+const FadeCard = ({ children, delay = '0ms', visible = false }) => {
   const ref = useFadeIn();
   return (
     <div
       ref={ref}
-      className="opacity-0 translate-y-6 transition-all duration-700 ease-out"
+      className={`transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
       style={{ transitionDelay: delay }}
     >
       {children}
@@ -499,7 +500,7 @@ const About = () => {
           <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
             Our Story
           </h1>
-          <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+          <p className="mt-6 text-md text-white max-w-3xl mx-auto">
             Building India's premium networking technology brand
           </p>
         </div>
@@ -514,11 +515,11 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-10">
 
           {/* ── 1. Going Beyond Vision (docx opening paragraph) ── */}
-          <FadeCard delay="0ms">
+          <FadeCard delay="0ms" visible>
             <article className={liftCard}>
-              {/* <p className="text-xs font-bold tracking-[4px] text-orange-500 uppercase mb-1">About</p> */}
-              <h2 className="text-3xl font-black text-green-700 tracking-widest mb-0.5">AADONA<sup className="text-green-700 text-sm align-super">®</sup></h2>
-              <p className="text-xs font-bold tracking-[3px] text-green-700 uppercase mb-5">Going Beyond Vision</p>
+              <p className="text-xs font-bold tracking-[4px] text-orange-500 uppercase mb-1">About</p>
+              <h2 className="text-3xl font-black text-green-700 tracking-widest mb-0.5">AADONA<sup className="text-green-500 text-sm align-super">®</sup></h2>
+              <p className="text-xs font-bold tracking-[3px] text-green-600 uppercase mb-5">Going Beyond Vision</p>
               <p className="text-lg leading-relaxed text-gray-700">
                 Every nation that aspires to lead in the digital era must build its own technology capabilities.
                 For decades, Indian businesses, government institutions, and enterprises have relied heavily on
@@ -534,7 +535,7 @@ const About = () => {
           </FadeCard>
 
           {/* ── 2. Who We Are — founding story ── */}
-          <FadeCard delay="80ms">
+          <FadeCard delay="80ms" visible>
             <article className={liftCard}>
               <h2 className="text-xl font-bold text-green-800 mb-4">Who We Are</h2>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -557,7 +558,7 @@ const About = () => {
           </FadeCard>
 
           {/* ── IMAGE 2: Proudly Indian / Globally Ambitious ── */}
-          <FadeCard delay="140ms">
+          <FadeCard delay="140ms" visible>
             <IdentityBanner />
           </FadeCard>
 
