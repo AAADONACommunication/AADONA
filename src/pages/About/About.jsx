@@ -215,7 +215,7 @@ const IdentityBanner = () => {
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-md border border-green-200">
-      <div className="bg-gradient-to-r from-[#0d1b3e] via-[#1a2f5a] to-[#0f3460] px-6 py-8">
+      <div className="bg-gradient-to-r from-[#0f2e7b] via-[#375591] to-[#0f3460] px-6 py-8">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex-1">
             <p className="text-xs font-bold tracking-widest text-orange-400 uppercase mb-4">Proudly Indian</p>
@@ -252,7 +252,7 @@ const IdentityBanner = () => {
           </div>
         </div>
       </div>
-      <div className="bg-[#0d1b3e] border-t border-white/10 px-6 py-4">
+      <div className="bg-[#162959] border-t border-white/10 px-6 py-4">
         <div className="flex flex-wrap justify-around gap-4">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
@@ -324,7 +324,7 @@ const JourneyTimeline = () => {
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-6 relative z-10">
           {milestones.map((m) => (
             <div key={m.year} className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-[#0d1b3e] border-4 border-green-500 flex items-center justify-center text-2xl mb-3 shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-[#11224f] border-4 border-green-500 flex items-center justify-center text-2xl mb-3 shadow-lg">
                 {m.icon}
               </div>
               <div className="text-lg font-black text-orange-500">{m.year}</div>
@@ -334,7 +334,7 @@ const JourneyTimeline = () => {
           ))}
         </div>
       </div>
-      <div className="mt-8 pt-5 border-t border-gray-100 bg-[#0d1b3e] rounded-xl px-6 py-4">
+      <div className="mt-8 pt-5 border-t border-gray-100 bg-[#162d69] rounded-xl px-6 py-4">
         <div className="flex flex-wrap justify-around gap-4">
           {bottomStats.map((s) => (
             <div key={s.label} className="text-center">
