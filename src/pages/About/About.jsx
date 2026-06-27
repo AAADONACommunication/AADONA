@@ -5,6 +5,40 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import bg from '../../assets/bg.jpg';
 import aboutusbanner from '../../assets/ourstory.avif';
+import {
+  Cpu,
+  Lightbulb,
+  ShieldCheck,
+  Users,
+  Landmark,
+  Handshake,
+  Award,
+  BadgeCheck,
+  ShoppingBag,
+  Building2,
+  Shield,
+  Rocket,
+  Map,
+  TrendingUp,
+  Factory,
+  Globe,
+  CalendarDays,
+  MapPinned,
+  Building,
+  Zap,
+  UsersRound,
+  Globe2,
+  Wifi,
+  Camera,
+  Network,
+  Server,
+  HardDrive,
+  Archive,
+  Cable,
+  Package,
+  Flag,
+  Cloud,
+} from "lucide-react";
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -101,7 +135,7 @@ const CoreStrengths = () => {
   const strengths = [
     {
       title: 'TECHNOLOGY',
-      icon: '🔬',
+      icon: Cpu,
       desc: 'Future-ready networking solutions built with advanced technology and engineering excellence.',
       note: 'We leverage the latest technology to deliver high-performance, secure and scalable networking products.',
       color: '#1e6fb5',
@@ -109,7 +143,7 @@ const CoreStrengths = () => {
     },
     {
       title: 'INNOVATION',
-      icon: '💡',
+      icon: Lightbulb,
       desc: 'Continuous innovation that creates value and addresses real-world business challenges.',
       note: 'We constantly innovate to develop smarter solutions that help our customers stay ahead of tomorrow.',
       color: '#1a8fa0',
@@ -117,7 +151,7 @@ const CoreStrengths = () => {
     },
     {
       title: 'QUALITY',
-      icon: '✅',
+      icon: ShieldCheck,
       desc: 'Committed to global quality standards to ensure reliability, durability and performance.',
       note: 'Every product goes through stringent testing and quality processes to ensure maximum reliability.',
       color: '#4a2d8a',
@@ -125,7 +159,7 @@ const CoreStrengths = () => {
     },
     {
       title: 'CUSTOMER CENTRICITY',
-      icon: '👥',
+      icon: Users,
       desc: 'We listen, we understand and we deliver solutions that exceed customer expectations.',
       note: 'Our customers are at the heart of every decision we make.',
       color: '#f07c22',
@@ -133,7 +167,7 @@ const CoreStrengths = () => {
     },
     {
       title: 'MAKE IN INDIA',
-      icon: '🇮🇳',
+      icon: Landmark,
       desc: 'Proudly aligned with Make in India vision for self-reliance and nation building.',
       note: 'We are building Indian technology for India and the world.',
       color: '#27843f',
@@ -141,11 +175,11 @@ const CoreStrengths = () => {
     },
     {
       title: 'PARTNER SUCCESS',
-      icon: '🤝',
+      icon: Handshake,
       desc: 'Growing together with our partners through trust, transparency and shared success.',
       note: 'Our partner ecosystem is the strength behind our Pan India presence and growth.',
-      color: '#1a5c2e',
-      bg: '#e6f0e9',
+      color: '#B45309',
+bg: '#FEF3C7',
     },
   ];
 
@@ -159,7 +193,9 @@ const CoreStrengths = () => {
         <p className="text-sm text-gray-500 mt-2">Six pillars that define how we think, build, and deliver.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {strengths.map((s) => (
+        {strengths.map((s) => {
+          const Icon = s.icon;
+          return (
           <div
             key={s.title}
             className="rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg relative overflow-hidden"
@@ -167,10 +203,14 @@ const CoreStrengths = () => {
           >
             <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl" style={{ background: s.color }} />
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-3 mt-1"
+              className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 mt-1"
               style={{ background: s.bg }}
             >
-              {s.icon}
+              <Icon
+                size={22}
+                strokeWidth={2}
+                style={{ color: s.color }}
+              />
             </div>
             <h3 className="text-sm font-bold tracking-wide mb-2" style={{ color: s.color }}>
               {s.title}
@@ -178,7 +218,8 @@ const CoreStrengths = () => {
             <p className="text-sm text-gray-600 leading-relaxed">{s.desc}</p>
             <p className="text-xs italic mt-2 font-medium" style={{ color: s.color + 'cc' }}>{s.note}</p>
           </div>
-        ))}
+          );
+     })}
       </div>
       {/* <div className="mt-8 pt-5 border-t border-gray-100 flex flex-wrap gap-4 justify-center text-xs text-gray-500">
         <span>📧 contact@aadona.com</span>
@@ -192,18 +233,18 @@ const CoreStrengths = () => {
 /* -------- IMAGE 2: Proudly Indian / Globally Ambitious — recreated in code -------- */
 const IdentityBanner = () => {
   const indian = [
-    { icon: '🏅', label: 'Start-up India Recognized' },
-    { icon: '🐯', label: 'Make in India Inspired' },
-    { icon: '🏛️', label: 'DPIIT Registered' },
-    { icon: '📋', label: 'ISO Certified' },
-    { icon: '™️', label: 'Trademark Protected' },
+    { icon: Award, label: 'Start-up India Recognized' },
+    { icon: Flag, label: 'Make in India Inspired' },
+    { icon: Landmark, label: 'DPIIT Registered' },
+    { icon: BadgeCheck, label: 'ISO Certified' },
+    { icon: ShieldCheck, label: 'Trademark Protected' },
   ];
   const global = [
-    { icon: '🏢', label: 'Enterprise Networking' },
-    { icon: '☁️', label: 'Digital Infrastructure' },
-    { icon: '📍', label: 'PAN India Presence' },
-    { icon: '⚙️', label: 'Manufacturing Vision' },
-    { icon: '🌏', label: 'Future Global Expansion' },
+    { icon: Building2, label: 'Enterprise Networking' },
+    { icon: Cloud, label: 'Digital Infrastructure' },
+    { icon: MapPinned, label: 'PAN India Presence' },
+    { icon: Factory, label: 'Manufacturing Vision' },
+    { icon: Globe2, label: 'Future Global Expansion' },
   ];
   const stats = [
     { num: '2018', label: 'Founded', sub: 'Under Start-up India' },
@@ -215,17 +256,26 @@ const IdentityBanner = () => {
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-md border border-green-200">
-      <div className="bg-gradient-to-r from-[#0f2e7b] via-[#375591] to-[#0f3460] px-6 py-8">
+      <div className="bg-gradient-to-r from-[#081C4D] via-[#123C8C] to-[#081C4D] px-6 py-8">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex-1">
             <p className="text-xs font-bold tracking-widest text-orange-400 uppercase mb-4">Proudly Indian</p>
             <div className="flex flex-col gap-2">
-              {indian.map((i) => (
-                <div key={i.label} className="flex items-center gap-3">
-                  <span className="text-lg">{i.icon}</span>
-                  <span className="text-sm text-white/80 font-medium">{i.label}</span>
-                </div>
-              ))}
+              {indian.map((i) => {
+                const Icon = i.icon;
+
+                return (
+                  <div key={i.label} className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center">
+                      <Icon size={18} className="text-orange-400" />
+                    </div>
+
+                    <span className="text-sm text-white/80 font-medium">
+                      {i.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className="flex-1 text-center">
@@ -235,19 +285,27 @@ const IdentityBanner = () => {
             <div className="text-xs font-bold tracking-[3px] text-green-400 uppercase mt-1">Going Beyond Vision</div>
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
               {['Enterprise Networking', 'Digital Infrastructure', 'PAN India', 'Manufacturing Vision', 'Global Expansion'].map(t => (
-                <span key={t} className="bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs text-white/70">{t}</span>
+                <span key={t} className="bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 rounded-full px-3 py-1 text-xs text-white/70">{t}</span>
               ))}
             </div>
           </div>
           <div className="flex-1 text-right">
             <p className="text-xs font-bold tracking-widest text-orange-400 uppercase mb-4">Globally Ambitious</p>
             <div className="flex flex-col gap-2 items-end">
-              {global.map((i) => (
-                <div key={i.label} className="flex items-center gap-3">
-                  <span className="text-sm text-white/80 font-medium">{i.label}</span>
-                  <span className="text-lg">{i.icon}</span>
-                </div>
-              ))}
+              {global.map((i) => {
+                const Icon = i.icon;
+                return (
+                  <div key={i.label} className="flex items-center gap-3">
+                    <span className="text-sm text-white/80 font-medium">
+                      {i.label}
+                    </span>
+
+                    <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center">
+                      <Icon size={18} className="text-orange-400" />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -274,38 +332,38 @@ const IdentityBanner = () => {
 const JourneyTimeline = () => {
   const milestones = [
     {
-      year: '2018', phase: 'The Beginning', icon: '🚀',
+      year: '2018', phase: 'The Beginning', icon: Rocket,
       desc: 'AADONA was founded under the Start-up India Initiative by three passionate technology enthusiasts with a vision to build a premium networking technology brand from India.',
     },
     {
-      year: '2019', phase: 'Building Our Foundation', icon: '🗺️',
+      year: '2019', phase: 'Building Our Foundation', icon: Map,
       desc: 'Focused on product development, quality standards and building a strong PAN India partner network to bring AADONA solutions closer to businesses.',
     },
     {
-      year: '2021', phase: 'Expanding Horizons', icon: '🤝',
+      year: '2021', phase: 'Expanding Horizons', icon: Handshake,
       desc: 'Expanded portfolio and strengthened presence in Enterprise & Government projects. Earned trust across industries through reliable, smart and cost-efficient solutions.',
     },
     {
-      year: '2023', phase: 'Scaling New Heights', icon: '📈',
+      year: '2023', phase: 'Scaling New Heights', icon: TrendingUp,
       desc: 'Strengthened distribution and system integrator ecosystem. Enhanced service capabilities and invested in infrastructure to support growing customer expectations.',
     },
     {
-      year: '2025', phase: 'Manufacturing Vision', icon: '🏭',
+      year: '2025', phase: 'Manufacturing Vision', icon: Factory,
       desc: 'Deepening commitment to Make in India. Expanding manufacturing capabilities and building future-ready networking solutions for a digital India.',
     },
     {
-      year: '2026+', phase: 'Indian MNC in the Making', icon: '🌍',
+      year: '2026+', phase: 'Indian MNC in the Making', icon: Globe,
       desc: 'Pioneering innovation, exploring global markets and moving confidently towards becoming a globally recognised Indian technology brand.',
     },
   ];
 
   const bottomStats = [
-    { icon: '💡', label: 'Founded in 2018', sub: 'Under Start-up India' },
-    { icon: '📍', label: 'PAN India Presence', sub: 'Strong. Expanding.' },
-    { icon: '👥', label: 'Trusted by Enterprises', sub: 'Across Diverse Industries' },
-    { icon: '⚡', label: 'Innovative Solutions', sub: 'Smart. Scalable. Reliable.' },
-    { icon: '🤝', label: 'Growing Partner Ecosystem', sub: 'Stronger Together' },
-    { icon: '🌐', label: 'Future Ready India', sub: 'Connecting Tomorrow' },
+    { icon: CalendarDays, label: 'Founded in 2018', sub: 'Under Start-up India' },
+    { icon: MapPinned, label: 'PAN India Presence', sub: 'Strong. Expanding.' },
+    { icon: Building, label: 'Trusted by Enterprises', sub: 'Across Diverse Industries' },
+    { icon: Zap, label: 'Innovative Solutions', sub: 'Smart. Scalable. Reliable.' },
+    { icon: UsersRound, label: 'Growing Partner Ecosystem', sub: 'Stronger Together' },
+    { icon: Globe2, label: 'Future Ready India', sub: 'Connecting Tomorrow' },
   ];
 
   return (
@@ -322,27 +380,50 @@ const JourneyTimeline = () => {
       <div className="relative">
         <div className="hidden lg:block absolute top-8 left-0 right-0 h-0.5 bg-gradient-to-r from-green-500 via-blue-500 to-orange-500 z-0" />
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-6 relative z-10">
-          {milestones.map((m) => (
+          {milestones.map((m) => {
+            const Icon = m.icon;
+            return (
             <div key={m.year} className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-[#11224f] border-4 border-green-500 flex items-center justify-center text-2xl mb-3 shadow-lg">
-                {m.icon}
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1E3A8A] via-[#1E40AF] to-[#0F172A] border-4 border-emerald-400 flex items-center justify-center mb-3 shadow-xl shadow-blue-900/30 transition-all duration-300 group-hover:scale-110">
+                <Icon
+                  size={28}
+                  strokeWidth={2}
+                  className="text-white"
+                />
               </div>
               <div className="text-lg font-black text-orange-500">{m.year}</div>
               <div className="text-xs font-bold text-green-600 uppercase tracking-wide my-1">{m.phase}</div>
               <p className="text-xs text-gray-500 leading-relaxed">{m.desc}</p>
             </div>
-          ))}
+          );
+        })}
         </div>
       </div>
-      <div className="mt-8 pt-5 border-t border-gray-100 bg-[#162d69] rounded-xl px-6 py-4">
+      <div className="mt-8 pt-5 border border-white/10 bg-gradient-to-r from-[#0F2E7B] via-[#1E3A8A] to-[#0B1F52] rounded-2xl px-6 py-5 shadow-xl shadow-blue-900/30">
         <div className="flex flex-wrap justify-around gap-4">
-          {bottomStats.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-xl mb-1">{s.icon}</div>
-              <div className="text-orange-400 text-xs font-bold uppercase tracking-wide">{s.label}</div>
-              <div className="text-white/50 text-xs">{s.sub}</div>
-            </div>
-          ))}
+          {bottomStats.map((s) => {
+            const Icon = s.icon;
+
+            return (
+              <div key={s.label} className="text-center">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-2">
+                  <Icon
+                    size={20}
+                    strokeWidth={2}
+                    className="text-orange-400"
+                  />
+                </div>
+
+                <div className="text-orange-400 text-xs font-bold uppercase tracking-wide">
+                  {s.label}
+                </div>
+
+                <div className="text-white/50 text-xs">
+                  {s.sub}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -352,11 +433,11 @@ const JourneyTimeline = () => {
 /* -------- Recognised & Certified — merged into page flow -------- */
 const RecognisedCertified = () => {
   const certs = [
-    { icon: '🏅', label: 'Start-up India', sub: 'Registered under DIPP, Govt. of India' },
-    { icon: '📋', label: 'ISO Certified', sub: 'Quality management compliant' },
-    { icon: '🛒', label: 'GeM Marketplace', sub: 'Govt. e-Marketplace empanelled' },
-    { icon: '🏭', label: 'MSME / Udyam', sub: 'Officially registered' },
-    { icon: '™️', label: 'Registered Trademark', sub: 'AADONA brand trademarked in India' },
+    { icon: Award, label: 'Start-up India', sub: 'Registered under DIPP, Govt. of India' },
+    { icon: BadgeCheck, label: 'ISO Certified', sub: 'Quality management compliant' },
+    { icon: ShoppingBag, label: 'GeM Marketplace', sub: 'Govt. e-Marketplace empanelled' },
+    { icon: Building2, label: 'MSME / Udyam', sub: 'Officially registered' },
+    { icon: Shield, label: 'Registered Trademark', sub: 'AADONA brand trademarked in India' },
   ];
 
   return (
@@ -371,16 +452,26 @@ const RecognisedCertified = () => {
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {certs.map((c) => (
+        {certs.map((c) => {
+          const Icon = c.icon;
+
+          return (
           <div
             key={c.label}
             className="flex flex-col items-center text-center rounded-xl border border-green-100 bg-green-50 p-5 hover:border-green-400 hover:shadow-md transition-all duration-300"
           >
-            <span className="text-3xl mb-3">{c.icon}</span>
+            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-3">
+              <Icon
+                size={28}
+                strokeWidth={2}
+                className="text-green-700"
+              />
+            </div>
             <p className="text-sm font-bold text-green-800">{c.label}</p>
             <p className="text-xs text-gray-500 mt-1 leading-relaxed">{c.sub}</p>
           </div>
-        ))}
+        );
+     })}
       </div>
     </div>
   );
@@ -389,36 +480,61 @@ const RecognisedCertified = () => {
 /* -------- What We Make — merged into page flow -------- */
 const WhatWeMake = () => {
   const active = [
-    { label: 'Wireless', to: '/wireless', desc: 'Access points, routers & enterprise Wi-Fi solutions.', icon: '📡' },
-    { label: 'Surveillance', to: '/surveillance', desc: 'IP cameras, NVRs & complete CCTV systems.', icon: '📷' },
-    { label: 'Network Switches', to: '/networkswitches', desc: 'Managed & unmanaged switches for every scale.', icon: '🔀' },
-    { label: 'Industrial Switches', to: '/industrialswitches', desc: 'Ruggedised switches for harsh environments.', icon: '⚙️' },
-    { label: 'Servers & Workstations', to: '/serversandworkstations', desc: 'Rack servers & high-performance workstations.', icon: '🖥️' },
-    { label: 'NAS', to: '/networkattachedstorages', desc: 'Network attached storage for business data.', icon: '💾' },
+    { label: 'Wireless', to: '/wireless', desc: 'Access points, routers & enterprise Wi-Fi solutions.', icon: Wifi },
+    { label: 'Surveillance', to: '/surveillance', desc: 'IP cameras, NVRs & complete CCTV systems.', icon: Camera },
+    { label: 'Network Switches', to: '/networkswitches', desc: 'Managed & unmanaged switches for every scale.', icon: Network },
+    { label: 'Industrial Switches', to: '/industrialswitches', desc: 'Ruggedised switches for harsh environments.', icon: Factory },
+    { label: 'Servers & Workstations', to: '/serversandworkstations', desc: 'Rack servers & high-performance workstations.', icon: Server },
+    { label: 'NAS', to: '/networkattachedstorages', desc: 'Network attached storage for business data.', icon: HardDrive },
   ];
   const passive = [
-    { label: 'Racks', to: '/racks', desc: 'Server racks, wall mounts & enclosures.', icon: '🗄️' },
-    { label: 'Cables', to: '/cables', desc: 'CAT6, CAT6A, fiber optic & patch cables.', icon: '🔌' },
-    { label: 'Network Accessories', to: '/networkaccessories', desc: 'Patch panels, keystone jacks & cable managers.', icon: '🧰' },
+    { label: 'Racks', to: '/racks', desc: 'Server racks, wall mounts & enclosures.', icon: Archive },
+    { label: 'Cables', to: '/cables', desc: 'CAT6, CAT6A, fiber optic & patch cables.', icon: Cable },
+    { label: 'Network Accessories', to: '/networkaccessories', desc: 'Patch panels, keystone jacks & cable managers.', icon: Package },
   ];
 
-  const ProductCard = ({ item }) => (
+  const ProductCard = ({ item }) => {
+  const Icon = item.icon;
+
+  return (
     <Link
       to={item.to}
       className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50 hover:shadow-md transition-all duration-200 group"
     >
-      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-xl flex-shrink-0 group-hover:bg-green-200 transition-colors duration-200">
-        {item.icon}
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200 flex items-center justify-center">
+        <Icon
+          size={20}
+          strokeWidth={2}
+          className="text-green-700"
+        />
       </div>
+
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 group-hover:text-green-700 transition-colors duration-200">{item.label}</p>
-        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
+        <p className="text-sm font-semibold text-gray-800 group-hover:text-green-700">
+          {item.label}
+        </p>
+
+        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+          {item.desc}
+        </p>
       </div>
-      <svg className="w-4 h-4 text-gray-300 group-hover:text-green-500 mt-0.5 flex-shrink-0 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+
+      <svg
+        className="w-4 h-4 text-gray-300 group-hover:text-green-500 mt-0.5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 5l7 7-7 7"
+        />
       </svg>
     </Link>
   );
+};
 
   return (
     <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
