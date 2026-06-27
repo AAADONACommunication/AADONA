@@ -315,8 +315,6 @@ const DownloadTab = memo(({ datasheet, assemblyDiagram }) => {
         )}
       </div>
 
-      {/* ── Assembly Diagram — sirf tab show hoga jab URL ho ── */}
-
       {safeAssembly && (
         <div>
           <h3 className="text-[15px] font-black text-[#111] uppercase tracking-[0.12em] mb-6 border-l-[3px] border-[#00A859] pl-4">
