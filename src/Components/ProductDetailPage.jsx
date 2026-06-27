@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef, memo, lazy, Suspense } from "react";
-import { Download } from "lucide-react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import CheckCircle from "../assets/checkcircle.png";
+import { Download, Package, Check } from "lucide-react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -597,7 +597,7 @@ const ProductDetailPage = () => {
                           display: "flex", alignItems: "center", justifyContent: "center",
                           flexShrink: 0, marginTop: 1, boxShadow: "0 2px 6px rgba(0,168,89,0.3)"
                         }} aria-hidden="true">
-                          <span style={{ color: "#fff", fontSize: 9, fontWeight: 900 }}>✓</span>
+                          <Check size={11} strokeWidth={3} color="white"/>
                         </div>
                         <span style={{ fontSize: 13.5, color: "#333", fontWeight: 500, lineHeight: 1.5 }}>{feature}</span>
                       </li>
@@ -617,7 +617,25 @@ const ProductDetailPage = () => {
                   display: "flex", alignItems: "center", justifyContent: "center",
                   border: "1px solid rgba(0,168,89,0.15)"
                 }} aria-hidden="true">
-                  <span style={{ fontSize: 15 }}>📦</span>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: "50%",
+                      flexShrink: 0,
+                      background: "linear-gradient(135deg, #00c96e22, #00A85922)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1px solid rgba(0,168,89,0.15)"
+                    }}
+                  >
+                    <Package
+                      size={18}
+                      strokeWidth={2}
+                      color="#00A859"
+                    />
+                  </div>
                 </div>
                 <p style={{ fontSize: 11, color: "#888", fontWeight: 500, letterSpacing: "0.04em", lineHeight: 1.4 }}>
                   Inquire about <strong style={{ color: "#444" }}>volume pricing</strong> &amp; availability

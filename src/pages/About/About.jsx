@@ -59,7 +59,7 @@ const structuredData = {
 
 const liftCard =
   "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.01] hover:shadow-2xl hover:shadow-green-200/60";
 
 /* -------- Scroll-reveal hook -------- */
 const useFadeIn = () => {
@@ -71,27 +71,26 @@ const useFadeIn = () => {
       ([entry]) => {
         if (entry.isIntersecting) {
           el.classList.add('opacity-100', 'translate-y-0');
-          el.classList.remove('opacity-0', 'translate-y-6');
-          obs.disconnect();
+          el.classList.remove('opacity-0', 'translate-y-8');
+          obs.unobserve(el);
         }
       },
       { threshold: 0.15 }
     );
     obs.observe(el);
-    return () => obs.disconnect();
+    return () => obs.unobserve(el);
   }, []);
   return ref;
 };
 
 /* -------- Animated wrapper -------- */
-/* visible=true → already in view on load, no hidden start */
-const FadeCard = ({ children, delay = '0ms', visible = false }) => {
+const FadeCard = ({ children }) => {
   const ref = useFadeIn();
+
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-      style={{ transitionDelay: delay }}
+      className="opacity-0 translate-y-6 transition-all duration-700 ease-out"
     >
       {children}
     </div>
@@ -186,7 +185,6 @@ bg: '#FEF3C7',
   return (
     <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
       <div className="text-center mb-8">
-        <p className="text-xs font-bold tracking-widest text-orange-500 uppercase mb-2">What Sets Us Apart</p>
         <h2 className="text-2xl font-extrabold text-gray-900">
           The Core Strengths of <span className="text-green-700">AADONA</span>
         </h2>
@@ -369,7 +367,6 @@ const JourneyTimeline = () => {
   return (
     <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
       <div className="mb-8">
-        <p className="text-xs font-bold tracking-widest text-orange-500 uppercase mb-1">The AADONA Journey</p>
         <h2 className="text-2xl font-extrabold text-gray-900">
           From a Vision to a <span className="text-green-700">National Technology Brand</span>
         </h2>
@@ -383,7 +380,7 @@ const JourneyTimeline = () => {
           {milestones.map((m) => {
             const Icon = m.icon;
             return (
-            <div key={m.year} className="flex flex-col items-center text-center">
+            <div key={m.year} className="group flex flex-col items-center text-center">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1E3A8A] via-[#1E40AF] to-[#0F172A] border-4 border-emerald-400 flex items-center justify-center mb-3 shadow-xl shadow-blue-900/30 transition-all duration-300 group-hover:scale-110">
                 <Icon
                   size={28}
@@ -443,7 +440,6 @@ const RecognisedCertified = () => {
   return (
     <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
       <div className="mb-6">
-        <p className="text-xs font-bold tracking-widest text-orange-500 uppercase mb-1">Our Credentials</p>
         <h2 className="text-2xl font-extrabold text-gray-900">
           Recognised &amp; <span className="text-green-700">Certified</span>
         </h2>
@@ -499,13 +495,19 @@ const WhatWeMake = () => {
   return (
     <Link
       to={item.to}
-      className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50 hover:shadow-md transition-all duration-200 group"
+      className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50 hover:shadow-md transition-all duration-300 group hover:-translate-y-1"
     >
       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200 flex items-center justify-center">
         <Icon
           size={20}
           strokeWidth={2}
-          className="text-green-700"
+          className="
+            text-green-700
+            transition-all
+            duration-300
+            group-hover:scale-110
+            group-hover:rotate-6
+          "
         />
       </div>
 
@@ -520,7 +522,7 @@ const WhatWeMake = () => {
       </div>
 
       <svg
-        className="w-4 h-4 text-gray-300 group-hover:text-green-500 mt-0.5 flex-shrink-0"
+        className="w-4 h-4 text-gray-300 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-300"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -539,7 +541,6 @@ const WhatWeMake = () => {
   return (
     <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
       <div className="mb-6">
-        <p className="text-xs font-bold tracking-widest text-orange-500 uppercase mb-1">Our Products</p>
         <h2 className="text-2xl font-extrabold text-gray-900">
           What We <span className="text-green-700">Make</span>
         </h2>
@@ -631,9 +632,8 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-10">
 
           {/* ── 1. Going Beyond Vision (docx opening paragraph) ── */}
-          <FadeCard delay="0ms" visible>
+          <FadeCard>
             <article className={liftCard}>
-              <p className="text-xs font-bold tracking-[4px] text-orange-500 uppercase mb-1">About</p>
               <h2 className="text-3xl font-black text-green-700 tracking-widest mb-0.5">AADONA<sup className="text-green-500 text-sm align-super">®</sup></h2>
               <p className="text-xs font-bold tracking-[3px] text-green-600 uppercase mb-5">Going Beyond Vision</p>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -651,7 +651,7 @@ const About = () => {
           </FadeCard>
 
           {/* ── 2. Who We Are — founding story ── */}
-          <FadeCard delay="80ms" visible>
+          <FadeCard>
             <article className={liftCard}>
               <h2 className="text-xl font-bold text-green-800 mb-4">Who We Are</h2>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -674,12 +674,12 @@ const About = () => {
           </FadeCard>
 
           {/* ── IMAGE 2: Proudly Indian / Globally Ambitious ── */}
-          <FadeCard delay="140ms" visible>
+          <FadeCard>
             <IdentityBanner />
           </FadeCard>
 
           {/* ── 3. Our Purpose ── */}
-          <FadeCard delay="180ms">
+          <FadeCard>
             <article className={liftCard}>
               <h2 className="text-xl font-bold text-green-800 mb-4">Our Purpose</h2>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -699,12 +699,12 @@ const About = () => {
           </FadeCard>
 
           {/* ── Recognised & Certified — merged into page flow ── */}
-          <FadeCard delay="220ms">
+          <FadeCard>
             <RecognisedCertified />
           </FadeCard>
 
           {/* ── 4. The People Behind It ── */}
-          <FadeCard delay="260ms">
+          <FadeCard>
             <article className={liftCard}>
               <Link to="/leadershipTeam" className="group inline-flex items-center gap-2 mb-4">
                 <h2 className="text-xl font-bold text-green-800 group-hover:text-green-600 transition-colors duration-200">
@@ -731,12 +731,12 @@ const About = () => {
           </FadeCard>
 
           {/* ── IMAGE 1: Core Strengths ── */}
-          <FadeCard delay="300ms">
+          <FadeCard>
             <CoreStrengths />
           </FadeCard>
 
           {/* ── 5. Our Footprint Across India ── */}
-          <FadeCard delay="340ms">
+          <FadeCard>
             <article className={liftCard}>
               <h2 className="text-xl font-bold text-green-800 mb-4">Our Footprint Across India</h2>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -755,17 +755,17 @@ const About = () => {
           </FadeCard>
 
           {/* ── IMAGE 3: Journey Timeline ── */}
-          <FadeCard delay="380ms">
+          <FadeCard>
             <JourneyTimeline />
           </FadeCard>
 
           {/* ── What We Make — merged into page flow ── */}
-          <FadeCard delay="420ms">
+          <FadeCard>
             <WhatWeMake />
           </FadeCard>
 
           {/* ── 6. An Indian MNC in the Making ── */}
-          <FadeCard delay="460ms">
+          <FadeCard>
             <article className={liftCard}>
               <h2 className="text-xl font-bold text-green-800 mb-4">An Indian MNC in the Making</h2>
               <p className="text-lg leading-relaxed text-gray-700">
