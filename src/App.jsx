@@ -42,6 +42,9 @@ import ProtectedRoute from "./pages/admin/ProtectedRoute";
 const ProductDetailPage = lazy(() => import("./Components/ProductDetailPage"));
 const BlogDetail = lazy(() => import("./pages/Blogdetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SalesLogin = lazy(() => import("./pages/Sales/SalesLogin"));
+const SalesPanel = lazy(() => import("./pages/Sales/SalesPanel"));
+
 
 // GLOBAL COMPONENTS
 import Breadcrumbs from "./BreadCrumbs";
@@ -95,6 +98,10 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
+
+            {/* Sales */}
+            <Route path="sales-ctrl-500" element={<SalesLogin />}/>
+            <Route path="sales-portal-100" element={<SalesPanel />}/>
 
           {/* BLOG */}
           <Route path="/blog" element={<Blog />} />
