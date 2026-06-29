@@ -16,7 +16,7 @@ import Insights from "./tabs/Insights";
 import Newsletter from "./tabs/Newsletter";
 import BlogAutomation from "./tabs/BlogAutomation";
 import ManageSales from "./tabs/ManageSales";
-import ManageQuotationRequests from "./tabs/ManageQuotationRequests";
+// import ManageQuotationRequests from "./tabs/ManageQuotationRequests";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
@@ -229,7 +229,7 @@ export default function AdminPanel() {
               { id: "newsletter", label: "📧 Newsletter" },
               { id: "history", label: "📋 History" },
               { id: "sales", label: "👥 Sales Reps" },
-              { id: "quotation-requests", label: "📋 Quotation Requests" },
+              // { id: "quotation-requests", label: "📋 Quotation Requests" },
               { id: "insights", label: "📊 Insights" },
             ].map((tab) => (
               <button
@@ -289,9 +289,9 @@ export default function AdminPanel() {
 
           {activeTab === "sales" && <ManageSales />}
 
-          {activeTab === "quotationRequests" && (
+          {/* {activeTab === "quotationRequests" && (
             <ManageQuotationRequests />
-          )}
+          )} */}
 
           {activeTab === "insights" && <Insights />}
 
