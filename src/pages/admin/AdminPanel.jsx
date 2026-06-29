@@ -16,7 +16,7 @@ import Insights from "./tabs/Insights";
 import Newsletter from "./tabs/Newsletter";
 import BlogAutomation from "./tabs/BlogAutomation";
 import ManageSales from "./tabs/ManageSales";
-// import ManageQuotationRequests from "./tabs/ManageQuotationRequests";
+import ManageQuotationRequests from "./tabs/ManageQuotationRequests";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
@@ -82,7 +82,7 @@ export default function AdminPanel() {
 
   const loadBlogs = async () => {
     try {
-      const auth = await getFirebaseAuth(); // ✅
+      const auth = await getFirebaseAuth
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(BLOG_API, {
         headers: { Authorization: `Bearer ${token}` },
@@ -98,7 +98,7 @@ export default function AdminPanel() {
     if (silent && setRefreshing) setRefreshing(true);
     else if (setInquiriesLoading) setInquiriesLoading(true);
     try {
-      const auth = await getFirebaseAuth(); // ✅
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(INQUIRY_API, {
         headers: { Authorization: `Bearer ${token}` },
@@ -119,7 +119,7 @@ export default function AdminPanel() {
   // ── Auth Guard + Initial Load ──
   useEffect(() => {
     let unsubscribe;
-    getFirebaseAuth().then((auth) => { // ✅
+    getFirebaseAuth().then((auth) => {
       unsubscribe = onAuthStateChanged(auth, (user) => {
         if (user) {
           loadProducts();
@@ -229,7 +229,7 @@ export default function AdminPanel() {
               { id: "newsletter", label: "📧 Newsletter" },
               { id: "history", label: "📋 History" },
               { id: "sales", label: "👥 Sales Reps" },
-              // { id: "quotation-requests", label: "📋 Quotation Requests" },
+              { id: "quotation-requests", label: "📋 Quotation Requests" },
               { id: "insights", label: "📊 Insights" },
             ].map((tab) => (
               <button
@@ -289,9 +289,9 @@ export default function AdminPanel() {
 
           {activeTab === "sales" && <ManageSales />}
 
-          {/* {activeTab === "quotationRequests" && (
+          {activeTab === "quotationRequests" && (
             <ManageQuotationRequests />
-          )} */}
+          )}
 
           {activeTab === "insights" && <Insights />}
 
