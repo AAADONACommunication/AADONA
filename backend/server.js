@@ -12,9 +12,6 @@ require("dotenv").config();
 const { BetaAnalyticsDataClient } = require("@google-analytics/data");
 const analyticsClient = new BetaAnalyticsDataClient();
 const buildDatasheetHTML = require("./pdf/buildDatasheet");
-const salesRoutes = require("./routes/sales");
-const customerRoutes = require("./routes/customers");
-const quotationRoutes = require("./routes/quotations");
 
 let browserInstance = null;
 
@@ -259,9 +256,28 @@ const generateAndUploadDatasheet = async (product) => {
    VERIFY TOKEN MIDDLEWARE
 ============================= */
 
-const otpStore = require("./otpStore");
+const otpStore = new Map();
 
-const verifyToken = require("./middleware/verifyToken");
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    if (decodedToken.admin !== true) {
+      return res.status(403).json({ message: "Not authorized as admin" });
+    }
+    req.user = decodedToken;
+    console.log("Admin Verified:", decodedToken.email);
+    next();
+  } catch (error) {
+    console.log("TOKEN ERROR:", error.message);
+    return res.status(403).json({ message: "Invalid or expired token" });
+  }
+};
 
 /* =============================
    MIDDLEWARE
@@ -289,10 +305,6 @@ app.use("/assets", express.static("assets"));
 // Chatbot route
 const chatbotRoute = require('./routes/chatbot');
 app.use(chatbotRoute);
-
-app.use(salesRoutes);
-app.use(customerRoutes);
-app.use(quotationRoutes);
 
 // SEO / Security headers for all responses
 app.use((req, res, next) => {

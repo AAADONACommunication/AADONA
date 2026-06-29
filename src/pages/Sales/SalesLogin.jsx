@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { getFirebaseAuth } from "../../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import Footer from "../../Components/Footer";
 import Navbar from "../../Components/Navbar";
 import bg from "./../../assets/bg.jpg";
@@ -12,7 +9,6 @@ export default function SalesLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,37 +16,15 @@ export default function SalesLogin() {
     setLoading(true);
 
     try {
-      const auth = await getFirebaseAuth();
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await userCredential.user.getIdToken();
-
-      // Backend se verify karo ki yeh salesRep hai ya nahi
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/sales/verify`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        await auth.signOut();
-        setError("Access denied. You are not authorized as a sales representative.");
-        return;
-      }
-
-      navigate("/sales-panel");
+      // TODO: wire this up to your auth API endpoint
+      // const res = await fetch(`${import.meta.env.VITE_API_URL}/api/sales/login`, {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ email, password }),
+      // });
+      console.log("Sign in submitted", { email, password });
     } catch (err) {
-      console.error("Login error:", err);
-      if (
-        err.code === "auth/user-not-found" ||
-        err.code === "auth/wrong-password" ||
-        err.code === "auth/invalid-credential"
-      ) {
-        setError("Invalid email or password. Please try again.");
-      } else if (err.code === "auth/too-many-requests") {
-        setError("Too many failed attempts. Please try again later.");
-      } else if (err.code === "auth/user-disabled") {
-        setError("Your account has been disabled. Contact admin.");
-      } else {
-        setError("Unable to sign in. Please try again.");
-      }
+      setError("Unable to sign in. Please check your credentials and try again.");
     } finally {
       setLoading(false);
     }
@@ -61,13 +35,24 @@ export default function SalesLogin() {
       <Navbar />
       <div
         className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative px-4"
-        style={{ backgroundImage: `url(${bg})` }}
+        style={{
+          backgroundImage: `url(${bg})`,
+        }}
       >
+        {/* Light overlay so the card stays readable on top of any photo */}
         <div className="absolute inset-0 bg-white/55" />
 
         <div className="relative z-10 w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-black/10 px-10 sm:px-14 py-12 sm:py-14">
+          {/* Icon */}
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
-            <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 stroke-green-600">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-7 h-7 stroke-green-600"
+            >
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
               <polyline points="10 17 15 12 10 7" />
               <line x1="15" y1="12" x2="3" y2="12" />
@@ -82,9 +67,20 @@ export default function SalesLogin() {
           </p>
 
           <form onSubmit={handleSubmit}>
+            {/* Email */}
             <div className="mb-5">
-              <label htmlFor="email" className="flex items-center gap-2 text-green-900 font-bold text-[15px] mb-2">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px] stroke-green-900">
+              <label
+                htmlFor="email"
+                className="flex items-center gap-2 text-green-900 font-bold text-[15px] mb-2"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-[18px] h-[18px] stroke-green-900"
+                >
                   <rect x="2" y="4" width="20" height="16" rx="2" />
                   <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                 </svg>
@@ -93,6 +89,7 @@ export default function SalesLogin() {
               <input
                 type="email"
                 id="email"
+                name="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -101,9 +98,20 @@ export default function SalesLogin() {
               />
             </div>
 
+            {/* Password */}
             <div className="mb-8">
-              <label htmlFor="password" className="flex items-center gap-2 text-green-900 font-bold text-[15px] mb-2">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px] stroke-green-900">
+              <label
+                htmlFor="password"
+                className="flex items-center gap-2 text-green-900 font-bold text-[15px] mb-2"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-[18px] h-[18px] stroke-green-900"
+                >
                   <rect x="3" y="11" width="18" height="11" rx="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
@@ -113,6 +121,7 @@ export default function SalesLogin() {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
+                  name="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -122,9 +131,17 @@ export default function SalesLogin() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-[18px] h-[18px]"
+                  >
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>

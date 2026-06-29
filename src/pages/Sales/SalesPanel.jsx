@@ -37,7 +37,7 @@ export default function SalesPanel() {
   const [activeTab, setActiveTab] = useState("customers");
   // TEMP (design preview): loading starts false so the panel renders immediately
   // without waiting on Firebase auth. Set back to true once auth is re-enabled below.
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // ── Shared Data ──
   const [products, setProducts] = useState([]);
@@ -114,23 +114,12 @@ export default function SalesPanel() {
   // TEMP (design preview): Firebase auth check is disabled so this page is
   // reachable without logging in. To re-enable real auth, uncomment this
   // block and remove the plain data-loading effect right below it.
-
-  // TEMP (design preview): loads data without checking who's logged in.
-  // Remove this effect once real auth (above) is restored.
+  /*
   useEffect(() => {
     let unsubscribe;
     getFirebaseAuth().then((auth) => {
       unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
-          const token = await user.getIdToken();
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/sales/verify`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (!res.ok) {
-            await signOut(auth);
-            navigate("/sales-ctrl-500");
-            return;
-          }
           await Promise.all([
             loadProducts(),
             loadCategories(),
@@ -146,10 +135,24 @@ export default function SalesPanel() {
     });
     return () => unsubscribe?.();
   }, [navigate]);
+  */
+
+  // TEMP (design preview): loads data without checking who's logged in.
+  // Remove this effect once real auth (above) is restored.
+  useEffect(() => {
+    Promise.all([
+      loadProducts(),
+      loadCategories(),
+      loadCustomers(),
+      loadQuotations(),
+      loadIncomingQuotations(),
+    ]);
+  }, []);
 
   // ── Auto Logout on Inactivity (5 min) ──
   // TEMP (design preview): disabled along with the auth guard above.
   // Uncomment when real auth is restored.
+  /*
   useEffect(() => {
     let timer;
     const resetTimer = () => {
@@ -168,6 +171,7 @@ export default function SalesPanel() {
       events.forEach((e) => window.removeEventListener(e, resetTimer));
     };
   }, [navigate]);
+  */
 
   if (loading)
     return (
@@ -191,8 +195,7 @@ export default function SalesPanel() {
               <button
                 onClick={async () => {
                   const auth = await getFirebaseAuth();
-                  await signOut(auth);
-                  navigate("/sales-ctrl-500");
+                  signOut(auth);
                 }}
                 className="flex items-center justify-center gap-2 bg-red-500 text-white w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-red-600 transition shadow-md text-sm sm:text-base font-semibold"
               >
