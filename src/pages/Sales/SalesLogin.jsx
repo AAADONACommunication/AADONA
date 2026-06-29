@@ -35,7 +35,7 @@ export default function SalesLogin() {
         return;
       }
 
-      navigate("/sales-panel");
+      navigate("/sales-portal-100");
     } catch (err) {
       console.error("Login error:", err);
       if (

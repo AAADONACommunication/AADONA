@@ -291,7 +291,7 @@ const chatbotRoute = require('./routes/chatbot');
 app.use(chatbotRoute);
 
 app.use(salesRoutes);
-// app.use(customerRoutes);
+app.use(customerRoutes);
 // app.use(quotationRoutes);
 
 // SEO / Security headers for all responses
