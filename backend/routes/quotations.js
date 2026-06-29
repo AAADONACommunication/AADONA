@@ -1,213 +1,213 @@
-// const express = require("express");
-// const router = express.Router();
+const express = require("express");
+const router = express.Router();
 
-// const QuotationRequest = require("../models/QuotationRequest");
-// const Customer = require("../models/Customer");
-// const SalesRep = require("../models/SalesRep");
+const QuotationRequest = require("../models/QuotationRequest");
+const Customer = require("../models/Customer");
+const SalesRep = require("../models/SalesRep");
 
-// const verifyToken = require("../middleware/verifyToken"); // admin middleware
-// const verifySalesToken = require("../middleware/verifySalesToken");
-// const transporter = require("../mailer");
+const verifyToken = require("../middleware/verifyToken"); // admin middleware
+const verifySalesToken = require("../middleware/verifySalesToken");
+const transporter = require("../mailer");
 
-// /* =========================================================
-//    HELPER — generate a unique, human-readable request number
-// ========================================================= */
-// const generateRequestNumber = async () => {
-//   const datePart = new Date()
-//     .toISOString()
-//     .slice(0, 10)
-//     .replace(/-/g, ""); // YYYYMMDD
+/* =========================================================
+   HELPER — generate a unique, human-readable request number
+========================================================= */
+const generateRequestNumber = async () => {
+  const datePart = new Date()
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, ""); // YYYYMMDD
 
-//   let requestNumber;
-//   let exists = true;
+  let requestNumber;
+  let exists = true;
 
-//   while (exists) {
-//     const randomPart = Math.floor(1000 + Math.random() * 9000); // 4 digit
-//     requestNumber = `QR-${datePart}-${randomPart}`;
-//     exists = await QuotationRequest.findOne({ requestNumber });
-//   }
+  while (exists) {
+    const randomPart = Math.floor(1000 + Math.random() * 9000); // 4 digit
+    requestNumber = `QR-${datePart}-${randomPart}`;
+    exists = await QuotationRequest.findOne({ requestNumber });
+  }
 
-//   return requestNumber;
-// };
+  return requestNumber;
+};
 
-// /* =========================================================
-//    SALES REP — Send a product requirement to Admin
-//    (no pricing yet — admin will price it in Phase 3B)
-// ========================================================= */
-// router.post("/quotation-requests", verifySalesToken, async (req, res) => {
-//   try {
-//     const { customer, items, notes } = req.body;
+/* =========================================================
+   SALES REP — Send a product requirement to Admin
+   (no pricing yet — admin will price it in Phase 3B)
+========================================================= */
+router.post("/quotation-requests", verifySalesToken, async (req, res) => {
+  try {
+    const { customer, items, notes } = req.body;
 
-//     if (!customer) {
-//       return res.status(400).json({ message: "Customer is required" });
-//     }
-//     if (!Array.isArray(items) || items.length === 0) {
-//       return res.status(400).json({ message: "At least one product item is required" });
-//     }
+    if (!customer) {
+      return res.status(400).json({ message: "Customer is required" });
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "At least one product item is required" });
+    }
 
-//     for (const item of items) {
-//       if (!item.name || !item.name.trim()) {
-//         return res.status(400).json({ message: "Every item needs a product name" });
-//       }
-//       if (!item.quantity || Number(item.quantity) <= 0) {
-//         return res.status(400).json({ message: "Quantity must be greater than 0" });
-//       }
-//     }
+    for (const item of items) {
+      if (!item.name || !item.name.trim()) {
+        return res.status(400).json({ message: "Every item needs a product name" });
+      }
+      if (!item.quantity || Number(item.quantity) <= 0) {
+        return res.status(400).json({ message: "Quantity must be greater than 0" });
+      }
+    }
 
-//     // Make sure the customer actually belongs to this sales rep
-//     const customerDoc = await Customer.findOne({
-//       _id: customer,
-//       salesRepUid: req.salesRep.uid,
-//     });
-//     if (!customerDoc) {
-//       return res.status(404).json({ message: "Customer not found" });
-//     }
+    // Make sure the customer actually belongs to this sales rep
+    const customerDoc = await Customer.findOne({
+      _id: customer,
+      salesRepUid: req.salesRep.uid,
+    });
+    if (!customerDoc) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
 
-//     const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
+    const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
 
-//     const requestNumber = await generateRequestNumber();
+    const requestNumber = await generateRequestNumber();
 
-//     const quotationRequest = await QuotationRequest.create({
-//       requestNumber,
-//       salesRepUid: req.salesRep.uid,
-//       customer: customerDoc._id,
-//       items: items.map((item) => ({
-//         product: item.product || null,
-//         name: item.name.trim(),
-//         description: item.description || "",
-//         quantity: Number(item.quantity),
-//       })),
-//       notes: notes || "",
-//     });
+    const quotationRequest = await QuotationRequest.create({
+      requestNumber,
+      salesRepUid: req.salesRep.uid,
+      customer: customerDoc._id,
+      items: items.map((item) => ({
+        product: item.product || null,
+        name: item.name.trim(),
+        description: item.description || "",
+        quantity: Number(item.quantity),
+      })),
+      notes: notes || "",
+    });
 
-//     // Email admin with the requirement (no prices — admin will price it)
-//     if (process.env.COMPANY_EMAIL) {
-//       const itemsRows = quotationRequest.items
-//         .map(
-//           (item, i) => `
-//             <tr style="${i % 2 === 0 ? "background:#f0fdf4" : ""}">
-//               <td style="padding:8px;border:1px solid #e5e7eb">${i + 1}</td>
-//               <td style="padding:8px;border:1px solid #e5e7eb">${item.name}</td>
-//               <td style="padding:8px;border:1px solid #e5e7eb">${item.description || "-"}</td>
-//               <td style="padding:8px;border:1px solid #e5e7eb">${item.quantity}</td>
-//             </tr>`
-//         )
-//         .join("");
+    // Email admin with the requirement (no prices — admin will price it)
+    if (process.env.COMPANY_EMAIL) {
+      const itemsRows = quotationRequest.items
+        .map(
+          (item, i) => `
+            <tr style="${i % 2 === 0 ? "background:#f0fdf4" : ""}">
+              <td style="padding:8px;border:1px solid #e5e7eb">${i + 1}</td>
+              <td style="padding:8px;border:1px solid #e5e7eb">${item.name}</td>
+              <td style="padding:8px;border:1px solid #e5e7eb">${item.description || "-"}</td>
+              <td style="padding:8px;border:1px solid #e5e7eb">${item.quantity}</td>
+            </tr>`
+        )
+        .join("");
 
-//       transporter
-//         .sendMail({
-//           from: `"AADONA Sales Portal" <${process.env.EMAIL_USER}>`,
-//           to: process.env.COMPANY_EMAIL,
-//           subject: `New Quotation Request — ${requestNumber}`,
-//           html: `
-//             <div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-//               <h2 style="color:#166534;margin-bottom:4px">New Quotation Request</h2>
-//               <p style="color:#6b7280;font-size:13px;margin-top:0">Request #: <b>${requestNumber}</b></p>
+      transporter
+        .sendMail({
+          from: `"AADONA Sales Portal" <${process.env.EMAIL_USER}>`,
+          to: process.env.COMPANY_EMAIL,
+          subject: `New Quotation Request — ${requestNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
+              <h2 style="color:#166534;margin-bottom:4px">New Quotation Request</h2>
+              <p style="color:#6b7280;font-size:13px;margin-top:0">Request #: <b>${requestNumber}</b></p>
 
-//               <table border="0" cellpadding="6" cellspacing="0" style="width:100%;font-size:14px;margin-bottom:16px">
-//                 <tr><td style="color:#6b7280;width:140px"><b>Sales Rep</b></td><td>${salesRep?.name || "-"} (${salesRep?.email || "-"})</td></tr>
-//                 <tr><td style="color:#6b7280"><b>Customer</b></td><td>${customerDoc.personalName}${customerDoc.companyName ? ` — ${customerDoc.companyName}` : ""}</td></tr>
-//                 <tr><td style="color:#6b7280"><b>Customer Email</b></td><td>${customerDoc.email}</td></tr>
-//                 <tr><td style="color:#6b7280"><b>Contact</b></td><td>${customerDoc.contactNumber || "-"}</td></tr>
-//               </table>
+              <table border="0" cellpadding="6" cellspacing="0" style="width:100%;font-size:14px;margin-bottom:16px">
+                <tr><td style="color:#6b7280;width:140px"><b>Sales Rep</b></td><td>${salesRep?.name || "-"} (${salesRep?.email || "-"})</td></tr>
+                <tr><td style="color:#6b7280"><b>Customer</b></td><td>${customerDoc.personalName}${customerDoc.companyName ? ` — ${customerDoc.companyName}` : ""}</td></tr>
+                <tr><td style="color:#6b7280"><b>Customer Email</b></td><td>${customerDoc.email}</td></tr>
+                <tr><td style="color:#6b7280"><b>Contact</b></td><td>${customerDoc.contactNumber || "-"}</td></tr>
+              </table>
 
-//               <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">
-//                 <thead>
-//                   <tr style="background:#166534;color:#fff">
-//                     <th style="padding:8px;text-align:left">#</th>
-//                     <th style="padding:8px;text-align:left">Product</th>
-//                     <th style="padding:8px;text-align:left">Description</th>
-//                     <th style="padding:8px;text-align:left">Qty</th>
-//                   </tr>
-//                 </thead>
-//                 <tbody>${itemsRows}</tbody>
-//               </table>
+              <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">
+                <thead>
+                  <tr style="background:#166534;color:#fff">
+                    <th style="padding:8px;text-align:left">#</th>
+                    <th style="padding:8px;text-align:left">Product</th>
+                    <th style="padding:8px;text-align:left">Description</th>
+                    <th style="padding:8px;text-align:left">Qty</th>
+                  </tr>
+                </thead>
+                <tbody>${itemsRows}</tbody>
+              </table>
 
-//               ${
-//                 quotationRequest.notes
-//                   ? `<p style="color:#374151"><b>Notes:</b> ${quotationRequest.notes}</p>`
-//                   : ""
-//               }
+              ${
+                quotationRequest.notes
+                  ? `<p style="color:#374151"><b>Notes:</b> ${quotationRequest.notes}</p>`
+                  : ""
+              }
 
-//               <p style="color:#6b7280;font-size:13px;margin-top:24px">
-//                 Log in to the Admin Panel to price this requirement and send the quotation back.
-//               </p>
-//             </div>
-//           `,
-//         })
-//         .catch((err) => console.log("Quotation request email failed:", err.message));
-//     }
+              <p style="color:#6b7280;font-size:13px;margin-top:24px">
+                Log in to the Admin Panel to price this requirement and send the quotation back.
+              </p>
+            </div>
+          `,
+        })
+        .catch((err) => console.log("Quotation request email failed:", err.message));
+    }
 
-//     res.status(201).json(quotationRequest);
-//   } catch (err) {
-//     console.log("Create quotation request error:", err.message);
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+    res.status(201).json(quotationRequest);
+  } catch (err) {
+    console.log("Create quotation request error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// /* =========================================================
-//    SALES REP — Get own quotation requests (status tracking)
-// ========================================================= */
-// router.get("/quotation-requests", verifySalesToken, async (req, res) => {
-//   try {
-//     const requests = await QuotationRequest.find({ salesRepUid: req.salesRep.uid })
-//       .populate("customer")
-//       .sort({ createdAt: -1 });
-//     res.json(requests);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+/* =========================================================
+   SALES REP — Get own quotation requests (status tracking)
+========================================================= */
+router.get("/quotation-requests", verifySalesToken, async (req, res) => {
+  try {
+    const requests = await QuotationRequest.find({ salesRepUid: req.salesRep.uid })
+      .populate("customer")
+      .sort({ createdAt: -1 });
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// /* =========================================================
-//    ADMIN — Get all pending/quoted requests (across all sales reps)
-// ========================================================= */
-// router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
-//   try {
-//     const { status } = req.query;
-//     const query = status ? { status } : {};
+/* =========================================================
+   ADMIN — Get all pending/quoted requests (across all sales reps)
+========================================================= */
+router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
+  try {
+    const { status } = req.query;
+    const query = status ? { status } : {};
 
-//     const requests = await QuotationRequest.find(query)
-//       .populate("customer")
-//       .sort({ createdAt: -1 });
+    const requests = await QuotationRequest.find(query)
+      .populate("customer")
+      .sort({ createdAt: -1 });
 
-//     // Attach sales rep name/email for display in admin panel
-//     const salesReps = await SalesRep.find({}, { uid: 1, name: 1, email: 1 });
-//     const repMap = {};
-//     salesReps.forEach((rep) => {
-//       repMap[rep.uid] = { name: rep.name, email: rep.email };
-//     });
+    // Attach sales rep name/email for display in admin panel
+    const salesReps = await SalesRep.find({}, { uid: 1, name: 1, email: 1 });
+    const repMap = {};
+    salesReps.forEach((rep) => {
+      repMap[rep.uid] = { name: rep.name, email: rep.email };
+    });
 
-//     const enriched = requests.map((r) => ({
-//       ...r.toObject(),
-//       salesRep: repMap[r.salesRepUid] || null,
-//     }));
+    const enriched = requests.map((r) => ({
+      ...r.toObject(),
+      salesRep: repMap[r.salesRepUid] || null,
+    }));
 
-//     res.json(enriched);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+    res.json(enriched);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// /* =========================================================
-//    ADMIN — Get single request detail
-// ========================================================= */
-// router.get("/admin/quotation-requests/:id", verifyToken, async (req, res) => {
-//   try {
-//     const request = await QuotationRequest.findById(req.params.id).populate("customer");
-//     if (!request) {
-//       return res.status(404).json({ message: "Quotation request not found" });
-//     }
+/* =========================================================
+   ADMIN — Get single request detail
+========================================================= */
+router.get("/admin/quotation-requests/:id", verifyToken, async (req, res) => {
+  try {
+    const request = await QuotationRequest.findById(req.params.id).populate("customer");
+    if (!request) {
+      return res.status(404).json({ message: "Quotation request not found" });
+    }
 
-//     const salesRep = await SalesRep.findOne({ uid: request.salesRepUid });
+    const salesRep = await SalesRep.findOne({ uid: request.salesRepUid });
 
-//     res.json({
-//       ...request.toObject(),
-//       salesRep: salesRep ? { name: salesRep.name, email: salesRep.email } : null,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+    res.json({
+      ...request.toObject(),
+      salesRep: salesRep ? { name: salesRep.name, email: salesRep.email } : null,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// module.exports = router;
+module.exports = router;
