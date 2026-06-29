@@ -289,7 +289,7 @@ export default function AdminPanel() {
 
           {activeTab === "sales" && <ManageSales />}
 
-          {activeTab === "quotationRequests" && (
+          {activeTab === "quotation-requests" && (
             <ManageQuotationRequests />
           )}
 
