@@ -1,3 +1,5 @@
+const admin = require("../firebaseAdmin");
+
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -23,3 +25,5 @@ const verifyToken = async (req, res, next) => {
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
+
+module.exports = verifyToken;
