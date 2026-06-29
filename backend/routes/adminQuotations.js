@@ -45,7 +45,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       if (!item.name || !item.name.trim()) {
         return res.status(400).json({ message: "Every item must have a name" });
       }
-      const unitPrice = Number(item.price);
+      const unitPrice = Number(item.unitPrice);
         if (!Number.isFinite(unitPrice) || unitPrice < 0) {
             return res.status(400).json({
                 message: `Invalid price for item: ${item.name}`,
@@ -71,7 +71,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
     // 6. Calculate per item — NO GST
     const calculatedItems = items.map((item) => {
       const quantity = Number(item.quantity);
-      const unitPrice = Number(item.price);
+      const unitPrice = Number(item.unitPrice);
       const total = parseFloat((quantity * unitPrice).toFixed(2));
 
       return {

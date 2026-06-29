@@ -211,7 +211,7 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
                     {item.name} × {item.quantity}
                   </span>
                   <span className="font-medium text-gray-800">
-                    ₹{(Number(item.price) * Number(item.quantity)).toFixed(2)}
+                    ₹{(Number(item.unitPnitPrice) * Number(item.quantity)).toFixed(2)}
                   </span>
                 </div>
               ))}
