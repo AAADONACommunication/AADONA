@@ -15,6 +15,7 @@ const buildDatasheetHTML = require("./pdf/buildDatasheet");
 const salesRoutes = require("./routes/sales");
 const customerRoutes = require("./routes/customers");
 const quotationRoutes = require("./routes/quotations");
+const adminQuotationsRoutes = require("./routes/adminQuotations");
 
 let browserInstance = null;
 
@@ -293,6 +294,7 @@ app.use(chatbotRoute);
 app.use(salesRoutes);
 app.use(customerRoutes);
 app.use(quotationRoutes);
+app.use(adminQuotationsRoutes);
 
 // SEO / Security headers for all responses
 app.use((req, res, next) => {
