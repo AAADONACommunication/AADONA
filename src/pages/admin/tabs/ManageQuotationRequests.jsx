@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { Search, ChevronLeft, Plus, Trash2, Inbox, CheckCircle2 } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
@@ -49,7 +49,7 @@ export default function ManageQuotationRequests() {
   };
 
   // Load on first render and whenever the status filter changes
-  useState(() => {
+  useEffect(() => {    
     loadRequests("pending");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
