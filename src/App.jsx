@@ -44,7 +44,7 @@ const BlogDetail = lazy(() => import("./pages/Blogdetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SalesLogin = lazy(() => import("./pages/Sales/SalesLogin"));
 const SalesPanel = lazy(() => import("./pages/Sales/SalesPanel"));
-
+const SalesSignup = lazy(() => import("./pages/Sales/SalesSignup"));
 
 // GLOBAL COMPONENTS
 import Breadcrumbs from "./BreadCrumbs";
@@ -54,18 +54,21 @@ const AppContent = () => {
   const location = useLocation();
   const [showChatbot, setShowChatbot] = useState(false);
 
-  // 🔹 ADMIN PATH CHECK
+  // ADMIN PATH CHECK
   const isAdminPath =
     location.pathname === "/ram-ctrl-505" ||
-    location.pathname === "/ram-portal-100";
+    location.pathname === "/ram-portal-100" ||
+    location.pathname === "/sales-ctrl-500" ||
+    location.pathname === "/sales-portal-100" ||
+    location.pathname.startsWith("/sales-signup/");
 
-  // 🔹 404 PAGE CHECK
+  // 404 PAGE CHECK
   const is404Page = location.pathname === "/404";
 
-  // 🔹 SHOW / HIDE GLOBAL UI
+  // SHOW / HIDE GLOBAL UI
   const showGlobalComponents = !isAdminPath && !is404Page;
 
-  // ⏳ chatbot delay
+  // chatbot delay
   useEffect(() => {
     const timer = setTimeout(() => setShowChatbot(true), 8000);
     return () => clearTimeout(timer);
@@ -100,8 +103,9 @@ const AppContent = () => {
           />
 
             {/* Sales */}
-            <Route path="sales-ctrl-500" element={<SalesLogin />}/>
-            <Route path="sales-portal-100" element={<SalesPanel />}/>
+            <Route path="/sales-ctrl-500" element={<SalesLogin />}/>
+            <Route path="/sales-portal-100" element={<SalesPanel />}/>
+            <Route path="/sales-signup/:token" element={<SalesSignup />}/>
 
           {/* BLOG */}
           <Route path="/blog" element={<Blog />} />
