@@ -70,7 +70,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
   // ── Totals for sales person's own quotation ──
   const subtotal = items.reduce(
-    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPricerice) || 0),
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.price) || 0),
     0
   );
   const discountAmount = !discountEnabled || !discountValue
@@ -95,7 +95,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       name: item.name,
       description: item.description,
       quantity: Number(item.quantity),
-      price: Number(item.unitPricerice),
+      price: Number(item.price),
     })),
     subtotal,
     gstRate: Number(gstRate),
@@ -354,13 +354,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                       type="number"
                       min="0"
                       step="0.01"
-                      value={item.unitPricerice}
+                      value={item.price}
                       onChange={(e) => updateItem(index, "price", e.target.value)}
                       className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
                     />
                   </td>
                   <td className="px-3 py-2 font-semibold text-gray-700">
-                    ₹{((Number(item.quantity) || 0) * (Number(item.unitPricerice) || 0)).toFixed(2)}
+                    ₹{((Number(item.quantity) || 0) * (Number(item.price) || 0)).toFixed(2)}
                   </td>
                 </tr>
               ))}
