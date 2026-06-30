@@ -16,7 +16,7 @@ import SentQuotations from "./tabs/SentQuotations";
 const PRODUCTS_API = `${import.meta.env.VITE_API_URL}/products`;
 const CATEGORIES_API = `${import.meta.env.VITE_API_URL}/categories`;
 const CUSTOMERS_API = `${import.meta.env.VITE_API_URL}/customers`;
-const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/quotations`;
+const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 const INCOMING_QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/admin-quotations`;
 
 export const safeJson = async (res) => {

@@ -3,7 +3,7 @@ import { getFirebaseAuth } from "../../../firebase";
 import { Search, Download, Mail, Trash2, Eye } from "lucide-react";
 import { safeJson } from "../SalesPanel";
 
-const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/quotations`;
+const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
 const statusStyles = {
   draft: "bg-gray-100 text-gray-700",
