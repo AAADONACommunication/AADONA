@@ -64,7 +64,7 @@ const AppContent = () => {
     location.pathname.startsWith("/sales-signup/") ||
     location.pathname.startsWith("/quotation/");
 
-  // 404 PAGE CHECK
+  // 404 PAGE CHECK //
   const is404Page = location.pathname === "/404";
 
   // SHOW / HIDE GLOBAL UI
