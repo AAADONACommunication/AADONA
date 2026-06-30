@@ -11,7 +11,7 @@ import QuotationsList from "./tabs/QuotationsList";
 import CustomerManagement from "./tabs/CustomerManagement";
 import IncomingQuotations from "./tabs/AdminQuotations";
 import ProfileMenu from "./tabs/ProfileMenu";
-import SentQuotations from "./tabs/sentQuotations";
+import SentQuotations from "./tabs/SentQuotations";
 
 const PRODUCTS_API = `${import.meta.env.VITE_API_URL}/products`;
 const CATEGORIES_API = `${import.meta.env.VITE_API_URL}/categories`;
