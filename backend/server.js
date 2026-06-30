@@ -293,13 +293,11 @@ app.use("/assets", express.static("assets"));
 
 // Chatbot route
 const chatbotRoute = require('./routes/chatbot');
-app.use(chatbotRoute);
-
-app.use(salesRoutes);
-app.use(customerRoutes);
-app.use(quotationRoutes);
-app.use(adminQuotationsRoutes);
-app.use(salesQuotationsRoutes);
+app.use("/api", salesRoutes);
+app.use("/api", customerRoutes);
+app.use("/api", quotationRoutes);
+app.use("/api", adminQuotationsRoutes);
+app.use("/api", salesQuotationsRoutes);
 app.use("/api/public", publicQuotationRoutes);
 app.use("/api", adminApprovalRoutes);
 
