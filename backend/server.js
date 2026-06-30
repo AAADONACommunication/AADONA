@@ -17,6 +17,7 @@ const customerRoutes = require("./routes/customers");
 const quotationRoutes = require("./routes/quotations");
 const adminQuotationsRoutes = require("./routes/adminQuotations");
 const salesQuotationsRoutes = require("./routes/salesQuotations");
+const startQuotationReminderCron = require("./cron/quotationReminders");
 
 let browserInstance = null;
 
@@ -320,6 +321,7 @@ mongoose
   .then(() => {
     console.log("MongoDB VPS Connected");
     console.log("Connected Database:", mongoose.connection.name);
+    startQuotationReminderCron();
   })
   .catch((err) => {
     console.log("MongoDB Connection Error:", err.message);

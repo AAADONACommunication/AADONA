@@ -46,10 +46,33 @@ const SalesQuotationSchema = new mongoose.Schema(
     sentAt: { type: Date, default: Date.now },
     viewedAt: { type: Date },
     acceptedAt: { type: Date },
+
+    // ── Reminder scheduling ──
+    reminderAfterDays: {
+      type: Number,
+      enum: [3, 7],
+      default: null,
+    },
+    reminderAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+    reminderSent: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    reminderSentAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
 
 SalesQuotationSchema.index({ salesRepUid: 1, createdAt: -1 });
+// Speeds up the cron job's due-reminder query
+SalesQuotationSchema.index({ status: 1, reminderSent: 1, reminderAt: 1 });
 
 module.exports = mongoose.model("SalesQuotation", SalesQuotationSchema);

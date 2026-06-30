@@ -27,7 +27,7 @@ const generateQuotationNumber = async () => {
 // ── POST /sales-quotations/send ──
 router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
   try {
-    const { sourceQuotation, items, notes } = req.body;
+    const { sourceQuotation, items, notes, gstRate, discount } = req.body;
 
     // 1. Validate sourceQuotation
     if (!sourceQuotation || !mongoose.Types.ObjectId.isValid(sourceQuotation)) {
@@ -65,6 +65,19 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     });
     }
 
+    // ── Top-level GST / discount (quotation-wide, not per-item) ──
+    const gstPercent = Number(gstRate);
+    if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
+      return res.status(400).json({ message: "Invalid GST rate" });
+    }
+
+    let discountType = "percent";
+    let discountValue = 0;
+    if (discount && Number.isFinite(Number(discount.value)) && Number(discount.value) > 0) {
+      discountType = discount.type === "flat" ? "flat" : "percent";
+      discountValue = Number(discount.value);
+    }
+
     // 5. Fetch Customer
     const customer = await Customer.findById(adminQuotation.customer);
     if (!customer) {
@@ -72,7 +85,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     }
 
     // 6. Build items — quantity ALWAYS from AdminQuotation, never trust frontend
-    const calculatedItems = adminQuotation.items.map((adminItem, index) => {
+    const rawItems = adminQuotation.items.map((adminItem, index) => {
       const incoming = items[index] || {};
 
       const unitPrice = Number(incoming.unitPrice);
@@ -87,31 +100,39 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
         );
       }
 
-      const gstPercent = Number(incoming.gst);
-      if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
-        throw new Error(`Invalid GST for ${adminItem.name}`);
-      }
-
-      const discountPercent = Number(incoming.discount);
-      if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
-        throw new Error(`Invalid discount for ${adminItem.name}`);
-      }
-
-      const quantity = adminItem.quantity; // LOCKED — never from frontend
-
-      const baseAmount = quantity * unitPrice;
-      const discountAmt = parseFloat((baseAmount * (discountPercent / 100)).toFixed(2));
-      const taxableAmount = baseAmount - discountAmt;
-      const gstAmt = parseFloat((taxableAmount * (gstPercent / 100)).toFixed(2));
-      const total = parseFloat((taxableAmount + gstAmt).toFixed(2));
+      const quantity = adminItem.quantity; // LOCKED - never from frontend
 
       return {
         name: adminItem.name,
         description: adminItem.description || "",
         quantity,
         unitPrice,
+        baseAmount: quantity * unitPrice,
+      };
+    });
+
+    const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
+
+    const effectiveDiscountPercent =
+      rawSubtotal <= 0
+        ? 0
+        : discountType === "flat"
+        ? Math.min((discountValue / rawSubtotal) * 100, 100)
+        : Math.min(discountValue, 100);
+
+    const calculatedItems = rawItems.map((item) => {
+      const discountAmt = parseFloat((item.baseAmount * (effectiveDiscountPercent / 100)).toFixed(2));
+      const taxableAmount = item.baseAmount - discountAmt;
+      const gstAmt = parseFloat((taxableAmount * (gstPercent / 100)).toFixed(2));
+      const total = parseFloat((taxableAmount + gstAmt).toFixed(2));
+
+      return {
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
         gst: gstPercent,
-        discount: discountPercent,
+        discount: effectiveDiscountPercent,
         total,
       };
     });
@@ -149,6 +170,20 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
 
     const publicToken = crypto.randomBytes(32).toString("hex");
 
+    // 8.5 Validate + compute reminder schedule (optional)
+    const { reminderAfterDays } = req.body;
+    let reminderAfterDaysValue = null;
+    let reminderAt = null;
+
+    if (reminderAfterDays !== undefined && reminderAfterDays !== null && reminderAfterDays !== "") {
+      const days = Number(reminderAfterDays);
+      if (![3, 7].includes(days)) {
+        return res.status(400).json({ message: "reminderAfterDays must be 3 or 7" });
+      }
+      reminderAfterDaysValue = days;
+      reminderAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    }
+
     // 9. Save SalesQuotation
     const salesQuotation = await SalesQuotation.create({
       sourceQuotation: adminQuotation._id,
@@ -164,6 +199,8 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       notes: notes?.trim() || "",
       status: "sent",
       sentAt: new Date(),
+      reminderAfterDays: reminderAfterDaysValue,
+      reminderAt,
     });
 
     // 10. Build email HTML
