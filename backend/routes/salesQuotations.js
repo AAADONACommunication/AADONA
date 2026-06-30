@@ -1,0 +1,384 @@
+const express = require("express");
+const router = express.Router();
+const mongoose = require("mongoose");
+const verifySalesToken = require("../middleware/verifySalesToken");
+const transporter = require("../mailer");
+const SalesQuotation = require("../models/SalesQuotation");
+const AdminQuotation = require("../models/AdminQuotation");
+const Customer = require("../models/Customer");
+const crypto = require("crypto");
+
+// ── Generate unique quotation number ──
+const generateQuotationNumber = async () => {
+  const prefix = "AQ";
+  const year = new Date().getFullYear();
+  let quotationNumber;
+  let exists = true;
+
+  while (exists) {
+    const random = Math.floor(100000 + Math.random() * 900000);
+    quotationNumber = `${prefix}-${year}-${random}`;
+    exists = await SalesQuotation.findOne({ quotationNumber });
+  }
+
+  return quotationNumber;
+};
+
+// ── POST /sales-quotations/send ──
+router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
+  try {
+    const { sourceQuotation, items, notes } = req.body;
+
+    // 1. Validate sourceQuotation
+    if (!sourceQuotation || !mongoose.Types.ObjectId.isValid(sourceQuotation)) {
+      return res.status(400).json({ message: "Invalid source quotation ID" });
+    }
+
+    // 2. Fetch AdminQuotation — quantity source of truth
+    const adminQuotation = await AdminQuotation.findById(sourceQuotation);
+    if (!adminQuotation) {
+      return res.status(404).json({ message: "Source admin quotation not found" });
+    }
+
+    // 3. Ownership check
+    if (adminQuotation.salesRepUid !== req.salesRep.uid) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // 4. Validate items
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Items array is required and cannot be empty" });
+    }
+
+    if (items.length !== adminQuotation.items.length) {
+      return res.status(400).json({ message: "Items mismatch with source quotation" });
+    }
+
+    // Prevent duplicate quotation
+    const existingQuotation = await SalesQuotation.findOne({
+    sourceQuotation: adminQuotation._id,
+    });
+
+    if (existingQuotation) {
+    return res.status(400).json({
+        message: "Quotation already sent to customer.",
+    });
+    }
+
+    // 5. Fetch Customer
+    const customer = await Customer.findById(adminQuotation.customer);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    // 6. Build items — quantity ALWAYS from AdminQuotation, never trust frontend
+    const calculatedItems = adminQuotation.items.map((adminItem, index) => {
+      const incoming = items[index] || {};
+
+      const unitPrice = Number(incoming.unitPrice);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        throw new Error(`Invalid unit price for item: ${adminItem.name}`);
+      }
+
+      // Sales price cannot be lower than admin price
+      if (unitPrice < adminItem.unitPrice) {
+        throw new Error(
+          `Price for "${adminItem.name}" cannot be lower than admin price (₹${adminItem.unitPrice})`
+        );
+      }
+
+      const gstPercent = Number(incoming.gst);
+      if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
+        throw new Error(`Invalid GST for ${adminItem.name}`);
+      }
+
+      const discountPercent = Number(incoming.discount);
+      if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+        throw new Error(`Invalid discount for ${adminItem.name}`);
+      }
+
+      const quantity = adminItem.quantity; // LOCKED — never from frontend
+
+      const baseAmount = quantity * unitPrice;
+      const discountAmt = parseFloat((baseAmount * (discountPercent / 100)).toFixed(2));
+      const taxableAmount = baseAmount - discountAmt;
+      const gstAmt = parseFloat((taxableAmount * (gstPercent / 100)).toFixed(2));
+      const total = parseFloat((taxableAmount + gstAmt).toFixed(2));
+
+      return {
+        name: adminItem.name,
+        description: adminItem.description || "",
+        quantity,
+        unitPrice,
+        gst: gstPercent,
+        discount: discountPercent,
+        total,
+      };
+    });
+
+    // 7. Calculate overall totals
+    const subtotal = parseFloat(
+      calculatedItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toFixed(2)
+    );
+
+    const discountAmount = parseFloat(
+      calculatedItems
+        .reduce((sum, item) => {
+          const base = item.quantity * item.unitPrice;
+          return sum + base * (item.discount / 100);
+        }, 0)
+        .toFixed(2)
+    );
+
+    const gstAmount = parseFloat(
+      calculatedItems
+        .reduce((sum, item) => {
+          const base = item.quantity * item.unitPrice;
+          const afterDiscount = base - base * (item.discount / 100);
+          return sum + afterDiscount * (item.gst / 100);
+        }, 0)
+        .toFixed(2)
+    );
+
+    const grandTotal = parseFloat(
+      calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+    );
+
+    // 8. Generate quotation number
+    const quotationNumber = await generateQuotationNumber();
+
+    const publicToken = crypto.randomBytes(32).toString("hex");
+
+    // 9. Save SalesQuotation
+    const salesQuotation = await SalesQuotation.create({
+      sourceQuotation: adminQuotation._id,
+      customer: customer._id,
+      salesRepUid: req.salesRep.uid,
+      quotationNumber,
+      publicToken,
+      items: calculatedItems,
+      subtotal,
+      discountAmount,
+      gstAmount,
+      grandTotal,
+      notes: notes?.trim() || "",
+      status: "sent",
+      sentAt: new Date(),
+    });
+
+    // 10. Build email HTML
+    const itemRowsHtml = calculatedItems.map((item, i) => `
+      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">
+          ${item.name}
+          ${item.description ? `<br/><span style="font-size:12px;color:#6b7280">${item.description}</span>` : ""}
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:center">
+          ${item.quantity}
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
+          ₹${item.unitPrice.toFixed(2)}
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
+          ${item.gst}%
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
+          ${item.discount}%
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">
+          ₹${item.total.toFixed(2)}
+        </td>
+      </tr>
+    `).join("");
+
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="UTF-8"/></head>
+      <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 0">
+          <tr><td align="center">
+            <table width="650" cellpadding="0" cellspacing="0" 
+              style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+
+              <!-- Header -->
+              <tr>
+                <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
+                  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800">AADONA Communication</h1>
+                  <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Your Quotation</p>
+                </td>
+              </tr>
+
+              <!-- Info -->
+              <tr>
+                <td style="padding:28px 32px 0">
+                  <h2 style="color:#166534;font-size:18px;margin:0 0 16px">
+                    Quotation #${quotationNumber}
+                  </h2>
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:4px 0;color:#6b7280;font-size:13px;width:140px">Customer</td>
+                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
+                        ${customer.personalName}
+                      </td>
+                    </tr>
+                    ${customer.companyName ? `
+                    <tr>
+                      <td style="padding:4px 0;color:#6b7280;font-size:13px">Company</td>
+                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
+                        ${customer.companyName}
+                      </td>
+                    </tr>` : ""}
+                    <tr>
+                      <td style="padding:4px 0;color:#6b7280;font-size:13px">Date</td>
+                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
+                        ${new Date().toLocaleDateString("en-IN")}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Product Table -->
+              <tr>
+                <td style="padding:24px 32px 0">
+                  <table width="100%" cellpadding="0" cellspacing="0" 
+                    style="border-collapse:collapse;border-radius:8px;overflow:hidden">
+                    <thead>
+                      <tr style="background:#166534">
+                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:left;font-size:13px">Product</th>
+                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:center;font-size:13px">Qty</th>
+                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Unit Price</th>
+                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">GST</th>
+                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Discount</th>
+                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${itemRowsHtml}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Totals -->
+              <tr>
+                <td style="padding:16px 32px 0">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Subtotal</td>
+                      <td style="text-align:right;padding:4px 0 4px 24px;color:#111827;font-size:13px;width:120px">
+                        ₹${subtotal.toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Discount</td>
+                      <td style="text-align:right;padding:4px 0;color:#dc2626;font-size:13px">
+                        − ₹${discountAmount.toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">GST</td>
+                      <td style="text-align:right;padding:4px 0;color:#111827;font-size:13px">
+                        ₹${gstAmount.toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2"><hr style="border:none;border-top:2px solid #e5e7eb;margin:8px 0"/></td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">Grand Total</td>
+                      <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">
+                        ₹${grandTotal.toFixed(2)}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              ${notes && notes.trim() ? `
+              <tr>
+                <td style="padding:20px 32px 0">
+                  <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
+                    <p style="margin:0;font-size:13px;font-weight:600;color:#166534;margin-bottom:4px">Notes</p>
+                    <p style="margin:0;font-size:13px;color:#374151">${notes.trim()}</p>
+                  </div>
+                </td>
+              </tr>` : ""}
+
+              <!-- Footer -->
+              <tr>
+                <td style="padding:28px 32px;text-align:center">
+                  <p style="color:#374151;font-size:14px;margin:0 0 4px">Regards,</p>
+                  <p style="color:#166534;font-weight:700;font-size:15px;margin:0">AADONA</p>
+                </td>
+              </tr>
+
+            </table>
+          </td></tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    // 11. Send email to customer
+    try {
+        await transporter.sendMail({
+            from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+            to: customer.email,
+            subject: `Quotation #${quotationNumber} — AADONA Communication`,
+            html: emailHtml,
+        });
+    } catch (err) {
+        console.error("Customer quotation email failed:", err.message);
+    }
+
+    return res.status(201).json(salesQuotation);
+  } catch (err) {
+    console.error("Send sales quotation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /sales-quotations ──
+router.get("/sales-quotations", verifySalesToken, async (req, res) => {
+  try {
+    const quotations = await SalesQuotation.find({ salesRepUid: req.salesRep.uid })
+      .populate("customer")
+      .populate("sourceQuotation")
+      .sort({ createdAt: -1 });
+
+    return res.json(quotations);
+  } catch (err) {
+    console.error("Get sales quotations error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /sales-quotations/:id ──
+router.get("/sales-quotations/:id", verifySalesToken, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const quotation = await SalesQuotation.findById(req.params.id)
+      .populate("customer")
+      .populate("sourceQuotation");
+
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.salesRepUid !== req.salesRep.uid) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    return res.json(quotation);
+  } catch (err) {
+    console.error("Get sales quotation by id error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;

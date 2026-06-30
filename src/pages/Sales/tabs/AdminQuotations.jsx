@@ -345,7 +345,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                       type="number"
                       min="1"
                       value={item.quantity}
-                      onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                      readOnly
                       className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
                     />
                   </td>

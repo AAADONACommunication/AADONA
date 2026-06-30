@@ -16,6 +16,7 @@ const salesRoutes = require("./routes/sales");
 const customerRoutes = require("./routes/customers");
 const quotationRoutes = require("./routes/quotations");
 const adminQuotationsRoutes = require("./routes/adminQuotations");
+const salesQuotationsRoutes = require("./routes/salesQuotations");
 
 let browserInstance = null;
 
@@ -295,7 +296,7 @@ app.use(salesRoutes);
 app.use(customerRoutes);
 app.use(quotationRoutes);
 app.use(adminQuotationsRoutes);
-
+app.use(salesQuotationsRoutes);
 // SEO / Security headers for all responses
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
