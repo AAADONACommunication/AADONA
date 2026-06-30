@@ -61,7 +61,8 @@ const AppContent = () => {
     location.pathname === "/ram-portal-100" ||
     location.pathname === "/sales-ctrl-500" ||
     location.pathname === "/sales-portal-100" ||
-    location.pathname.startsWith("/sales-signup/");
+    location.pathname.startsWith("/sales-signup/") ||
+    location.pathname.startsWith("/quotation/");
 
   // 404 PAGE CHECK
   const is404Page = location.pathname === "/404";

@@ -8,11 +8,20 @@ import {
   ShieldCheck,
   FileText,
   X,
+  AlertTriangle,
 } from "lucide-react";
 
 const PUBLIC_API = `${import.meta.env.VITE_API_URL}/public/quotation`;
 
 const statusBadge = {
+  sent: {
+    label: "Sent",
+    classes: "bg-blue-100 text-blue-700 border border-blue-300",
+  },
+  viewed: {
+    label: "Viewed",
+    classes: "bg-cyan-100 text-cyan-700 border border-cyan-300",
+  },
   accepted: {
     label: "Accepted",
     classes: "bg-green-100 text-green-700 border border-green-300",
@@ -22,8 +31,12 @@ const statusBadge = {
     classes: "bg-orange-100 text-orange-700 border border-orange-300",
   },
   awaiting_admin_approval: {
-    label: "Awaiting Approval",
+    label: "Awaiting Admin Approval",
     classes: "bg-purple-100 text-purple-700 border border-purple-300",
+  },
+  rejected: {
+    label: "Rejected",
+    classes: "bg-red-100 text-red-700 border border-red-300",
   },
 };
 
@@ -53,24 +66,18 @@ export default function CustomerQuotation() {
   const [expectedBudget, setExpectedBudget] = useState("");
   const [notes, setNotes] = useState("");
 
-  const hasMarkedViewed = useRef(false);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    const init = async () => {
-      if (!hasMarkedViewed.current) {
-        hasMarkedViewed.current = true;
-        try {
-          await fetch(`${PUBLIC_API}/${token}/view`, { method: "POST" });
-        } catch (err) {
-          console.error("Mark viewed error:", err);
-        }
-      }
-      await loadQuotation();
-    };
-    init();
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+    loadQuotation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // NOTE: The backend automatically marks the quotation as "viewed" inside
+  // GET /api/public/quotation/:token. There is no separate /view endpoint.
+  // DO NOT call POST /api/public/quotation/:token/view — it does not exist.
   const loadQuotation = async () => {
     setLoading(true);
     setErrorType(null);
@@ -135,33 +142,38 @@ export default function CustomerQuotation() {
   };
 
   // ════════════════════════════════════════
-  // LOADING STATE
+  // LOADING STATE — standalone, no site chrome
   // ════════════════════════════════════════
   if (loading) {
     return (
-      <div className="min-h-screen bg-green-50 py-10 px-4">
-        <div className="max-w-4xl mx-auto space-y-6 animate-pulse">
-          <div className="h-24 bg-white rounded-2xl shadow-sm" />
-          <div className="h-32 bg-white rounded-2xl shadow-sm" />
-          <div className="h-64 bg-white rounded-2xl shadow-sm" />
-          <div className="h-40 bg-white rounded-2xl shadow-sm" />
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-10 px-4">
+        <div className="max-w-[1100px] mx-auto space-y-6 animate-pulse">
+          <div className="h-24 bg-white rounded-2xl shadow-sm border border-green-100" />
+          <div className="h-28 bg-white rounded-2xl shadow-sm border border-green-100" />
+          <div className="h-28 bg-white rounded-2xl shadow-sm border border-green-100" />
+          <div className="h-64 bg-white rounded-2xl shadow-sm border border-green-100" />
+          <div className="h-40 bg-white rounded-2xl shadow-sm border border-green-100" />
         </div>
       </div>
     );
   }
 
   // ════════════════════════════════════════
-  // ERROR STATE
+  // ERROR STATE — standalone, no site chrome
   // ════════════════════════════════════════
   if (errorType) {
     return (
-      <div className="min-h-screen bg-green-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-10 max-w-md w-full text-center">
-          <XCircle className="mx-auto text-red-500 mb-4" size={56} />
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-red-100 p-10 max-w-md w-full text-center animate-[fadeIn_0.3s_ease]">
+          {errorType === "expired" ? (
+            <Clock className="mx-auto text-amber-500 mb-4" size={56} />
+          ) : (
+            <XCircle className="mx-auto text-red-500 mb-4" size={56} />
+          )}
           <h1 className="text-xl font-bold text-gray-800 mb-2">
             {errorType === "expired" ? "Quotation Expired" : "Invalid Quotation"}
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 leading-relaxed">
             {errorType === "expired"
               ? "This quotation link is no longer valid. Please reach out to your sales representative for an updated quotation."
               : "We couldn't find a quotation for this link. Please check the link or contact your sales representative."}
@@ -171,10 +183,17 @@ export default function CustomerQuotation() {
     );
   }
 
-  const status = actionState === "accepted" ? "accepted" : quotation.status;
+  const effectiveStatus = actionState === "accepted"
+    ? "accepted"
+    : actionState === "negotiated"
+    ? "negotiation_requested"
+    : quotation.status;
+
   const showButtons =
     actionState === null &&
-    !["accepted", "negotiation_requested", "awaiting_admin_approval"].includes(quotation.status);
+    !["accepted", "negotiation_requested", "awaiting_admin_approval", "rejected"].includes(
+      quotation.status
+    );
 
   // ════════════════════════════════════════
   // SUCCESS SCREENS (after action taken in this session)
@@ -182,12 +201,12 @@ export default function CustomerQuotation() {
   const renderSuccessScreen = () => {
     if (actionState === "accepted") {
       return (
-        <div className="bg-white rounded-2xl shadow-sm border border-green-200 p-10 text-center">
-          <CheckCircle2 className="mx-auto text-green-600 mb-4" size={64} />
-          <h2 className="text-2xl font-bold text-green-800 mb-2">Thank you.</h2>
+        <div className="bg-white rounded-2xl shadow-lg border border-green-200 p-12 text-center animate-[fadeIn_0.4s_ease]">
+          <CheckCircle2 className="mx-auto text-green-600 mb-4" size={72} />
+          <h2 className="text-2xl font-extrabold text-green-800 mb-2">
+            Quotation Accepted Successfully
+          </h2>
           <p className="text-gray-600">
-            Your quotation has been accepted.
-            <br />
             Our Sales Representative will contact you shortly.
           </p>
         </div>
@@ -195,11 +214,13 @@ export default function CustomerQuotation() {
     }
     if (actionState === "negotiated") {
       return (
-        <div className="bg-white rounded-2xl shadow-sm border border-orange-200 p-10 text-center">
-          <MessageSquareWarning className="mx-auto text-orange-500 mb-4" size={64} />
-          <h2 className="text-2xl font-bold text-orange-700 mb-2">Request Sent</h2>
+        <div className="bg-white rounded-2xl shadow-lg border border-orange-200 p-12 text-center animate-[fadeIn_0.4s_ease]">
+          <MessageSquareWarning className="mx-auto text-orange-500 mb-4" size={72} />
+          <h2 className="text-2xl font-extrabold text-orange-700 mb-2">
+            Negotiation Request Submitted Successfully
+          </h2>
           <p className="text-gray-600">
-            Your negotiation request has been sent successfully.
+            Our team will review your request and get back to you shortly.
           </p>
         </div>
       );
@@ -208,33 +229,31 @@ export default function CustomerQuotation() {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 py-10 px-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-10 px-4">
+      <div className="max-w-[1100px] mx-auto space-y-6">
         {/* ── Header / Branding ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 flex flex-wrap items-center justify-between gap-4 transition hover:shadow-md">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-green-700 text-white flex items-center justify-center font-extrabold text-lg">
+            <div className="w-12 h-12 rounded-xl bg-green-700 text-white flex items-center justify-center font-extrabold text-lg shadow-sm">
               A
             </div>
             <div>
               <p className="text-xl font-extrabold text-green-800 tracking-tight">AADONA</p>
-              <p className="text-xs text-gray-500">Enterprise Quotation</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Enterprise Quotation</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {statusBadge[status] && (
-              <span
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold ${statusBadge[status].classes}`}
-              >
-                {statusBadge[status].label}
-              </span>
-            )}
-          </div>
+          {statusBadge[effectiveStatus] && (
+            <span
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold ${statusBadge[effectiveStatus].classes}`}
+            >
+              {statusBadge[effectiveStatus].label}
+            </span>
+          )}
         </div>
 
         {/* ── Quotation Meta ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 grid sm:grid-cols-3 gap-4 text-sm">
+        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 grid sm:grid-cols-3 gap-4 text-sm transition hover:shadow-md">
           <div>
             <p className="text-gray-400 font-semibold uppercase text-xs mb-1">Quotation No.</p>
             <p className="text-gray-800 font-bold flex items-center gap-1.5">
@@ -259,7 +278,7 @@ export default function CustomerQuotation() {
         </div>
 
         {/* ── Customer Information ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 transition hover:shadow-md">
           <h2 className="text-sm font-bold text-green-800 uppercase tracking-wide mb-4">
             Customer Information
           </h2>
@@ -284,7 +303,7 @@ export default function CustomerQuotation() {
         </div>
 
         {/* ── Products Table ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 transition hover:shadow-md">
           <h2 className="text-sm font-bold text-green-800 uppercase tracking-wide mb-4">
             Products
           </h2>
@@ -292,27 +311,31 @@ export default function CustomerQuotation() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-green-700 text-white text-left">
-                  <th className="px-3 py-2 rounded-tl-lg">Product</th>
-                  <th className="px-3 py-2">Description</th>
-                  <th className="px-3 py-2">Qty</th>
-                  <th className="px-3 py-2">Unit Price (₹)</th>
-                  <th className="px-3 py-2">GST</th>
-                  <th className="px-3 py-2">Discount</th>
-                  <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
+                  <th className="px-3 py-2.5 rounded-tl-lg">Product</th>
+                  <th className="px-3 py-2.5">Description</th>
+                  <th className="px-3 py-2.5">Qty</th>
+                  <th className="px-3 py-2.5">Unit Price (₹)</th>
+                  <th className="px-3 py-2.5">GST</th>
+                  <th className="px-3 py-2.5">Discount</th>
+                  <th className="px-3 py-2.5 rounded-tr-lg">Total (₹)</th>
                 </tr>
               </thead>
               <tbody>
                 {(quotation.items || []).map((item, i) => (
-                  <tr key={i} className="border-b border-green-100">
-                    <td className="px-3 py-2 text-gray-800 font-medium">{item.name}</td>
-                    <td className="px-3 py-2 text-gray-600">{item.description || "—"}</td>
-                    <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
-                    <td className="px-3 py-2 text-gray-700">
+                  <tr
+                    key={i}
+                    className="border-b border-green-100 hover:bg-green-50/60 transition"
+                  >
+                    <td className="px-3 py-2.5 text-gray-800 font-medium">{item.name}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{item.description || "—"}</td>
+                    {/* Quantity is always read-only on the public portal */}
+                    <td className="px-3 py-2.5 text-gray-700">{item.quantity}</td>
+                    <td className="px-3 py-2.5 text-gray-700">
                       ₹{Number(item.unitPrice).toFixed(2)}
                     </td>
-                    <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
-                    <td className="px-3 py-2 text-gray-700">{item.discount || 0}%</td>
-                    <td className="px-3 py-2 font-semibold text-gray-800">
+                    <td className="px-3 py-2.5 text-gray-700">{item.gst}%</td>
+                    <td className="px-3 py-2.5 text-gray-700">{item.discount || 0}%</td>
+                    <td className="px-3 py-2.5 font-semibold text-gray-800">
                       ₹{Number(item.total).toFixed(2)}
                     </td>
                   </tr>
@@ -323,7 +346,7 @@ export default function CustomerQuotation() {
         </div>
 
         {/* ── Summary Card ── */}
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6 transition hover:shadow-md">
           <h2 className="text-sm font-bold text-green-800 uppercase tracking-wide mb-4">
             Summary
           </h2>
@@ -340,26 +363,31 @@ export default function CustomerQuotation() {
               <span>Discount Amount</span>
               <span>− ₹{Number(quotation.discountAmount || 0).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-2 mt-2">
-              <span>Grand Total</span>
-              <span>₹{Number(quotation.grandTotal || 0).toFixed(2)}</span>
+            <div className="flex justify-between items-center bg-green-50 rounded-xl px-4 py-3 mt-3 border border-green-200">
+              <span className="text-base font-bold text-green-800">Grand Total</span>
+              <span className="text-xl font-extrabold text-green-800">
+                ₹{Number(quotation.grandTotal || 0).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
 
         {/* ── Notes ── */}
         {quotation.notes && (
-          <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 transition hover:shadow-md">
             <h2 className="text-sm font-bold text-green-800 uppercase tracking-wide mb-2">
               Notes
             </h2>
-            <p className="text-sm text-gray-600 whitespace-pre-wrap">{quotation.notes}</p>
+            <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+              {quotation.notes}
+            </p>
           </div>
         )}
 
         {/* ── Action Error ── */}
         {actionError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+            <AlertTriangle size={16} />
             {actionError}
           </div>
         )}
@@ -367,7 +395,7 @@ export default function CustomerQuotation() {
         {/* ── Success Screen ── */}
         {actionState && renderSuccessScreen()}
 
-        {/* ── Status Badge (already actioned previously / by admin) ── */}
+        {/* ── Already actioned (by admin / earlier session) ── */}
         {!actionState && !showButtons && statusBadge[quotation.status] && (
           <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-8 text-center">
             <ShieldCheck className="mx-auto text-green-600 mb-3" size={40} />
@@ -384,15 +412,15 @@ export default function CustomerQuotation() {
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={() => setConfirmOpen(true)}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-base py-4 rounded-xl shadow-md transition"
+              className="flex-1 bg-green-600 hover:bg-green-700 active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
             >
               Accept Quotation
             </button>
             <button
               onClick={() => setNegotiateOpen(true)}
-              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-base py-4 rounded-xl shadow-md transition"
+              className="flex-1 bg-orange-500 hover:bg-orange-600 active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
             >
-              Negotiate
+              Request Negotiation
             </button>
           </div>
         )}
@@ -400,7 +428,7 @@ export default function CustomerQuotation() {
 
       {/* ── Confirm Accept Dialog ── */}
       {confirmOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50 animate-[fadeIn_0.2s_ease]">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Accept Quotation?</h3>
             <p className="text-sm text-gray-500 mb-6">
@@ -429,7 +457,7 @@ export default function CustomerQuotation() {
 
       {/* ── Negotiate Modal ── */}
       {negotiateOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50 animate-[fadeIn_0.2s_ease]">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
             <button
               onClick={() => setNegotiateOpen(false)}
@@ -437,7 +465,7 @@ export default function CustomerQuotation() {
             >
               <X size={20} />
             </button>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Negotiate Quotation</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Request Negotiation</h3>
             <p className="text-sm text-gray-500 mb-5">
               Tell us what would work better for you and we'll get back to you.
             </p>
@@ -484,9 +512,7 @@ export default function CustomerQuotation() {
                 />
               </div>
 
-              {actionError && (
-                <p className="text-sm text-red-600">{actionError}</p>
-              )}
+              {actionError && <p className="text-sm text-red-600">{actionError}</p>}
 
               <button
                 type="submit"
