@@ -3375,7 +3375,7 @@ app.get("*", (req, res, next) => {
     return next();
   }
 
-  res.sendFile(path.join(__dirname, "./dist", "index.html"));
+  res.sendFile(path.join(__dirname, "../dist", "index.html"));
 });
 
 /* =============================
