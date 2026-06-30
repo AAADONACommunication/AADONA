@@ -293,6 +293,7 @@ app.use("/assets", express.static("assets"));
 
 // Chatbot route
 const chatbotRoute = require('./routes/chatbot');
+app.use("/api", chatbotRoute);
 app.use("/api", salesRoutes);
 app.use("/api", customerRoutes);
 app.use("/api", quotationRoutes);
@@ -535,7 +536,7 @@ app.get("/", (req, res) => {
    CATEGORY ROUTES
 ============================= */
 
-app.get("/categories", async (req, res) => {
+app.get("/api/categories", async (req, res) => {
   try {
     const { type } = req.query;
     const query = type ? { type } : {};
@@ -546,7 +547,7 @@ app.get("/categories", async (req, res) => {
   }
 });
 
-app.post("/categories", verifyToken, async (req, res) => {
+app.post("/api/categories", verifyToken, async (req, res) => {
   try {
     const { type, name, subCategories, order } = req.body;
     if (!type || !name)
@@ -576,7 +577,7 @@ app.post("/categories", verifyToken, async (req, res) => {
   }
 });
 
-app.put("/categories/reorder", verifyToken, async (req, res) => {
+app.put("/api/categories/reorder", verifyToken, async (req, res) => {
   try {
     const { items } = req.body;
     if (!Array.isArray(items))
@@ -598,7 +599,7 @@ app.put("/categories/reorder", verifyToken, async (req, res) => {
   }
 });
 
-app.put("/categories/:id/rename", verifyToken, async (req, res) => {
+app.put("/api/categories/:id/rename", verifyToken, async (req, res) => {
   try {
     const { newName } = req.body;
     if (!newName || !newName.trim())
@@ -635,7 +636,7 @@ app.put("/categories/:id/rename", verifyToken, async (req, res) => {
 });
 
 app.put(
-  "/categories/:id/subcategory/:subName/rename",
+  "/api/categories/:id/subcategory/:subName/rename",
   verifyToken,
   async (req, res) => {
     try {
@@ -682,7 +683,7 @@ app.put(
 );
 
 app.put(
-  "/categories/:id/subcategory/:subName/extra/rename",
+  "/api/categories/:id/subcategory/:subName/extra/rename",
   verifyToken,
   async (req, res) => {
     try {
@@ -742,7 +743,7 @@ app.put(
   }
 );
 
-app.put("/categories/:id", verifyToken, async (req, res) => {
+app.put("/api/categories/:id", verifyToken, async (req, res) => {
   try {
     const updated = await Category.findByIdAndUpdate(
       req.params.id,
@@ -758,7 +759,7 @@ app.put("/categories/:id", verifyToken, async (req, res) => {
 });
 
 // ── CATEGORY BANNER UPLOAD ──────────────────────────────────────
-app.put("/categories/:id/banner", verifyToken, uploadBanner.single("bannerImage"), async (req, res) => {
+app.put("/api/categories/:id/banner", verifyToken, uploadBanner.single("bannerImage"), async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ message: "Category not found" });
@@ -799,7 +800,7 @@ const deleteProductsCascade = async (query) => {
   await RelatedProduct.deleteMany(query);
 };
 
-app.delete("/categories/:id", verifyToken, async (req, res) => {
+app.delete("/api/categories/:id", verifyToken, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
     if (!category)
@@ -819,7 +820,7 @@ app.delete("/categories/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.post("/categories/:id/subcategory", verifyToken, async (req, res) => {
+app.post("/api/categories/:id/subcategory", verifyToken, async (req, res) => {
   try {
     const { name, extraCategories } = req.body;
     if (!name)
@@ -858,7 +859,7 @@ app.post("/categories/:id/subcategory", verifyToken, async (req, res) => {
 });
 
 app.put(
-  "/categories/:id/subcategory/reorder",
+  "/api/categories/:id/subcategory/reorder",
   verifyToken,
   async (req, res) => {
     try {
@@ -891,7 +892,7 @@ app.put(
 );
 
 app.put(
-  "/categories/:id/subcategory/:subName",
+  "/api/categories/:id/subcategory/:subName",
   verifyToken,
   async (req, res) => {
     try {
@@ -943,7 +944,7 @@ app.put(
 );
 
 app.delete(
-  "/categories/:id/subcategory/:subName",
+  "/api/categories/:id/subcategory/:subName",
   verifyToken,
   async (req, res) => {
     try {
@@ -985,7 +986,7 @@ app.delete(
    PRODUCT ROUTES
 ============================= */
 
-app.put("/products/reorder", verifyToken, async (req, res) => {
+app.put("/api/products/reorder", verifyToken, async (req, res) => {
   try {
     const { items } = req.body;
     if (!Array.isArray(items))
@@ -1015,7 +1016,7 @@ app.put("/products/reorder", verifyToken, async (req, res) => {
   }
 });
 
-app.get("/products", async (req, res) => {
+app.get("/api/products", async (req, res) => {
   try {
     const { sort, fields } = req.query;
     const sortOption = sort === "order" ? { order: 1 } : { createdAt: -1 };
@@ -1032,7 +1033,7 @@ app.get("/products", async (req, res) => {
   }
 });
 
-app.get("/products/models-list", async (req, res) => {
+app.get("/api/products/models-list", async (req, res) => {
   try {
     const products = await Product.find({}, { name: 1, model: 1, _id: 0 })
       .sort({ order: 1 });
@@ -1042,7 +1043,7 @@ app.get("/products/models-list", async (req, res) => {
   }
 });
 
-app.get("/products/:slug", async (req, res) => {
+app.get("/api/products/:slug", async (req, res) => {
   try {
     const product = await Product.findOne({ slug: req.params.slug });
     if (!product)
@@ -1060,7 +1061,7 @@ app.get("/products/:slug", async (req, res) => {
    DATASHEET PDF ROUTE (Puppeteer + Cache)
 ============================= */
 
-app.get("/products/:slug/datasheet", pdfLimiter, async (req, res) => {
+app.get("/api/products/:slug/datasheet", pdfLimiter, async (req, res) => {
   try {
     const product = await Product.findOne({ slug: req.params.slug });
     if (!product)
@@ -1095,7 +1096,7 @@ app.get("/products/:slug/datasheet", pdfLimiter, async (req, res) => {
   }
 });
 
-app.post("/products", verifyToken, async (req, res) => {
+app.post("/api/products", verifyToken, async (req, res) => {
   try {
     let baseSlug = generateSlug(req.body.name);
     let slug = baseSlug;
@@ -1133,7 +1134,7 @@ app.post("/products", verifyToken, async (req, res) => {
   }
 });
 
-app.put("/products/:id", verifyToken, async (req, res) => {
+app.put("/api/products/:id", verifyToken, async (req, res) => {
   try {
     const existing = await Product.findById(req.params.id);
     if (!existing)
@@ -1185,7 +1186,7 @@ app.put("/products/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.delete("/products/:id", verifyToken, async (req, res) => {
+app.delete("/api/products/:id", verifyToken, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product)
@@ -1215,7 +1216,7 @@ app.delete("/products/:id", verifyToken, async (req, res) => {
    OTP ROUTES
 ============================= */
 
-app.post("/send-otp", verifyToken, async (req, res) => {
+app.post("/api/send-otp", verifyToken, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
@@ -1247,7 +1248,7 @@ app.post("/send-otp", verifyToken, async (req, res) => {
   }
 });
 
-app.post("/verify-otp", verifyToken, async (req, res) => {
+app.post("/api/verify-otp", verifyToken, async (req, res) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp)
@@ -1281,7 +1282,7 @@ app.post("/verify-otp", verifyToken, async (req, res) => {
    ADMIN ROUTES
 ============================= */
 
-app.post("/create-admin", verifyToken, async (req, res) => {
+app.post("/api/create-admin", verifyToken, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
@@ -1300,7 +1301,7 @@ app.post("/create-admin", verifyToken, async (req, res) => {
   }
 });
 
-app.get("/get-admins", verifyToken, adminLimiter, async (req, res) => {
+app.get("/api/get-admins", verifyToken, adminLimiter, async (req, res) => {
   try {
     const listResult = await admin.auth().listUsers(100);
     const admins = listResult.users
@@ -1319,7 +1320,7 @@ app.get("/get-admins", verifyToken, adminLimiter, async (req, res) => {
   }
 });
 
-app.delete("/delete-admin/:uid", verifyToken, async (req, res) => {
+app.delete("/api/delete-admin/:uid", verifyToken, async (req, res) => {
   try {
     const { uid } = req.params;
     if (uid === req.user.uid)
@@ -1349,7 +1350,7 @@ app.delete("/delete-admin/:uid", verifyToken, async (req, res) => {
    RELATED PRODUCTS ROUTES 
 ============================= */
 
-app.post("/save-related-products", verifyToken, async (req, res) => {
+app.post("/api/save-related-products", verifyToken, async (req, res) => {
   try {
     const { type, category, subCategory, extraCategory, relatedProducts } =
       req.body;
@@ -1415,7 +1416,7 @@ app.post("/save-related-products", verifyToken, async (req, res) => {
   }
 });
 
-app.get("/related-products", async (req, res) => {
+app.get("/api/related-products", async (req, res) => {
   try {
     const { category, subCategory, extraCategory, type } = req.query;
     const query = { category };
@@ -1434,7 +1435,7 @@ app.get("/related-products", async (req, res) => {
   }
 });
 
-app.get("/related-products/raw", verifyToken, async (req, res) => {
+app.get("/api/related-products/raw", verifyToken, async (req, res) => {
   try {
     const { category, subCategory, extraCategory, type } = req.query;
     if (!category)
@@ -1455,7 +1456,7 @@ app.get("/related-products/raw", verifyToken, async (req, res) => {
   }
 });
 
-app.put("/related-products/remove", verifyToken, async (req, res) => {
+app.put("/api/related-products/remove", verifyToken, async (req, res) => {
   try {
     const { category, subCategory, extraCategory, type, productId } = req.body;
     if (!category || !productId)
@@ -1510,7 +1511,7 @@ app.put("/related-products/remove", verifyToken, async (req, res) => {
    BLOG ROUTES
 ============================= */
 
-app.get("/blogs/drafts", verifyToken, async (req, res) => {
+app.get("/api/blogs/drafts", verifyToken, async (req, res) => {
   try {
     const drafts = await Blog.find({ published: false })
       .sort({ updatedAt: -1 })
@@ -1521,7 +1522,7 @@ app.get("/blogs/drafts", verifyToken, async (req, res) => {
   }
 });
 
-app.get("/blogs", async (req, res) => {
+app.get("/api/blogs", async (req, res) => {
   try {
     const blogs = await Blog.find({ published: true })
       .sort({ createdAt: -1 })
@@ -1533,7 +1534,7 @@ app.get("/blogs", async (req, res) => {
   }
 });
 
-app.get("/blogs/slug/:slug", async (req, res) => {
+app.get("/api/blogs/slug/:slug", async (req, res) => {
   try {
     const blog = await Blog.findOne({
       slug: req.params.slug,
@@ -1547,7 +1548,7 @@ app.get("/blogs/slug/:slug", async (req, res) => {
   }
 });
 
-app.post("/blogs/slug/:slug/view", async (req, res) => {
+app.post("/api/blogs/slug/:slug/view", async (req, res) => {
   try {
     const blog = await Blog.findOneAndUpdate(
       { slug: req.params.slug, published: true },
@@ -1561,7 +1562,7 @@ app.post("/blogs/slug/:slug/view", async (req, res) => {
   }
 });
 
-app.post("/blogs/slug/:slug/like", async (req, res) => {
+app.post("/api/blogs/slug/:slug/like", async (req, res) => {
   try {
     const blog = await Blog.findOneAndUpdate(
       { slug: req.params.slug, published: true },
@@ -1585,7 +1586,7 @@ app.post("/blogs/slug/:slug/like", async (req, res) => {
   }
 });
 
-app.post("/blogs/slug/:slug/comment", async (req, res) => {
+app.post("/api/blogs/slug/:slug/comment", async (req, res) => {
   try {
     const { name, text } = req.body;
     if (!name || !text)
@@ -1618,7 +1619,7 @@ app.post("/blogs/slug/:slug/comment", async (req, res) => {
   }
 });
 
-app.get("/blogs/:id", async (req, res) => {
+app.get("/api/blogs/:id", async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ error: "Blog not found" });
@@ -1628,7 +1629,7 @@ app.get("/blogs/:id", async (req, res) => {
   }
 });
 
-app.post("/blogs", verifyToken, async (req, res) => {
+app.post("/api/blogs", verifyToken, async (req, res) => {
   try {
     let baseSlug = generateSlug(req.body.title);
     let finalSlug = baseSlug;
@@ -1654,7 +1655,7 @@ app.post("/blogs", verifyToken, async (req, res) => {
   }
 });
 
-app.put("/blogs/:id", verifyToken, async (req, res) => {
+app.put("/api/blogs/:id", verifyToken, async (req, res) => {
   try {
     const existing = await Blog.findById(req.params.id);
     if (!existing)
@@ -1702,7 +1703,7 @@ app.put("/blogs/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.delete("/blogs/:id", verifyToken, async (req, res) => {
+app.delete("/api/blogs/:id", verifyToken, async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ message: "Blog not found" });
@@ -1738,7 +1739,7 @@ const { spawn } = require("child_process");
 const path = require("path");
 
 // ── BLOG GENERATION ROUTE ──
-app.post("/admin/generate-blogs", verifyToken, (req, res) => {
+app.post("/api/admin/generate-blogs", verifyToken, (req, res) => {
   req.setTimeout(10 * 60 * 1000);
   res.setTimeout(10 * 60 * 1000);
   const { topic } = req.body;
@@ -1890,7 +1891,7 @@ mongoose.connection.once("open", async () => {
 });
 
 // ── GET SCHEDULE (Admin) ─────────────────────────────────────────
-app.get("/admin/blog-schedule", verifyToken, async (req, res) => {
+app.get("/api/admin/blog-schedule", verifyToken, async (req, res) => {
   try {
     const schedule = await BlogSchedule.findOne();
     res.json(schedule || null);
@@ -1900,7 +1901,7 @@ app.get("/admin/blog-schedule", verifyToken, async (req, res) => {
 });
 
 // ── SAVE / UPDATE SCHEDULE (Admin) ───────────────────────────────
-app.post("/admin/blog-schedule", verifyToken, async (req, res) => {
+app.post("/api/admin/blog-schedule", verifyToken, async (req, res) => {
   try {
     const { dayOfWeek, hour, minute, blogCount, enabled } = req.body;
 
@@ -1926,7 +1927,7 @@ app.post("/admin/blog-schedule", verifyToken, async (req, res) => {
    INQUIRY ROUTES
 ============================= */
 
-app.get("/inquiries", verifyToken, async (req, res) => {
+app.get("/api/inquiries", verifyToken, async (req, res) => {
   try {
     const inquiries = await Inquiry.find().sort({ createdAt: -1 });
     res.json(inquiries);
@@ -1935,7 +1936,7 @@ app.get("/inquiries", verifyToken, async (req, res) => {
   }
 });
 
-app.put("/inquiries/:id/read", verifyToken, async (req, res) => {
+app.put("/api/inquiries/:id/read", verifyToken, async (req, res) => {
   try {
     const inquiry = await Inquiry.findByIdAndUpdate(
       req.params.id,
@@ -1950,7 +1951,7 @@ app.put("/inquiries/:id/read", verifyToken, async (req, res) => {
   }
 });
 
-app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
+app.post("/api/inquiries/:id/reply", verifyToken, async (req, res) => {
   try {
     const { message } = req.body;
     if (!message)
@@ -1993,7 +1994,7 @@ app.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
   }
 });
 
-app.delete("/inquiries/:id", verifyToken, async (req, res) => {
+app.delete("/api/inquiries/:id", verifyToken, async (req, res) => {
   try {
     const inquiry = await Inquiry.findById(req.params.id);
     if (!inquiry)
@@ -2013,7 +2014,7 @@ app.delete("/inquiries/:id", verifyToken, async (req, res) => {
    AUDIT LOG ROUTE
 ============================= */
 
-app.get("/audit-logs", verifyToken, adminLimiter, async (req, res) => {
+app.get("/api/audit-logs", verifyToken, adminLimiter, async (req, res) => {
   try {
     const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(500);
     res.json(logs);
@@ -2026,7 +2027,7 @@ app.get("/audit-logs", verifyToken, adminLimiter, async (req, res) => {
    ANALYTICS ROUTE
 ============================= */
 
-app.get("/analytics/summary", verifyToken, adminLimiter, async (req, res) => {
+app.get("/api/analytics/summary", verifyToken, adminLimiter, async (req, res) => {
   try {
     const propertyId = process.env.GA_PROPERTY_ID;
     const { range } = req.query;
@@ -2183,7 +2184,7 @@ app.get("/analytics/summary", verifyToken, adminLimiter, async (req, res) => {
    FORM SUBMISSION ROUTES  (rate limited)
 ============================= */
 
-app.post("/submit-partner", formLimiter, async (req, res) => {
+app.post("/api/submit-partner", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2258,7 +2259,7 @@ app.post("/submit-partner", formLimiter, async (req, res) => {
   }
 });
 
-app.post("/submit-project-locking", formLimiter, async (req, res) => {
+app.post("/api/submit-project-locking", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2308,7 +2309,7 @@ app.post("/submit-project-locking", formLimiter, async (req, res) => {
   }
 });
 
-app.post("/submit-demo", formLimiter, async (req, res) => {
+app.post("/api/submit-demo", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2351,7 +2352,7 @@ app.post("/submit-demo", formLimiter, async (req, res) => {
   }
 });
 
-app.post("/submit-training", formLimiter, async (req, res) => {
+app.post("/api/submit-training", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2395,7 +2396,7 @@ app.post("/submit-training", formLimiter, async (req, res) => {
   }
 });
 
-app.post("/submit-warranty", formLimiter, upload.single("invoiceFile"), async (req, res) => {
+app.post("/api/submit-warranty", formLimiter, upload.single("invoiceFile"), async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2444,7 +2445,7 @@ app.post("/submit-warranty", formLimiter, upload.single("invoiceFile"), async (r
   }
 });
 
-app.post("/submit-techsquad", formLimiter, async (req, res) => {
+app.post("/api/submit-techsquad", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2489,7 +2490,7 @@ app.post("/submit-techsquad", formLimiter, async (req, res) => {
   }
 });
 
-app.post("/submit-doa", formLimiter, upload.single("invoiceFile"), async (req, res) => {
+app.post("/api/submit-doa", formLimiter, upload.single("invoiceFile"), async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2544,7 +2545,7 @@ app.post("/submit-doa", formLimiter, upload.single("invoiceFile"), async (req, r
   }
 });
 
-app.post("/submit-product-support", formLimiter, async (req, res) => {
+app.post("/api/submit-product-support", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2587,7 +2588,7 @@ app.post("/submit-product-support", formLimiter, async (req, res) => {
   }
 });
 
-app.post("/submit-product-registration", formLimiter, upload.single("invoiceFile"), async (req, res) => {
+app.post("/api/submit-product-registration", formLimiter, upload.single("invoiceFile"), async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
     if (!emailValid) {
@@ -2739,7 +2740,7 @@ app.post("/submit-product-registration", formLimiter, upload.single("invoiceFile
   }
 });
 
-app.post("/submit-contact", formLimiter, async (req, res) => {
+app.post("/api/submit-contact", formLimiter, async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2783,7 +2784,7 @@ app.post("/submit-contact", formLimiter, async (req, res) => {
   }
 });
 
-app.post("/submit-apply", formLimiter, upload.single("resumeFile"), async (req, res) => {
+app.post("/api/submit-apply", formLimiter, upload.single("resumeFile"), async (req, res) => {
   const form = req.body;
   const emailValid = await isEmailDomainValid(form.email);
   if (!emailValid)
@@ -2857,7 +2858,7 @@ app.post("/submit-apply", formLimiter, upload.single("resumeFile"), async (req, 
   }
 });
 
-app.post("/submit-whistleblower", formLimiter, upload.single("attachmentFile"), async (req, res) => {
+app.post("/api/submit-whistleblower", formLimiter, upload.single("attachmentFile"), async (req, res) => {
   const form = req.body;
   if (form.email) {
     const emailValid = await isEmailDomainValid(form.email);
@@ -2959,7 +2960,7 @@ SubscriberSchema.index(
 const Subscriber = mongoose.model("Subscriber", SubscriberSchema);
 
 // ── NEWSLETTER SUBSCRIBE (Public) ─────────────────────────────────
-app.post("/newsletter-subscribe", formLimiter, async (req, res) => {
+app.post("/api/newsletter-subscribe", formLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email)
     return res.status(400).json({ success: false, message: "Email is required" });
