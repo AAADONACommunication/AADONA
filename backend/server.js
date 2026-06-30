@@ -300,7 +300,7 @@ app.use(customerRoutes);
 app.use(quotationRoutes);
 app.use(adminQuotationsRoutes);
 app.use(salesQuotationsRoutes);
-app.use("/api", publicQuotationRoutes);
+app.use("/api/public", publicQuotationRoutes);
 app.use("/api", adminApprovalRoutes);
 
 // SEO / Security headers for all responses
