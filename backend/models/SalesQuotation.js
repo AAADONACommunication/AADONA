@@ -39,13 +39,21 @@ const SalesQuotationSchema = new mongoose.Schema(
     notes: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["sent", "viewed", "accepted", "rejected"],
+      enum: [
+        "sent",
+        "viewed",
+        "accepted",
+        "rejected",
+        "negotiation_requested",
+        "awaiting_admin_approval",
+      ],
       default: "sent",
       index: true,
     },
     sentAt: { type: Date, default: Date.now },
     viewedAt: { type: Date },
     acceptedAt: { type: Date },
+    rejectedAt: { type: Date },
 
     // ── Reminder scheduling ──
     reminderAfterDays: {
@@ -67,6 +75,16 @@ const SalesQuotationSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // ── Customer negotiation ──
+    customerMessage: { type: String, default: "" },
+    expectedBudget: { type: Number, default: null, min: 0 },
+    customerRespondedAt: { type: Date, default: null },
+
+    // ── Admin approval (only relevant when status = awaiting_admin_approval) ──
+    adminApprovedAt: { type: Date, default: null },
+    adminRejectedAt: { type: Date, default: null },
+    adminApprovedAmount: { type: Number, default: null }, // AdminQuotation subtotal at time of negotiation, snapshotted
   },
   { timestamps: true }
 );

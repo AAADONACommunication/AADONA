@@ -18,6 +18,8 @@ const quotationRoutes = require("./routes/quotations");
 const adminQuotationsRoutes = require("./routes/adminQuotations");
 const salesQuotationsRoutes = require("./routes/salesQuotations");
 const startQuotationReminderCron = require("./cron/quotationReminders");
+const publicQuotationRoutes = require("./routes/publicQuotation");
+const adminApprovalRoutes = require("./routes/adminApprovals");
 
 let browserInstance = null;
 
@@ -298,6 +300,9 @@ app.use(customerRoutes);
 app.use(quotationRoutes);
 app.use(adminQuotationsRoutes);
 app.use(salesQuotationsRoutes);
+app.use("/api", publicQuotationRoutes);
+app.use("/api", adminApprovalRoutes);
+
 // SEO / Security headers for all responses
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");

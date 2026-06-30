@@ -8,6 +8,8 @@ const AdminQuotation = require("../models/AdminQuotation");
 const Customer = require("../models/Customer");
 const crypto = require("crypto");
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://aadona.com";
+
 // ── Generate unique quotation number ──
 const generateQuotationNumber = async () => {
   const prefix = "AQ";
@@ -228,6 +230,8 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       </tr>
     `).join("");
 
+    const viewQuotationUrl = `${FRONTEND_URL}/quotation/${publicToken}`;
+
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -342,6 +346,20 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
                   </div>
                 </td>
               </tr>` : ""}
+
+              <!-- View Quotation Button -->
+              <tr>
+                <td style="padding:28px 32px 0;text-align:center">
+                  <a href="${viewQuotationUrl}"
+                    style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;
+                    font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
+                    View Quotation
+                  </a>
+                  <p style="color:#9ca3af;font-size:11px;margin:12px 0 0">
+                    You can review the full details and respond directly from this page.
+                  </p>
+                </td>
+              </tr>
 
               <!-- Footer -->
               <tr>

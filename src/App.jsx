@@ -45,6 +45,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const SalesLogin = lazy(() => import("./pages/Sales/SalesLogin"));
 const SalesPanel = lazy(() => import("./pages/Sales/SalesPanel"));
 const SalesSignup = lazy(() => import("./pages/Sales/SalesSignup"));
+const CustomerQuotation = lazy(() => import("./pages/customer/CustomerQuotation"));
 
 // GLOBAL COMPONENTS
 import Breadcrumbs from "./BreadCrumbs";
@@ -102,10 +103,13 @@ const AppContent = () => {
             }
           />
 
-            {/* Sales */}
-            <Route path="/sales-ctrl-500" element={<SalesLogin />}/>
-            <Route path="/sales-portal-100" element={<SalesPanel />}/>
-            <Route path="/sales-signup/:token" element={<SalesSignup />}/>
+          {/* Sales */}
+          <Route path="/sales-ctrl-500" element={<SalesLogin />}/>
+          <Route path="/sales-portal-100" element={<SalesPanel />}/>
+          <Route path="/sales-signup/:token" element={<SalesSignup />}/>
+
+          {/* CUSTOMER QUOTATION */}
+          <Route path="/quotation/:token" element={<CustomerQuotation />} />
 
           {/* BLOG */}
           <Route path="/blog" element={<Blog />} />

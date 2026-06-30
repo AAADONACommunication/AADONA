@@ -130,8 +130,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         },
         body: JSON.stringify(buildSalesPayload()),
       });
-      await safeJson(res);
-      if (!res.ok) throw new Error("Failed to send quotation");
+      const text = await res.text();
+
+      console.log(text);
+
+      if (!res.ok) {
+        throw new Error(text);
+      }
 
       setSuccessMsg("Quotation sent to customer.");
       reloadIncomingQuotations?.();

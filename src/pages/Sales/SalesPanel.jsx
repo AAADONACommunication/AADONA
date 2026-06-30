@@ -11,6 +11,7 @@ import QuotationsList from "./tabs/QuotationsList";
 import CustomerManagement from "./tabs/CustomerManagement";
 import IncomingQuotations from "./tabs/AdminQuotations";
 import ProfileMenu from "./tabs/ProfileMenu";
+import SentQuotations from "./tabs/sentQuotations";
 
 const PRODUCTS_API = `${import.meta.env.VITE_API_URL}/products`;
 const CATEGORIES_API = `${import.meta.env.VITE_API_URL}/categories`;
@@ -208,6 +209,7 @@ export default function SalesPanel() {
               { id: "customers", label: "Customers", icon: Users },
               { id: "create", label: "Product Requirement", icon: FilePlus2 },
               { id: "incoming", label: "Admin Quotation", icon: Inbox },
+              { id: "sent", label: "Sent Quotations", icon: FileText },
               { id: "quotations", label: "Customer Quotation", icon: FileText },
             ].map((tab) => (
               <button
@@ -241,6 +243,10 @@ export default function SalesPanel() {
               incomingQuotations={incomingQuotations}
               reloadIncomingQuotations={loadIncomingQuotations}
             />
+          )}
+
+          {activeTab === "sent" && (
+            <SentQuotations />
           )}
 
           {activeTab === "quotations" && (
