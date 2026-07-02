@@ -18,14 +18,20 @@ const isFirebaseUrl = (url) =>
   typeof url === "string" &&
   (url.includes("firebasestorage.googleapis.com") || url.includes("firebasestorage.app"));
 
-// "https://firebasestorage.googleapis.com/v0/b/<bucket>/o/products%2F167-abc.jpg?alt=media"
-//   -> decode "/o/...?..." segment -> "products/167-abc.jpg"
-//   -> "<FRONTEND_URL>/uploads/products/167-abc.jpg"
 const convertFirebaseUrl = (url) => {
-  const match = url.match(/\/o\/(.+?)(\?|$)/);
-  if (!match) return null;
-  const decodedPath = decodeURIComponent(match[1]);
-  return `${FRONTEND_URL}/uploads/${decodedPath}`;
+  // Format 1: firebasestorage.googleapis.com/v0/b/<bucket>/o/<encoded>?alt=media
+  const v0Match = url.match(/\/o\/(.+?)(\?|$)/);
+  if (v0Match) {
+    const decodedPath = decodeURIComponent(v0Match[1]);
+    return `${FRONTEND_URL}/uploads/${decodedPath}`;
+  }
+  // Format 2: storage.googleapis.com/<bucket>/<path> (public bucket direct access)
+  const directMatch = url.match(/storage\.googleapis\.com\/[^/]+\/(.+)$/);
+  if (directMatch) {
+    const decodedPath = decodeURIComponent(directMatch[1]);
+    return `${FRONTEND_URL}/uploads/${decodedPath}`;
+  }
+  return null;
 };
 
 const stats = { scanned: 0, updated: 0, skipped: 0, unparsable: [] };
