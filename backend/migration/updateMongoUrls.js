@@ -1,14 +1,3 @@
-/**
- * STEP 5 — Rewrite every Firebase Storage URL stored in MongoDB to point at
- * the VPS instead. Run this only AFTER migrateFirebaseToVPS.js has finished
- * (so the files it's about to point at already exist on disk).
- *
- * Run on the VPS, from the backend/ directory:
- *   node migration/updateMongoUrls.js
- *
- * Only touches documents that actually contain a Firebase URL — everything
- * else is left untouched. Safe to re-run (already-converted docs are skipped).
- */
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 const mongoose = require("mongoose");
 

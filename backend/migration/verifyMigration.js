@@ -1,19 +1,3 @@
-/**
- * STEP 6 — Verify the migration.
- *
- * Run on the VPS, from the backend/ directory, AFTER migrateFirebaseToVPS.js
- * and updateMongoUrls.js have both completed:
- *   node migration/verifyMigration.js
- *
- * Checks:
- *   - Broken URLs   : DB fields still pointing at Firebase (not migrated)
- *   - Missing files : DB points to /uploads/... but the file isn't on disk
- *   - Missing fields: required fields (e.g. product.image) are empty
- *   - Failed downloads recorded by migrateFirebaseToVPS.js
- *
- * Exits with code 0 if clean, 1 if anything needs attention (useful for CI /
- * cron alerting later, but fine to just read the printed report by hand).
- */
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 const fs = require("fs/promises");
 const path = require("path");

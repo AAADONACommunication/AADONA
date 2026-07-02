@@ -1,14 +1,3 @@
-/**
- * STEP 1 — Download every object from Firebase Storage to the VPS.
- *
- * Run on the VPS, from the backend/ directory:
- *   node migration/migrateFirebaseToVPS.js
- *
- * - Streams each file directly to disk (never buffers a whole file in memory)
- * - Preserves the bucket's folder structure under uploads/
- * - Skips files that already exist locally (safe to re-run / resume)
- * - Logs failures to migration/failed-downloads.log instead of crashing the run
- */
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 
 const fs = require("fs");

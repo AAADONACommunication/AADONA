@@ -12,7 +12,7 @@
     "express": "^4.22.1",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.3.1",
-    "firebase-admin": "^13.7.0",
+    "firebase-admin": "^12.1.0",
     "helmet": "^8.1.0",
     "jspdf": "^4.2.0",
     "mongoose": "^8.5.0",
@@ -21,7 +21,8 @@
     "nodemailer": "^8.0.1",
     "pdfkit": "^0.17.2",
     "puppeteer-core": "^24.39.1",
-    "react-helmet-async": "^3.0.0"
+    "react-helmet-async": "^3.0.0",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

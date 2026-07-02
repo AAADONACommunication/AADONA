@@ -20,12 +20,6 @@ const getVPSPath = (url) => {
   return path.join(UPLOAD_ROOT, safeRelative);
 };
 
-/**
- * Drop-in replacement for deleteFromFirebase(url).
- * Silently no-ops on missing/invalid input, same as the original.
- * During the migration window some DB records may still hold old Firebase
- * URLs — those are skipped (nothing to delete locally) rather than errored.
- */
 const deleteFromVPS = async (url) => {
   if (!url || typeof url !== "string") return;
 
