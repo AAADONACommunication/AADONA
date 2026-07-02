@@ -119,13 +119,13 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
                       {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
-                      {q.customer?.name || q.customerName || "—"}
+                      {q.customer?.personalName || q.customer?.companyName || q.customerName || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-4 py-3 font-semibold text-gray-700">
-                      ₹{Number(q.total || 0).toFixed(2)}
+                      ₹{Number(q.grandTotal || 0).toFixed(2)}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -195,12 +195,12 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
 
             <p className="text-sm text-gray-600 mb-1">
               <span className="font-semibold">Customer:</span>{" "}
-              {viewing.customer?.name || viewing.customerName || "—"}
+              {viewing.customer?.personalName || viewing.customer?.companyName || viewing.customerName || "—"}
             </p>
-            {viewing.validUntil && (
+            {viewing.validTill && (
               <p className="text-sm text-gray-600 mb-3">
                 <span className="font-semibold">Valid Until:</span>{" "}
-                {new Date(viewing.validUntil).toLocaleDateString()}
+                {new Date(viewing.validTill).toLocaleDateString()}
               </p>
             )}
 
@@ -211,7 +211,7 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
                     {item.name} × {item.quantity}
                   </span>
                   <span className="font-medium text-gray-800">
-                    ₹{(Number(item.unitPnitPrice) * Number(item.quantity)).toFixed(2)}
+                    ₹{Number(item.total || 0).toFixed(2)}
                   </span>
                 </div>
               ))}
@@ -219,7 +219,7 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
 
             <div className="flex justify-between text-base font-bold text-green-800">
               <span>Total</span>
-              <span>₹{Number(viewing.total || 0).toFixed(2)}</span>
+              <span>₹{Number(viewing.grandTotal || 0).toFixed(2)}</span>
             </div>
 
             {viewing.notes && (

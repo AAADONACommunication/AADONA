@@ -2,9 +2,14 @@ import { useState } from "react";
 import { getFirebaseAuth } from "../../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { Mail, Lock, LogIn, Loader2, Eye, EyeOff } from "lucide-react";
 import Footer from "../../Components/Footer";
 import Navbar from "../../Components/Navbar";
 import bg from "./../../assets/bg.jpg";
+
+const inputBase =
+  "w-full border border-green-300 rounded-xl px-4 py-3 text-base " +
+  "focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white/50 backdrop-blur-sm";
 
 export default function SalesLogin() {
   const [email, setEmail] = useState("");
@@ -57,91 +62,86 @@ export default function SalesLogin() {
   };
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div
-        className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative px-4"
+
+      <main
+        className="flex-grow bg-cover bg-center flex items-center justify-center pb-10 p-4"
         style={{ backgroundImage: `url(${bg})` }}
       >
-        <div className="absolute inset-0 bg-white/55" />
-
-        <div className="relative z-10 w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-black/10 px-10 sm:px-14 py-12 sm:py-14">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
-            <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 stroke-green-600">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
+        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 md:p-12 w-full mt-26 max-w-md border border-white/20">
+          <div className="flex flex-col items-center mb-8">
+            <div className="bg-green-100 p-4 rounded-full mb-4">
+              <LogIn className="w-8 h-8 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-extrabold text-center text-green-900">
+              Sales Portal
+            </h1>
+            <p className="text-green-700 text-sm mt-2">Please sign in to continue</p>
           </div>
 
-          <h1 className="text-center text-green-900 text-3xl font-extrabold mb-2">
-            Sales Portal
-          </h1>
-          <p className="text-center text-green-600 text-[15px] mb-8">
-            Please sign in to continue
-          </p>
-
-          <form onSubmit={handleSubmit}>
-            <div className="mb-5">
-              <label htmlFor="email" className="flex items-center gap-2 text-green-900 font-bold text-[15px] mb-2">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px] stroke-green-900">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                </svg>
-                Email Address
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-green-900 font-semibold mb-2 flex items-center gap-2">
+                <Mail className="w-4 h-4" /> Email Address
               </label>
               <input
                 type="email"
-                id="email"
-                required
+                className={inputBase}
+                placeholder="sales@yourdomain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="sales@yourdomain.com"
-                className="w-full px-4 py-3.5 rounded-[10px] border-[1.5px] border-green-200 text-gray-700 placeholder-gray-400 outline-none transition focus:border-green-500 focus:ring-3 focus:ring-green-500/15"
+                required
               />
             </div>
 
-            <div className="mb-8">
-              <label htmlFor="password" className="flex items-center gap-2 text-green-900 font-bold text-[15px] mb-2">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px] stroke-green-900">
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                Password
+            <div>
+              <label className="block text-green-900 font-semibold mb-2 flex items-center gap-2">
+                <Lock className="w-4 h-4" /> Password
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="password"
-                  required
+                  className={inputBase + " pr-11"}
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3.5 rounded-[10px] border-[1.5px] border-green-200 text-gray-700 placeholder-gray-400 outline-none transition focus:border-green-500 focus:ring-3 focus:ring-green-500/15"
+                  required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
+                  {showPassword ? (
+                    <EyeOff className="w-[18px] h-[18px]" />
+                  ) : (
+                    <Eye className="w-[18px] h-[18px]" />
+                  )}
                 </button>
               </div>
             </div>
 
             {error && (
-              <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm text-center">
+                {error}
+              </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-xl bg-gradient-to-b from-green-600 to-green-700 text-white text-[17px] font-bold shadow-lg shadow-green-600/35 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-green-600/40 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 rounded-xl bg-green-600 text-white py-4 font-bold text-lg hover:bg-green-700 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-200"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Authenticating...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
 
@@ -149,8 +149,9 @@ export default function SalesLogin() {
             Access restricted to authorized sales personnel
           </p>
         </div>
-      </div>
+      </main>
+
       <Footer />
-    </>
+    </div>
   );
 }

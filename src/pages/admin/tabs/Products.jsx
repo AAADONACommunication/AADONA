@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { jsPDF } from "jspdf";
 import { getFirebaseAuth } from "../../../firebase";
-import { getFirebaseStorage } from "../../../firebase";
 import {
   Trash2, Edit, Plus, X, Upload, CheckCircle2, ChevronDown, ChevronUp,
 } from "lucide-react";
@@ -105,125 +103,24 @@ export default function Products({ products, setProducts, allCategories, reloadP
   const removeFeature = (index) =>
     setForm({ ...form, features: form.features.filter((_, i) => i !== index) });
 
+  // ── Generic VPS Upload Helper ──
+  const uploadFileToServer = async (file, folder) => {
+    const auth = await getFirebaseAuth();
+    const token = await auth.currentUser?.getIdToken();
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/upload/${folder}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+    return data.url;
+  };
+
   // ── Image Upload ──
-  const uploadImage = async (file) => {
-    const storage = await getFirebaseStorage();
-    const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-    const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
-  };
-
-  // ── Datasheet PDF Generation ──
-  const generateDatasheetPDF = async () => {
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const pageW = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    const colRight = pageW - margin;
-    let y = 20;
-
-    const checkPageEnd = (needed = 10) => {
-      if (y + needed > 280) { doc.addPage(); y = 20; }
-    };
-
-    doc.setFillColor(22, 101, 52);
-    doc.rect(0, 0, pageW, 14, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    doc.text("PRODUCT DATASHEET", margin, 9);
-    doc.text(form.category || "", colRight, 9, { align: "right" });
-    y = 22;
-
-    doc.setTextColor(22, 101, 52);
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text(form.name || "Product Name", margin, y);
-    y += 7;
-
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.setFont("helvetica", "normal");
-    const subInfo = [form.subCategory, form.extraCategory, form.type?.toUpperCase()].filter(Boolean).join("  •  ");
-    doc.text(subInfo, margin, y);
-    y += 5;
-
-    doc.setDrawColor(22, 101, 52);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, colRight, y);
-    y += 8;
-
-    if (form.description) {
-      doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 30, 30);
-      doc.text("Description", margin, y); y += 5;
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-      const descLines = doc.splitTextToSize(form.description, colRight - margin);
-      descLines.forEach((line) => { checkPageEnd(); doc.text(line, margin, y); y += 5; });
-      y += 3;
-    }
-
-    if (form.overview?.content) {
-      checkPageEnd(12);
-      doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 30, 30);
-      doc.text("Product Overview", margin, y); y += 5;
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-      const ovLines = doc.splitTextToSize(form.overview.content, colRight - margin);
-      ovLines.forEach((line) => { checkPageEnd(); doc.text(line, margin, y); y += 5; });
-      y += 3;
-    }
-
-    if (form.features?.length > 0) {
-      checkPageEnd(12);
-      doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 30, 30);
-      doc.text("Key Features", margin, y); y += 5;
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-      form.features.forEach((f) => { checkPageEnd(); doc.text(`• ${f}`, margin + 2, y); y += 5; });
-      y += 3;
-    }
-
-    if (form.highlights?.length > 0) {
-      checkPageEnd(12);
-      doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 30, 30);
-      doc.text("Highlights", margin, y); y += 5;
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-      form.highlights.forEach((h) => { checkPageEnd(); doc.text(`✦ ${h}`, margin + 2, y); y += 5; });
-      y += 3;
-    }
-
-    if (form.specifications && Object.keys(form.specifications).length > 0) {
-      checkPageEnd(14);
-      doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 30, 30);
-      doc.text("Specifications", margin, y); y += 6;
-
-      Object.entries(form.specifications).forEach(([catName, rows]) => {
-        checkPageEnd(10);
-        doc.setFillColor(220, 252, 231);
-        doc.rect(margin, y - 4, colRight - margin, 7, "F");
-        doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.setTextColor(22, 101, 52);
-        doc.text(catName, margin + 2, y); y += 6;
-
-        Object.entries(rows).forEach(([key, value]) => {
-          if (!key) return;
-          checkPageEnd();
-          doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.setTextColor(40, 40, 40);
-          doc.text(key, margin + 3, y);
-          doc.setFont("helvetica", "normal"); doc.setTextColor(80, 80, 80);
-          const valLines = doc.splitTextToSize(String(value || ""), 80);
-          doc.text(valLines, pageW / 2, y);
-          y += valLines.length * 5;
-        });
-        y += 3;
-      });
-    }
-
-    doc.setFillColor(22, 101, 52);
-    doc.rect(0, 287, pageW, 10, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7); doc.setFont("helvetica", "normal");
-    doc.text("Generated Datasheet  |  " + new Date().getFullYear(), margin, 293);
-
-    return doc.output("blob");
-  };
+  const uploadImage = (file) => uploadFileToServer(file, "products");
 
   // ── Save Product ──
   const save = async () => {
@@ -239,45 +136,30 @@ export default function Products({ products, setProducts, allCategories, reloadP
       if (form.imageFile) imageUrl = await uploadImage(form.imageFile);
       if (!imageUrl) { alert("Please upload an image"); return; }
 
-      const pdfBlob = await generateDatasheetPDF();
-      const safeName = (form.name || "product").replace(/\s+/g, "_").toLowerCase();
-      const storage = await getFirebaseStorage(); // ✅
-      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-      const pdfRef = ref(storage, `datasheets/${Date.now()}-${safeName}.pdf`);
-      await uploadBytes(pdfRef, pdfBlob, { contentType: "application/pdf" });
-      const datasheetUrl = await getDownloadURL(pdfRef);
-
       // Assembly diagram upload (optional)
       let assemblyDiagramUrl = form.assemblyDiagram || "";
       if (form.assemblyDiagramFile) {
-        const asmFile = form.assemblyDiagramFile;
-        const safeName = (form.name || "product").replace(/\s+/g, "_").toLowerCase();
-        const storage = await getFirebaseStorage();
-        const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-        const asmRef = ref(storage, `assembly-diagrams/${Date.now()}-${safeName}-${asmFile.name}`);
-        await uploadBytes(asmRef, asmFile, { contentType: asmFile.type });
-        assemblyDiagramUrl = await getDownloadURL(asmRef);
+        assemblyDiagramUrl = await uploadFileToServer(form.assemblyDiagramFile, "assembly-diagrams");
       }
-const payload = {
-  name: form.name.trim(),
-  description: form.description.trim(),
-  features: form.features,
-  image: imageUrl,
-  type: form.type,
-  category: form.category.trim(),
-  subCategory: form.subCategory.trim(),
-  extraCategory: hasExtraOptions ? form.extraCategory.trim() : null,
-  overview: form.overview || {},
-  featuresDetail: (form.featuresDetail || []).map(item => ({
-    ...item,
-    itemType: item.itemType
-      ? item.itemType
-      : (item.title?.trim() ? "subheading" : "bullet"),
-  })),
-  specifications: form.specifications || {},
-  datasheet: datasheetUrl,
-  assemblyDiagram: assemblyDiagramUrl,
-};
+      const payload = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        features: form.features,
+        image: imageUrl,
+        type: form.type,
+        category: form.category.trim(),
+        subCategory: form.subCategory.trim(),
+        extraCategory: hasExtraOptions ? form.extraCategory.trim() : null,
+        overview: form.overview || {},
+        featuresDetail: (form.featuresDetail || []).map(item => ({
+          ...item,
+          itemType: item.itemType
+            ? item.itemType
+            : (item.title?.trim() ? "subheading" : "bullet"),
+        })),
+        specifications: form.specifications || {},
+        assemblyDiagram: assemblyDiagramUrl,
+      };
 
       const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();

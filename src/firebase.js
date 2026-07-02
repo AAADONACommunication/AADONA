@@ -22,15 +22,6 @@ export const getFirebaseAuth = async () => {
   return _auth;
 };
 
-let _storage = null;
-export const getFirebaseStorage = async () => {
-  if (!_storage) {
-    const { getStorage } = await import("firebase/storage");
-    _storage = getStorage(app);
-  }
-  return _storage;
-};
-
 let _db = null;
 export const getFirebaseDb = async () => {
   if (!_db) {

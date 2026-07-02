@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const admin = require("./firebaseAdmin");
+const { uploadToVPS, saveBufferToVPS, ALLOWED_FOLDERS } = require("./helpers/uploadToVPS");
+const deleteFromVPS = require("./helpers/deleteFromVPS");
 const multer = require("multer");
 const crypto = require("crypto");
 const dns = require("dns").promises;
@@ -113,62 +115,12 @@ const isEmailDomainValid = async (email) => {
 };
 
 /* =============================
-   FIREBASE STORAGE HELPERS
+   VPS STORAGE HELPERS
 ============================= */
 
-const getFirebasePath = (url) => {
-  if (!url || typeof url !== "string") return null;
-  try {
-    const match = url.match(/\/o\/(.+?)(\?|$)/);
-    if (!match) return null;
-    return decodeURIComponent(match[1]);
-  } catch (e) {
-    console.log("getFirebasePath error:", e.message);
-    return null;
-  }
-};
+const deleteFromFirebase = deleteFromVPS;
 
-const deleteFromFirebase = async (url) => {
-  if (!url || typeof url !== "string") return;
-  if (
-    !url.includes("firebasestorage.googleapis.com") &&
-    !url.includes("firebasestorage.app")
-  )
-    return;
-
-  const path = getFirebasePath(url);
-  if (!path) return;
-
-  try {
-    const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
-    if (!bucketName) return;
-    await admin.storage().bucket(bucketName).file(path).delete();
-    console.log("Firebase deleted:", path);
-  } catch (e) {
-    if (e.code === 404) {
-      console.log("File already gone:", path);
-    } else {
-      console.log("Firebase delete failed:", e.code, "-", e.message);
-    }
-  }
-};
-
-// Sanitize filename before upload — removes special chars
-const sanitizeFileName = (name) =>
-  name.replace(/[^a-zA-Z0-9._-]/g, "_");
-
-const uploadToFirebase = async (file, folder) => {
-  if (!file) return null;
-  const bucket = admin.storage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
-  const safeName = sanitizeFileName(file.originalname);
-  const fileName = `${folder}/${Date.now()}-${crypto.randomBytes(6).toString("hex")}-${safeName}`;
-  const fileUpload = bucket.file(fileName);
-  await fileUpload.save(file.buffer, {
-    metadata: { contentType: file.mimetype },
-  });
-  await fileUpload.makePublic();
-  return `https://firebasestorage.googleapis.com/v0/b/${process.env.FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(fileName)}?alt=media`;
-};
+const uploadToFirebase = (file, folder) => uploadToVPS(file, folder);
 
 /* =============================
    BROWSER / PUPPETEER
@@ -235,20 +187,9 @@ const generateAndUploadDatasheet = async (product) => {
 
     await page.close();
 
-    const bucket = admin.storage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
-    const fileName = `datasheets/${product.slug}.pdf`;
-    const fileUpload = bucket.file(fileName);
-
-    await fileUpload.save(pdfBuffer, {
-      metadata: {
-        contentType: "application/pdf",
-        cacheControl: "public, max-age=86400",
-      },
-    });
-    await fileUpload.makePublic();
-
-    const url = `https://firebasestorage.googleapis.com/v0/b/${process.env.FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(fileName)}?alt=media`;
-    console.log("Datasheet uploaded to Firebase:", url);
+    const fileName = `${product.slug}.pdf`;
+    const url = await saveBufferToVPS(pdfBuffer, "datasheets", fileName);
+    console.log("Datasheet saved to VPS:", url);
 
     // Store in memory cache
     pdfCache.set(product.slug, { url, generatedAt: Date.now() });
@@ -290,6 +231,33 @@ app.use(
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 app.use("/assets", express.static("assets"));
+
+app.use("/uploads", express.static("uploads"));
+
+// Generic authenticated upload endpoint — frontend admin panel isko use karega
+// (product image, datasheet, assembly diagram, blog hero/block image ke liye)
+// Firebase client SDK ki jagah.
+const genericUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
+
+app.post("/api/upload/:folder", verifyToken, genericUpload.single("file"), async (req, res) => {
+  try {
+    const { folder } = req.params;
+    if (!ALLOWED_FOLDERS.includes(folder)) {
+      return res.status(400).json({ message: "Invalid upload folder" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: "No file provided" });
+    }
+    const url = await uploadToVPS(req.file, folder);
+    res.json({ url });
+  } catch (err) {
+    console.log("Upload error:", err.message);
+    res.status(500).json({ message: "Upload failed" });
+  }
+});
 
 // Chatbot route
 const chatbotRoute = require('./routes/chatbot');
@@ -3023,7 +2991,7 @@ app.post("/api/newsletter-subscribe", formLimiter, async (req, res) => {
 });
 
 // ── NEWSLETTER HISTORY (Admin) ────────────────────────────────────
-app.get("/subscribers/history", verifyToken, adminLimiter, async (req, res) => {
+app.get("/api/subscribers/history", verifyToken, adminLimiter, async (req, res) => {
   try {
     const history = await NewsletterHistory.find()
       .sort({ createdAt: -1 })
@@ -3052,7 +3020,7 @@ app.get("/test-mail", async (req, res) => {
 
 // ── BROADCAST EMAIL (Admin) ────────────────────────────────────────
 app.post(
-  "/subscribers/broadcast",
+  "/api/subscribers/broadcast",
   verifyToken,
   adminLimiter,
   upload.fields([
@@ -3231,7 +3199,7 @@ app.post(
 );
 
 // ── UNSUBSCRIBE single (Admin) ─────────────────────────────────────
-app.delete("/subscribers/:id", verifyToken, async (req, res) => {
+app.delete("/api/subscribers/:id", verifyToken, async (req, res) => {
   try {
     const sub = await Subscriber.findById(req.params.id);
     if (!sub) return res.status(404).json({ message: "Subscriber not found" });
@@ -3244,7 +3212,7 @@ app.delete("/subscribers/:id", verifyToken, async (req, res) => {
 });
 
 // ── SUBSCRIBERS LIST (Admin only) ─────────────────────────────────
-app.get("/subscribers", verifyToken, adminLimiter, async (req, res) => {
+app.get("/api/subscribers", verifyToken, adminLimiter, async (req, res) => {
   try {
     const { status } = req.query;
     const query = status ? { status } : {};

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { getFirebaseStorage } from "../../../firebase";
 import {
   Trash2, Edit, Plus, Upload, CheckCircle2, ChevronDown, ChevronUp,
 } from "lucide-react";
@@ -102,15 +101,27 @@ export default function Blogs({ blogs, reloadBlogs }) {
     setBlogForm((prev) => ({ ...prev, blocks: newBlocks }));
   };
 
+  // ── Generic VPS Upload Helper ──
+  const uploadFileToServer = async (file, folder) => {
+    const auth = await getFirebaseAuth();
+    const token = await auth.currentUser?.getIdToken();
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/upload/${folder}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+    return data.url;
+  };
+
   const uploadBlockImage = async (e, blockIndex) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const storage = await getFirebaseStorage(); // ✅ lazy
-      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-      const storageRef = ref(storage, `blog-blocks/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
+      const url = await uploadFileToServer(file, "blog-blocks");
       updateBlock(blockIndex, "url", url);
     } catch {
       alert("Failed to upload image");
@@ -121,11 +132,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const storage = await getFirebaseStorage();
-      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-      const storageRef = ref(storage, `blog-heroes/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
+      const url = await uploadFileToServer(file, "blog-heroes");
       setBlogForm((prev) => ({ ...prev, image: url }));
     } catch {
       alert("Failed to upload hero image");
