@@ -41,7 +41,11 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   const [actingId, setActingId] = useState(null);
   const [actionError, setActionError] = useState("");
   const [counterModalOpen, setCounterModalOpen] = useState(false);
-  const [counterAmount, setCounterAmount] = useState("");
+  const [counterItems, setCounterItems] = useState([]);
+  const [counterGstRate, setCounterGstRate] = useState(18);
+  const [counterDiscountEnabled, setCounterDiscountEnabled] = useState(false);
+  const [counterDiscountType, setCounterDiscountType] = useState("percent");
+  const [counterDiscountValue, setCounterDiscountValue] = useState("");
   const [counterMessage, setCounterMessage] = useState("");
   const [counterSubmitting, setCounterSubmitting] = useState(false);
   const [counterError, setCounterError] = useState("");
@@ -120,18 +124,55 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   };
 
   const openCounterModal = (quotation) => {
-    setCounterAmount("");
+    setCounterItems(
+      (quotation.items || []).map((item) => ({
+        name: item.name,
+        description: item.description || "",
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      }))
+    );
+    const originalGst = quotation.items?.[0]?.gst;
+    const originalDiscount = quotation.items?.[0]?.discount || 0;
+    setCounterGstRate(originalGst ?? 18);
+    setCounterDiscountEnabled(originalDiscount > 0);
+    setCounterDiscountType("percent");
+    setCounterDiscountValue(originalDiscount > 0 ? String(originalDiscount) : "");
     setCounterMessage("");
     setCounterError("");
     setCounterModalOpen(quotation);
   };
 
+  const updateCounterItem = (index, field, value) => {
+    setCounterItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // ── Live totals for the counter offer being built ──
+  const counterRawSubtotal = counterItems.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+    0
+  );
+  const counterDiscountAmount =
+    !counterDiscountEnabled || !counterDiscountValue
+      ? 0
+      : counterDiscountType === "percent"
+      ? counterRawSubtotal * (Number(counterDiscountValue) / 100)
+      : Number(counterDiscountValue);
+  const counterTaxable = Math.max(counterRawSubtotal - counterDiscountAmount, 0);
+  const counterGstAmt = counterTaxable * (Number(counterGstRate) / 100);
+  const counterGrandTotal = counterTaxable + counterGstAmt;
+
   const handleSendCounterOffer = async (e) => {
     e.preventDefault();
-    const amount = Number(counterAmount);
-    if (counterAmount === "" || !Number.isFinite(amount) || Number.isNaN(amount) || amount <= 0) {
-      setCounterError("Enter a valid counter offer amount greater than 0");
-      return;
+
+    for (const item of counterItems) {
+      const price = Number(item.unitPrice);
+      if (item.unitPrice === "" || !Number.isFinite(price) || Number.isNaN(price) || price <= 0) {
+        setCounterError(`Enter a valid price for "${item.name}"`);
+        return;
+      }
     }
 
     setCounterSubmitting(true);
@@ -142,7 +183,11 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         method: "POST",
         headers,
         body: JSON.stringify({
-          counterOfferAmount: amount,
+          items: counterItems.map((item) => ({ unitPrice: Number(item.unitPrice) })),
+          gstRate: Number(counterGstRate),
+          discount: counterDiscountEnabled
+            ? { type: counterDiscountType, value: Number(counterDiscountValue) || 0 }
+            : undefined,
           counterOfferMessage: counterMessage,
         }),
       });
@@ -164,7 +209,8 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
 
     const original = Number(q.grandTotal || 0);
     const offer = Number(q.expectedBudget || 0);
-    const difference = original - offer;
+    const difference = Math.abs(original - offer);
+    const isBelowOriginal = offer < original;
 
     return (
       <div className="border border-orange-200 bg-orange-50 rounded-xl p-4 mb-4 space-y-2">
@@ -174,8 +220,16 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
           <span className="text-right font-semibold text-gray-800">₹{original.toFixed(2)}</span>
           <span className="text-gray-600">Customer Offer</span>
           <span className="text-right font-semibold text-gray-800">₹{offer.toFixed(2)}</span>
-          <span className="text-gray-600">Difference</span>
-          <span className="text-right font-semibold text-red-600">₹{difference.toFixed(2)}</span>
+          <span className="text-gray-600">
+            {isBelowOriginal ? "Difference (below original)" : "Difference (above original)"}
+          </span>
+          <span
+            className={`text-right font-semibold ${
+              isBelowOriginal ? "text-red-600" : "text-green-600"
+            }`}
+          >
+            ₹{difference.toFixed(2)}
+          </span>
         </div>
         {q.customerMessage && (
           <p className="text-sm text-gray-700 whitespace-pre-line border-t border-orange-200 pt-2">
@@ -412,9 +466,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
       )}
 
       {/* ── Counter Offer Modal ── */}
+      {/* ── Counter Offer Modal — item-wise editor ── */}
       {counterModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] px-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] px-4 py-8">
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setCounterModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
@@ -422,48 +477,175 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
               ×
             </button>
             <h3 className="text-lg font-bold text-gray-800 mb-1">Send Counter Offer</h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 mb-5">
               Quotation #{counterModalOpen.quotationNumber}
             </p>
 
-            <div className="grid grid-cols-2 gap-y-1 text-sm mb-4 bg-gray-50 rounded-xl p-3">
-              <span className="text-gray-600">Original Total</span>
-              <span className="text-right font-semibold text-gray-800">
-                ₹{Number(counterModalOpen.grandTotal || 0).toFixed(2)}
-              </span>
-              <span className="text-gray-600">Customer Offer</span>
-              <span className="text-right font-semibold text-gray-800">
-                ₹{Number(counterModalOpen.expectedBudget || 0).toFixed(2)}
-              </span>
+            {/* ── Originally Sent (read-only) ── */}
+            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-6">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                Originally Sent
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-500 text-xs">
+                      <th className="py-1 pr-2">Product</th>
+                      <th className="py-1 pr-2">Qty</th>
+                      <th className="py-1 pr-2 text-right">Unit Price</th>
+                      <th className="py-1 pr-2 text-right">GST</th>
+                      <th className="py-1 pr-2 text-right">Discount</th>
+                      <th className="py-1 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(counterModalOpen.items || []).map((item, i) => (
+                      <tr key={i} className="border-t border-gray-200">
+                        <td className="py-1.5 pr-2 text-gray-700">{item.name}</td>
+                        <td className="py-1.5 pr-2 text-gray-700">{item.quantity}</td>
+                        <td className="py-1.5 pr-2 text-right text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
+                        <td className="py-1.5 pr-2 text-right text-gray-700">{item.gst}%</td>
+                        <td className="py-1.5 pr-2 text-right text-gray-700">{item.discount}%</td>
+                        <td className="py-1.5 text-right font-semibold text-gray-800">₹{Number(item.total).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-end mt-2 text-sm font-bold text-gray-700">
+                Original Total: ₹{Number(counterModalOpen.grandTotal || 0).toFixed(2)}
+              </div>
+              <div className="flex justify-end text-sm text-gray-600">
+                Customer Offer: ₹{Number(counterModalOpen.expectedBudget || 0).toFixed(2)}
+              </div>
             </div>
 
-            <form onSubmit={handleSendCounterOffer} className="space-y-4">
+            {/* ── Your Counter Offer (editable) ── */}
+            <form onSubmit={handleSendCounterOffer} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Counter Offer Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  required
-                  value={counterAmount}
-                  onChange={(e) => setCounterAmount(e.target.value)}
-                  placeholder="e.g. 370000"
-                  className="w-full border border-amber-200 rounded-xl px-4 py-2.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition bg-white text-sm"
-                />
+                <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-3">
+                  Your Counter Offer
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-amber-500 text-white text-left">
+                        <th className="px-3 py-2 rounded-tl-lg">Product</th>
+                        <th className="px-3 py-2">Qty</th>
+                        <th className="px-3 py-2 rounded-tr-lg">Your Price (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {counterItems.map((item, index) => (
+                        <tr key={index} className="border-b border-amber-100">
+                          <td className="px-3 py-2 text-gray-800 font-medium min-w-[160px]">
+                            {item.name}
+                          </td>
+                          <td className="px-3 py-2 w-20 text-gray-600">{item.quantity}</td>
+                          <td className="px-3 py-2 w-32">
+                            <input
+                              type="number"
+                              min="0.01"
+                              step="0.01"
+                              value={item.unitPrice}
+                              onChange={(e) => updateCounterItem(index, "unitPrice", e.target.value)}
+                              className="w-full border border-amber-200 rounded-lg px-2 py-1.5 focus:border-amber-400 outline-none"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    GST Rate
+                  </label>
+                  <select
+                    value={counterGstRate}
+                    onChange={(e) => setCounterGstRate(e.target.value)}
+                    className="border border-amber-200 rounded-lg px-3 py-2.5 text-sm focus:border-amber-400 outline-none bg-white w-full"
+                  >
+                    <option value={12}>12%</option>
+                    <option value={18}>18%</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <input
+                      type="checkbox"
+                      id="counterDiscountToggle"
+                      checked={counterDiscountEnabled}
+                      onChange={(e) => setCounterDiscountEnabled(e.target.checked)}
+                      className="accent-amber-500"
+                    />
+                    <label htmlFor="counterDiscountToggle" className="text-sm font-semibold text-gray-700">
+                      Discount (optional)
+                    </label>
+                  </div>
+                  {counterDiscountEnabled && (
+                    <div className="flex gap-2">
+                      <select
+                        value={counterDiscountType}
+                        onChange={(e) => setCounterDiscountType(e.target.value)}
+                        className="border border-amber-200 rounded-lg px-2 py-2.5 text-sm focus:border-amber-400 outline-none bg-white"
+                      >
+                        <option value="percent">%</option>
+                        <option value="flat">₹ flat</option>
+                      </select>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={counterDiscountValue}
+                        onChange={(e) => setCounterDiscountValue(e.target.value)}
+                        placeholder={counterDiscountType === "percent" ? "e.g. 10" : "e.g. 500"}
+                        className="flex-1 border border-amber-200 rounded-lg px-3 py-2.5 text-sm focus:border-amber-400 outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                   Message
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={counterMessage}
                   onChange={(e) => setCounterMessage(e.target.value)}
                   placeholder="Explain your counter offer (optional)"
                   className="w-full border border-amber-200 rounded-xl px-4 py-2.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition bg-white text-sm"
                 />
+              </div>
+
+              {/* Live totals */}
+              <div className="flex justify-end">
+                <div className="w-full sm:w-72 space-y-1 text-sm bg-amber-50 rounded-xl p-3 border border-amber-100">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>₹{counterRawSubtotal.toFixed(2)}</span>
+                  </div>
+                  {counterDiscountEnabled && counterDiscountAmount > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Discount</span>
+                      <span>− ₹{counterDiscountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-600">
+                    <span>GST ({counterGstRate}%)</span>
+                    <span>₹{counterGstAmt.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-bold text-amber-700 border-t border-amber-200 pt-1.5 mt-1.5">
+                    <span>Counter Total</span>
+                    <span>₹{counterGrandTotal.toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
 
               {counterError && <p className="text-sm text-red-600">{counterError}</p>}

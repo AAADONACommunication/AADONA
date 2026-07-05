@@ -430,6 +430,55 @@ export default function CustomerQuotation() {
                 </p>
               </div>
             </div>
+
+            {(quotation.counterOfferItems || []).length > 0 && (
+              <div className="overflow-x-auto mb-4">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-amber-500 text-white text-left">
+                      <th className="px-3 py-2 rounded-tl-lg">Product</th>
+                      <th className="px-3 py-2">Qty</th>
+                      <th className="px-3 py-2">Unit Price (₹)</th>
+                      <th className="px-3 py-2">GST</th>
+                      <th className="px-3 py-2">Discount</th>
+                      <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quotation.counterOfferItems.map((item, i) => (
+                      <tr key={i} className="border-b border-amber-100">
+                        <td className="px-3 py-2 text-gray-800 font-medium">{item.name}</td>
+                        <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
+                        <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
+                        <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
+                        <td className="px-3 py-2 text-gray-700">{item.discount}%</td>
+                        <td className="px-3 py-2 font-semibold text-gray-800">₹{Number(item.total).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="max-w-sm ml-auto space-y-1 text-sm mt-3">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>₹{Number(quotation.counterOfferSubtotal || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Discount</span>
+                    <span>− ₹{Number(quotation.counterOfferDiscountAmount || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>GST</span>
+                    <span>₹{Number(quotation.counterOfferGstAmount || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-amber-50 rounded-xl px-4 py-2.5 mt-2 border border-amber-200">
+                    <span className="font-bold text-amber-700">Counter Total</span>
+                    <span className="text-lg font-extrabold text-amber-700">
+                      ₹{Number(quotation.counterOfferAmount || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
             {quotation.counterOfferMessage && (
               <p className="text-sm text-gray-700 whitespace-pre-wrap border-t border-amber-100 pt-3">
                 <span className="font-semibold">Message: </span>

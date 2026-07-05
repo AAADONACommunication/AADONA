@@ -507,15 +507,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const { counterOfferAmount, counterOfferMessage } = req.body;
-
-    if (counterOfferAmount === undefined || counterOfferAmount === null || counterOfferAmount === "") {
-      return res.status(400).json({ message: "Counter offer amount is required" });
-    }
-    const amount = Number(counterOfferAmount);
-    if (!Number.isFinite(amount) || Number.isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ message: "Counter offer amount must be a valid number greater than 0" });
-    }
+    const { items, gstRate, discount, counterOfferMessage } = req.body;
 
     const quotation = await SalesQuotation.findById(id).populate("customer");
     if (!quotation) {
@@ -532,13 +524,122 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       });
     }
 
-    quotation.counterOfferAmount = amount;
+    // ── Validate items — same shape/order as the original quotation, quantity LOCKED ──
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Items array is required and cannot be empty" });
+    }
+    if (items.length !== quotation.items.length) {
+      return res.status(400).json({ message: "Items mismatch with original quotation" });
+    }
+
+    // ── Validate GST + discount (same rules as /sales-quotations/send) ──
+    const gstPercent = Number(gstRate);
+    if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
+      return res.status(400).json({ message: "Invalid GST rate" });
+    }
+
+    let discountType = "percent";
+    let discountValue = 0;
+    if (discount && Number.isFinite(Number(discount.value)) && Number(discount.value) > 0) {
+      discountType = discount.type === "flat" ? "flat" : "percent";
+      discountValue = Number(discount.value);
+    }
+
+    // ── Build items — quantity/name/description LOCKED from the original quotation ──
+    const rawItems = quotation.items.map((originalItem, index) => {
+      const incoming = items[index] || {};
+
+      const unitPrice = Number(incoming.unitPrice);
+      if (!Number.isFinite(unitPrice) || Number.isNaN(unitPrice) || unitPrice <= 0) {
+        throw new Error(`Invalid unit price for item: ${originalItem.name}`);
+      }
+
+      const quantity = originalItem.quantity; // LOCKED - never from frontend
+
+      return {
+        name: originalItem.name,
+        description: originalItem.description || "",
+        quantity,
+        unitPrice,
+        baseAmount: quantity * unitPrice,
+      };
+    });
+
+    const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
+
+    const effectiveDiscountPercent =
+      rawSubtotal <= 0
+        ? 0
+        : discountType === "flat"
+        ? Math.min((discountValue / rawSubtotal) * 100, 100)
+        : Math.min(discountValue, 100);
+
+    const calculatedItems = rawItems.map((item) => {
+      const discountAmt = parseFloat((item.baseAmount * (effectiveDiscountPercent / 100)).toFixed(2));
+      const taxableAmount = item.baseAmount - discountAmt;
+      const gstAmt = parseFloat((taxableAmount * (gstPercent / 100)).toFixed(2));
+      const total = parseFloat((taxableAmount + gstAmt).toFixed(2));
+
+      return {
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        gst: gstPercent,
+        discount: effectiveDiscountPercent,
+        total,
+      };
+    });
+
+    const subtotal = parseFloat(
+      calculatedItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toFixed(2)
+    );
+
+    const discountAmount = parseFloat(
+      calculatedItems
+        .reduce((sum, item) => {
+          const base = item.quantity * item.unitPrice;
+          return sum + base * (item.discount / 100);
+        }, 0)
+        .toFixed(2)
+    );
+
+    const gstAmount = parseFloat(
+      calculatedItems
+        .reduce((sum, item) => {
+          const base = item.quantity * item.unitPrice;
+          const afterDiscount = base - base * (item.discount / 100);
+          return sum + afterDiscount * (item.gst / 100);
+        }, 0)
+        .toFixed(2)
+    );
+
+    const grandTotal = parseFloat(
+      calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+    );
+
+    quotation.counterOfferItems = calculatedItems;
+    quotation.counterOfferSubtotal = subtotal;
+    quotation.counterOfferDiscountAmount = discountAmount;
+    quotation.counterOfferGstAmount = gstAmount;
+    quotation.counterOfferAmount = grandTotal;
     quotation.counterOfferMessage = (counterOfferMessage || "").trim();
     quotation.counterOfferAt = new Date();
     quotation.status = "counter_offered";
     await quotation.save();
 
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
+
+    const itemRowsHtml = calculatedItems.map((item, i) => `
+      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#fff7ed"}">
+        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px">${item.name}</td>
+        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:center">${item.quantity}</td>
+        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
+        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:right">${item.gst}%</td>
+        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:right">${item.discount}%</td>
+        <td style="padding:8px 10px;border:1px solid #fed7aa;font-weight:600;color:#c2410c;font-size:13px;text-align:right">₹${item.total.toFixed(2)}</td>
+      </tr>
+    `).join("");
 
     try {
       if (quotation.customer?.email) {
@@ -548,10 +649,25 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
           subject: `Counter Offer — Quotation #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
-              <h2 style="color:#c2410c">We've Sent You a Counter Offer</h2>
-              <p style="color:#374151;font-size:14px">
-                For quotation <strong>#${quotation.quotationNumber}</strong>, our sales team has proposed
-                a counter offer of <strong>₹${amount.toFixed(2)}</strong>.
+              <h2 style="color:#c2410c;margin:0 0 16px">We've Sent You a Counter Offer</h2>
+              <p style="color:#374151;font-size:14px;margin:0 0 16px">
+                Quotation <strong>#${quotation.quotationNumber}</strong> — revised pricing below.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:16px">
+                <thead>
+                  <tr style="background:#ea580c">
+                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:left">Product</th>
+                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px">Qty</th>
+                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">Unit Price</th>
+                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">GST</th>
+                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">Discount</th>
+                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>${itemRowsHtml}</tbody>
+              </table>
+              <p style="color:#c2410c;font-size:16px;font-weight:800;text-align:right;margin:0 0 16px">
+                Grand Total: ₹${grandTotal.toFixed(2)}
               </p>
               ${quotation.counterOfferMessage ? `
               <p style="color:#374151;font-size:14px;white-space:pre-line">

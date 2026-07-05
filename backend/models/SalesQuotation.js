@@ -88,7 +88,25 @@ const SalesQuotationSchema = new mongoose.Schema(
     adminApprovedAmount: { type: Number, default: null }, // AdminQuotation subtotal at time of negotiation, snapshotted
 
     // ── Sales rep counter offer ──
-    counterOfferAmount: { type: Number, default: null, min: 0 },
+    counterOfferAmount: { type: Number, default: null, min: 0 }, // grand total of counter offer
+    counterOfferSubtotal: { type: Number, default: null, min: 0 },
+    counterOfferDiscountAmount: { type: Number, default: null, min: 0 },
+    counterOfferGstAmount: { type: Number, default: null, min: 0 },
+    counterOfferItems: {
+      type: [
+        {
+          _id: false,
+          name: { type: String, required: true },
+          description: { type: String, default: "" },
+          quantity: { type: Number, required: true },
+          unitPrice: { type: Number, required: true, min: 0 },
+          gst: { type: Number, default: 0, min: 0, max: 100 },
+          discount: { type: Number, default: 0, min: 0 },
+          total: { type: Number, required: true, min: 0 },
+        },
+      ],
+      default: [],
+    },
     counterOfferMessage: { type: String, default: "" },
     counterOfferAt: { type: Date, default: null },
 
