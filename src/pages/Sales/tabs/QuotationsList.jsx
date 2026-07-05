@@ -205,81 +205,113 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   };
 
   const renderNegotiationSection = (q) => {
-    if (!["negotiation_requested", "counter_offered"].includes(q.status)) return null;
+    const hasHistory = (q.negotiationHistory || []).length > 0;
+    const hasActiveOffer = q.expectedBudget != null;
+    const hasFinal = q.negotiatedAmount != null;
+
+    // Nothing to show if there was never any negotiation on this quotation
+    if (!hasHistory && !hasActiveOffer && !hasFinal) return null;
 
     const original = Number(q.grandTotal || 0);
-    const offer = Number(q.expectedBudget || 0);
-    const difference = Math.abs(original - offer);
-    const isBelowOriginal = offer < original;
+    const isActionable = ["negotiation_requested", "counter_offered"].includes(q.status);
+
+    // ── Build a flat timeline: past rounds + current round ──
+    const rounds = [
+      ...(q.negotiationHistory || []),
+      // Current/live round — only include if it has actual data
+      hasActiveOffer
+        ? {
+            expectedBudget: q.expectedBudget,
+            customerMessage: q.customerMessage,
+            customerRespondedAt: q.customerRespondedAt,
+            counterOfferAmount: q.counterOfferAmount,
+            counterOfferMessage: q.counterOfferMessage,
+            counterOfferAt: q.counterOfferAt,
+          }
+        : null,
+    ].filter(Boolean);
 
     return (
-      <div className="border border-orange-200 bg-orange-50 rounded-xl p-4 mb-4 space-y-2">
-        <h4 className="text-sm font-bold text-orange-800 mb-1">Negotiation Details</h4>
-        <div className="grid grid-cols-2 gap-y-1 text-sm">
-          <span className="text-gray-600">Original Total</span>
-          <span className="text-right font-semibold text-gray-800">₹{original.toFixed(2)}</span>
-          <span className="text-gray-600">Customer Offer</span>
-          <span className="text-right font-semibold text-gray-800">₹{offer.toFixed(2)}</span>
-          <span className="text-gray-600">
-            {isBelowOriginal ? "Difference (below original)" : "Difference (above original)"}
-          </span>
-          <span
-            className={`text-right font-semibold ${
-              isBelowOriginal ? "text-red-600" : "text-green-600"
-            }`}
-          >
-            ₹{difference.toFixed(2)}
-          </span>
-        </div>
-        {q.customerMessage && (
-          <p className="text-sm text-gray-700 whitespace-pre-line border-t border-orange-200 pt-2">
-            <span className="font-semibold">Message: </span>
-            {q.customerMessage}
-          </p>
-        )}
-        {q.customerRespondedAt && (
-          <p className="text-xs text-gray-500">
-            Responded: {new Date(q.customerRespondedAt).toLocaleString("en-IN")}
-          </p>
-        )}
+      <div className="border border-orange-200 bg-orange-50 rounded-xl p-4 mb-4 space-y-3">
+        <h4 className="text-sm font-bold text-orange-800 mb-1">Negotiation History</h4>
 
-        {q.status === "counter_offered" && (
-          <div className="border-t border-orange-200 pt-2 mt-2 space-y-1">
-            <p className="text-sm text-gray-700">
-              <span className="font-semibold">Your Counter Offer: </span>
-              ₹{Number(q.counterOfferAmount || 0).toFixed(2)}
+        <div className="flex justify-between text-sm bg-white rounded-lg px-3 py-2 border border-orange-100">
+          <span className="text-gray-600">Original Total</span>
+          <span className="font-semibold text-gray-800">₹{original.toFixed(2)}</span>
+        </div>
+
+        {rounds.map((round, i) => (
+          <div key={i} className="bg-white rounded-lg border border-orange-100 p-3 space-y-1.5">
+            <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
+              Round {i + 1}
             </p>
-            {q.counterOfferMessage && (
+            {round.expectedBudget != null && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Customer Offered</span>
+                <span className="font-semibold text-gray-800">₹{Number(round.expectedBudget).toFixed(2)}</span>
+              </div>
+            )}
+            {round.customerMessage && (
+              <p className="text-sm text-gray-700 whitespace-pre-line">
+                <span className="font-semibold">Customer Message: </span>
+                {round.customerMessage}
+              </p>
+            )}
+            {round.customerRespondedAt && (
+              <p className="text-xs text-gray-500">
+                {new Date(round.customerRespondedAt).toLocaleString("en-IN")}
+              </p>
+            )}
+            {round.counterOfferAmount != null && (
+              <div className="flex justify-between text-sm border-t border-orange-50 pt-1.5 mt-1.5">
+                <span className="text-gray-600">Your Counter Offer</span>
+                <span className="font-semibold text-amber-700">₹{Number(round.counterOfferAmount).toFixed(2)}</span>
+              </div>
+            )}
+            {round.counterOfferMessage && (
               <p className="text-sm text-gray-700 whitespace-pre-line">
                 <span className="font-semibold">Your Message: </span>
-                {q.counterOfferMessage}
+                {round.counterOfferMessage}
               </p>
             )}
-            {q.counterOfferAt && (
+            {round.counterOfferAt && (
               <p className="text-xs text-gray-500">
-                Sent: {new Date(q.counterOfferAt).toLocaleString("en-IN")}
+                Sent: {new Date(round.counterOfferAt).toLocaleString("en-IN")}
               </p>
             )}
+          </div>
+        ))}
+
+        {hasFinal && (
+          <div className="flex justify-between items-center bg-green-50 border border-green-200 rounded-lg px-3 py-2.5">
+            <span className="text-sm font-bold text-green-800">
+              Final Accepted Price {q.negotiatedAt ? `(${new Date(q.negotiatedAt).toLocaleDateString("en-IN")})` : ""}
+            </span>
+            <span className="text-lg font-extrabold text-green-700">
+              ₹{Number(q.negotiatedAmount).toFixed(2)}
+            </span>
           </div>
         )}
 
         {actionError && <p className="text-sm text-red-600">{actionError}</p>}
 
-        <div className="flex gap-3 pt-2">
-          <button
-            onClick={() => handleAcceptNegotiation(q)}
-            disabled={actingId === q._id}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
-          >
-            {actingId === q._id ? "Accepting..." : "Accept Customer Offer"}
-          </button>
-          <button
-            onClick={() => openCounterModal(q)}
-            className="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold py-2 rounded-lg transition"
-          >
-            Send Counter Offer
-          </button>
-        </div>
+        {isActionable && (
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={() => handleAcceptNegotiation(q)}
+              disabled={actingId === q._id}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
+            >
+              {actingId === q._id ? "Accepting..." : "Accept Customer Offer"}
+            </button>
+            <button
+              onClick={() => openCounterModal(q)}
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold py-2 rounded-lg transition"
+            >
+              Send Counter Offer
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -452,8 +484,8 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
             </div>
 
             <div className="flex justify-between text-base font-bold text-green-800">
-              <span>Total</span>
-              <span>₹{Number(viewing.grandTotal || 0).toFixed(2)}</span>
+              <span>{viewing.negotiatedAmount != null ? "Final Total (Negotiated)" : "Total"}</span>
+              <span>₹{Number(viewing.negotiatedAmount ?? viewing.grandTotal ?? 0).toFixed(2)}</span>
             </div>
 
             {viewing.notes && (

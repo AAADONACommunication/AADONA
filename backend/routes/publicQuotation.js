@@ -43,6 +43,7 @@ const toPublicQuotation = (quotation) => ({
   counterOfferAt: quotation.counterOfferAt,
   negotiatedAmount: quotation.negotiatedAmount,
   negotiatedAt: quotation.negotiatedAt,
+  negotiationHistory: quotation.negotiationHistory || [],
   validTill: quotation.sourceQuotation?.validTill || null,
 });
 
