@@ -34,6 +34,10 @@ const statusBadge = {
     label: "Awaiting Admin Approval",
     classes: "bg-purple-100 text-purple-700 border border-purple-300",
   },
+  counter_offered: {
+    label: "Counter Offer Received",
+    classes: "bg-amber-100 text-amber-700 border border-amber-300",
+  },
   rejected: {
     label: "Rejected",
     classes: "bg-red-100 text-red-700 border border-red-300",
@@ -59,6 +63,7 @@ export default function CustomerQuotation() {
   const [actionState, setActionState] = useState(null); // "accepted" | "negotiated" | null
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [negotiateOpen, setNegotiateOpen] = useState(false);
+  const [counterConfirmOpen, setCounterConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
 
@@ -114,6 +119,23 @@ export default function CustomerQuotation() {
     } catch (err) {
       console.error("Accept error:", err);
       setActionError(err.message || "Failed to accept quotation");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAcceptCounter = async () => {
+    setSubmitting(true);
+    setActionError("");
+    try {
+      const res = await fetch(`${PUBLIC_API}/${token}/accept-counter`, { method: "POST" });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.message || "Failed to accept counter offer");
+      setCounterConfirmOpen(false);
+      setActionState("accepted");
+    } catch (err) {
+      console.error("Accept counter error:", err);
+      setActionError(err.message || "Failed to accept counter offer");
     } finally {
       setSubmitting(false);
     }
@@ -191,9 +213,11 @@ export default function CustomerQuotation() {
 
   const showButtons =
     actionState === null &&
-    !["accepted", "negotiation_requested", "awaiting_admin_approval", "rejected"].includes(
+    !["accepted", "negotiation_requested", "awaiting_admin_approval", "rejected", "counter_offered"].includes(
       quotation.status
     );
+
+  const showCounterOfferView = actionState === null && quotation.status === "counter_offered";
 
   // ════════════════════════════════════════
   // SUCCESS SCREENS (after action taken in this session)
@@ -384,6 +408,52 @@ export default function CustomerQuotation() {
           </div>
         )}
 
+        {/* ── Counter Offer Card ── */}
+        {showCounterOfferView && (
+          <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-200 p-6 transition hover:shadow-md">
+            <h2 className="text-sm font-bold text-amber-700 uppercase tracking-wide mb-4">
+              Counter Offer From Our Team
+            </h2>
+            <div className="grid sm:grid-cols-3 gap-4 text-sm mb-4">
+              <div>
+                <p className="text-gray-400 font-semibold uppercase text-xs mb-1">Original Total</p>
+                <p className="text-gray-800 font-bold">₹{Number(quotation.grandTotal || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 font-semibold uppercase text-xs mb-1">Your Previous Offer</p>
+                <p className="text-gray-800 font-bold">₹{Number(quotation.expectedBudget || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 font-semibold uppercase text-xs mb-1">Our Counter Offer</p>
+                <p className="text-amber-700 font-extrabold text-lg">
+                  ₹{Number(quotation.counterOfferAmount || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+            {quotation.counterOfferMessage && (
+              <p className="text-sm text-gray-700 whitespace-pre-wrap border-t border-amber-100 pt-3">
+                <span className="font-semibold">Message: </span>
+                {quotation.counterOfferMessage}
+              </p>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <button
+                onClick={() => setCounterConfirmOpen(true)}
+                className="flex-1 bg-green-600 hover:bg-green-700 active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
+              >
+                Accept Counter Offer
+              </button>
+              <button
+                onClick={() => setNegotiateOpen(true)}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
+              >
+                Negotiate Again
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Action Error ── */}
         {actionError && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
@@ -396,7 +466,7 @@ export default function CustomerQuotation() {
         {actionState && renderSuccessScreen()}
 
         {/* ── Already actioned (by admin / earlier session) ── */}
-        {!actionState && !showButtons && statusBadge[quotation.status] && (
+        {!actionState && !showButtons && !showCounterOfferView && statusBadge[quotation.status] && (
           <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-8 text-center">
             <ShieldCheck className="mx-auto text-green-600 mb-3" size={40} />
             <span
@@ -445,6 +515,36 @@ export default function CustomerQuotation() {
               </button>
               <button
                 onClick={handleAccept}
+                disabled={submitting}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
+              >
+                {submitting ? "Accepting..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirm Accept Counter Offer Dialog ── */}
+      {counterConfirmOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50 animate-[fadeIn_0.2s_ease]">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Accept Counter Offer?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              By accepting, you confirm the counter offer of{" "}
+              <strong>₹{Number(quotation.counterOfferAmount || 0).toFixed(2)}</strong> for this
+              quotation. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCounterConfirmOpen(false)}
+                disabled={submitting}
+                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAcceptCounter}
                 disabled={submitting}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
               >

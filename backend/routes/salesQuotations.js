@@ -436,4 +436,147 @@ router.get("/sales-quotations/:id", verifySalesToken, async (req, res) => {
   }
 });
 
+// ── POST /sales-quotations/:id/accept-negotiation ──
+router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const quotation = await SalesQuotation.findById(id).populate("customer");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.salesRepUid !== req.salesRep.uid) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    if (quotation.status !== "negotiation_requested") {
+      return res.status(400).json({
+        message: `Cannot accept negotiation from status "${quotation.status}"`,
+      });
+    }
+
+    if (quotation.expectedBudget == null || !Number.isFinite(Number(quotation.expectedBudget))) {
+      return res.status(400).json({ message: "No valid customer offer found to accept" });
+    }
+
+    // grandTotal is left untouched — it remains the audit trail of the original quotation.
+    quotation.negotiatedAmount = quotation.expectedBudget;
+    quotation.negotiatedAt = new Date();
+    quotation.status = "accepted";
+    quotation.acceptedAt = new Date();
+    await quotation.save();
+
+    try {
+      if (quotation.customer?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: quotation.customer.email,
+          subject: `Your Offer Has Been Accepted — #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+              <h2 style="color:#166534">Your Offer Was Accepted ✅</h2>
+              <p style="color:#374151;font-size:14px">
+                Good news — your offer of <strong>₹${Number(quotation.negotiatedAmount).toFixed(2)}</strong>
+                for quotation <strong>#${quotation.quotationNumber}</strong> has been accepted.
+              </p>
+              <p style="color:#374151;font-size:14px">Our team will reach out to you shortly with next steps.</p>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Accept-negotiation customer email failed:", mailErr.message);
+    }
+
+    return res.json({ message: "Customer offer accepted", quotation });
+  } catch (err) {
+    console.error("Accept negotiation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /sales-quotations/:id/counter-offer ──
+router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const { counterOfferAmount, counterOfferMessage } = req.body;
+
+    if (counterOfferAmount === undefined || counterOfferAmount === null || counterOfferAmount === "") {
+      return res.status(400).json({ message: "Counter offer amount is required" });
+    }
+    const amount = Number(counterOfferAmount);
+    if (!Number.isFinite(amount) || Number.isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Counter offer amount must be a valid number greater than 0" });
+    }
+
+    const quotation = await SalesQuotation.findById(id).populate("customer");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.salesRepUid !== req.salesRep.uid) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    if (!["negotiation_requested", "counter_offered"].includes(quotation.status)) {
+      return res.status(400).json({
+        message: `Cannot send counter offer from status "${quotation.status}"`,
+      });
+    }
+
+    quotation.counterOfferAmount = amount;
+    quotation.counterOfferMessage = (counterOfferMessage || "").trim();
+    quotation.counterOfferAt = new Date();
+    quotation.status = "counter_offered";
+    await quotation.save();
+
+    const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
+
+    try {
+      if (quotation.customer?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: quotation.customer.email,
+          subject: `Counter Offer — Quotation #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
+              <h2 style="color:#c2410c">We've Sent You a Counter Offer</h2>
+              <p style="color:#374151;font-size:14px">
+                For quotation <strong>#${quotation.quotationNumber}</strong>, our sales team has proposed
+                a counter offer of <strong>₹${amount.toFixed(2)}</strong>.
+              </p>
+              ${quotation.counterOfferMessage ? `
+              <p style="color:#374151;font-size:14px;white-space:pre-line">
+                <strong>Message:</strong><br/>${quotation.counterOfferMessage}
+              </p>` : ""}
+              <div style="text-align:center;margin-top:20px">
+                <a href="${viewQuotationUrl}"
+                  style="display:inline-block;background:#ea580c;color:#ffffff;text-decoration:none;
+                  font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px">
+                  View Counter Offer
+                </a>
+              </div>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Counter-offer email failed:", mailErr.message);
+    }
+
+    return res.json({ message: "Counter offer sent", quotation });
+  } catch (err) {
+    console.error("Counter offer error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

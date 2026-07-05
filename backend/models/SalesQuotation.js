@@ -46,6 +46,7 @@ const SalesQuotationSchema = new mongoose.Schema(
         "rejected",
         "negotiation_requested",
         "awaiting_admin_approval",
+        "counter_offered",
       ],
       default: "sent",
       index: true,
@@ -85,6 +86,32 @@ const SalesQuotationSchema = new mongoose.Schema(
     adminApprovedAt: { type: Date, default: null },
     adminRejectedAt: { type: Date, default: null },
     adminApprovedAmount: { type: Number, default: null }, // AdminQuotation subtotal at time of negotiation, snapshotted
+
+    // ── Sales rep counter offer ──
+    counterOfferAmount: { type: Number, default: null, min: 0 },
+    counterOfferMessage: { type: String, default: "" },
+    counterOfferAt: { type: Date, default: null },
+
+    // ── Final negotiated/accepted amount (audit trail — grandTotal is NEVER overwritten) ──
+    negotiatedAmount: { type: Number, default: null, min: 0 },
+    negotiatedAt: { type: Date, default: null },
+
+    // ── History of prior negotiation rounds, preserved instead of overwritten ──
+    negotiationHistory: {
+      type: [
+        {
+          _id: false,
+          expectedBudget: Number,
+          customerMessage: String,
+          customerRespondedAt: Date,
+          counterOfferAmount: Number,
+          counterOfferMessage: String,
+          counterOfferAt: Date,
+          recordedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

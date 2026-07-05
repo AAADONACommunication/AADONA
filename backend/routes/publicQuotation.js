@@ -34,6 +34,11 @@ const toPublicQuotation = (quotation) => ({
   customerMessage: quotation.customerMessage,
   expectedBudget: quotation.expectedBudget,
   customerRespondedAt: quotation.customerRespondedAt,
+  counterOfferAmount: quotation.counterOfferAmount,
+  counterOfferMessage: quotation.counterOfferMessage,
+  counterOfferAt: quotation.counterOfferAt,
+  negotiatedAmount: quotation.negotiatedAmount,
+  negotiatedAt: quotation.negotiatedAt,
   validTill: quotation.sourceQuotation?.validTill || null,
 });
 
@@ -149,6 +154,25 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
       .filter(Boolean)
       .join("\n");
 
+    // Preserve prior negotiation round instead of silently overwriting it
+    if (quotation.customerRespondedAt || quotation.counterOfferAt) {
+      quotation.negotiationHistory = quotation.negotiationHistory || [];
+      quotation.negotiationHistory.push({
+        expectedBudget: quotation.expectedBudget,
+        customerMessage: quotation.customerMessage,
+        customerRespondedAt: quotation.customerRespondedAt,
+        counterOfferAmount: quotation.counterOfferAmount,
+        counterOfferMessage: quotation.counterOfferMessage,
+        counterOfferAt: quotation.counterOfferAt,
+        recordedAt: new Date(),
+      });
+    }
+
+    // Reset counter-offer fields for this fresh negotiation round
+    quotation.counterOfferAmount = null;
+    quotation.counterOfferMessage = "";
+    quotation.counterOfferAt = null;
+
     quotation.customerMessage = combinedMessage;
     quotation.expectedBudget = expected;
     quotation.customerRespondedAt = new Date();
@@ -226,6 +250,63 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
     return res.json({ message: "Negotiation submitted", status: quotation.status });
   } catch (err) {
     console.error("Negotiate quotation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /quotation/:publicToken/accept-counter ── (NO AUTH)
+router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
+  try {
+    const { publicToken } = req.params;
+
+    const quotation = await SalesQuotation.findOne({ publicToken }).populate("customer");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.status !== "counter_offered") {
+      return res.status(400).json({
+        message: `Cannot accept counter offer from status "${quotation.status}"`,
+      });
+    }
+
+    if (quotation.counterOfferAmount == null || !Number.isFinite(Number(quotation.counterOfferAmount))) {
+      return res.status(400).json({ message: "No valid counter offer found to accept" });
+    }
+
+    quotation.negotiatedAmount = quotation.counterOfferAmount;
+    quotation.negotiatedAt = new Date();
+    quotation.status = "accepted";
+    quotation.acceptedAt = new Date();
+    await quotation.save();
+
+    try {
+      const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+      if (salesRep?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: salesRep.email,
+          subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+              <h2 style="color:#166534">Counter Offer Accepted ✅</h2>
+              <p style="color:#374151;font-size:14px">
+                <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted your
+                counter offer of <strong>₹${Number(quotation.negotiatedAmount).toFixed(2)}</strong> for
+                quotation <strong>#${quotation.quotationNumber}</strong>.
+              </p>
+              <p style="color:#374151;font-size:14px">Please log in to the Sales Portal to proceed.</p>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Accept-counter notification email failed:", mailErr.message);
+    }
+
+    return res.json({ message: "Counter offer accepted successfully", status: quotation.status });
+  } catch (err) {
+    console.error("Accept counter offer error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 });
