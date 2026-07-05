@@ -167,6 +167,10 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
         customerMessage: quotation.customerMessage,
         customerRespondedAt: quotation.customerRespondedAt,
         counterOfferAmount: quotation.counterOfferAmount,
+        counterOfferSubtotal: quotation.counterOfferSubtotal,
+        counterOfferDiscountAmount: quotation.counterOfferDiscountAmount,
+        counterOfferGstAmount: quotation.counterOfferGstAmount,
+        counterOfferItems: quotation.counterOfferItems,
         counterOfferMessage: quotation.counterOfferMessage,
         counterOfferAt: quotation.counterOfferAt,
         recordedAt: new Date(),
@@ -175,6 +179,10 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
 
     // Reset counter-offer fields for this fresh negotiation round
     quotation.counterOfferAmount = null;
+    quotation.counterOfferSubtotal = null;
+    quotation.counterOfferDiscountAmount = null;
+    quotation.counterOfferGstAmount = null;
+    quotation.counterOfferItems = [];
     quotation.counterOfferMessage = "";
     quotation.counterOfferAt = null;
 

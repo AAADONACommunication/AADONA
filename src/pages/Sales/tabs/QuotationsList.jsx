@@ -225,6 +225,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
             customerMessage: q.customerMessage,
             customerRespondedAt: q.customerRespondedAt,
             counterOfferAmount: q.counterOfferAmount,
+            counterOfferSubtotal: q.counterOfferSubtotal,
+            counterOfferDiscountAmount: q.counterOfferDiscountAmount,
+            counterOfferGstAmount: q.counterOfferGstAmount,
+            counterOfferItems: q.counterOfferItems,
             counterOfferMessage: q.counterOfferMessage,
             counterOfferAt: q.counterOfferAt,
           }
@@ -241,7 +245,7 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         </div>
 
         {rounds.map((round, i) => (
-          <div key={i} className="bg-white rounded-lg border border-orange-100 p-3 space-y-1.5">
+          <div key={i} className="bg-white rounded-lg border border-orange-100 p-3 space-y-2">
             <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
               Round {i + 1}
             </p>
@@ -262,12 +266,67 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
                 {new Date(round.customerRespondedAt).toLocaleString("en-IN")}
               </p>
             )}
+
             {round.counterOfferAmount != null && (
-              <div className="flex justify-between text-sm border-t border-orange-50 pt-1.5 mt-1.5">
-                <span className="text-gray-600">Your Counter Offer</span>
-                <span className="font-semibold text-amber-700">₹{Number(round.counterOfferAmount).toFixed(2)}</span>
+              <div className="border-t border-orange-50 pt-2 mt-1.5 space-y-2">
+                <p className="text-sm font-semibold text-gray-700">Your Counter Offer</p>
+
+                {(round.counterOfferItems || []).length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-amber-100 text-amber-800 text-left">
+                          <th className="px-2 py-1.5 rounded-tl-md">Product</th>
+                          <th className="px-2 py-1.5">Qty</th>
+                          <th className="px-2 py-1.5">Unit Price</th>
+                          <th className="px-2 py-1.5">GST</th>
+                          <th className="px-2 py-1.5">Discount</th>
+                          <th className="px-2 py-1.5 rounded-tr-md">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {round.counterOfferItems.map((item, idx) => (
+                          <tr key={idx} className="border-b border-amber-50">
+                            <td className="px-2 py-1.5 text-gray-800 font-medium">{item.name}</td>
+                            <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
+                            <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
+                            <td className="px-2 py-1.5 text-gray-700">{item.gst}%</td>
+                            <td className="px-2 py-1.5 text-gray-700">{Number(item.discount).toFixed(2)}%</td>
+                            <td className="px-2 py-1.5 font-semibold text-gray-800">₹{Number(item.total).toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                <div className="space-y-1 text-sm max-w-xs ml-auto">
+                  {round.counterOfferSubtotal != null && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Subtotal</span>
+                      <span>₹{Number(round.counterOfferSubtotal).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {round.counterOfferGstAmount != null && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>GST</span>
+                      <span>₹{Number(round.counterOfferGstAmount).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {round.counterOfferDiscountAmount != null && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Discount</span>
+                      <span>− ₹{Number(round.counterOfferDiscountAmount).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-amber-700 border-t border-amber-100 pt-1">
+                    <span>Counter Total</span>
+                    <span>₹{Number(round.counterOfferAmount).toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             )}
+
             {round.counterOfferMessage && (
               <p className="text-sm text-gray-700 whitespace-pre-line">
                 <span className="font-semibold">Your Message: </span>
