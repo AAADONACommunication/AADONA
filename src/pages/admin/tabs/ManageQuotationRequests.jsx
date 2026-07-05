@@ -132,7 +132,7 @@ export default function ManageQuotationRequests() {
             name: item.name,
             description: item.description,
             quantity: Number(item.quantity),
-            price: Number(item.price),
+            unitPrice: Number(item.price),
           })),
           notes,
         }),
