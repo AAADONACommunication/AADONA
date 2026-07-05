@@ -30,6 +30,29 @@ const AdminQuotationSchema = new mongoose.Schema(
     subtotal: { type: Number, required: true },
     remarks: { type: String, default: "" },
     validTill: { type: Date },
+
+    // ── Revision history — snapshot of pricing BEFORE each admin revision ──
+    revisionHistory: {
+      type: [
+        {
+          _id: false,
+          items: [
+            {
+              _id: false,
+              name: String,
+              description: String,
+              quantity: Number,
+              unitPrice: Number,
+              total: Number,
+            },
+          ],
+          subtotal: Number,
+          remarks: String,
+          revisedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
     status: {
       type: String,
       enum: ["sent", "viewed", "converted"],

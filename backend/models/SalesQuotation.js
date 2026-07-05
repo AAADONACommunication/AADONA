@@ -47,6 +47,7 @@ const SalesQuotationSchema = new mongoose.Schema(
         "negotiation_requested",
         "awaiting_admin_approval",
         "counter_offered",
+        "admin_revised",
       ],
       default: "sent",
       index: true,
@@ -143,6 +144,23 @@ const SalesQuotationSchema = new mongoose.Schema(
           },
           counterOfferMessage: String,
           counterOfferAt: Date,
+          // ── Admin revision snapshot (filled when admin revises pricing and rep resends) ──
+          adminRevisedItems: {
+            type: [
+              {
+                _id: false,
+                name: String,
+                description: String,
+                quantity: Number,
+                unitPrice: Number,
+                total: Number,
+              },
+            ],
+            default: undefined,
+          },
+          adminRevisedSubtotal: Number,
+          revisedGrandTotal: Number,
+          revisedAt: Date,
           recordedAt: { type: Date, default: Date.now },
         },
       ],

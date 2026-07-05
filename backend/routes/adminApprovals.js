@@ -5,6 +5,7 @@ const verifyToken = require("../middleware/verifyToken");
 const transporter = require("../mailer");
 const SalesQuotation = require("../models/SalesQuotation");
 const SalesRep = require("../models/SalesRep");
+const AdminQuotation = require("../models/AdminQuotation");
 
 // ── GET /admin/sales-quotations/pending-approval ──
 router.get("/admin/sales-quotations/pending-approval", verifyToken, async (req, res) => {
@@ -116,6 +117,128 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
     return res.json(quotation);
   } catch (err) {
     console.error("Reject quotation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /admin/sales-quotations/:id/revise ──
+router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const { items, remarks } = req.body;
+
+    const quotation = await SalesQuotation.findById(id)
+      .populate("customer")
+      .populate("sourceQuotation");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+    if (quotation.status !== "awaiting_admin_approval") {
+      return res.status(400).json({ message: "Quotation is not awaiting admin approval" });
+    }
+
+    const adminQuotation = await AdminQuotation.findById(quotation.sourceQuotation._id);
+    if (!adminQuotation) {
+      return res.status(404).json({ message: "Source admin quotation not found" });
+    }
+
+    if (!items || !Array.isArray(items) || items.length !== adminQuotation.items.length) {
+      return res.status(400).json({ message: "Items array must match the original admin quotation" });
+    }
+
+    const revisedItems = adminQuotation.items.map((existingItem, index) => {
+      const incoming = items[index] || {};
+      const unitPrice = Number(incoming.unitPrice);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        throw new Error(`Invalid revised price for item: ${existingItem.name}`);
+      }
+      const quantity = existingItem.quantity;
+      const total = parseFloat((quantity * unitPrice).toFixed(2));
+
+      return {
+        name: existingItem.name,
+        description: existingItem.description || "",
+        quantity,
+        unitPrice,
+        total,
+      };
+    });
+
+    const revisedSubtotal = parseFloat(
+      revisedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+    );
+
+    adminQuotation.revisionHistory = adminQuotation.revisionHistory || [];
+    adminQuotation.revisionHistory.push({
+      items: adminQuotation.items,
+      subtotal: adminQuotation.subtotal,
+      remarks: adminQuotation.remarks,
+      revisedAt: new Date(),
+    });
+
+    adminQuotation.items = revisedItems;
+    adminQuotation.subtotal = revisedSubtotal;
+    if (remarks !== undefined) {
+      adminQuotation.remarks = remarks.trim();
+    }
+    await adminQuotation.save();
+
+    quotation.status = "admin_revised";
+    quotation.adminApprovedAt = new Date();
+    quotation.adminApprovedAmount = revisedSubtotal;
+    await quotation.save();
+
+    try {
+      const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+      if (salesRep?.email) {
+        const itemRowsHtml = revisedItems.map((item, i) => `
+          <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
+            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
+            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
+            <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${item.total.toFixed(2)}</td>
+          </tr>
+        `).join("");
+
+        await transporter.sendMail({
+          from: `"AADONA Admin" <${process.env.EMAIL_USER}>`,
+          to: salesRep.email,
+          subject: `Revised Pricing Ready — #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+              <h2 style="color:#166534">Admin Has Revised the Pricing</h2>
+              <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
+              <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
+                <thead>
+                  <tr style="background:#166534">
+                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
+                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
+                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">New Price</th>
+                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>${itemRowsHtml}</tbody>
+              </table>
+              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">New Subtotal: ₹${revisedSubtotal.toFixed(2)}</p>
+              ${adminQuotation.remarks ? `<p style="color:#374151;font-size:14px"><strong>Admin Notes:</strong> ${adminQuotation.remarks}</p>` : ""}
+              <p style="color:#374151;font-size:14px">Please log in to the Sales Portal, apply your GST/discount, and resend the revised quotation to the customer.</p>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Revise notification email failed:", mailErr.message);
+    }
+
+    return res.json(quotation);
+  } catch (err) {
+    console.error("Revise quotation error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 });

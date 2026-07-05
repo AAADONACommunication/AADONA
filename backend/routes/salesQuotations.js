@@ -676,4 +676,202 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
   }
 });
 
+// ── POST /sales-quotations/:id/resend-revised ──
+router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const { items, gstRate, discount } = req.body;
+
+    const quotation = await SalesQuotation.findById(id)
+      .populate("customer")
+      .populate("sourceQuotation");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+    if (quotation.salesRepUid !== req.salesRep.uid) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    if (quotation.status !== "admin_revised") {
+      return res.status(400).json({
+        message: `Cannot resend from status "${quotation.status}"`,
+      });
+    }
+
+    const adminQuotation = await AdminQuotation.findById(quotation.sourceQuotation._id);
+    if (!adminQuotation) {
+      return res.status(404).json({ message: "Source admin quotation not found" });
+    }
+
+    if (!items || !Array.isArray(items) || items.length !== adminQuotation.items.length) {
+      return res.status(400).json({ message: "Items array must match the revised admin quotation" });
+    }
+
+    const gstPercent = Number(gstRate);
+    if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
+      return res.status(400).json({ message: "Invalid GST rate" });
+    }
+
+    let discountType = "percent";
+    let discountValue = 0;
+    if (discount && Number.isFinite(Number(discount.value)) && Number(discount.value) > 0) {
+      discountType = discount.type === "flat" ? "flat" : "percent";
+      discountValue = Number(discount.value);
+    }
+
+    // ── Build items — quantity locked, unit price cannot be below the REVISED admin price ──
+    const rawItems = adminQuotation.items.map((adminItem, index) => {
+      const incoming = items[index] || {};
+      const unitPrice = Number(incoming.unitPrice);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        throw new Error(`Invalid unit price for item: ${adminItem.name}`);
+      }
+      if (unitPrice < adminItem.unitPrice) {
+        throw new Error(
+          `Price for "${adminItem.name}" cannot be lower than the revised admin price (₹${adminItem.unitPrice})`
+        );
+      }
+      const quantity = adminItem.quantity;
+      return {
+        name: adminItem.name,
+        description: adminItem.description || "",
+        quantity,
+        unitPrice,
+        baseAmount: quantity * unitPrice,
+      };
+    });
+
+    const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
+
+    const effectiveDiscountPercent =
+      rawSubtotal <= 0
+        ? 0
+        : discountType === "flat"
+        ? Math.min((discountValue / rawSubtotal) * 100, 100)
+        : Math.min(discountValue, 100);
+
+    const calculatedItems = rawItems.map((item) => {
+      const discountAmt = parseFloat((item.baseAmount * (effectiveDiscountPercent / 100)).toFixed(2));
+      const taxableAmount = item.baseAmount - discountAmt;
+      const gstAmt = parseFloat((taxableAmount * (gstPercent / 100)).toFixed(2));
+      const total = parseFloat((taxableAmount + gstAmt).toFixed(2));
+
+      return {
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        gst: gstPercent,
+        discount: effectiveDiscountPercent,
+        total,
+      };
+    });
+
+    const subtotal = parseFloat(
+      calculatedItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toFixed(2)
+    );
+    const discountAmount = parseFloat(
+      calculatedItems.reduce((sum, item) => {
+        const base = item.quantity * item.unitPrice;
+        return sum + base * (item.discount / 100);
+      }, 0).toFixed(2)
+    );
+    const gstAmount = parseFloat(
+      calculatedItems.reduce((sum, item) => {
+        const base = item.quantity * item.unitPrice;
+        const afterDiscount = base - base * (item.discount / 100);
+        return sum + afterDiscount * (item.gst / 100);
+      }, 0).toFixed(2)
+    );
+    const grandTotal = parseFloat(
+      calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+    );
+
+    // ── Preserve this negotiation round (customer offer + admin revision) before resetting ──
+    quotation.negotiationHistory = quotation.negotiationHistory || [];
+    quotation.negotiationHistory.push({
+      expectedBudget: quotation.expectedBudget,
+      customerMessage: quotation.customerMessage,
+      customerRespondedAt: quotation.customerRespondedAt,
+      adminRevisedItems: adminQuotation.items,
+      adminRevisedSubtotal: adminQuotation.subtotal,
+      revisedGrandTotal: grandTotal,
+      revisedAt: new Date(),
+      recordedAt: new Date(),
+    });
+
+    // ── Apply new pricing, reset negotiation fields for a fresh cycle ──
+    quotation.items = calculatedItems;
+    quotation.subtotal = subtotal;
+    quotation.discountAmount = discountAmount;
+    quotation.gstAmount = gstAmount;
+    quotation.grandTotal = grandTotal;
+    quotation.status = "sent";
+    quotation.sentAt = new Date();
+    quotation.viewedAt = null;
+    quotation.expectedBudget = null;
+    quotation.customerMessage = "";
+    quotation.customerRespondedAt = null;
+    quotation.adminApprovedAmount = adminQuotation.subtotal;
+    await quotation.save();
+
+    const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
+    const itemRowsHtml = calculatedItems.map((item, i) => `
+      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${item.total.toFixed(2)}</td>
+      </tr>
+    `).join("");
+
+    try {
+      if (quotation.customer?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: quotation.customer.email,
+          subject: `Revised Quotation #${quotation.quotationNumber} — AADONA Communication`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+              <h2 style="color:#166534">We've Revised Your Quotation</h2>
+              <p style="color:#374151;font-size:14px">Quotation <strong>#${quotation.quotationNumber}</strong> — updated pricing below.</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
+                <thead>
+                  <tr style="background:#166534">
+                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:left">Product</th>
+                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px">Qty</th>
+                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Unit Price</th>
+                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">GST</th>
+                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Discount</th>
+                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>${itemRowsHtml}</tbody>
+              </table>
+              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">Grand Total: ₹${grandTotal.toFixed(2)}</p>
+              <div style="text-align:center;margin-top:20px">
+                <a href="${viewQuotationUrl}" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
+                  View Revised Quotation
+                </a>
+              </div>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Resend-revised email failed:", mailErr.message);
+    }
+
+    return res.json({ message: "Revised quotation sent to customer", quotation });
+  } catch (err) {
+    console.error("Resend revised quotation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
