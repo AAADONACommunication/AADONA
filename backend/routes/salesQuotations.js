@@ -548,37 +548,31 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
     // ── Build items — quantity/name/description LOCKED from the original quotation ──
     const rawItems = quotation.items.map((originalItem, index) => {
       const incoming = items[index] || {};
-
       const unitPrice = Number(incoming.unitPrice);
-      if (!Number.isFinite(unitPrice) || Number.isNaN(unitPrice) || unitPrice <= 0) {
+      if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
         throw new Error(`Invalid unit price for item: ${originalItem.name}`);
       }
+      const quantity = originalItem.quantity;
+      const baseAmount = quantity * unitPrice;
+      const gstAmt = parseFloat((baseAmount * (gstPercent / 100)).toFixed(2));
+      const totalWithGst = parseFloat((baseAmount + gstAmt).toFixed(2));
 
-      const quantity = originalItem.quantity; // LOCKED - never from frontend
-
-      return {
-        name: originalItem.name,
-        description: originalItem.description || "",
-        quantity,
-        unitPrice,
-        baseAmount: quantity * unitPrice,
-      };
+      return { name: originalItem.name, description: originalItem.description || "", quantity, unitPrice, baseAmount, gstAmt, totalWithGst };
     });
 
-    const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
+    // discount is now a % (or flat) of the (base + GST) total, not the base alone
+    const rawTotalWithGst = rawItems.reduce((sum, i) => sum + i.totalWithGst, 0);
 
     const effectiveDiscountPercent =
-      rawSubtotal <= 0
+      rawTotalWithGst <= 0
         ? 0
         : discountType === "flat"
-        ? Math.min((discountValue / rawSubtotal) * 100, 100)
+        ? Math.min((discountValue / rawTotalWithGst) * 100, 100)
         : Math.min(discountValue, 100);
 
     const calculatedItems = rawItems.map((item) => {
-      const discountAmt = parseFloat((item.baseAmount * (effectiveDiscountPercent / 100)).toFixed(2));
-      const taxableAmount = item.baseAmount - discountAmt;
-      const gstAmt = parseFloat((taxableAmount * (gstPercent / 100)).toFixed(2));
-      const total = parseFloat((taxableAmount + gstAmt).toFixed(2));
+      const discountAmt = parseFloat((item.totalWithGst * (effectiveDiscountPercent / 100)).toFixed(2));
+      const total = parseFloat((item.totalWithGst - discountAmt).toFixed(2));
 
       return {
         name: item.name,
@@ -595,28 +589,15 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       calculatedItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toFixed(2)
     );
 
-    const discountAmount = parseFloat(
-      calculatedItems
-        .reduce((sum, item) => {
-          const base = item.quantity * item.unitPrice;
-          return sum + base * (item.discount / 100);
-        }, 0)
-        .toFixed(2)
-    );
-
     const gstAmount = parseFloat(
-      calculatedItems
-        .reduce((sum, item) => {
-          const base = item.quantity * item.unitPrice;
-          const afterDiscount = base - base * (item.discount / 100);
-          return sum + afterDiscount * (item.gst / 100);
-        }, 0)
-        .toFixed(2)
+      rawItems.reduce((sum, item) => sum + item.gstAmt, 0).toFixed(2)
     );
 
-    const grandTotal = parseFloat(
-      calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+    const discountAmount = parseFloat(
+      ((subtotal + gstAmount) * (effectiveDiscountPercent / 100)).toFixed(2)
     );
+
+    const grandTotal = parseFloat((subtotal + gstAmount - discountAmount).toFixed(2));
 
     quotation.counterOfferItems = calculatedItems;
     quotation.counterOfferSubtotal = subtotal;

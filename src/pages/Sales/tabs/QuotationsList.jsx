@@ -154,15 +154,15 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
     0
   );
+  const counterGstAmt = counterRawSubtotal * (Number(counterGstRate) / 100);
+  const counterTotalWithGst = counterRawSubtotal + counterGstAmt;
   const counterDiscountAmount =
     !counterDiscountEnabled || !counterDiscountValue
       ? 0
       : counterDiscountType === "percent"
-      ? counterRawSubtotal * (Number(counterDiscountValue) / 100)
+      ? counterTotalWithGst * (Number(counterDiscountValue) / 100)
       : Number(counterDiscountValue);
-  const counterTaxable = Math.max(counterRawSubtotal - counterDiscountAmount, 0);
-  const counterGstAmt = counterTaxable * (Number(counterGstRate) / 100);
-  const counterGrandTotal = counterTaxable + counterGstAmt;
+  const counterGrandTotal = Math.max(counterTotalWithGst - counterDiscountAmount, 0);
 
   const handleSendCounterOffer = async (e) => {
     e.preventDefault();
@@ -631,16 +631,20 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
                     <span>Subtotal</span>
                     <span>₹{counterRawSubtotal.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>GST ({counterGstRate}%)</span>
+                    <span>₹{counterGstAmt.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Total (before discount)</span>
+                    <span>₹{counterTotalWithGst.toFixed(2)}</span>
+                  </div>
                   {counterDiscountEnabled && counterDiscountAmount > 0 && (
                     <div className="flex justify-between text-gray-600">
                       <span>Discount</span>
                       <span>− ₹{counterDiscountAmount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-gray-600">
-                    <span>GST ({counterGstRate}%)</span>
-                    <span>₹{counterGstAmt.toFixed(2)}</span>
-                  </div>
                   <div className="flex justify-between text-base font-bold text-amber-700 border-t border-amber-200 pt-1.5 mt-1.5">
                     <span>Counter Total</span>
                     <span>₹{counterGrandTotal.toFixed(2)}</span>
