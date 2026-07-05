@@ -486,7 +486,7 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
             <div className="flex justify-between text-base font-bold text-green-800">
               <span>{viewing.negotiatedAmount != null ? "Final Total (Negotiated)" : "Total"}</span>
               <span>₹{Number(viewing.negotiatedAmount ?? viewing.grandTotal ?? 0).toFixed(2)}</span>
-            </div>
+            </div> 
 
             {viewing.notes && (
               <p className="text-sm text-gray-600 mt-4 border-t border-gray-100 pt-3">
