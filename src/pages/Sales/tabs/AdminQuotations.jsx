@@ -29,12 +29,12 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
   const filtered = useMemo(() => {
     if (!search.trim()) return incomingQuotations;
-    const q = search.toLowerCase();
+    const term = search.toLowerCase();
     return incomingQuotations.filter(
       (q) =>
-        q.customer?.personalName?.toLowerCase().includes(q) ||
-        q.customer?.companyName?.toLowerCase().includes(q) ||
-        q.quotationNumber?.toLowerCase().includes(q)
+        q.customer?.personalName?.toLowerCase().includes(term) ||
+        q.customer?.companyName?.toLowerCase().includes(term) ||
+        q.quotationNumber?.toLowerCase().includes(term)
     );
   }, [incomingQuotations, search]);
 
@@ -205,7 +205,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                         {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
                       </td>
                       <td className="px-4 py-3 font-semibold text-gray-700">
-                        ₹{Number(q.total || 0).toFixed(2)}
+                        ₹{(
+                            q.total ??
+                            (q.items || []).reduce(
+                              (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+                              0
+                            )
+                          ).toFixed(2)}
                       </td>
                       <td className="px-4 py-3">
                         <span
