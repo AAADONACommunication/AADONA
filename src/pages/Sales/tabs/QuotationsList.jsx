@@ -355,18 +355,18 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   };
 
   const editApprovedRawSubtotal = editApprovedItems.reduce(
-    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
-    0
-  );
-  const editApprovedDiscountAmount =
-    !editApprovedDiscountEnabled || !editApprovedDiscountValue
-      ? 0
-      : editApprovedDiscountType === "percent"
-      ? editApprovedRawSubtotal * (Number(editApprovedDiscountValue) / 100)
-      : Number(editApprovedDiscountValue);
-  const editApprovedTaxable = Math.max(editApprovedRawSubtotal - editApprovedDiscountAmount, 0);
-  const editApprovedGstAmt = editApprovedTaxable * (Number(editApprovedGstRate) / 100);
-  const editApprovedGrandTotal = editApprovedTaxable + editApprovedGstAmt;
+  (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+  0
+);
+const editApprovedGstAmt = editApprovedRawSubtotal * (Number(editApprovedGstRate) / 100);
+const editApprovedTotalBeforeDiscount = editApprovedRawSubtotal + editApprovedGstAmt;
+const editApprovedDiscountAmount =
+  !editApprovedDiscountEnabled || !editApprovedDiscountValue
+    ? 0
+    : editApprovedDiscountType === "percent"
+    ? editApprovedTotalBeforeDiscount * (Math.min(Number(editApprovedDiscountValue), 100) / 100)
+    : Math.min(Number(editApprovedDiscountValue), editApprovedTotalBeforeDiscount);
+const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editApprovedDiscountAmount, 0);
 
   const handleSubmitEditApproved = async (e) => {
     e.preventDefault();
@@ -1323,16 +1323,16 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
                     <span>Subtotal</span>
                     <span>₹{editApprovedRawSubtotal.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>GST ({editApprovedGstRate}%)</span>
+                    <span>₹{editApprovedGstAmt.toFixed(2)}</span>
+                  </div>
                   {editApprovedDiscountEnabled && editApprovedDiscountAmount > 0 && (
                     <div className="flex justify-between text-gray-600">
                       <span>Discount</span>
                       <span>− ₹{editApprovedDiscountAmount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-gray-600">
-                    <span>GST ({editApprovedGstRate}%)</span>
-                    <span>₹{editApprovedGstAmt.toFixed(2)}</span>
-                  </div>
                   <div className="flex justify-between text-base font-bold text-purple-700 border-t border-purple-200 pt-1.5 mt-1.5">
                     <span>New Grand Total</span>
                     <span>₹{editApprovedGrandTotal.toFixed(2)}</span>

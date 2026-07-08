@@ -1041,19 +1041,21 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
     });
 
     const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
+    const gstOnSubtotal = rawSubtotal * (gstPercent / 100);
+    const totalBeforeDiscount = rawSubtotal + gstOnSubtotal;
 
     const effectiveDiscountPercent =
-      rawSubtotal <= 0
+      totalBeforeDiscount <= 0
         ? 0
         : discountType === "flat"
-        ? Math.min((discountValue / rawSubtotal) * 100, 100)
+        ? Math.min((discountValue / totalBeforeDiscount) * 100, 100)
         : Math.min(discountValue, 100);
 
     const calculatedItems = rawItems.map((item) => {
-      const discountAmt = parseFloat((item.baseAmount * (effectiveDiscountPercent / 100)).toFixed(2));
-      const taxableAmount = item.baseAmount - discountAmt;
-      const gstAmt = parseFloat((taxableAmount * (gstPercent / 100)).toFixed(2));
-      const total = parseFloat((taxableAmount + gstAmt).toFixed(2));
+      const itemGst = parseFloat((item.baseAmount * (gstPercent / 100)).toFixed(2));
+      const itemTotalBeforeDiscount = item.baseAmount + itemGst;
+      const itemDiscount = parseFloat((itemTotalBeforeDiscount * (effectiveDiscountPercent / 100)).toFixed(2));
+      const total = parseFloat((itemTotalBeforeDiscount - itemDiscount).toFixed(2));
 
       return {
         name: item.name,
@@ -1066,20 +1068,12 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
       };
     });
 
-    const subtotal = parseFloat(
-      calculatedItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toFixed(2)
-    );
+    const subtotal = parseFloat(rawSubtotal.toFixed(2));
+    const gstAmount = parseFloat(gstOnSubtotal.toFixed(2));
     const discountAmount = parseFloat(
-      calculatedItems.reduce((sum, item) => {
-        const base = item.quantity * item.unitPrice;
-        return sum + base * (item.discount / 100);
-      }, 0).toFixed(2)
-    );
-    const gstAmount = parseFloat(
-      calculatedItems.reduce((sum, item) => {
-        const base = item.quantity * item.unitPrice;
-        const afterDiscount = base - base * (item.discount / 100);
-        return sum + afterDiscount * (item.gst / 100);
+      calculatedItems.reduce((sum, item, i) => {
+        const itemTotalBeforeDiscount = rawItems[i].baseAmount + (rawItems[i].baseAmount * gstPercent) / 100;
+        return sum + itemTotalBeforeDiscount * (item.discount / 100);
       }, 0).toFixed(2)
     );
     const grandTotal = parseFloat(
