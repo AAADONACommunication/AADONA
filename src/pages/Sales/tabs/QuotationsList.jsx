@@ -63,6 +63,15 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   // ── Send-approved (discount_applied flow — no manual pricing needed) ──
   const [sendingApprovedId, setSendingApprovedId] = useState(null);
   const [sendApprovedError, setSendApprovedError] = useState("");
+  // ── Edit-approved (discount_applied flow, rep wants to tweak GST/discount) ──
+  const [editApprovedModalOpen, setEditApprovedModalOpen] = useState(false);
+  const [editApprovedItems, setEditApprovedItems] = useState([]);
+  const [editApprovedGstRate, setEditApprovedGstRate] = useState(18);
+  const [editApprovedDiscountEnabled, setEditApprovedDiscountEnabled] = useState(false);
+  const [editApprovedDiscountType, setEditApprovedDiscountType] = useState("percent");
+  const [editApprovedDiscountValue, setEditApprovedDiscountValue] = useState("");
+  const [editApprovedSubmitting, setEditApprovedSubmitting] = useState(false);
+  const [editApprovedError, setEditApprovedError] = useState("");
 
   const filtered = useMemo(() => {
     return quotations.filter((q) => {
@@ -321,6 +330,86 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
     }
   };
 
+  const openEditApprovedModal = (quotation) => {
+    setEditApprovedItems(
+      (quotation.items || []).map((item) => ({
+        name: item.name,
+        description: item.description || "",
+        quantity: item.quantity,
+        unitPrice: item.unitPrice, // admin-approved floor
+      }))
+    );
+    setEditApprovedGstRate(quotation.items?.[0]?.gst ?? 18);
+    const currentDiscount = quotation.items?.[0]?.discount || 0;
+    setEditApprovedDiscountEnabled(currentDiscount > 0);
+    setEditApprovedDiscountType("percent");
+    setEditApprovedDiscountValue(currentDiscount > 0 ? String(currentDiscount) : "");
+    setEditApprovedError("");
+    setEditApprovedModalOpen(quotation);
+  };
+
+  const updateEditApprovedItem = (index, field, value) => {
+    setEditApprovedItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const editApprovedRawSubtotal = editApprovedItems.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+    0
+  );
+  const editApprovedDiscountAmount =
+    !editApprovedDiscountEnabled || !editApprovedDiscountValue
+      ? 0
+      : editApprovedDiscountType === "percent"
+      ? editApprovedRawSubtotal * (Number(editApprovedDiscountValue) / 100)
+      : Number(editApprovedDiscountValue);
+  const editApprovedTaxable = Math.max(editApprovedRawSubtotal - editApprovedDiscountAmount, 0);
+  const editApprovedGstAmt = editApprovedTaxable * (Number(editApprovedGstRate) / 100);
+  const editApprovedGrandTotal = editApprovedTaxable + editApprovedGstAmt;
+
+  const handleSubmitEditApproved = async (e) => {
+    e.preventDefault();
+
+    const floorItems = editApprovedModalOpen.items || [];
+    for (let i = 0; i < editApprovedItems.length; i++) {
+      const item = editApprovedItems[i];
+      const price = Number(item.unitPrice);
+      const floor = Number(floorItems[i]?.unitPrice || 0);
+      if (item.unitPrice === "" || !Number.isFinite(price) || price < floor) {
+        setEditApprovedError(`Price for "${item.name}" cannot be below the admin-approved price (₹${floor.toFixed(2)})`);
+        return;
+      }
+    }
+
+    setEditApprovedSubmitting(true);
+    setEditApprovedError("");
+    try {
+      const headers = { "Content-Type": "application/json", ...(await authHeader()) };
+      const res = await fetch(`${QUOTATIONS_API}/${editApprovedModalOpen._id}/send-approved-edited`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          items: editApprovedItems.map((item) => ({ unitPrice: Number(item.unitPrice) })),
+          gstRate: Number(editApprovedGstRate),
+          discount: editApprovedDiscountEnabled
+            ? { type: editApprovedDiscountType, value: Number(editApprovedDiscountValue) || 0 }
+            : undefined,
+        }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.message || "Failed to send quotation");
+      setEditApprovedModalOpen(false);
+      reloadQuotations?.();
+      setViewing(null);
+    } catch (err) {
+      console.error("Send-approved-edited error:", err);
+      setEditApprovedError(err.message || "Failed to send quotation");
+    } finally {
+      setEditApprovedSubmitting(false);
+    }
+  };
+  
   const renderNegotiationSection = (q) => {
     const hasHistory = (q.negotiationHistory || []).length > 0;
     const hasActiveOffer = q.expectedBudget != null;
@@ -544,13 +633,21 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         {sendApprovedError && <p className="text-sm text-red-600">{sendApprovedError}</p>}
 
         {isAdminRevised && q.pricingRevisionType === "discount_applied" && (
-          <button
-            onClick={() => handleSendApproved(q)}
-            disabled={sendingApprovedId === q._id}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
-          >
-            {sendingApprovedId === q._id ? "Sending..." : "Send to Customer"}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleSendApproved(q)}
+              disabled={sendingApprovedId === q._id}
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
+            >
+              {sendingApprovedId === q._id ? "Sending..." : "Send As-Is"}
+            </button>
+            <button
+              onClick={() => openEditApprovedModal(q)}
+              className="flex-1 bg-white border-2 border-purple-600 text-purple-700 hover:bg-purple-50 text-sm font-semibold py-2 rounded-lg transition"
+            >
+              Edit Pricing
+            </button>
+          </div>
         )}
 
         {isAdminRevised && q.pricingRevisionType === "item_price_revised" && (
@@ -1105,6 +1202,152 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
               >
                 {resendSubmitting ? "Sending..." : "Resend Quotation to Customer"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* ── Edit Approved Pricing Modal (discount_applied flow) ── */}
+      {editApprovedModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] px-4 py-8">
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setEditApprovedModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
+            >
+              ×
+            </button>
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Edit Pricing Before Sending</h3>
+            <p className="text-sm text-gray-500 mb-5">
+              Quotation #{editApprovedModalOpen.quotationNumber}
+            </p>
+
+            <form onSubmit={handleSubmitEditApproved} className="space-y-5">
+              <div>
+                <p className="text-xs font-bold text-purple-700 uppercase tracking-wide mb-3">
+                  Set Your Price (must be ≥ admin-approved price)
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-purple-500 text-white text-left">
+                        <th className="px-3 py-2 rounded-tl-lg">Product</th>
+                        <th className="px-3 py-2">Qty</th>
+                        <th className="px-3 py-2">Admin Price</th>
+                        <th className="px-3 py-2 rounded-tr-lg">Your Price (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {editApprovedItems.map((item, index) => {
+                        const floor = editApprovedModalOpen.items?.[index]?.unitPrice;
+                        return (
+                          <tr key={index} className="border-b border-purple-100">
+                            <td className="px-3 py-2 text-gray-800 font-medium min-w-[160px]">
+                              {item.name}
+                            </td>
+                            <td className="px-3 py-2 w-20 text-gray-600">{item.quantity}</td>
+                            <td className="px-3 py-2 w-28 text-gray-500">₹{Number(floor || 0).toFixed(2)}</td>
+                            <td className="px-3 py-2 w-32">
+                              <input
+                                type="number"
+                                min={floor || 0}
+                                step="0.01"
+                                value={item.unitPrice}
+                                onChange={(e) => updateEditApprovedItem(index, "unitPrice", e.target.value)}
+                                className="w-full border border-purple-200 rounded-lg px-2 py-1.5 focus:border-purple-400 outline-none"
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    GST Rate
+                  </label>
+                  <select
+                    value={editApprovedGstRate}
+                    onChange={(e) => setEditApprovedGstRate(e.target.value)}
+                    className="border border-purple-200 rounded-lg px-3 py-2.5 text-sm focus:border-purple-400 outline-none bg-white w-full"
+                  >
+                    <option value={12}>12%</option>
+                    <option value={18}>18%</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <input
+                      type="checkbox"
+                      id="editApprovedDiscountToggle"
+                      checked={editApprovedDiscountEnabled}
+                      onChange={(e) => setEditApprovedDiscountEnabled(e.target.checked)}
+                      className="accent-purple-500"
+                    />
+                    <label htmlFor="editApprovedDiscountToggle" className="text-sm font-semibold text-gray-700">
+                      Discount (optional)
+                    </label>
+                  </div>
+                  {editApprovedDiscountEnabled && (
+                    <div className="flex gap-2">
+                      <select
+                        value={editApprovedDiscountType}
+                        onChange={(e) => setEditApprovedDiscountType(e.target.value)}
+                        className="border border-purple-200 rounded-lg px-2 py-2.5 text-sm focus:border-purple-400 outline-none bg-white"
+                      >
+                        <option value="percent">%</option>
+                        <option value="flat">₹ flat</option>
+                      </select>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editApprovedDiscountValue}
+                        onChange={(e) => setEditApprovedDiscountValue(e.target.value)}
+                        placeholder={editApprovedDiscountType === "percent" ? "e.g. 10" : "e.g. 500"}
+                        className="flex-1 border border-purple-200 rounded-lg px-3 py-2.5 text-sm focus:border-purple-400 outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <div className="w-full sm:w-72 space-y-1 text-sm bg-purple-50 rounded-xl p-3 border border-purple-100">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>₹{editApprovedRawSubtotal.toFixed(2)}</span>
+                  </div>
+                  {editApprovedDiscountEnabled && editApprovedDiscountAmount > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Discount</span>
+                      <span>− ₹{editApprovedDiscountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-600">
+                    <span>GST ({editApprovedGstRate}%)</span>
+                    <span>₹{editApprovedGstAmt.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-bold text-purple-700 border-t border-purple-200 pt-1.5 mt-1.5">
+                    <span>New Grand Total</span>
+                    <span>₹{editApprovedGrandTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {editApprovedError && <p className="text-sm text-red-600">{editApprovedError}</p>}
+
+              <button
+                type="submit"
+                disabled={editApprovedSubmitting}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
+              >
+                {editApprovedSubmitting ? "Sending..." : "Send Updated Quotation to Customer"}
               </button>
             </form>
           </div>

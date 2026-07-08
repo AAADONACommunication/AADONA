@@ -121,8 +121,14 @@ export default function AdminPanel() {
   useEffect(() => {
     let unsubscribe;
     getFirebaseAuth().then((auth) => {
-      unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
+          const tokenResult = await user.getIdTokenResult(true); // force refresh
+          if (tokenResult.claims.admin !== true) {
+            await signOut(auth);
+            navigate("/ram-ctrl-505");
+            return;
+          }
           loadProducts();
           loadBlogs();
           loadCategories();
