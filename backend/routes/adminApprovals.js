@@ -38,8 +38,78 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
       return res.status(400).json({ message: "Quotation is not awaiting admin approval" });
     }
 
-    quotation.status = "negotiation_requested";
+    const target = Number(quotation.expectedBudget);
+    if (!Number.isFinite(target) || target < 0) {
+      return res.status(400).json({ message: "Invalid customer offer amount on this quotation" });
+    }
+
+    const subtotal = Number(quotation.subtotal) || 0;
+    const oldDiscount = Number(quotation.discountAmount) || 0;
+    const oldGst = Number(quotation.gstAmount) || 0;
+    const oldTaxable = Math.max(subtotal - oldDiscount, 0);
+
+    // Blended GST rate implied by the rep's original pricing — stays untouched
+    const gstRate = oldTaxable > 0 ? oldGst / oldTaxable : 0;
+
+    // Discount needed so grandTotal === customer's offer, keeping unitPrice & GST rate same
+    let newDiscount = subtotal - target / (1 + gstRate);
+    newDiscount = Math.max(newDiscount, oldDiscount, 0);
+    newDiscount = Math.min(newDiscount, subtotal);
+
+    const newTaxable = Math.max(subtotal - newDiscount, 0);
+    let newGst = parseFloat((newTaxable * gstRate).toFixed(2));
+    let newGrandTotal = parseFloat((newTaxable + newGst).toFixed(2));
+
+    // Snap exactly to the customer's offer (kill paisa-level rounding drift)
+    const drift = parseFloat((target - newGrandTotal).toFixed(2));
+    if (Math.abs(drift) > 0) {
+      newGst = parseFloat((newGst + drift).toFixed(2));
+      newGrandTotal = target;
+    }
+
+    // Spread the extra discount proportionally across items — unitPrice & gst untouched
+    const extraDiscount = parseFloat((newDiscount - oldDiscount).toFixed(2));
+    const revisedItems = quotation.items.map((item) => {
+      const share = subtotal > 0 ? item.total / subtotal : 0;
+      const itemExtraDiscount = parseFloat((extraDiscount * share).toFixed(2));
+      return {
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice, // unchanged
+        gst: item.gst, // unchanged
+        discount: parseFloat((Number(item.discount || 0) + itemExtraDiscount).toFixed(2)),
+        total: item.total,
+      };
+    });
+
+    // Snapshot before overwrite (audit trail)
+    quotation.negotiationHistory.push({
+      expectedBudget: quotation.expectedBudget,
+      customerMessage: quotation.customerMessage,
+      customerRespondedAt: quotation.customerRespondedAt,
+      adminRevisedItems: quotation.items.map((i) => ({
+        name: i.name,
+        description: i.description,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        total: i.total,
+      })),
+      adminRevisedSubtotal: subtotal,
+      revisedGrandTotal: newGrandTotal,
+      revisedAt: new Date(),
+      recordedAt: new Date(),
+    });
+
+    quotation.items = revisedItems;
+    quotation.discountAmount = parseFloat(newDiscount.toFixed(2));
+    quotation.gstAmount = newGst;
+    quotation.grandTotal = newGrandTotal;
+    quotation.status = "admin_revised";
     quotation.adminApprovedAt = new Date();
+    quotation.adminApprovedAmount = newGrandTotal;
+    quotation.pricingRevisionType = "discount_applied";
+
     await quotation.save();
 
     try {
@@ -190,6 +260,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     quotation.status = "admin_revised";
     quotation.adminApprovedAt = new Date();
     quotation.adminApprovedAmount = revisedSubtotal;
+    quotation.pricingRevisionType = "item_price_revised";
     await quotation.save();
 
     try {

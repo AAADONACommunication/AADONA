@@ -60,6 +60,9 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   const [resendDiscountValue, setResendDiscountValue] = useState("");
   const [resendSubmitting, setResendSubmitting] = useState(false);
   const [resendError, setResendError] = useState("");
+  // ── Send-approved (discount_applied flow — no manual pricing needed) ──
+  const [sendingApprovedId, setSendingApprovedId] = useState(null);
+  const [sendApprovedError, setSendApprovedError] = useState("");
 
   const filtered = useMemo(() => {
     return quotations.filter((q) => {
@@ -295,6 +298,29 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
     }
   };
 
+  const handleSendApproved = async (quotation) => {
+    if (!window.confirm(`Send the approved price of ₹${Number(quotation.grandTotal || 0).toFixed(2)} to the customer?`)) return;
+
+    setSendingApprovedId(quotation._id);
+    setSendApprovedError("");
+    try {
+      const headers = { "Content-Type": "application/json", ...(await authHeader()) };
+      const res = await fetch(`${QUOTATIONS_API}/${quotation._id}/send-approved`, {
+        method: "POST",
+        headers,
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.message || "Failed to send quotation");
+      reloadQuotations?.();
+      setViewing(null);
+    } catch (err) {
+      console.error("Send-approved error:", err);
+      setSendApprovedError(err.message || "Failed to send quotation");
+    } finally {
+      setSendingApprovedId(null);
+    }
+  };
+
   const renderNegotiationSection = (q) => {
     const hasHistory = (q.negotiationHistory || []).length > 0;
     const hasActiveOffer = q.expectedBudget != null;
@@ -444,7 +470,43 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
           </div>
         )}
 
-        {isAdminRevised && (
+        {isAdminRevised && q.pricingRevisionType === "discount_applied" && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
+            <p className="text-sm font-bold text-purple-800">Admin Approved Customer's Price</p>
+            <p className="text-xs text-gray-600">
+              Item price and GST are unchanged — admin adjusted the discount so the total matches the customer's offer. Review below and send as-is.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-purple-100 text-purple-800 text-left">
+                    <th className="px-2 py-1.5 rounded-tl-md">Product</th>
+                    <th className="px-2 py-1.5">Qty</th>
+                    <th className="px-2 py-1.5">Unit Price</th>
+                    <th className="px-2 py-1.5">GST</th>
+                    <th className="px-2 py-1.5 rounded-tr-md">Discount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(q.items || []).map((item, i) => (
+                    <tr key={i} className="border-b border-purple-50">
+                      <td className="px-2 py-1.5 text-gray-800 font-medium">{item.name}</td>
+                      <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
+                      <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
+                      <td className="px-2 py-1.5 text-gray-700">{item.gst}%</td>
+                      <td className="px-2 py-1.5 font-semibold text-purple-700">₹{Number(item.discount).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end text-sm font-bold text-purple-700 pt-1">
+              New Grand Total: ₹{Number(q.grandTotal || 0).toFixed(2)}
+            </div>
+          </div>
+        )}
+
+        {isAdminRevised && q.pricingRevisionType === "item_price_revised" && (
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
             <p className="text-sm font-bold text-purple-800">Admin Has Revised Pricing</p>
             <p className="text-xs text-gray-600">
@@ -479,8 +541,19 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         )}
 
         {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+        {sendApprovedError && <p className="text-sm text-red-600">{sendApprovedError}</p>}
 
-        {isAdminRevised && (
+        {isAdminRevised && q.pricingRevisionType === "discount_applied" && (
+          <button
+            onClick={() => handleSendApproved(q)}
+            disabled={sendingApprovedId === q._id}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
+          >
+            {sendingApprovedId === q._id ? "Sending..." : "Send to Customer"}
+          </button>
+        )}
+
+        {isAdminRevised && q.pricingRevisionType === "item_price_revised" && (
           <button
             onClick={() => openResendModal(q)}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 rounded-lg transition"

@@ -86,7 +86,15 @@ const SalesQuotationSchema = new mongoose.Schema(
     // ── Admin approval (only relevant when status = awaiting_admin_approval) ──
     adminApprovedAt: { type: Date, default: null },
     adminRejectedAt: { type: Date, default: null },
-    adminApprovedAmount: { type: Number, default: null }, // AdminQuotation subtotal at time of negotiation, snapshotted
+    adminApprovedAmount: { type: Number, default: null },
+    // ── Distinguishes how the admin_revised pricing was produced ──
+    // "discount_applied" → Approve As-Is (item price/GST untouched, discount raised to hit customer's offer)
+    // "item_price_revised" → Revise Pricing (admin manually changed per-item unit price)
+    pricingRevisionType: {
+      type: String,
+      enum: ["discount_applied", "item_price_revised"],
+      default: null,
+    },
 
     // ── Sales rep counter offer ──
     counterOfferAmount: { type: Number, default: null, min: 0 }, // grand total of counter offer
