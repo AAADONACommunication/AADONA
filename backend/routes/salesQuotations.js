@@ -411,7 +411,7 @@ router.get("/sales-quotations", verifySalesToken, async (req, res) => {
   }
 });
 
-// ── GET /sales-quotations/:id ──
+// ── GET /sales-quotations/:id ─
 router.get("/sales-quotations/:id", verifySalesToken, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
