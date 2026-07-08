@@ -222,6 +222,32 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
       } catch (mailErr) {
         console.error("Negotiation email failed:", mailErr.message);
       }
+
+      // ── FYI copy to admin — informational only, no action needed from admin here ──
+      try {
+        if (ADMIN_EMAIL) {
+          await transporter.sendMail({
+            from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+            to: ADMIN_EMAIL,
+            subject: `[FYI] Negotiation (within rep authority) — #${quotation.quotationNumber}`,
+            html: `
+              <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
+                <h2 style="color:#c2410c">Customer Requested Negotiation</h2>
+                <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
+                <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+                <p style="color:#374151;font-size:14px"><strong>Sales Rep:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
+                <p style="color:#374151;font-size:14px"><strong>Admin Price:</strong> ₹${adminSubtotal.toFixed(2)}</p>
+                <p style="color:#374151;font-size:14px"><strong>Current Quotation Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
+                <p style="color:#374151;font-size:14px"><strong>Customer Expected Total:</strong> ₹${expected.toFixed(2)}</p>
+                <p style="color:#374151;font-size:14px;white-space:pre-line"><strong>Message:</strong><br/>${combinedMessage}</p>
+                <p style="color:#6b7280;font-size:12px">This is within the sales rep's pricing authority — no action needed from you. Shared for visibility only.</p>
+              </div>
+            `,
+          });
+        }
+      } catch (mailErr) {
+        console.error("Admin FYI negotiation email failed:", mailErr.message);
+      }
     } else {
       // ── Below admin's minimum approved price — needs admin sign-off ──
       quotation.status = "awaiting_admin_approval";
@@ -295,22 +321,63 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
 
     try {
       const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+
+      const itemsForReport = quotation.counterOfferItems?.length
+        ? quotation.counterOfferItems
+        : quotation.items;
+
+      const itemRowsHtml = itemsForReport.map((item, i) => `
+        <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${Number(item.total).toFixed(2)}</td>
+        </tr>
+      `).join("");
+
+      const reportHtml = `
+        <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+          <h2 style="color:#166534">Counter Offer Accepted ✅</h2>
+          <p style="color:#374151;font-size:14px">
+            <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted the
+            counter offer for quotation <strong>#${quotation.quotationNumber}</strong>.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
+            <thead>
+              <tr style="background:#166534">
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Discount</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
+              </tr>
+            </thead>
+            <tbody>${itemRowsHtml}</tbody>
+          </table>
+          <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
+            Final Accepted Amount: ₹${Number(quotation.negotiatedAmount).toFixed(2)}
+          </p>
+        </div>
+      `;
+
       if (salesRep?.email) {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
           subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
-          html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Counter Offer Accepted ✅</h2>
-              <p style="color:#374151;font-size:14px">
-                <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted your
-                counter offer of <strong>₹${Number(quotation.negotiatedAmount).toFixed(2)}</strong> for
-                quotation <strong>#${quotation.quotationNumber}</strong>.
-              </p>
-              <p style="color:#374151;font-size:14px">Please log in to the Sales Portal to proceed.</p>
-            </div>
-          `,
+          html: reportHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">Please log in to the Sales Portal to proceed.</p></div>`,
+        });
+      }
+
+      if (ADMIN_EMAIL) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: ADMIN_EMAIL,
+          subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
+          html: reportHtml,
         });
       }
     } catch (mailErr) {
