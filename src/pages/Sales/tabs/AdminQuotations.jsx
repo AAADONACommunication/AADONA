@@ -42,15 +42,23 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     setError("");
     setSuccessMsg("");
     // Only pre-fill the editable pricing form if this hasn't been sent to the customer yet
-    if (!quotation.salesQuotation) {
+    const isAdminRevised =
+      quotation.salesQuotation?.status === "admin_revised";
+
+    if (!quotation.salesQuotation || isAdminRevised) {
+      const sourceItems = isAdminRevised
+        ? quotation.items || []
+        : quotation.items || [];
+
       setItems(
-        (quotation.items || []).map((item) => ({
+        sourceItems.map((item) => ({
           name: item.name,
           description: item.description || "",
           quantity: item.quantity,
           price: item.unitPrice,
         }))
       );
+
       setGstRate(18);
       setDiscountEnabled(false);
       setDiscountType("percent");
@@ -143,6 +151,55 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     } catch (err) {
       console.error("Send sales quotation error:", err);
       setError(err.message || "Failed to send quotation");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  
+  const handleSendRevisedToCustomer = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccessMsg("");
+    setSubmitting(true);
+
+    try {
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+
+      const res = await fetch(
+        `${SALES_QUOTES_API}/${selected.salesQuotation._id}/resend-revised`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            items: items.map((item) => ({
+              name: item.name,
+              description: item.description,
+              quantity: Number(item.quantity),
+              unitPrice: Number(item.price),
+            })),
+            gstRate: Number(gstRate),
+            discount: discountEnabled
+              ? {
+                  type: discountType,
+                  value: Number(discountValue) || 0,
+                }
+              : undefined,
+          }),
+        }
+      );
+
+      const text = await res.text();
+      if (!res.ok) throw new Error(text);
+
+      await reloadIncomingQuotations?.();
+      backToList();
+    } catch (err) {
+      console.error("Send revised quotation error:", err);
+      setError(err.message || "Failed to send revised quotation");
     } finally {
       setSubmitting(false);
     }
@@ -328,7 +385,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       </div>
 
       {/* ── Sales Person's Quotation ── */}
-      {salesQuotation ? (
+      {salesQuotation && salesQuotation.status !== "admin_revised" ? (
         // Already sent to customer — READ ONLY, no editing, no actions.
         // Further process (negotiation, accept/reject, counter-offer, resend etc.)
         // happens on the other Sales Quotations screen.
@@ -565,11 +622,20 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
           <div className="flex flex-wrap gap-3 justify-end mt-6">
             <button
-              onClick={handleSendToCustomer}
+              onClick={
+                salesQuotation?.status === "admin_revised"
+                  ? handleSendRevisedToCustomer
+                  : handleSendToCustomer
+              }
               disabled={submitting}
               className="flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Mail size={16} /> {submitting ? "Sending..." : "Send to Customer"}
+              <Mail size={16} />
+                {submitting
+                  ? "Sending..."
+                  : salesQuotation?.status === "admin_revised"
+                  ? "Send Revised Quotation to Customer"
+                  : "Send to Customer"}
             </button>
           </div>
         </div>

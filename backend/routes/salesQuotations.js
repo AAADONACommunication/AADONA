@@ -177,20 +177,40 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     }
 
     // 9. Save SalesQuotation
+    const initialSentAt = new Date();
     const salesQuotation = await SalesQuotation.create({
       sourceQuotation: adminQuotation._id,
       customer: customer._id,
       salesRepUid: req.salesRep.uid,
       quotationNumber,
       publicToken,
+
       items: calculatedItems,
       subtotal,
       discountAmount,
       gstAmount,
       grandTotal,
+
+      originalSnapshot: {
+        items: calculatedItems.map((i) => ({
+          name: i.name,
+          description: i.description || "",
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+          gst: i.gst,
+          discount: i.discount,
+          total: i.total,
+        })),
+        subtotal,
+        discountAmount,
+        gstAmount,
+        grandTotal,
+        sentAt: initialSentAt,
+      },
+
       notes: notes?.trim() || "",
       status: "sent",
-      sentAt: new Date(),
+      sentAt: initialSentAt,
       reminderAfterDays: reminderAfterDaysValue,
       reminderAt,
     });
@@ -849,18 +869,31 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
     );
 
-    // ── Preserve this negotiation round (customer offer + admin revision) before resetting ──
-    quotation.negotiationHistory = quotation.negotiationHistory || [];
-    quotation.negotiationHistory.push({
-      expectedBudget: quotation.expectedBudget,
-      customerMessage: quotation.customerMessage,
-      customerRespondedAt: quotation.customerRespondedAt,
-      adminRevisedItems: adminQuotation.items,
-      adminRevisedSubtotal: adminQuotation.subtotal,
-      revisedGrandTotal: grandTotal,
-      revisedAt: new Date(),
-      recordedAt: new Date(),
-    });
+    const revisionEntry = [...quotation.negotiationHistory]
+      .reverse()
+      .find(
+        (h) =>
+          h.adminRevisedItems?.length &&
+          !h.revisedSalesSentAt
+      );
+
+    if (revisionEntry) {
+      revisionEntry.revisedSalesItems = calculatedItems.map((i) => ({
+        name: i.name,
+        description: i.description || "",
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        gst: i.gst,
+        discount: i.discount,
+        total: i.total,
+      }));
+
+      revisionEntry.revisedSalesSubtotal = subtotal;
+      revisionEntry.revisedSalesDiscountAmount = discountAmount;
+      revisionEntry.revisedSalesGstAmount = gstAmount;
+      revisionEntry.revisedSalesGrandTotal = grandTotal;
+      revisionEntry.revisedSalesSentAt = new Date();
+    }
 
     // ── Apply new pricing, reset negotiation fields for a fresh cycle ──
     quotation.items = calculatedItems;
@@ -959,6 +992,32 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
       return res.status(400).json({
         message: "This quotation requires manual pricing — use resend-revised instead",
       });
+    }
+
+    const revisionEntry = [...quotation.negotiationHistory]
+      .reverse()
+      .find(
+        (h) =>
+          h.adminRevisedItems?.length &&
+          !h.revisedSalesSentAt
+      );
+
+    if (revisionEntry) {
+      revisionEntry.revisedSalesItems = quotation.items.map((i) => ({
+        name: i.name,
+        description: i.description || "",
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        gst: i.gst,
+        discount: i.discount,
+        total: i.total,
+      }));
+
+      revisionEntry.revisedSalesSubtotal = quotation.subtotal;
+      revisionEntry.revisedSalesDiscountAmount = quotation.discountAmount;
+      revisionEntry.revisedSalesGstAmount = quotation.gstAmount;
+      revisionEntry.revisedSalesGrandTotal = quotation.grandTotal;
+      revisionEntry.revisedSalesSentAt = new Date();
     }
 
     quotation.status = "sent";
@@ -1133,6 +1192,32 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
     const grandTotal = parseFloat(
       calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
     );
+
+    const revisionEntry = [...(quotation.negotiationHistory || [])]
+      .reverse()
+      .find(
+        (h) =>
+          h.adminRevisedItems?.length &&
+          !h.revisedSalesSentAt
+      );
+
+    if (revisionEntry) {
+      revisionEntry.revisedSalesItems = calculatedItems.map((i) => ({
+        name: i.name,
+        description: i.description || "",
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        gst: i.gst,
+        discount: i.discount,
+        total: i.total,
+      }));
+
+      revisionEntry.revisedSalesSubtotal = subtotal;
+      revisionEntry.revisedSalesDiscountAmount = discountAmount;
+      revisionEntry.revisedSalesGstAmount = gstAmount;
+      revisionEntry.revisedSalesGrandTotal = grandTotal;
+      revisionEntry.revisedSalesSentAt = new Date();
+    }
 
     quotation.items = calculatedItems;
     quotation.subtotal = subtotal;

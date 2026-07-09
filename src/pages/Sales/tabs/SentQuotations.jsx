@@ -21,52 +21,109 @@ const statusLabels = {
 };
 
 const buildNegotiationRounds = (q) => {
-  const sellerTurns = [
-    {
-      kind: "original",
-      items: q.items || [],
-      subtotal: q.subtotal,
-      discountAmount: q.discountAmount,
-      gstAmount: q.gstAmount,
-      total: q.grandTotal,
-      at: q.sentAt,
-    },
-  ];
-  const customerTurns = [];
+  const timeline = [];
+
+  const original = q.originalSnapshot;
+
+  timeline.push({
+    kind: "seller",
+    sellerKind: "original",
+    label: "Original Quotation Sent",
+    items:
+      original?.items?.length
+        ? original.items
+        : q.items || [],
+    subtotal:
+      original?.subtotal != null
+        ? original.subtotal
+        : q.subtotal,
+    discountAmount:
+      original?.discountAmount != null
+        ? original.discountAmount
+        : q.discountAmount,
+    gstAmount:
+      original?.gstAmount != null
+        ? original.gstAmount
+        : q.gstAmount,
+    total:
+      original?.grandTotal != null
+        ? original.grandTotal
+        : q.grandTotal,
+    at:
+      original?.sentAt ||
+      q.createdAt ||
+      q.sentAt,
+  });
 
   (q.negotiationHistory || []).forEach((h) => {
     if (h.expectedBudget != null) {
-      customerTurns.push({
+      timeline.push({
+        kind: "customer",
+        label: "Customer Offer",
         expectedBudget: h.expectedBudget,
         message: h.customerMessage,
-        respondedAt: h.customerRespondedAt,
+        at: h.customerRespondedAt || h.recordedAt,
       });
     }
+
     if (h.counterOfferAmount != null) {
-      sellerTurns.push({
-        kind: "counter",
+      timeline.push({
+        kind: "seller",
+        sellerKind: "counter",
+        label: "Sales Counter Offer",
         items: h.counterOfferItems || [],
         subtotal: h.counterOfferSubtotal,
         discountAmount: h.counterOfferDiscountAmount,
         gstAmount: h.counterOfferGstAmount,
         total: h.counterOfferAmount,
         message: h.counterOfferMessage,
-        at: h.counterOfferAt,
+        at: h.counterOfferAt || h.recordedAt,
+      });
+    }
+
+    if (h.adminRevisedItems?.length) {
+      timeline.push({
+        kind: "admin",
+        label: "Admin Revised Quotation",
+        items: h.adminRevisedItems,
+        subtotal: h.adminRevisedSubtotal,
+        discountAmount: h.adminRevisedDiscountAmount,
+        gstAmount: h.adminRevisedGstAmount,
+        total: h.revisedGrandTotal,
+        at: h.revisedAt || h.recordedAt,
+      });
+    }
+
+    if (h.revisedSalesItems?.length) {
+      timeline.push({
+        kind: "seller",
+        sellerKind: "revised",
+        label: "Revised Quotation Sent to Customer",
+        items: h.revisedSalesItems,
+        subtotal: h.revisedSalesSubtotal,
+        discountAmount: h.revisedSalesDiscountAmount,
+        gstAmount: h.revisedSalesGstAmount,
+        total: h.revisedSalesGrandTotal,
+        at: h.revisedSalesSentAt,
       });
     }
   });
 
-  // Live/current round not yet pushed to history
   if (q.expectedBudget != null) {
-    customerTurns.push({
+    timeline.push({
+      kind: "customer",
+      label: "Customer Offer",
       expectedBudget: q.expectedBudget,
       message: q.customerMessage,
-      respondedAt: q.customerRespondedAt,
+      at: q.customerRespondedAt,
     });
   }
+
   if (q.counterOfferAmount != null) {
-    sellerTurns.push({
-      kind: "counter",
+    timeline.push({
+      kind: "seller",
+      sellerKind: "counter",
+      label: "Sales Counter Offer",
       items: q.counterOfferItems || [],
       subtotal: q.counterOfferSubtotal,
       discountAmount: q.counterOfferDiscountAmount,
@@ -77,12 +134,9 @@ const buildNegotiationRounds = (q) => {
     });
   }
 
-  const roundCount = Math.max(sellerTurns.length, customerTurns.length);
-  const rounds = [];
-  for (let i = 0; i < roundCount; i++) {
-    rounds.push({ seller: sellerTurns[i] || null, customer: customerTurns[i] || null });
-  }
-  return rounds;
+  return timeline
+    .filter((x) => x.at)
+    .sort((a, b) => new Date(a.at) - new Date(b.at));
 };
 
 export default function SentQuotations() {
@@ -275,133 +329,223 @@ export default function SentQuotations() {
           </p>
         </div>
 
-        {/* Negotiation history */}
+        {/* Complete quotation / negotiation history */}
         {(() => {
-          const rounds = buildNegotiationRounds(selected);
-          const hasNegotiation = rounds.length > 1 || rounds[0]?.customer;
-          if (!hasNegotiation) return null;
+          const timeline = buildNegotiationRounds(selected);
+
+          if (timeline.length <= 1) return null;
 
           return (
             <div className="border border-orange-200 bg-orange-50 rounded-xl p-4 mb-5 space-y-3">
-              <h4 className="text-sm font-bold text-orange-800">Negotiation History</h4>
+              <h4 className="text-sm font-bold text-orange-800">
+                Complete Quotation History
+              </h4>
 
-              {rounds.map((round, i) => (
-                <div key={i} className="bg-white rounded-lg border border-orange-100 p-3 space-y-3">
-                  <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
-                    Round {i + 1}
-                  </p>
+              {timeline.map((entry, i) => {
+                const isCustomer = entry.kind === "customer";
+                const isAdmin = entry.kind === "admin";
+                const isSeller = entry.kind === "seller";
 
-                  {/* Seller side — what we sent */}
-                  {round.seller && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold text-gray-700">
-                        {round.seller.kind === "original" ? "Quotation Sent" : "Your Counter Offer"}
+                return (
+                  <div
+                    key={`${entry.kind}-${entry.at}-${i}`}
+                    className={`rounded-xl border p-4 ${
+                      isCustomer
+                        ? "bg-orange-50 border-orange-200"
+                        : isAdmin
+                        ? "bg-blue-50 border-blue-200"
+                        : entry.sellerKind === "revised"
+                        ? "bg-purple-50 border-purple-200"
+                        : entry.sellerKind === "counter"
+                        ? "bg-amber-50 border-amber-200"
+                        : "bg-white border-green-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <p
+                        className={`text-sm font-bold ${
+                          isCustomer
+                            ? "text-orange-800"
+                            : isAdmin
+                            ? "text-blue-800"
+                            : entry.sellerKind === "revised"
+                            ? "text-purple-800"
+                            : entry.sellerKind === "counter"
+                            ? "text-amber-800"
+                            : "text-green-800"
+                        }`}
+                      >
+                        {i + 1}. {entry.label}
                       </p>
 
-                      {round.seller.items?.length > 0 && (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-xs">
-                            <thead>
-                              <tr
-                                className={`text-left ${
-                                  round.seller.kind === "original"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-amber-100 text-amber-800"
-                                }`}
-                              >
-                                <th className="px-2 py-1.5 rounded-tl-md">Product</th>
-                                <th className="px-2 py-1.5">Qty</th>
-                                <th className="px-2 py-1.5">Unit Price</th>
-                                <th className="px-2 py-1.5">GST</th>
-                                <th className="px-2 py-1.5">Discount</th>
-                                <th className="px-2 py-1.5 rounded-tr-md">Total</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {round.seller.items.map((item, idx) => (
-                                <tr key={idx} className="border-b border-gray-50">
-                                  <td className="px-2 py-1.5 text-gray-800 font-medium">{item.name}</td>
-                                  <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
-                                  <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                                  <td className="px-2 py-1.5 text-gray-700">{item.gst}%</td>
-                                  <td className="px-2 py-1.5 text-gray-700">{Number(item.discount).toFixed(2)}%</td>
-                                  <td className="px-2 py-1.5 font-semibold text-gray-800">₹{Number(item.total).toFixed(2)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-
-                      <div className="space-y-1 text-sm max-w-xs ml-auto">
-                        {round.seller.subtotal != null && (
-                          <div className="flex justify-between text-gray-600">
-                            <span>Subtotal</span>
-                            <span>₹{Number(round.seller.subtotal).toFixed(2)}</span>
-                          </div>
-                        )}
-                        {round.seller.gstAmount != null && (
-                          <div className="flex justify-between text-gray-600">
-                            <span>GST</span>
-                            <span>₹{Number(round.seller.gstAmount).toFixed(2)}</span>
-                          </div>
-                        )}
-                        {round.seller.discountAmount != null && (
-                          <div className="flex justify-between text-gray-600">
-                            <span>Discount</span>
-                            <span>− ₹{Number(round.seller.discountAmount).toFixed(2)}</span>
-                          </div>
-                        )}
-                        <div
-                          className={`flex justify-between font-bold border-t pt-1 ${
-                            round.seller.kind === "original"
-                              ? "text-green-700 border-green-100"
-                              : "text-amber-700 border-amber-100"
-                          }`}
-                        >
-                          <span>{round.seller.kind === "original" ? "Grand Total" : "Counter Total"}</span>
-                          <span>₹{Number(round.seller.total).toFixed(2)}</span>
-                        </div>
-                      </div>
-
-                      {round.seller.message && (
-                        <p className="text-sm text-gray-700 whitespace-pre-line">
-                          <span className="font-semibold">Your Message: </span>
-                          {round.seller.message}
-                        </p>
-                      )}
-                      {round.seller.at && (
-                        <p className="text-xs text-gray-500">
-                          Sent: {new Date(round.seller.at).toLocaleString("en-IN")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Customer side — their response */}
-                  {round.customer && (
-                    <div className="border-t border-orange-50 pt-2 space-y-1.5">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Customer Offered</span>
-                        <span className="font-semibold text-gray-800">
-                          ₹{Number(round.customer.expectedBudget).toFixed(2)}
+                      {entry.at && (
+                        <span className="text-xs text-gray-500">
+                          {new Date(entry.at).toLocaleString("en-IN")}
                         </span>
-                      </div>
-                      {round.customer.message && (
-                        <p className="text-sm text-gray-700 whitespace-pre-line">
-                          <span className="font-semibold">Customer Message: </span>
-                          {round.customer.message}
-                        </p>
-                      )}
-                      {round.customer.respondedAt && (
-                        <p className="text-xs text-gray-500">
-                          {new Date(round.customer.respondedAt).toLocaleString("en-IN")}
-                        </p>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    {/* Customer offer */}
+                    {isCustomer ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            Customer Offered
+                          </span>
+                          <span className="font-bold text-orange-800">
+                            ₹{Number(entry.expectedBudget || 0).toFixed(2)}
+                          </span>
+                        </div>
+
+                        {entry.message && (
+                          <p className="text-sm text-gray-700 whitespace-pre-line">
+                            <span className="font-semibold">
+                              Customer Message:{" "}
+                            </span>
+                            {entry.message}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {/* Admin / Seller quotation items */}
+                        {entry.items?.length > 0 && (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr
+                                  className={`text-left ${
+                                    isAdmin
+                                      ? "bg-blue-100 text-blue-800"
+                                      : entry.sellerKind === "revised"
+                                      ? "bg-purple-100 text-purple-800"
+                                      : entry.sellerKind === "counter"
+                                      ? "bg-amber-100 text-amber-800"
+                                      : "bg-green-100 text-green-800"
+                                  }`}
+                                >
+                                  <th className="px-2 py-1.5 rounded-tl-md">
+                                    Product
+                                  </th>
+                                  <th className="px-2 py-1.5">Qty</th>
+                                  <th className="px-2 py-1.5">
+                                    Unit Price
+                                  </th>
+                                  <th className="px-2 py-1.5">GST</th>
+                                  <th className="px-2 py-1.5">
+                                    Discount
+                                  </th>
+                                  <th className="px-2 py-1.5 rounded-tr-md">
+                                    Total
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody>
+                                {entry.items.map((item, idx) => (
+                                  <tr
+                                    key={idx}
+                                    className="border-b border-gray-100"
+                                  >
+                                    <td className="px-2 py-1.5 text-gray-800 font-medium">
+                                      {item.name}
+                                    </td>
+
+                                    <td className="px-2 py-1.5 text-gray-700">
+                                      {item.quantity}
+                                    </td>
+
+                                    <td className="px-2 py-1.5 text-gray-700">
+                                      ₹{Number(item.unitPrice || 0).toFixed(2)}
+                                    </td>
+
+                                    <td className="px-2 py-1.5 text-gray-700">
+                                      {Number(item.gst || 0).toFixed(2)}%
+                                    </td>
+
+                                    <td className="px-2 py-1.5 text-gray-700">
+                                      {Number(item.discount || 0).toFixed(2)}%
+                                    </td>
+
+                                    <td className="px-2 py-1.5 font-semibold text-gray-800">
+                                      ₹{Number(item.total || 0).toFixed(2)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {/* Totals */}
+                        <div className="space-y-1 text-sm max-w-xs ml-auto mt-3">
+                          {entry.subtotal != null && (
+                            <div className="flex justify-between text-gray-600">
+                              <span>Subtotal</span>
+                              <span>
+                                ₹{Number(entry.subtotal).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+
+                          {entry.gstAmount != null && (
+                            <div className="flex justify-between text-gray-600">
+                              <span>GST</span>
+                              <span>
+                                ₹{Number(entry.gstAmount).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+
+                          {entry.discountAmount != null && (
+                            <div className="flex justify-between text-gray-600">
+                              <span>Discount</span>
+                              <span>
+                                − ₹{Number(entry.discountAmount).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+
+                          <div
+                            className={`flex justify-between font-bold border-t pt-1 ${
+                              isAdmin
+                                ? "text-blue-700 border-blue-200"
+                                : entry.sellerKind === "revised"
+                                ? "text-purple-700 border-purple-200"
+                                : entry.sellerKind === "counter"
+                                ? "text-amber-700 border-amber-200"
+                                : "text-green-700 border-green-200"
+                            }`}
+                          >
+                            <span>
+                              {isAdmin
+                                ? "Admin Revised Total"
+                                : entry.sellerKind === "counter"
+                                ? "Counter Total"
+                                : entry.sellerKind === "revised"
+                                ? "Revised Total"
+                                : "Grand Total"}
+                            </span>
+
+                            <span>
+                              ₹{Number(entry.total || 0).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {entry.message && (
+                          <p className="text-sm text-gray-700 whitespace-pre-line mt-3">
+                            <span className="font-semibold">
+                              Message:{" "}
+                            </span>
+                            {entry.message}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           );
         })()}

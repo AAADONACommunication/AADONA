@@ -161,22 +161,73 @@ const SalesQuotationSchema = new mongoose.Schema(
                 description: String,
                 quantity: Number,
                 unitPrice: Number,
+                gst: Number,
+                discount: Number,
                 total: Number,
               },
             ],
             default: undefined,
           },
           adminRevisedSubtotal: Number,
+          adminRevisedDiscountAmount: Number,
+          adminRevisedGstAmount: Number,
           revisedGrandTotal: Number,
           revisedAt: Date,
+
+          revisedSalesItems: {
+            type: [
+              {
+                _id: false,
+                name: String,
+                description: String,
+                quantity: Number,
+                unitPrice: Number,
+                gst: Number,
+                discount: Number,
+                total: Number,
+              },
+            ],
+            default: undefined,
+          },
+          revisedSalesSubtotal: Number,
+          revisedSalesDiscountAmount: Number,
+          revisedSalesGstAmount: Number,
+          revisedSalesGrandTotal: Number,
+          revisedSalesSentAt: Date,
           recordedAt: { type: Date, default: Date.now },
         },
       ],
       default: [],
     },
+
+    // ── Immutable snapshot of original sales quotation ──
+    originalSnapshot: {
+      items: {
+        type: [
+          {
+            _id: false,
+            name: String,
+            description: String,
+            quantity: Number,
+            unitPrice: Number,
+            gst: Number,
+            discount: Number,
+            total: Number,
+          },
+        ],
+        default: [],
+      },
+      subtotal: { type: Number, default: null },
+      discountAmount: { type: Number, default: null },
+      gstAmount: { type: Number, default: null },
+      grandTotal: { type: Number, default: null },
+      sentAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );
+
+
 
 SalesQuotationSchema.index({ salesRepUid: 1, createdAt: -1 });
 // Speeds up the cron job's due-reminder query

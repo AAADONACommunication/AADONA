@@ -280,6 +280,29 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     }
     await adminQuotation.save();
 
+    quotation.negotiationHistory.push({
+      expectedBudget: quotation.expectedBudget,
+      customerMessage: quotation.customerMessage,
+      customerRespondedAt: quotation.customerRespondedAt,
+
+      adminRevisedItems: revisedItems.map((i) => ({
+        name: i.name,
+        description: i.description || "",
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        gst: 0,
+        discount: 0,
+        total: i.total,
+      })),
+
+      adminRevisedSubtotal: revisedSubtotal,
+      adminRevisedDiscountAmount: 0,
+      adminRevisedGstAmount: 0,
+      revisedGrandTotal: revisedSubtotal,
+      revisedAt: new Date(),
+      recordedAt: new Date(),
+    });
+
     quotation.status = "admin_revised";
     quotation.adminApprovedAt = new Date();
     quotation.adminApprovedAmount = revisedSubtotal;
