@@ -110,7 +110,8 @@ async function main() {
       if (r.status === "rejected") {
         console.error(`Email job ${i} failed:`, r.reason?.message || r.reason);
       } else {
-        console.log(`Email job ${i} sent successfully.`);
+        console.log(`Email job ${i} sent — full SMTP response:`);
+        console.log(JSON.stringify(r.value, null, 2));
       }
     });
 
