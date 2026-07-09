@@ -48,6 +48,7 @@ const SalesQuotationSchema = new mongoose.Schema(
         "awaiting_admin_approval",
         "counter_offered",
         "admin_revised",
+        "admin_rejected_to_sales",
       ],
       default: "sent",
       index: true,

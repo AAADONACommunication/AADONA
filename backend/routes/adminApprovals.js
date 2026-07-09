@@ -214,9 +214,9 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
       return res.status(400).json({ message: "Quotation is not awaiting admin approval" });
     }
 
-    quotation.status = "rejected";
+    quotation.status = "admin_rejected_to_sales";
     quotation.adminRejectedAt = new Date();
-    quotation.rejectedAt = new Date();
+    quotation.rejectedAt = null;
     await quotation.save();
 
     try {
@@ -225,14 +225,18 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
         await transporter.sendMail({
           from: `"AADONA Admin" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Admin Rejected — #${quotation.quotationNumber}`,
+          subject: `Customer Offer Rejected — Action Required #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
               <h2 style="color:#b91c1c">Admin Rejected the Discounted Price</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
               <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
               <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
-              <p style="color:#374151;font-size:14px">Please follow up with the customer regarding this rejection.</p>
+              <p style="color:#374151;font-size:14px">
+                The quotation has been returned to your Sales Portal.
+                Your last customer quotation is preserved. You can edit the price,
+                GST, or discount and resend it to the customer.
+              </p>
             </div>
           `,
         });

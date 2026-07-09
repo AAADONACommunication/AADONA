@@ -43,17 +43,18 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     setSuccessMsg("");
 
     const salesQuotation = quotation.salesQuotation;
+
     const isAdminRevised =
       salesQuotation?.status === "admin_revised";
 
-    if (!salesQuotation || isAdminRevised) {
-      // ─────────────────────────────────────────
-      // ADMIN REVISED:
-      // Backend has already preserved last Sales
-      // unit prices + GST and auto-adjusted discount.
-      // Use SalesQuotation as editable source.
-      // ─────────────────────────────────────────
-      const sourceItems = isAdminRevised
+    const isAdminRejectedToSales =
+      salesQuotation?.status === "admin_rejected_to_sales";
+
+    const isEditableReturn =
+      isAdminRevised || isAdminRejectedToSales;
+
+    if (!salesQuotation || isEditableReturn) {
+      const sourceItems = isEditableReturn
         ? salesQuotation?.items || []
         : quotation.items || [];
 
@@ -62,35 +63,28 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           name: item.name,
           description: item.description || "",
           quantity: item.quantity,
-          price: item.unitPrice,
+          price: Number(item.unitPrice || 0),
         }))
       );
 
-      if (isAdminRevised) {
-        // Keep GST from the last/revised Sales quotation.
-        // Current UI supports one common GST rate.
-        const revisedGstRate =
+      if (isEditableReturn) {
+        const preservedGstRate =
           salesQuotation?.items?.length > 0
             ? Number(salesQuotation.items[0].gst || 0)
             : 18;
 
-        setGstRate(revisedGstRate);
+        setGstRate(preservedGstRate);
 
-        // Admin direct approval creates pricingRevisionType = discount_applied.
-        // Backend already calculated the required discount percentage.
-        const autoDiscountPercent =
-          salesQuotation?.pricingRevisionType === "discount_applied" &&
+        const preservedDiscountPercent =
           salesQuotation?.items?.length > 0
             ? Number(salesQuotation.items[0].discount || 0)
             : 0;
 
-        if (autoDiscountPercent > 0) {
+        if (preservedDiscountPercent > 0) {
           setDiscountEnabled(true);
           setDiscountType("percent");
           setDiscountValue(
-            String(
-              parseFloat(autoDiscountPercent.toFixed(4))
-            )
+            String(parseFloat(preservedDiscountPercent.toFixed(4)))
           );
         } else {
           setDiscountEnabled(false);
@@ -106,7 +100,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
         setNotes(salesQuotation?.notes || "");
       } else {
-        // First quotation — old/default behaviour
         setGstRate(18);
         setDiscountEnabled(false);
         setDiscountType("percent");
@@ -249,6 +242,73 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     } catch (err) {
       console.error("Send revised quotation error:", err);
       setError(err.message || "Failed to send revised quotation");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSendApprovedEditedToCustomer = async (e) => {
+    e.preventDefault();
+
+    if (!selected?.salesQuotation?._id) {
+      setError("Sales quotation not found");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+    setSuccessMsg("");
+
+    try {
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+
+      const payload = {
+        items: items.map((item) => ({
+          unitPrice: Number(item.price),
+        })),
+        gstRate: Number(gstRate),
+        discount: discountEnabled
+          ? {
+              type: discountType,
+              value: Number(discountValue) || 0,
+            }
+          : {
+              type: "percent",
+              value: 0,
+            },
+      };
+
+      const res = await fetch(
+        `${SALES_QUOTES_API}/${selected.salesQuotation._id}/send-approved-edited`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const text = await res.text();
+
+      if (!res.ok) {
+        throw new Error(text);
+      }
+
+      await reloadIncomingQuotations?.();
+      backToList();
+    } catch (err) {
+      console.error(
+        "Send approved edited quotation error:",
+        err
+      );
+
+      setError(
+        err.message ||
+          "Failed to send edited approved quotation"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -434,7 +494,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       </div>
 
       {/* ── Sales Person's Quotation ── */}
-      {salesQuotation && salesQuotation.status !== "admin_revised" ? (
+      {salesQuotation &&
+      salesQuotation.status !== "admin_revised" &&
+      salesQuotation.status !== "admin_rejected_to_sales" ? (
         // Already sent to customer — READ ONLY, no editing, no actions.
         // Further process (negotiation, accept/reject, counter-offer, resend etc.)
         // happens on the other Sales Quotations screen.
@@ -514,10 +576,25 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       ) : (
         // ── Not sent yet — EDITABLE form (same as before) ──
         <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
-          <h2 className="text-lg font-bold text-green-800 mb-1">Your Quotation to Customer</h2>
+          <h2 className="text-lg font-bold text-green-800 mb-1">
+            {salesQuotation?.status === "admin_rejected_to_sales"
+              ? "Edit Last Quotation & Resend"
+              : salesQuotation?.status === "admin_revised" &&
+                salesQuotation?.pricingRevisionType === "discount_applied"
+              ? "Review Approved Customer Pricing"
+              : salesQuotation?.status === "admin_revised"
+              ? "Review Revised Quotation"
+              : "Your Quotation to Customer"}
+          </h2>
           <p className="text-sm text-gray-500 mb-4">
-            Set your own price, GST, and discount. Only this version is sent to the customer —
-            the admin quotation above is never shown to them.
+            {salesQuotation?.status === "admin_rejected_to_sales"
+              ? "Admin rejected the customer's requested price. Your last customer quotation is restored below. Edit price, GST, or discount and resend it."
+              : salesQuotation?.status === "admin_revised" &&
+                salesQuotation?.pricingRevisionType === "discount_applied"
+              ? "Admin approved the customer's requested pricing through discount adjustment. Review it, make any allowed edits, and send it to the customer."
+              : salesQuotation?.status === "admin_revised"
+              ? "Review the revised pricing, adjust GST or discount if needed, and send it to the customer."
+              : "Set your own price, GST, and discount. Only this version is sent to the customer — the admin quotation above is never shown to them."}
           </p>
 
           <div className="overflow-x-auto">
@@ -672,8 +749,14 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           <div className="flex flex-wrap gap-3 justify-end mt-6">
             <button
               onClick={
-                salesQuotation?.status === "admin_revised"
+                salesQuotation?.status === "admin_rejected_to_sales"
                   ? handleSendRevisedToCustomer
+                  : salesQuotation?.status === "admin_revised" &&
+                    salesQuotation?.pricingRevisionType === "item_price_revised"
+                  ? handleSendRevisedToCustomer
+                  : salesQuotation?.status === "admin_revised" &&
+                    salesQuotation?.pricingRevisionType === "discount_applied"
+                  ? handleSendApprovedEditedToCustomer
                   : handleSendToCustomer
               }
               disabled={submitting}
@@ -682,6 +765,11 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               <Mail size={16} />
                 {submitting
                   ? "Sending..."
+                  : salesQuotation?.status === "admin_rejected_to_sales"
+                  ? "Resend Edited Quotation to Customer"
+                  : salesQuotation?.status === "admin_revised" &&
+                    salesQuotation?.pricingRevisionType === "discount_applied"
+                  ? "Send Approved Pricing to Customer"
                   : salesQuotation?.status === "admin_revised"
                   ? "Send Revised Quotation to Customer"
                   : "Send to Customer"}

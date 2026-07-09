@@ -775,14 +775,23 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     if (quotation.salesRepUid !== req.salesRep.uid) {
       return res.status(403).json({ message: "Access denied" });
     }
-    if (quotation.status !== "admin_revised") {
+    if (
+      ![
+        "admin_revised",
+        "admin_rejected_to_sales",
+      ].includes(quotation.status)
+    ) {
       return res.status(400).json({
         message: `Cannot resend from status "${quotation.status}"`,
       });
     }
-    if (quotation.pricingRevisionType !== "item_price_revised") {
+    if (
+      quotation.status === "admin_revised" &&
+      quotation.pricingRevisionType !== "item_price_revised"
+    ) {
       return res.status(400).json({
-        message: "This quotation was approved via discount adjustment — use send-approved instead",
+        message:
+          "This quotation was approved via discount adjustment — use send-approved instead",
       });
     }
 
@@ -869,13 +878,16 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
     );
 
-    const revisionEntry = [...quotation.negotiationHistory]
-      .reverse()
-      .find(
-        (h) =>
-          h.adminRevisedItems?.length &&
-          !h.revisedSalesSentAt
-      );
+    const revisionEntry =
+      quotation.status === "admin_revised"
+        ? [...(quotation.negotiationHistory || [])]
+            .reverse()
+            .find(
+              (h) =>
+                h.adminRevisedItems?.length &&
+                !h.revisedSalesSentAt
+            )
+        : null;
 
     if (revisionEntry) {
       revisionEntry.revisedSalesItems = calculatedItems.map((i) => ({
@@ -893,6 +905,33 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       revisionEntry.revisedSalesGstAmount = gstAmount;
       revisionEntry.revisedSalesGrandTotal = grandTotal;
       revisionEntry.revisedSalesSentAt = new Date();
+    }
+
+    // ── Preserve rejected customer negotiation before clearing fields ──
+    if (quotation.status === "admin_rejected_to_sales") {
+      quotation.negotiationHistory.push({
+        expectedBudget: quotation.expectedBudget,
+        customerMessage: quotation.customerMessage,
+        customerRespondedAt: quotation.customerRespondedAt,
+
+        revisedSalesItems: calculatedItems.map((i) => ({
+          name: i.name,
+          description: i.description || "",
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+          gst: i.gst,
+          discount: i.discount,
+          total: i.total,
+        })),
+
+        revisedSalesSubtotal: subtotal,
+        revisedSalesDiscountAmount: discountAmount,
+        revisedSalesGstAmount: gstAmount,
+        revisedSalesGrandTotal: grandTotal,
+        revisedSalesSentAt: new Date(),
+
+        recordedAt: new Date(),
+      });
     }
 
     // ── Apply new pricing, reset negotiation fields for a fresh cycle ──
