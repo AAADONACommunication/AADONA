@@ -8,6 +8,7 @@ const AdminQuotation = require("../models/AdminQuotation");
 const SalesRep = require("../models/SalesRep");
 const Customer = require("../models/Customer");
 const QuotationRequest = require("../models/QuotationRequest");
+const SalesQuotation = require("../models/SalesQuotation");
 
 // ── POST /admin/quotation-requests/:id/price ──
 router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res) => {
@@ -293,7 +294,21 @@ router.get("/admin-quotations", verifySalesToken, async (req, res) => {
       .populate("quotationRequest")
       .sort({ createdAt: -1 });
 
-    return res.json(quotations);
+    const salesQuotations = await SalesQuotation.find({
+      sourceQuotation: { $in: quotations.map((q) => q._id) },
+    });
+
+    const salesMap = {};
+    salesQuotations.forEach((sq) => {
+      salesMap[sq.sourceQuotation.toString()] = sq;
+    });
+
+    const enriched = quotations.map((q) => ({
+      ...q.toObject(),
+      salesQuotation: salesMap[q._id.toString()] || null,
+    }));
+
+    return res.json(enriched);
   } catch (err) {
     console.error("Get admin quotations error:", err.message);
     return res.status(500).json({ error: err.message });
