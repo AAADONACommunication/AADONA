@@ -6,7 +6,6 @@ import {
   Clock,
   MessageSquareWarning,
   ShieldCheck,
-  FileText,
   X,
   AlertTriangle,
   Download,
@@ -51,48 +50,92 @@ const safeJson = async (res) => {
 // (where a customer offer was never actually made) are intentionally skipped —
 // the customer only ever sees their own requests and the sales team's replies.
 const buildTimeline = (q) => {
-  const rounds = [];
+  const timeline = [];
 
-  (q.negotiationHistory || []).forEach((h) => {
-    if (h.expectedBudget == null) return; // admin-only round — skip entirely
-    rounds.push({
-      customerOffer: {
-        amount: h.expectedBudget,
-        message: h.customerMessage,
-        at: h.customerRespondedAt,
-      },
-      salesResponse:
-        h.counterOfferAmount != null
-          ? {
-              amount: h.counterOfferAmount,
-              items: h.counterOfferItems,
-              message: h.counterOfferMessage,
-              at: h.counterOfferAt,
-            }
-          : null,
-    });
+  // Original quotation sent by Sales
+  const original = q.originalSnapshot;
+
+  timeline.push({
+    kind: "sales",
+    label: "Original Quotation",
+    amount:
+      original?.grandTotal != null
+        ? original.grandTotal
+        : q.grandTotal,
+    items:
+      original?.items?.length
+        ? original.items
+        : q.items || [],
+    at:
+      original?.sentAt ||
+      q.createdAt ||
+      q.sentAt,
   });
 
+  // Completed / archived history
+  (q.negotiationHistory || []).forEach((h) => {
+    // Customer offer
+    if (h.expectedBudget != null) {
+      timeline.push({
+        kind: "customer",
+        label: "Your Offer",
+        amount: h.expectedBudget,
+        message: h.customerMessage,
+        at: h.customerRespondedAt || h.recordedAt,
+      });
+    }
+
+    // Sales counter offer
+    if (h.counterOfferAmount != null) {
+      timeline.push({
+        kind: "sales",
+        label: "Sales Counter Offer",
+        amount: h.counterOfferAmount,
+        items: h.counterOfferItems || [],
+        message: h.counterOfferMessage,
+        at: h.counterOfferAt || h.recordedAt,
+      });
+    }
+
+    // Revised quotation sent by Sales
+    // Admin revision itself is intentionally NOT shown.
+    if (h.revisedSalesItems?.length) {
+      timeline.push({
+        kind: "sales",
+        label: "Revised Quotation",
+        amount: h.revisedSalesGrandTotal,
+        items: h.revisedSalesItems,
+        at: h.revisedSalesSentAt || h.recordedAt,
+      });
+    }
+  });
+
+  // Current customer offer
   if (q.expectedBudget != null) {
-    rounds.push({
-      customerOffer: {
-        amount: q.expectedBudget,
-        message: q.customerMessage,
-        at: q.customerRespondedAt,
-      },
-      salesResponse:
-        q.counterOfferAmount != null
-          ? {
-              amount: q.counterOfferAmount,
-              items: q.counterOfferItems,
-              message: q.counterOfferMessage,
-              at: q.counterOfferAt,
-            }
-          : null,
+    timeline.push({
+      kind: "customer",
+      label: "Your Offer",
+      amount: q.expectedBudget,
+      message: q.customerMessage,
+      at: q.customerRespondedAt,
     });
   }
 
-  return rounds;
+  // Current sales counter
+  if (q.counterOfferAmount != null) {
+    timeline.push({
+      kind: "sales",
+      label: "Sales Counter Offer",
+      amount: q.counterOfferAmount,
+      items: q.counterOfferItems || [],
+      message: q.counterOfferMessage,
+      at: q.counterOfferAt,
+    });
+  }
+
+  return timeline
+    .filter((entry) => entry.at)
+    .sort((a, b) => new Date(a.at) - new Date(b.at));
 };
 
 export default function CustomerQuotation() {
@@ -339,14 +382,6 @@ export default function CustomerQuotation() {
                 {statusBadge[effectiveStatus].label}
               </span>
             )}
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#14532d] border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-lg transition"
-            >
-              <Download size={14} /> PDF
-            </a>
           </div>
         </div>
       </div>
@@ -508,16 +543,6 @@ export default function CustomerQuotation() {
               </span>
             </div>
           </div>
-          <div className="flex justify-end mt-4">
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-[#14532d] border border-green-200 hover:bg-green-50 px-4 py-2 rounded-lg transition"
-            >
-              <Download size={14} /> Download PDF
-            </a>
-          </div>
         </div>
 
         {/* ── Notes ── */}
@@ -528,77 +553,124 @@ export default function CustomerQuotation() {
           </div>
         )}
 
-        {/* ── Negotiation History (customer ↔ sales only) ── */}
-        {timeline.length > 0 && (
+        {/* ── Complete History: Customer ↔ Sales only ── */}
+        {timeline.length > 1 && (
           <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 sm:p-7">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-1 h-4 bg-[#14532d] rounded-full" />
               <h2 className="text-[11px] font-bold text-[#14532d] uppercase tracking-[0.12em]">
-                Negotiation History
+                Quotation History
               </h2>
             </div>
+
             <div className="relative pl-6">
               <div className="absolute left-[7px] top-1.5 bottom-1.5 w-px bg-stone-200" />
-              {timeline.map((round, i) => (
-                <div key={i} className="relative pb-8 last:pb-0">
-                  <div className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full bg-[#14532d] ring-4 ring-white" />
-                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.14em] mb-2.5">
-                    Round {String(i + 1).padStart(2, "0")}
-                  </p>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <div className="bg-stone-50 rounded-xl p-4 border border-stone-100">
-                      <p className="text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
-                        Your Request
-                      </p>
-                      <p className="font-serif text-lg font-bold text-stone-800">
-                        ₹{Number(round.customerOffer.amount).toFixed(2)}
-                      </p>
-                      {round.customerOffer.message && (
-                        <p className="text-xs text-stone-500 mt-1.5 whitespace-pre-line">
-                          {round.customerOffer.message}
-                        </p>
-                      )}
-                      {round.customerOffer.at && (
-                        <p className="text-[10px] text-stone-400 mt-2">
-                          {new Date(round.customerOffer.at).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
+
+              {timeline.map((entry, i) => {
+                const isCustomer = entry.kind === "customer";
+
+                return (
+                  <div
+                    key={`${entry.kind}-${entry.at}-${i}`}
+                    className="relative pb-6 last:pb-0"
+                  >
                     <div
-                      className={`rounded-xl p-4 border ${
-                        round.salesResponse ? "bg-green-50 border-green-100" : "bg-amber-50 border-amber-100"
+                      className={`absolute -left-6 top-1 w-3.5 h-3.5 rounded-full ring-4 ring-white ${
+                        isCustomer ? "bg-orange-500" : "bg-[#14532d]"
+                      }`}
+                    />
+
+                    <div
+                      className={`rounded-xl border p-4 ${
+                        isCustomer
+                          ? "bg-orange-50 border-orange-100"
+                          : "bg-green-50 border-green-100"
                       }`}
                     >
-                      <p
-                        className={`text-[11px] font-semibold uppercase tracking-wide mb-1.5 ${
-                          round.salesResponse ? "text-green-700" : "text-amber-700"
-                        }`}
-                      >
-                        {round.salesResponse ? "Our Response" : "Awaiting Response"}
-                      </p>
-                      {round.salesResponse ? (
-                        <>
-                          <p className="font-serif text-lg font-bold text-green-800">
-                            ₹{Number(round.salesResponse.amount).toFixed(2)}
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p
+                            className={`text-[11px] font-bold uppercase tracking-wide ${
+                              isCustomer
+                                ? "text-orange-700"
+                                : "text-green-700"
+                            }`}
+                          >
+                            {entry.label}
                           </p>
-                          {round.salesResponse.message && (
-                            <p className="text-xs text-stone-600 mt-1.5 whitespace-pre-line">
-                              {round.salesResponse.message}
-                            </p>
-                          )}
-                          {round.salesResponse.at && (
-                            <p className="text-[10px] text-stone-400 mt-2">
-                              {new Date(round.salesResponse.at).toLocaleDateString()}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-xs text-amber-700">Our team is reviewing this request.</p>
+
+                          <p
+                            className={`font-serif text-lg font-bold mt-1 ${
+                              isCustomer
+                                ? "text-orange-800"
+                                : "text-green-800"
+                            }`}
+                          >
+                            ₹{Number(entry.amount || 0).toFixed(2)}
+                          </p>
+                        </div>
+
+                        {entry.at && (
+                          <p className="text-[10px] text-stone-400 shrink-0">
+                            {new Date(entry.at).toLocaleString("en-IN")}
+                          </p>
+                        )}
+                      </div>
+
+                      {entry.message && (
+                        <p className="text-xs text-stone-600 mt-2 whitespace-pre-line">
+                          {entry.message}
+                        </p>
+                      )}
+
+                      {!isCustomer && entry.items?.length > 0 && (
+                        <div className="overflow-x-auto mt-3">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-green-100 text-green-800 text-left">
+                                <th className="px-2 py-1.5">Product</th>
+                                <th className="px-2 py-1.5">Qty</th>
+                                <th className="px-2 py-1.5">Price</th>
+                                <th className="px-2 py-1.5">GST</th>
+                                <th className="px-2 py-1.5">Disc.</th>
+                                <th className="px-2 py-1.5">Total</th>
+                              </tr>
+                            </thead>
+
+                            <tbody>
+                              {entry.items.map((item, idx) => (
+                                <tr
+                                  key={idx}
+                                  className="border-b border-green-100"
+                                >
+                                  <td className="px-2 py-1.5 font-medium text-stone-800">
+                                    {item.name}
+                                  </td>
+                                  <td className="px-2 py-1.5">
+                                    {item.quantity}
+                                  </td>
+                                  <td className="px-2 py-1.5">
+                                    ₹{Number(item.unitPrice || 0).toFixed(2)}
+                                  </td>
+                                  <td className="px-2 py-1.5">
+                                    {Number(item.gst || 0).toFixed(2)}%
+                                  </td>
+                                  <td className="px-2 py-1.5">
+                                    {Number(item.discount || 0).toFixed(2)}%
+                                  </td>
+                                  <td className="px-2 py-1.5 font-semibold">
+                                    ₹{Number(item.total || 0).toFixed(2)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
