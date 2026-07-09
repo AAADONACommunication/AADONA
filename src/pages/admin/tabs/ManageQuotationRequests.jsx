@@ -75,17 +75,37 @@ export default function ManageQuotationRequests() {
     setSelected(request);
     setError("");
     setSuccessMsg("");
-    // Pre-fill pricing items from the requirement — admin fills in the price
+
+    // Fresh pending request --> blank pricing form
+    if (request.status === "pending") {
+      setPriceItems(
+        (request.items || []).map((item) => ({
+          product: item.product || null,
+          name: item.name,
+          description: item.description || "",
+          quantity: item.quantity,
+          price: "",
+        }))
+      );
+
+      setNotes("");
+      return;
+    }
+
+    // Already quoted request --> existing quotation data
+    const adminQuotation = request.adminQuotation;
+
     setPriceItems(
-      (request.items || []).map((item) => ({
+      (adminQuotation?.items || []).map((item) => ({
         product: item.product || null,
         name: item.name,
         description: item.description || "",
         quantity: item.quantity,
-        price: "",
+        price: item.unitPrice,
       }))
     );
-    setNotes("");
+
+    setNotes(adminQuotation?.remarks || "");
   };
 
   const backToList = () => {
@@ -224,87 +244,365 @@ export default function ManageQuotationRequests() {
           )}
         </div>
 
-        {/* ── Pricing Form ── */}
-        <form
-          onSubmit={handleSubmitPricing}
-          className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6"
-        >
-          <h2 className="text-lg font-bold text-green-800 mb-1">Set Pricing</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Enter your price per unit for each product. This quotation will be sent to the
-            sales rep, who will then add their own markup before sending it to the customer.
-          </p>
+        {/* ── Pricing Form / Existing Quotation ── */}
+        {selected.status === "pending" ? (
+          <form
+            onSubmit={handleSubmitPricing}
+            className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6"
+          >
+            <h2 className="text-lg font-bold text-green-800 mb-1">Set Pricing</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Enter your price per unit for each product. This quotation will be sent to the
+              sales rep, who will then add their own markup before sending it to the customer.
+            </p>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-green-700 text-white text-left">
-                  <th className="px-3 py-2 rounded-tl-lg">Product</th>
-                  <th className="px-3 py-2">Qty</th>
-                  <th className="px-3 py-2">Price (₹)</th>
-                  <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {priceItems.map((item, index) => (
-                  <tr key={index} className="border-b border-green-100">
-                    <td className="px-3 py-2 min-w-[200px]">
-                      <p className="font-medium text-gray-800">{item.name}</p>
-                      {item.description && (
-                        <p className="text-xs text-gray-500">{item.description}</p>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 w-24 text-gray-700">{item.quantity}</td>
-                    <td className="px-3 py-2 w-32">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.price}
-                        onChange={(e) => updatePriceItem(index, "price", e.target.value)}
-                        placeholder="0.00"
-                        required
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
-                      />
-                    </td>
-                    <td className="px-3 py-2 font-semibold text-gray-700">
-                      ₹{((Number(item.quantity) || 0) * (Number(item.price) || 0)).toFixed(2)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-green-700 text-white text-left">
+                    <th className="px-3 py-2 rounded-tl-lg">Product</th>
+                    <th className="px-3 py-2">Qty</th>
+                    <th className="px-3 py-2">Price (₹)</th>
+                    <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex justify-end mt-4">
-            <div className="text-base font-bold text-green-800">
-              Total: ₹{total.toFixed(2)}
+                </thead>
+                <tbody>
+                  {priceItems.map((item, index) => (
+                    <tr key={index} className="border-b border-green-100">
+                      <td className="px-3 py-2 min-w-[200px]">
+                        <p className="font-medium text-gray-800">{item.name}</p>
+                        {item.description && (
+                          <p className="text-xs text-gray-500">{item.description}</p>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 w-24 text-gray-700">{item.quantity}</td>
+                      <td className="px-3 py-2 w-32">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.price}
+                          onChange={(e) => updatePriceItem(index, "price", e.target.value)}
+                          placeholder="0.00"
+                          required
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                        />
+                      </td>
+                      <td className="px-3 py-2 font-semibold text-gray-700">
+                        ₹{((Number(item.quantity) || 0) * (Number(item.price) || 0)).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
 
-          <div className="mt-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Notes for Sales Rep (optional)
-            </label>
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Payment terms, lead time, stock availability, etc."
-              className={inputStyle}
-            />
-          </div>
+            <div className="flex justify-end mt-4">
+              <div className="text-base font-bold text-green-800">
+                Total: ₹{total.toFixed(2)}
+              </div>
+            </div>
 
-          <div className="flex justify-end mt-6">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Sending..." : "Send Quotation to Sales Rep"}
-            </button>
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                Notes for Sales Rep (optional)
+              </label>
+              <textarea
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Payment terms, lead time, stock availability, etc."
+                className={inputStyle}
+              />
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {submitting ? "Sending..." : "Send Quotation to Sales Rep"}
+              </button>
+            </div>
+          </form>
+          ) : (
+          <div className="space-y-5">
+            {selected.adminQuotation ? (
+              <>
+                {/* ═══════════════════════════════════════
+                    ORIGINAL ADMIN QUOTATION
+                ═══════════════════════════════════════ */}
+                {(() => {
+                  const aq = selected.adminQuotation;
+                  const history = aq.revisionHistory || [];
+
+                  // revisionHistory[0] = state BEFORE first revision
+                  // therefore it is the true original quotation.
+                  const original =
+                    history.length > 0
+                      ? history[0]
+                      : {
+                          items: aq.items || [],
+                          subtotal: aq.subtotal,
+                          remarks: aq.remarks,
+                          sentAt: aq.createdAt,
+                        };
+
+                  return (
+                    <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
+                      <div className="flex items-center justify-between gap-3 mb-5">
+                        <div>
+                          <h2 className="text-lg font-bold text-green-800">
+                            Original Quotation Sent
+                          </h2>
+
+                          <p className="text-xs text-gray-500 mt-1">
+                            Initial pricing sent to the sales representative
+                          </p>
+                        </div>
+
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                          Sent
+                        </span>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-green-700 text-white text-left">
+                              <th className="px-3 py-2 rounded-tl-lg">
+                                Product
+                              </th>
+                              <th className="px-3 py-2">
+                                Qty
+                              </th>
+                              <th className="px-3 py-2">
+                                Unit Price
+                              </th>
+                              <th className="px-3 py-2 rounded-tr-lg">
+                                Total
+                              </th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {(original.items || []).map((item, index) => (
+                              <tr
+                                key={index}
+                                className="border-b border-green-100"
+                              >
+                                <td className="px-3 py-2">
+                                  <p className="font-medium text-gray-800">
+                                    {item.name}
+                                  </p>
+
+                                  {item.description && (
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                      {item.description}
+                                    </p>
+                                  )}
+                                </td>
+
+                                <td className="px-3 py-2 text-gray-700">
+                                  {item.quantity}
+                                </td>
+
+                                <td className="px-3 py-2 text-gray-700">
+                                  ₹{Number(item.unitPrice || 0).toFixed(2)}
+                                </td>
+
+                                <td className="px-3 py-2 font-semibold text-gray-800">
+                                  ₹{Number(item.total || 0).toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="flex justify-end mt-4">
+                        <div className="text-base font-bold text-green-800">
+                          Subtotal: ₹
+                          {Number(original.subtotal || 0).toFixed(2)}
+                        </div>
+                      </div>
+
+                      {original.remarks && (
+                        <div className="mt-4 bg-green-50 border border-green-100 rounded-xl p-3">
+                          <p className="text-xs font-semibold text-green-700 mb-1">
+                            Admin Notes
+                          </p>
+
+                          <p className="text-sm text-gray-700 whitespace-pre-line">
+                            {original.remarks}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* ═══════════════════════════════════════
+                    REVISED ADMIN QUOTATIONS
+                ═══════════════════════════════════════ */}
+                {(() => {
+                  const aq = selected.adminQuotation;
+                  const history = aq.revisionHistory || [];
+
+                  // No revision happened
+                  if (history.length === 0) {
+                    return null;
+                  }
+
+                  const revisedVersions = [];
+
+                  for (let i = 1; i < history.length; i++) {
+                    revisedVersions.push({
+                      items: history[i].items || [],
+                      subtotal: history[i].subtotal,
+                      remarks: history[i].remarks,
+                      revisedAt: history[i].revisedAt,
+                      revisionNumber: i,
+                    });
+                  }
+
+                  // Current AdminQuotation = latest revision
+                  revisedVersions.push({
+                    items: aq.items || [],
+                    subtotal: aq.subtotal,
+                    remarks: aq.remarks,
+                    revisedAt: aq.updatedAt,
+                    revisionNumber: history.length,
+                  });
+
+                  return (
+                    <div className="space-y-4">
+                      {revisedVersions.map((revision, index) => (
+                        <div
+                          key={`${revision.revisionNumber}-${index}`}
+                          className="bg-white rounded-2xl shadow-sm border-2 border-amber-200 p-6"
+                        >
+                          <div className="flex items-center justify-between gap-3 mb-5">
+                            <div>
+                              <h2 className="text-lg font-bold text-amber-700">
+                                Revised Quotation
+                                {revisedVersions.length > 1
+                                  ? ` #${revision.revisionNumber}`
+                                  : ""}
+                              </h2>
+
+                              <p className="text-xs text-gray-500 mt-1">
+                                Updated pricing sent to the sales representative
+                              </p>
+                            </div>
+
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                              Revised
+                            </span>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="bg-amber-500 text-white text-left">
+                                  <th className="px-3 py-2 rounded-tl-lg">
+                                    Product
+                                  </th>
+                                  <th className="px-3 py-2">
+                                    Qty
+                                  </th>
+                                  <th className="px-3 py-2">
+                                    Unit Price
+                                  </th>
+                                  <th className="px-3 py-2 rounded-tr-lg">
+                                    Total
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody>
+                                {(revision.items || []).map(
+                                  (item, itemIndex) => (
+                                    <tr
+                                      key={itemIndex}
+                                      className="border-b border-amber-100"
+                                    >
+                                      <td className="px-3 py-2">
+                                        <p className="font-medium text-gray-800">
+                                          {item.name}
+                                        </p>
+
+                                        {item.description && (
+                                          <p className="text-xs text-gray-500 mt-0.5">
+                                            {item.description}
+                                          </p>
+                                        )}
+                                      </td>
+
+                                      <td className="px-3 py-2 text-gray-700">
+                                        {item.quantity}
+                                      </td>
+
+                                      <td className="px-3 py-2 text-gray-700">
+                                        ₹
+                                        {Number(
+                                          item.unitPrice || 0
+                                        ).toFixed(2)}
+                                      </td>
+
+                                      <td className="px-3 py-2 font-semibold text-gray-800">
+                                        ₹
+                                        {Number(
+                                          item.total || 0
+                                        ).toFixed(2)}
+                                      </td>
+                                    </tr>
+                                  )
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <div className="flex justify-end mt-4">
+                            <div className="text-base font-bold text-amber-700">
+                              Subtotal: ₹
+                              {Number(revision.subtotal || 0).toFixed(2)}
+                            </div>
+                          </div>
+
+                          {revision.remarks && (
+                            <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3">
+                              <p className="text-xs font-semibold text-amber-700 mb-1">
+                                Admin Notes
+                              </p>
+
+                              <p className="text-sm text-gray-700 whitespace-pre-line">
+                                {revision.remarks}
+                              </p>
+                            </div>
+                          )}
+
+                          {revision.revisedAt && (
+                            <p className="text-[11px] text-gray-400 mt-3 text-right">
+                              {new Date(
+                                revision.revisedAt
+                              ).toLocaleString("en-IN")}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-4 rounded-xl text-sm">
+                This request is marked as quoted, but quotation details could not be loaded.
+              </div>
+            )}
           </div>
-        </form>
+        )}
       </div>
     );
   }

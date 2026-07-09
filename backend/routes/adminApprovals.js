@@ -8,19 +8,49 @@ const SalesRep = require("../models/SalesRep");
 const AdminQuotation = require("../models/AdminQuotation");
 
 // ── GET /admin/sales-quotations/pending-approval ──
-router.get("/admin/sales-quotations/pending-approval", verifyToken, async (req, res) => {
-  try {
-    const quotations = await SalesQuotation.find({ status: "awaiting_admin_approval" })
-      .populate("customer")
-      .populate("sourceQuotation")
-      .sort({ customerRespondedAt: -1 });
+router.get(
+  "/admin/sales-quotations/pending-approval",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const quotations = await SalesQuotation.find({
+        $or: [
+          // Currently waiting for admin action
+          { status: "awaiting_admin_approval" },
 
-    return res.json(quotations);
-  } catch (err) {
-    console.error("Get pending approvals error:", err.message);
-    return res.status(500).json({ error: err.message });
+          // Admin directly approved customer pricing
+          { adminApprovedAt: { $ne: null } },
+
+          // Admin revised pricing
+          {
+            negotiationHistory: {
+              $elemMatch: {
+                revisedAt: { $ne: null },
+              },
+            },
+          },
+
+          // Admin rejected negotiation
+          { adminRejectedAt: { $ne: null } },
+        ],
+      })
+        .populate("customer")
+        .populate("sourceQuotation")
+        .sort({ updatedAt: -1 });
+
+      return res.json(quotations);
+    } catch (err) {
+      console.error(
+        "Get admin negotiation records error:",
+        err.message
+      );
+
+      return res.status(500).json({
+        error: err.message,
+      });
+    }
   }
-});
+);
 
 // ── POST /admin/sales-quotations/:id/approve ──
 router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res) => {

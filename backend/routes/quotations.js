@@ -4,6 +4,7 @@ const router = express.Router();
 const QuotationRequest = require("../models/QuotationRequest");
 const Customer = require("../models/Customer");
 const SalesRep = require("../models/SalesRep");
+const AdminQuotation = require("../models/AdminQuotation");
 
 const verifyToken = require("../middleware/verifyToken"); // admin middleware
 const verifySalesToken = require("../middleware/verifySalesToken");
@@ -165,49 +166,120 @@ router.get("/quotation-requests", verifySalesToken, async (req, res) => {
 router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
   try {
     const { status } = req.query;
-    const query = status ? { status } : {};
+
+    const query =
+      status && status !== "all"
+        ? { status }
+        : {};
 
     const requests = await QuotationRequest.find(query)
       .populate("customer")
       .sort({ createdAt: -1 });
 
-    // Attach sales rep name/email for display in admin panel
-    const salesReps = await SalesRep.find({}, { uid: 1, name: 1, email: 1 });
+    // Attach sales rep name/email
+    const salesReps = await SalesRep.find(
+      {},
+      { uid: 1, name: 1, email: 1 }
+    );
+
     const repMap = {};
     salesReps.forEach((rep) => {
-      repMap[rep.uid] = { name: rep.name, email: rep.email };
+      repMap[rep.uid] = {
+        name: rep.name,
+        email: rep.email,
+      };
+    });
+
+    // Fetch AdminQuotation for every request in this result.
+    // revisionHistory is already inside AdminQuotation.
+    const adminQuotations = await AdminQuotation.find({
+      quotationRequest: {
+        $in: requests.map((r) => r._id),
+      },
+    });
+
+    const quotationMap = {};
+    adminQuotations.forEach((aq) => {
+      quotationMap[aq.quotationRequest.toString()] = aq;
     });
 
     const enriched = requests.map((r) => ({
       ...r.toObject(),
+
       salesRep: repMap[r.salesRepUid] || null,
+
+      // Contains:
+      // - current/latest admin quotation
+      // - revisionHistory[]
+      adminQuotation:
+        quotationMap[r._id.toString()] || null,
     }));
 
     res.json(enriched);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(
+      "Get admin quotation requests error:",
+      err.message
+    );
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
 /* =========================================================
    ADMIN — Get single request detail
 ========================================================= */
-router.get("/admin/quotation-requests/:id", verifyToken, async (req, res) => {
-  try {
-    const request = await QuotationRequest.findById(req.params.id).populate("customer");
-    if (!request) {
-      return res.status(404).json({ message: "Quotation request not found" });
+router.get(
+  "/admin/quotation-requests/:id",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const request = await QuotationRequest.findById(
+        req.params.id
+      ).populate("customer");
+
+      if (!request) {
+        return res.status(404).json({
+          message: "Quotation request not found",
+        });
+      }
+
+      const [salesRep, adminQuotation] = await Promise.all([
+        SalesRep.findOne({
+          uid: request.salesRepUid,
+        }),
+
+        AdminQuotation.findOne({
+          quotationRequest: request._id,
+        }),
+      ]);
+
+      res.json({
+        ...request.toObject(),
+
+        salesRep: salesRep
+          ? {
+              name: salesRep.name,
+              email: salesRep.email,
+            }
+          : null,
+
+        // Original/current quotation + revisionHistory
+        adminQuotation: adminQuotation || null,
+      });
+    } catch (err) {
+      console.error(
+        "Get single admin quotation request error:",
+        err.message
+      );
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
-
-    const salesRep = await SalesRep.findOne({ uid: request.salesRepUid });
-
-    res.json({
-      ...request.toObject(),
-      salesRep: salesRep ? { name: salesRep.name, email: salesRep.email } : null,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 module.exports = router;

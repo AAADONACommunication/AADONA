@@ -10,6 +10,7 @@ export default function ManagePendingNegotiations() {
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("pending");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
 
@@ -50,8 +51,42 @@ export default function ManagePendingNegotiations() {
   }, []);
 
   const filtered = quotations.filter((q) => {
+    const isPending =
+      q.status === "awaiting_admin_approval";
+
+    const isApproved =
+      q.adminApprovedAt != null;
+
+    const isRejected =
+      q.adminRejectedAt != null;
+
+    const isRevised =
+      (q.negotiationHistory || []).some(
+        (h) => h.revisedAt != null
+      );
+
+    // Tab filter
+    if (statusFilter === "pending" && !isPending) {
+      return false;
+    }
+
+    if (statusFilter === "approved" && !isApproved) {
+      return false;
+    }
+
+    if (statusFilter === "revised" && !isRevised) {
+      return false;
+    }
+
+    if (statusFilter === "rejected" && !isRejected) {
+      return false;
+    }
+
+    // "all" → no status filtering
     if (!search.trim()) return true;
+
     const s = search.toLowerCase();
+
     return (
       q.customer?.personalName?.toLowerCase().includes(s) ||
       q.customer?.companyName?.toLowerCase().includes(s) ||
@@ -64,14 +99,16 @@ export default function ManagePendingNegotiations() {
     setActionError("");
     setSuccessMsg("");
     setReviseMode(false);
+
     setReviseItems(
       (q.sourceQuotation?.items || []).map((item) => ({
         name: item.name,
         description: item.description || "",
         quantity: item.quantity,
-        unitPrice: "",
+        unitPrice: String(item.unitPrice ?? ""),
       }))
     );
+
     setReviseRemarks(q.sourceQuotation?.remarks || "");
   };
 
@@ -95,7 +132,7 @@ export default function ManagePendingNegotiations() {
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.message || "Failed to approve");
       setSuccessMsg("Approved ✅ — sales rep has been notified.");
-      setQuotations((prev) => prev.filter((q) => q._id !== selected._id));
+      await loadPending();
       setTimeout(() => backToList(), 1200);
     } catch (err) {
       console.error("Approve error:", err);
@@ -118,7 +155,7 @@ export default function ManagePendingNegotiations() {
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.message || "Failed to reject");
       setSuccessMsg("Rejected — sales rep has been notified.");
-      setQuotations((prev) => prev.filter((q) => q._id !== selected._id));
+      await loadPending();
       setTimeout(() => backToList(), 1200);
     } catch (err) {
       console.error("Reject error:", err);
@@ -168,7 +205,7 @@ export default function ManagePendingNegotiations() {
       if (!res.ok) throw new Error(data?.message || "Failed to send revised pricing");
 
       setSuccessMsg("Revised pricing sent to sales rep ✅");
-      setQuotations((prev) => prev.filter((q) => q._id !== selected._id));
+      await loadPending();
       setTimeout(() => backToList(), 1200);
     } catch (err) {
       console.error("Revise error:", err);
@@ -185,6 +222,20 @@ export default function ManagePendingNegotiations() {
     const adminSubtotal = Number(selected.sourceQuotation?.subtotal || 0);
     const offer = Number(selected.expectedBudget || 0);
     const difference = adminSubtotal - offer;
+
+    const isPending =
+      selected.status === "awaiting_admin_approval";
+
+    const wasApproved =
+      selected.adminApprovedAt != null;
+
+    const wasRejected =
+      selected.adminRejectedAt != null;
+
+    const wasRevised =
+      (selected.negotiationHistory || []).some(
+        (h) => h.revisedAt != null
+      );
 
     return (
       <div className="space-y-6">
@@ -250,9 +301,190 @@ export default function ManagePendingNegotiations() {
           )}
         </div>
 
-        {/* ── Actions ── */}
-        {!reviseMode ? (
-          <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6 space-y-4">
+        {/* ── Admin Pricing History ── */}
+        {(() => {
+          const aq = selected.sourceQuotation;
+          if (!aq) return null;
+
+          const history = aq.revisionHistory || [];
+
+          if (history.length === 0) return null;
+
+          const versions = [];
+
+          // Original quotation = state before first revision
+          versions.push({
+            label: "Original Admin Quotation",
+            items: history[0]?.items || [],
+            subtotal: history[0]?.subtotal,
+            remarks: history[0]?.remarks,
+            at: aq.createdAt,
+          });
+
+          // Previous revised versions
+          for (let i = 1; i < history.length; i++) {
+            versions.push({
+              label: `Revised Admin Quotation #${i}`,
+              items: history[i]?.items || [],
+              subtotal: history[i]?.subtotal,
+              remarks: history[i]?.remarks,
+              at: history[i]?.revisedAt,
+            });
+          }
+
+          // Current AdminQuotation = latest revision
+          versions.push({
+            label: `Revised Admin Quotation #${history.length}`,
+            items: aq.items || [],
+            subtotal: aq.subtotal,
+            remarks: aq.remarks,
+            at: aq.updatedAt,
+          });
+
+          return (
+            <div className="bg-white rounded-2xl shadow-sm border border-amber-200 p-6">
+              <h3 className="text-lg font-bold text-amber-700 mb-4">
+                Admin Pricing History
+              </h3>
+
+              <div className="space-y-4">
+                {versions.map((version, versionIndex) => (
+                  <div
+                    key={versionIndex}
+                    className="border border-amber-100 rounded-xl p-4 bg-amber-50/40"
+                  >
+                    <div className="flex justify-between items-center gap-3 mb-3">
+                      <p className="font-semibold text-gray-800">
+                        {version.label}
+                      </p>
+
+                      {version.at && (
+                        <p className="text-xs text-gray-500">
+                          {new Date(version.at).toLocaleString("en-IN")}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-amber-100 text-left">
+                            <th className="px-3 py-2">Product</th>
+                            <th className="px-3 py-2">Qty</th>
+                            <th className="px-3 py-2">Unit Price</th>
+                            <th className="px-3 py-2">Total</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {(version.items || []).map((item, itemIndex) => (
+                            <tr
+                              key={itemIndex}
+                              className="border-t border-amber-100"
+                            >
+                              <td className="px-3 py-2">
+                                <p className="font-medium text-gray-800">
+                                  {item.name || "—"}
+                                </p>
+
+                                {item.description && (
+                                  <p className="text-xs text-gray-500">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </td>
+
+                              <td className="px-3 py-2">
+                                {item.quantity || 0}
+                              </td>
+
+                              <td className="px-3 py-2">
+                                ₹{Number(item.unitPrice || 0).toFixed(2)}
+                              </td>
+
+                              <td className="px-3 py-2 font-semibold">
+                                ₹{Number(item.total || 0).toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="flex justify-end mt-3">
+                      <p className="font-bold text-amber-700">
+                        Subtotal: ₹{Number(version.subtotal || 0).toFixed(2)}
+                      </p>
+                    </div>
+
+                    {version.remarks && (
+                      <div className="mt-3 bg-white rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-600 mb-1">
+                          Admin Notes
+                        </p>
+                        <p className="text-sm text-gray-700 whitespace-pre-line">
+                          {version.remarks}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ── Completed Admin Action Status ── */}
+        {!isPending && (
+          <div
+            className={`rounded-2xl border-2 p-5 ${
+              wasRejected
+                ? "bg-red-50 border-red-200"
+                : wasRevised
+                ? "bg-amber-50 border-amber-200"
+                : wasApproved
+                ? "bg-green-50 border-green-200"
+                : "bg-gray-50 border-gray-200"
+            }`}
+          >
+            <h3
+              className={`font-bold ${
+                wasRejected
+                  ? "text-red-700"
+                  : wasRevised
+                  ? "text-amber-700"
+                  : wasApproved
+                  ? "text-green-700"
+                  : "text-gray-700"
+              }`}
+            >
+              {wasRejected
+                ? "Negotiation Rejected"
+                : wasRevised
+                ? "Pricing Revised by Admin"
+                : wasApproved
+                ? "Customer Pricing Approved"
+                : "Negotiation Processed"}
+            </h3>
+
+            <p className="text-sm text-gray-600 mt-1">
+              This record is read-only. Admin action has already been completed.
+            </p>
+
+            {wasApproved && selected.adminApprovedAmount != null && (
+              <p className="text-sm font-semibold text-green-700 mt-3">
+                Approved Amount: ₹
+                {Number(selected.adminApprovedAmount).toFixed(2)}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ── Actions — only while pending ── */}
+        {isPending && (
+          <>
+            {!reviseMode ? (
+              <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6 space-y-4">
             <h3 className="text-base font-bold text-gray-800">Choose an Action</h3>
             <div className="grid sm:grid-cols-3 gap-3">
               <button
@@ -376,6 +608,8 @@ export default function ManagePendingNegotiations() {
               </button>
             </div>
           </form>
+          )}
+        </>
         )}
       </div>
     );
@@ -397,16 +631,50 @@ export default function ManagePendingNegotiations() {
         />
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {[
+          ["pending", "Pending"],
+          ["approved", "Approved"],
+          ["revised", "Revised"],
+          ["rejected", "Rejected"],
+          ["all", "All"],
+        ].map(([value, label]) => (
+          <button
+            key={value}
+            onClick={() => setStatusFilter(value)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              statusFilter === value
+                ? "bg-green-700 text-white"
+                : "bg-white border border-green-200 text-green-700 hover:bg-green-50"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
         <div className="flex items-center gap-2 px-6 py-4 border-b border-green-100 bg-orange-500">
-          <h2 className="text-lg font-bold text-white">Pending Admin Approvals</h2>
+          <h2 className="text-lg font-bold text-white">
+            {statusFilter === "pending"
+              ? "Pending Admin Approvals"
+              : statusFilter === "approved"
+              ? "Approved Negotiations"
+              : statusFilter === "revised"
+              ? "Revised Negotiations"
+              : statusFilter === "rejected"
+              ? "Rejected Negotiations"
+              : "All Negotiation Records"}
+          </h2>
         </div>
 
         {loading ? (
           <p className="text-sm text-gray-400 py-10 text-center italic">Loading...</p>
         ) : filtered.length === 0 ? (
           <p className="text-sm text-gray-400 py-10 text-center italic">
-            {loaded ? "No pending approvals right now." : "Loading..."}
+            {loaded
+              ? `No ${statusFilter === "all" ? "negotiation records" : statusFilter + " negotiations"} found.`
+              : "Loading..."}
           </p>
         ) : (
           <div className="overflow-x-auto">
