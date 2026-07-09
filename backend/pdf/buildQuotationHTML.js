@@ -15,6 +15,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     opts.finalAmount != null ? Number(opts.finalAmount) : Number(quotation.grandTotal);
   const items = opts.items || quotation.items;
   const salesRep = opts.salesRep || null;
+  const amountLabel = opts.label || "Final Accepted Amount";
 
   const subtotal = Number(quotation.subtotal || 0);
   const discountAmount = Number(quotation.discountAmount || 0);
@@ -182,7 +183,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
         </tr>
         <tr><td colspan="2"><div style="height:1px;background:#d1d5db;margin:6px 0;"></div></td></tr>
         <tr>
-          <td style="padding:3px 0;font-weight:800;font-size:15px;color:#166534;">Final Accepted Amount</td>
+          <td style="padding:3px 0;font-weight:800;font-size:15px;color:#166534;">${amountLabel}</td>
           <td style="padding:3px 0;text-align:right;font-weight:800;font-size:15px;color:#166534;">₹${finalAmount.toFixed(2)}</td>
         </tr>
       </table>

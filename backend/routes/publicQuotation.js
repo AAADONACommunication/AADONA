@@ -10,7 +10,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://aadona.com";
 
 // ── Helper: strip internal/admin-only fields before sending to customer ──
-const toPublicQuotation = (quotation) => ({
+const toPublicQuotation = (quotation, salesRep) => ({
   _id: quotation._id,
   quotationNumber: quotation.quotationNumber,
   customer: quotation.customer
@@ -46,6 +46,7 @@ const toPublicQuotation = (quotation) => ({
   negotiatedAt: quotation.negotiatedAt,
   negotiationHistory: quotation.negotiationHistory || [],
   validTill: quotation.sourceQuotation?.validTill || null,
+  salesRep: salesRep ? { name: salesRep.name, email: salesRep.email } : null,
 });
 
 // ── GET /quotation/:publicToken ── (NO AUTH — customer facing)
@@ -68,10 +69,55 @@ router.get("/quotation/:publicToken", async (req, res) => {
       await quotation.save();
     }
 
-    return res.json(toPublicQuotation(quotation));
+    const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+
+    return res.json(toPublicQuotation(quotation, salesRep));
   } catch (err) {
     console.error("Get public quotation error:", err.message);
     return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /quotation/:publicToken/pdf ── (NO AUTH — always-available download of current state)
+router.get("/quotation/:publicToken/pdf", async (req, res) => {
+  try {
+    const { publicToken } = req.params;
+
+    const quotation = await SalesQuotation.findOne({ publicToken })
+      .populate("customer")
+      .populate("sourceQuotation");
+
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+
+    let finalAmount = Number(quotation.grandTotal);
+    let items = quotation.items;
+    let label = "Total Quotation Amount";
+
+    if (quotation.status === "accepted") {
+      finalAmount =
+        quotation.negotiatedAmount != null ? Number(quotation.negotiatedAmount) : Number(quotation.grandTotal);
+      if (
+        quotation.negotiatedAmount != null &&
+        quotation.negotiatedAmount === quotation.counterOfferAmount &&
+        quotation.counterOfferItems?.length
+      ) {
+        items = quotation.counterOfferItems;
+      }
+      label = "Final Accepted Amount";
+    }
+
+    const pdfBuffer = await generateQuotationPdf(quotation, { finalAmount, items, salesRep, label });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=Quotation-${quotation.quotationNumber}.pdf`);
+    return res.send(pdfBuffer);
+  } catch (err) {
+    console.error("Quotation PDF download error:", err.message);
+    return res.status(500).json({ error: "Failed to generate PDF" });
   }
 });
 
@@ -465,46 +511,6 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
     return res.json({ message: "Counter offer accepted successfully", status: quotation.status });
   } catch (err) {
     console.error("Accept counter offer error:", err.message);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-// ── GET /quotation/:publicToken/pdf ── (NO AUTH — customer facing)
-router.get("/quotation/:publicToken/pdf", async (req, res) => {
-  try {
-    const { publicToken } = req.params;
-
-    const quotation = await SalesQuotation.findOne({ publicToken }).populate("customer");
-    if (!quotation) {
-      return res.status(404).json({ message: "Quotation not found" });
-    }
-
-    if (quotation.status !== "accepted") {
-      return res.status(400).json({ message: "PDF is only available after the quotation has been accepted" });
-    }
-
-    const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
-
-    const itemsForReport = quotation.counterOfferItems?.length
-      ? quotation.counterOfferItems
-      : quotation.items;
-
-    const finalAmount = quotation.negotiatedAmount ?? quotation.grandTotal;
-
-    const pdfBuffer = await generateQuotationPdf(quotation, {
-      finalAmount,
-      items: itemsForReport,
-      salesRep,
-    });
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=Quotation-${quotation.quotationNumber}.pdf`
-    );
-    return res.send(pdfBuffer);
-  } catch (err) {
-    console.error("Public quotation PDF error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 });
