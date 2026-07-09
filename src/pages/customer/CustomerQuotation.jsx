@@ -17,40 +17,67 @@ import {
   Eye,
   HandCoins,
   Download,
-  Sparkles,
+  Loader2,
 } from "lucide-react";
 
 const PUBLIC_API = `${import.meta.env.VITE_API_URL}/public/quotation`;
 
-const statusBadge = {
-  sent: {
-    label: "Sent",
-    classes: "bg-blue-50 text-blue-700 border border-blue-200",
-  },
-  viewed: {
-    label: "Viewed",
-    classes: "bg-cyan-50 text-cyan-700 border border-cyan-200",
-  },
-  accepted: {
-    label: "Accepted",
-    classes: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-  },
+/* ────────────────────────────────────────────────────────────────
+   DESIGN TOKENS — grounded in AADONA's real brand green (#166534,
+   taken from their transactional emails) and the "networking
+   hardware, Made in India" identity. Not the generic cream/serif
+   or near-black/acid-green AI defaults.
+
+   Color:
+     forest  #0F2E20  — primary dark (header, ink-on-light headings)
+     signal  #166534  — brand green (AADONA's actual email green)
+     circuit #22C55E  — live/active accent, used sparingly
+     brass   #A9793F  — secondary accent, money & emphasis (muted, not shiny gold)
+     paper   #F5F4EF  — page background
+     ink     #1B211D  — body text
+     line    rgba(15,46,32,.12) — hairline borders
+
+   Type:
+     Display/eyebrow — Space Grotesk (geometric, technical — fits circuitry)
+     Body            — Inter
+     Data/mono       — IBM Plex Mono (quotation #, amounts, timestamps —
+                        reads like an invoice / datasheet, on brand for
+                        a hardware company)
+
+   Signature: the History section renders as a "signal path" — a
+   vertical trace with square pads (not circles) at each node and
+   right-aligned monospace timestamps, like a packet log. It's the
+   one place the industrial/networking identity gets to speak loudly;
+   everything else stays quiet and disciplined.
+   ──────────────────────────────────────────────────────────────── */
+
+const FONT_IMPORTS = `
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+`;
+// NOTE: for production, move this @import into a <link> tag in index.html
+// instead of a runtime @import — it's kept here only so this component
+// works as a drop-in without touching other files.
+
+const statusMeta = {
+  sent: { label: "Sent", dot: "bg-blue-500", classes: "bg-blue-50 text-blue-700 border-blue-200" },
+  viewed: { label: "Viewed", dot: "bg-cyan-500", classes: "bg-cyan-50 text-cyan-700 border-cyan-200" },
+  accepted: { label: "Accepted", dot: "bg-[#22C55E]", classes: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   negotiation_requested: {
     label: "Negotiation Requested",
-    classes: "bg-amber-50 text-amber-700 border border-amber-200",
+    dot: "bg-amber-500",
+    classes: "bg-amber-50 text-amber-700 border-amber-200",
   },
   awaiting_admin_approval: {
     label: "Under Review",
-    classes: "bg-violet-50 text-violet-700 border border-violet-200",
+    dot: "bg-violet-500",
+    classes: "bg-violet-50 text-violet-700 border-violet-200",
   },
   counter_offered: {
     label: "Counter Offer Received",
-    classes: "bg-amber-50 text-amber-700 border border-amber-200",
+    dot: "bg-amber-500",
+    classes: "bg-amber-50 text-amber-700 border-amber-200",
   },
-  rejected: {
-    label: "Rejected",
-    classes: "bg-red-50 text-red-700 border border-red-200",
-  },
+  rejected: { label: "Rejected", dot: "bg-red-500", classes: "bg-red-50 text-red-700 border-red-200" },
 };
 
 const safeJson = async (res) => {
@@ -73,34 +100,22 @@ const fmtDate = (d) =>
       })
     : "—";
 
+const fmtShortDate = (d) =>
+  d ? new Date(d).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" }) : "—";
+
 const fmtMoney = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
 
 /**
- * Builds a customer-facing timeline of events.
- *
- * Preferred source: quotation.history — an array of events from the backend,
- * e.g. { type, actor, message, amount, createdAt }. Only actor === "customer"
- * or actor === "sales" entries are shown; any "admin" entries are filtered out
- * so the customer never sees internal approval steps.
- *
- * Fallback: if the backend doesn't yet send `history`, this derives an
- * equivalent timeline from the flat fields already on the quotation object
- * (sentAt, viewedAt, negotiation fields, counter-offer fields, decidedAt).
- * These are all customer/sales-facing by nature, so no admin data leaks.
+ * Builds the FULL customer-facing negotiation timeline, matching the
+ * exact shape returned by routes/publicQuotation.js's toPublicQuotation().
  */
 function buildTimeline(q) {
-  if (Array.isArray(q.history) && q.history.length > 0) {
-    return q.history
-      .filter((h) => h.actor !== "admin")
-      .map((h, i) => ({ id: h._id || i, ...h }));
-  }
-
   const events = [];
+
   if (q.sentAt) {
     events.push({
       id: "sent",
       type: "sent",
-      actor: "sales",
       title: "Quotation sent",
       description: "Your sales representative sent this quotation.",
       date: q.sentAt,
@@ -110,72 +125,141 @@ function buildTimeline(q) {
     events.push({
       id: "viewed",
       type: "viewed",
-      actor: "customer",
       title: "Quotation viewed",
       description: "You opened this quotation.",
       date: q.viewedAt,
     });
   }
-  if (q.negotiationRequestedAt) {
+
+  // One negotiation round -> up to 2 timeline entries (your ask, their reply).
+  const pushRound = (round, keyPrefix) => {
+    if (round.customerRespondedAt || round.expectedBudget != null) {
+      events.push({
+        id: `${keyPrefix}-offer`,
+        type: "negotiation_requested",
+        title: "Negotiation requested",
+        description: [
+          round.expectedBudget != null ? `Requested total: ${fmtMoney(round.expectedBudget)}` : null,
+          round.customerMessage || null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        date: round.customerRespondedAt,
+      });
+    }
+
+    if (round.counterOfferAt) {
+      events.push({
+        id: `${keyPrefix}-counter`,
+        type: "counter_offered",
+        title: "Counter offer sent",
+        description: round.counterOfferMessage || "Your sales representative sent a revised offer.",
+        amount: round.counterOfferAmount,
+        date: round.counterOfferAt,
+      });
+    }
+
+    // Admin-revised round (from resend-revised): pricing was revised and
+    // the quotation resent — a distinct outcome, no counter offer involved.
+    if (round.revisedAt) {
+      events.push({
+        id: `${keyPrefix}-revised`,
+        type: "sent",
+        title: "Revised quotation sent",
+        description: "Pricing was revised and a new quotation was sent to you.",
+        amount: round.revisedGrandTotal,
+        date: round.revisedAt,
+      });
+    }
+  };
+
+  // 1. Archived rounds — already in chronological push order.
+  const archivedRounds = Array.isArray(q.negotiationHistory) ? q.negotiationHistory : [];
+  archivedRounds.forEach((round, i) => pushRound(round, `round-${i}`));
+
+  // 2. Live/current round — skip if it's already captured in the archive.
+  const alreadyArchived = archivedRounds.some(
+    (r) => r.customerRespondedAt && q.customerRespondedAt && r.customerRespondedAt === q.customerRespondedAt
+  );
+  if (q.customerRespondedAt && !alreadyArchived) {
+    pushRound(
+      {
+        expectedBudget: q.expectedBudget,
+        customerMessage: q.customerMessage,
+        customerRespondedAt: q.customerRespondedAt,
+        counterOfferAmount: q.counterOfferAmount,
+        counterOfferMessage: q.counterOfferMessage,
+        counterOfferAt: q.counterOfferAt,
+      },
+      "live"
+    );
+  }
+
+  // Rep/admin directly accepted the customer's ask (no counter offer).
+  if (q.negotiatedAt) {
     events.push({
-      id: "negotiation",
-      type: "negotiation_requested",
-      actor: "customer",
-      title: "Negotiation requested",
-      description: [
-        q.negotiationReason ? `Reason: ${q.negotiationReason}` : null,
-        q.expectedBudget ? `Requested total: ${fmtMoney(q.expectedBudget)}` : null,
-        q.negotiationNotes ? q.negotiationNotes : null,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-      date: q.negotiationRequestedAt,
+      id: "negotiated",
+      type: "accepted",
+      title: "Your offer was accepted",
+      description:
+        q.negotiatedAmount != null ? `Accepted at ${fmtMoney(q.negotiatedAmount)}.` : "Your offer was accepted.",
+      date: q.negotiatedAt,
     });
   }
-  if (q.counterOfferedAt) {
-    events.push({
-      id: "counter",
-      type: "counter_offered",
-      actor: "sales",
-      title: "Counter offer sent",
-      description: q.counterOfferMessage || "Your sales representative sent a revised offer.",
-      amount: q.counterOfferAmount,
-      date: q.counterOfferedAt,
-    });
-  }
-  if (q.status === "accepted" && (q.acceptedAt || q.decidedAt)) {
+
+  // 3. Terminal markers.
+  if (q.status === "accepted" && q.acceptedAt) {
     events.push({
       id: "accepted",
       type: "accepted",
-      actor: "customer",
       title: "Quotation accepted",
       description: "You accepted this quotation.",
-      date: q.acceptedAt || q.decidedAt,
+      date: q.acceptedAt,
     });
   }
-  if (q.status === "rejected" && (q.rejectedAt || q.decidedAt)) {
+  if (q.status === "rejected" && q.rejectedAt) {
     events.push({
       id: "rejected",
       type: "rejected",
-      actor: "customer",
       title: "Quotation rejected",
       description: "This quotation was declined.",
-      date: q.rejectedAt || q.decidedAt,
+      date: q.rejectedAt,
     });
   }
 
-  return events.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const seen = new Set();
+  return events
+    .filter((e) => {
+      const key = `${e.type}-${e.date}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
 }
 
 const timelineIcon = {
-  sent: { Icon: Send, tone: "bg-blue-100 text-blue-700" },
-  viewed: { Icon: Eye, tone: "bg-cyan-100 text-cyan-700" },
-  negotiation_requested: { Icon: MessageSquareWarning, tone: "bg-amber-100 text-amber-700" },
-  counter_offered: { Icon: HandCoins, tone: "bg-amber-100 text-amber-700" },
-  accepted: { Icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700" },
-  rejected: { Icon: XCircle, tone: "bg-red-100 text-red-700" },
-  default: { Icon: Clock, tone: "bg-gray-100 text-gray-600" },
+  sent: Send,
+  viewed: Eye,
+  negotiation_requested: MessageSquareWarning,
+  counter_offered: HandCoins,
+  accepted: CheckCircle2,
+  rejected: XCircle,
+  default: Clock,
 };
+
+// ── Small reusable "eyebrow" section label — the mono/uppercase device
+// used throughout instead of generic bold-uppercase headings. ──
+function Eyebrow({ children }) {
+  return (
+    <div className="flex items-center gap-2 mb-4">
+      <span className="w-1.5 h-1.5 bg-[#A9793F] shrink-0" aria-hidden="true" />
+      <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0F2E20]/70">
+        {children}
+      </h2>
+    </div>
+  );
+}
 
 export default function CustomerQuotation() {
   const { token } = useParams();
@@ -205,9 +289,8 @@ export default function CustomerQuotation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // NOTE: The backend automatically marks the quotation as "viewed" inside
+  // NOTE: the backend marks the quotation as "viewed" inside
   // GET /api/public/quotation/:token. There is no separate /view endpoint.
-  // DO NOT call POST /api/public/quotation/:token/view — it does not exist.
   const loadQuotation = async () => {
     setLoading(true);
     setErrorType(null);
@@ -288,9 +371,8 @@ export default function CustomerQuotation() {
     }
   };
 
-  // Assumes a backend route that streams/returns the final quotation PDF,
-  // the same document emailed to the customer. Adjust the path below if
-  // your route differs (e.g. `/pdf` vs `/download`).
+  // Backend route: GET /api/public/quotation/:token/pdf — only responds
+  // once status is "accepted" (see publicQuotation-pdf-route-ADD-THIS.js).
   const handleDownloadPdf = async () => {
     setDownloading(true);
     setActionError("");
@@ -314,39 +396,39 @@ export default function CustomerQuotation() {
     }
   };
 
-  // ════════════════════════════════════════
-  // LOADING STATE
-  // ════════════════════════════════════════
+  const fontStyle = <style>{FONT_IMPORTS}</style>;
+  const bodyFont = { fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif" };
+  const displayFont = { fontFamily: "'Space Grotesk', ui-sans-serif, system-ui, sans-serif" };
+  const monoFont = { fontFamily: "'IBM Plex Mono', ui-monospace, monospace" };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F6F7F3] py-10 px-4">
-        <div className="max-w-[1100px] mx-auto space-y-6 animate-pulse">
-          <div className="h-28 bg-white rounded-2xl shadow-sm border border-emerald-900/5" />
-          <div className="h-24 bg-white rounded-2xl shadow-sm border border-emerald-900/5" />
-          <div className="h-40 bg-white rounded-2xl shadow-sm border border-emerald-900/5" />
-          <div className="h-64 bg-white rounded-2xl shadow-sm border border-emerald-900/5" />
-          <div className="h-40 bg-white rounded-2xl shadow-sm border border-emerald-900/5" />
+      <div className="min-h-screen bg-[#F5F4EF] py-10 px-4" style={bodyFont}>
+        {fontStyle}
+        <div className="max-w-[880px] mx-auto space-y-5 animate-pulse">
+          <div className="h-32 bg-white rounded-xl border border-[#0F2E20]/10" />
+          <div className="h-24 bg-white rounded-xl border border-[#0F2E20]/10" />
+          <div className="h-52 bg-white rounded-xl border border-[#0F2E20]/10" />
+          <div className="h-64 bg-white rounded-xl border border-[#0F2E20]/10" />
         </div>
       </div>
     );
   }
 
-  // ════════════════════════════════════════
-  // ERROR STATE
-  // ════════════════════════════════════════
   if (errorType) {
     return (
-      <div className="min-h-screen bg-[#F6F7F3] flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-lg border border-red-100 p-10 max-w-md w-full text-center animate-[fadeIn_0.3s_ease]">
+      <div className="min-h-screen bg-[#F5F4EF] flex items-center justify-center px-4" style={bodyFont}>
+        {fontStyle}
+        <div className="bg-white rounded-xl border border-[#0F2E20]/10 shadow-sm p-10 max-w-md w-full text-center">
           {errorType === "expired" ? (
-            <Clock className="mx-auto text-amber-500 mb-4" size={56} />
+            <Clock className="mx-auto text-amber-500 mb-4" size={48} strokeWidth={1.5} />
           ) : (
-            <XCircle className="mx-auto text-red-500 mb-4" size={56} />
+            <XCircle className="mx-auto text-red-500 mb-4" size={48} strokeWidth={1.5} />
           )}
-          <h1 className="text-xl font-bold text-gray-800 mb-2">
+          <h1 className="font-semibold text-lg text-[#0F2E20] mb-2" style={displayFont}>
             {errorType === "expired" ? "Quotation Expired" : "Invalid Quotation"}
           </h1>
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-[#1B211D]/60 leading-relaxed">
             {errorType === "expired"
               ? "This quotation link is no longer valid. Please reach out to your sales representative for an updated quotation."
               : "We couldn't find a quotation for this link. Please check the link or contact your sales representative."}
@@ -373,189 +455,156 @@ export default function CustomerQuotation() {
   const isFinal = ["accepted", "rejected"].includes(effectiveStatus);
   const canDownload = effectiveStatus === "accepted";
   const timeline = buildTimeline(quotation);
-
-  // ════════════════════════════════════════
-  // SUCCESS SCREENS (after action taken in this session)
-  // ════════════════════════════════════════
-  const renderSuccessScreen = () => {
-    if (actionState === "accepted") {
-      return (
-        <div className="bg-white rounded-2xl shadow-lg border border-emerald-200 p-12 text-center animate-[fadeIn_0.4s_ease]">
-          <CheckCircle2 className="mx-auto text-emerald-600 mb-4" size={72} />
-          <h2 className="text-2xl font-extrabold text-emerald-800 mb-2">
-            Quotation Accepted Successfully
-          </h2>
-          <p className="text-gray-600">Our Sales Representative will contact you shortly.</p>
-        </div>
-      );
-    }
-    if (actionState === "negotiated") {
-      return (
-        <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-12 text-center animate-[fadeIn_0.4s_ease]">
-          <MessageSquareWarning className="mx-auto text-amber-500 mb-4" size={72} />
-          <h2 className="text-2xl font-extrabold text-amber-700 mb-2">
-            Negotiation Request Submitted Successfully
-          </h2>
-          <p className="text-gray-600">Our team will review your request and get back to you shortly.</p>
-        </div>
-      );
-    }
-    return null;
-  };
+  const meta = statusMeta[effectiveStatus];
 
   return (
-    <div className="min-h-screen bg-[#F6F7F3] py-8 px-4">
-      <div className="max-w-[1100px] mx-auto space-y-6">
+    <div className="min-h-screen bg-[#F5F4EF] py-10 px-4" style={bodyFont}>
+      {fontStyle}
+      <div className="max-w-[880px] mx-auto space-y-5">
         {/* ── Header ── */}
-        <div className="relative overflow-hidden rounded-2xl shadow-sm bg-gradient-to-br from-[#0F3D2E] to-[#154D3A] px-6 py-7 sm:px-8">
-          <div
-            className="pointer-events-none absolute -right-10 -top-10 w-48 h-48 rounded-full bg-[#C9A227]/10"
-            aria-hidden="true"
-          />
-          <div className="relative flex flex-wrap items-center justify-between gap-4">
+        <div
+          className="relative overflow-hidden rounded-xl px-6 py-7 sm:px-9"
+          style={{
+            background: "linear-gradient(155deg,#0F2E20 0%,#163A28 60%,#1A4530 100%)",
+            backgroundImage:
+              "repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 34px), linear-gradient(155deg,#0F2E20 0%,#163A28 60%,#1A4530 100%)",
+          }}
+        >
+          <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-[#C9A227] text-[#0F3D2E] flex items-center justify-center font-black text-xl shadow-sm">
+              <div
+                className="w-11 h-11 rounded-md bg-[#A9793F] text-[#0F2E20] flex items-center justify-center font-bold text-lg shrink-0"
+                style={displayFont}
+              >
                 A
               </div>
               <div>
-                <p className="text-xl font-extrabold text-white tracking-tight leading-none">AADONA</p>
-                <p className="text-xs text-emerald-200/80 uppercase tracking-[0.14em] mt-1">
-                  Enterprise Quotation Portal
+                <p className="text-lg font-semibold text-white tracking-tight leading-none" style={displayFont}>
+                  AADONA
+                </p>
+                <p className="font-mono text-[10px] text-white/50 uppercase tracking-[0.18em] mt-1.5">
+                  Quotation Portal
                 </p>
               </div>
             </div>
-            {statusBadge[effectiveStatus] && (
+
+            {meta && (
               <span
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white ${statusBadge[effectiveStatus].classes}`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white ${meta.classes}`}
               >
-                {statusBadge[effectiveStatus].label}
+                <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                {meta.label}
               </span>
             )}
           </div>
-          <div className="relative grid sm:grid-cols-3 gap-4 mt-6 pt-5 border-t border-white/10 text-sm">
+
+          <div className="relative grid grid-cols-2 sm:grid-cols-3 gap-4 mt-7 pt-5 border-t border-white/10">
             <div>
-              <p className="text-emerald-200/70 font-semibold uppercase text-[11px] tracking-wide mb-1">
-                Quotation No.
-              </p>
-              <p className="text-white font-bold flex items-center gap-1.5">
-                <FileText size={14} className="text-[#C9A227]" />
+              <p className="font-mono text-[10px] text-white/45 uppercase tracking-[0.14em] mb-1">Quotation No.</p>
+              <p className="text-white font-medium text-sm" style={monoFont}>
                 {quotation.quotationNumber}
               </p>
             </div>
             <div>
-              <p className="text-emerald-200/70 font-semibold uppercase text-[11px] tracking-wide mb-1">
-                Quotation Date
-              </p>
-              <p className="text-white/90 font-medium">
-                {quotation.sentAt ? new Date(quotation.sentAt).toLocaleDateString() : "—"}
+              <p className="font-mono text-[10px] text-white/45 uppercase tracking-[0.14em] mb-1">Date</p>
+              <p className="text-white/85 text-sm" style={monoFont}>
+                {fmtShortDate(quotation.sentAt)}
               </p>
             </div>
             <div>
-              <p className="text-emerald-200/70 font-semibold uppercase text-[11px] tracking-wide mb-1 flex items-center gap-1">
-                <Clock size={12} /> Valid Till
-              </p>
-              <p className="text-white/90 font-medium">
-                {quotation.validTill ? new Date(quotation.validTill).toLocaleDateString() : "—"}
+              <p className="font-mono text-[10px] text-white/45 uppercase tracking-[0.14em] mb-1">Valid Till</p>
+              <p className="text-white/85 text-sm" style={monoFont}>
+                {fmtShortDate(quotation.validTill)}
               </p>
             </div>
           </div>
         </div>
 
         {/* ── Customer + Sales Rep ── */}
-        <div className="grid sm:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/5 p-6 transition hover:shadow-md">
-            <h2 className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wide mb-4 flex items-center gap-1.5">
-              <User size={13} className="text-[#C9A227]" /> Customer
-            </h2>
-            <div className="space-y-2.5 text-sm">
-              <p className="text-gray-800 font-semibold">{quotation.customer?.personalName || "—"}</p>
-              <p className="text-gray-500 flex items-center gap-1.5">
-                <Building2 size={13} /> {quotation.customer?.companyName || "—"}
+        <div className="grid sm:grid-cols-2 gap-5">
+          <div className="bg-white rounded-xl border border-[#0F2E20]/8 p-6">
+            <Eyebrow>Customer</Eyebrow>
+            <div className="space-y-2.5 text-sm text-[#1B211D]">
+              <p className="font-semibold flex items-center gap-2">
+                <User size={13} className="text-[#0F2E20]/40 shrink-0" /> {quotation.customer?.personalName || "—"}
               </p>
-              <p className="text-gray-500 flex items-center gap-1.5">
-                <Mail size={13} /> {quotation.customer?.email || "—"}
+              <p className="text-[#1B211D]/60 flex items-center gap-2">
+                <Building2 size={13} className="shrink-0" /> {quotation.customer?.companyName || "—"}
               </p>
-              <p className="text-gray-500 flex items-center gap-1.5">
-                <Phone size={13} /> {quotation.customer?.contactNumber || "—"}
+              <p className="text-[#1B211D]/60 flex items-center gap-2">
+                <Mail size={13} className="shrink-0" /> {quotation.customer?.email || "—"}
+              </p>
+              <p className="text-[#1B211D]/60 flex items-center gap-2">
+                <Phone size={13} className="shrink-0" /> {quotation.customer?.contactNumber || "—"}
               </p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/5 p-6 transition hover:shadow-md">
-            <h2 className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wide mb-4 flex items-center gap-1.5">
-              <ShieldCheck size={13} className="text-[#C9A227]" /> Your Sales Representative
-            </h2>
-            <div className="space-y-2.5 text-sm">
-              <p className="text-gray-800 font-semibold">
+          <div className="bg-white rounded-xl border border-[#0F2E20]/8 p-6">
+            <Eyebrow>Sales Representative</Eyebrow>
+            <div className="space-y-2.5 text-sm text-[#1B211D]">
+              <p className="font-semibold flex items-center gap-2">
+                <ShieldCheck size={13} className="text-[#0F2E20]/40 shrink-0" />
                 {quotation.salesRep?.name || quotation.createdBy?.name || "—"}
               </p>
-              <p className="text-gray-500 flex items-center gap-1.5">
-                <Mail size={13} /> {quotation.salesRep?.email || quotation.createdBy?.email || "—"}
+              <p className="text-[#1B211D]/60 flex items-center gap-2">
+                <Mail size={13} className="shrink-0" /> {quotation.salesRep?.email || quotation.createdBy?.email || "—"}
               </p>
-              <p className="text-gray-500 flex items-center gap-1.5">
-                <Phone size={13} /> {quotation.salesRep?.contactNumber || quotation.createdBy?.contactNumber || "—"}
+              <p className="text-[#1B211D]/60 flex items-center gap-2">
+                <Phone size={13} className="shrink-0" />
+                {quotation.salesRep?.contactNumber || quotation.createdBy?.contactNumber || "—"}
               </p>
             </div>
           </div>
         </div>
 
-        {/* ── History Timeline (customer + sales only) ── */}
-        {timeline.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/5 p-6 transition hover:shadow-md">
-            <h2 className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wide mb-5">History</h2>
-            <ol className="relative border-l-2 border-emerald-900/10 ml-3 space-y-6">
-              {timeline.map((ev) => {
-                const { Icon, tone } = timelineIcon[ev.type] || timelineIcon.default;
-                return (
-                  <li key={ev.id} className="ml-5">
-                    <span
-                      className={`absolute -left-[15px] flex items-center justify-center w-7 h-7 rounded-full ring-4 ring-white ${tone}`}
-                    >
-                      <Icon size={14} />
-                    </span>
-                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                      <p className="text-sm font-semibold text-gray-800">{ev.title || ev.message}</p>
-                      <span className="text-xs text-gray-400">{fmtDate(ev.date || ev.createdAt)}</span>
-                    </div>
-                    {ev.description && (
-                      <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{ev.description}</p>
-                    )}
-                    {ev.amount != null && (
-                      <p className="text-sm font-bold text-[#0F3D2E] mt-1">{fmtMoney(ev.amount)}</p>
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        )}
-
-        {/* ── Products Table ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/5 p-6 transition hover:shadow-md">
-          <h2 className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wide mb-4">Products</h2>
-          <div className="overflow-x-auto">
+        {/* ── Products ── */}
+        <div className="bg-white rounded-xl border border-[#0F2E20]/8 p-6">
+          <Eyebrow>Products</Eyebrow>
+          <div className="overflow-x-auto -mx-6 px-6">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#0F3D2E] text-white text-left">
-                  <th className="px-3 py-2.5 rounded-tl-lg">Product</th>
-                  <th className="px-3 py-2.5">Description</th>
-                  <th className="px-3 py-2.5">Qty</th>
-                  <th className="px-3 py-2.5">Unit Price (₹)</th>
-                  <th className="px-3 py-2.5">GST</th>
-                  <th className="px-3 py-2.5">Discount</th>
-                  <th className="px-3 py-2.5 rounded-tr-lg">Total (₹)</th>
+                <tr className="text-left border-b-2 border-[#0F2E20]">
+                  <th className="py-2.5 pr-3 font-mono text-[10px] uppercase tracking-wide text-[#0F2E20]/60 font-semibold">
+                    Product
+                  </th>
+                  <th className="py-2.5 pr-3 font-mono text-[10px] uppercase tracking-wide text-[#0F2E20]/60 font-semibold">
+                    Qty
+                  </th>
+                  <th className="py-2.5 pr-3 font-mono text-[10px] uppercase tracking-wide text-[#0F2E20]/60 font-semibold text-right">
+                    Unit Price
+                  </th>
+                  <th className="py-2.5 pr-3 font-mono text-[10px] uppercase tracking-wide text-[#0F2E20]/60 font-semibold text-right">
+                    GST
+                  </th>
+                  <th className="py-2.5 pr-3 font-mono text-[10px] uppercase tracking-wide text-[#0F2E20]/60 font-semibold text-right">
+                    Discount
+                  </th>
+                  <th className="py-2.5 font-mono text-[10px] uppercase tracking-wide text-[#0F2E20]/60 font-semibold text-right">
+                    Total
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {(quotation.items || []).map((item, i) => (
-                  <tr key={i} className="border-b border-emerald-900/5 hover:bg-emerald-50/50 transition">
-                    <td className="px-3 py-2.5 text-gray-800 font-medium">{item.name}</td>
-                    <td className="px-3 py-2.5 text-gray-600">{item.description || "—"}</td>
-                    <td className="px-3 py-2.5 text-gray-700">{item.quantity}</td>
-                    <td className="px-3 py-2.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                    <td className="px-3 py-2.5 text-gray-700">{item.gst}%</td>
-                    <td className="px-3 py-2.5 text-gray-700">{item.discount || 0}%</td>
-                    <td className="px-3 py-2.5 font-semibold text-gray-800">
+                  <tr key={i} className="border-b border-[#0F2E20]/8 last:border-0">
+                    <td className="py-3 pr-3">
+                      <p className="text-[#1B211D] font-medium">{item.name}</p>
+                      {item.description && <p className="text-[#1B211D]/45 text-xs mt-0.5">{item.description}</p>}
+                    </td>
+                    <td className="py-3 pr-3 text-[#1B211D]/70" style={monoFont}>
+                      {item.quantity}
+                    </td>
+                    <td className="py-3 pr-3 text-[#1B211D]/70 text-right" style={monoFont}>
+                      ₹{Number(item.unitPrice).toFixed(2)}
+                    </td>
+                    <td className="py-3 pr-3 text-[#1B211D]/70 text-right" style={monoFont}>
+                      {item.gst}%
+                    </td>
+                    <td className="py-3 pr-3 text-[#1B211D]/70 text-right" style={monoFont}>
+                      {item.discount || 0}%
+                    </td>
+                    <td className="py-3 text-[#1B211D] font-semibold text-right" style={monoFont}>
                       ₹{Number(item.total).toFixed(2)}
                     </td>
                   </tr>
@@ -565,123 +614,176 @@ export default function CustomerQuotation() {
           </div>
         </div>
 
-        {/* ── Summary Card ── */}
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-[#C9A227]/25 p-6 transition hover:shadow-md">
-          <h2 className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wide mb-4">Summary</h2>
-          <div className="max-w-sm ml-auto space-y-1.5 text-sm">
-            <div className="flex justify-between text-gray-600">
+        {/* ── Summary ── */}
+        <div className="bg-white rounded-xl border border-[#0F2E20]/8 p-6">
+          <Eyebrow>Summary</Eyebrow>
+          <div className="max-w-xs ml-auto space-y-1.5 text-sm" style={monoFont}>
+            <div className="flex justify-between text-[#1B211D]/60">
               <span>Subtotal</span>
               <span>{fmtMoney(quotation.subtotal)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>GST Amount</span>
+            <div className="flex justify-between text-[#1B211D]/60">
+              <span>GST</span>
               <span>{fmtMoney(quotation.gstAmount)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Discount Amount</span>
+            <div className="flex justify-between text-[#1B211D]/60">
+              <span>Discount</span>
               <span>− {fmtMoney(quotation.discountAmount)}</span>
             </div>
-            <div className="flex justify-between items-center bg-[#0F3D2E] rounded-xl px-4 py-3 mt-3">
-              <span className="text-base font-bold text-white">Grand Total</span>
-              <span className="text-xl font-extrabold text-[#C9A227]">{fmtMoney(quotation.grandTotal)}</span>
+            <div className="flex justify-between items-center bg-[#0F2E20] rounded-lg px-4 py-3 mt-3">
+              <span className="font-sans text-sm font-semibold text-white">Grand Total</span>
+              <span className="text-lg font-semibold text-[#D9B77A]">{fmtMoney(quotation.grandTotal)}</span>
             </div>
           </div>
         </div>
 
         {/* ── Notes ── */}
         {quotation.notes && (
-          <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/5 p-6 transition hover:shadow-md">
-            <h2 className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wide mb-2">Notes</h2>
-            <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{quotation.notes}</p>
+          <div className="bg-white rounded-xl border border-[#0F2E20]/8 p-6">
+            <Eyebrow>Notes</Eyebrow>
+            <p className="text-sm text-[#1B211D]/70 whitespace-pre-wrap leading-relaxed">{quotation.notes}</p>
           </div>
         )}
 
-        {/* ── Counter Offer Card ── */}
+        {/* ── History — signature "signal path" timeline ── */}
+        {timeline.length > 0 && (
+          <div className="bg-white rounded-xl border border-[#0F2E20]/8 p-6">
+            <Eyebrow>History</Eyebrow>
+            <ol className="relative">
+              <span className="absolute left-[5px] top-1 bottom-1 w-px bg-[#0F2E20]/12" aria-hidden="true" />
+              {timeline.map((ev, i) => {
+                const Icon = timelineIcon[ev.type] || timelineIcon.default;
+                return (
+                  <li key={ev.id} className={`relative pl-7 ${i === timeline.length - 1 ? "" : "pb-6"}`}>
+                    <span className="absolute left-0 top-0.5 w-[11px] h-[11px] bg-white border-2 border-[#0F2E20] flex items-center justify-center">
+                      <span className="w-1 h-1 bg-[#0F2E20]" />
+                    </span>
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                      <p className="text-sm font-semibold text-[#1B211D] flex items-center gap-1.5">
+                        <Icon size={13} className="text-[#0F2E20]/50" />
+                        {ev.title}
+                      </p>
+                      <span className="font-mono text-[11px] text-[#1B211D]/40">{fmtDate(ev.date)}</span>
+                    </div>
+                    {ev.description && (
+                      <p className="text-sm text-[#1B211D]/55 mt-0.5 leading-relaxed">{ev.description}</p>
+                    )}
+                    {ev.amount != null && (
+                      <p className="text-sm font-semibold text-[#0F2E20] mt-1" style={monoFont}>
+                        {fmtMoney(ev.amount)}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
+
+        {/* ── Counter Offer (actionable) ── */}
         {showCounterOfferView && (
-          <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-200 p-6 transition hover:shadow-md">
-            <h2 className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-4">
-              Counter Offer From Our Team
-            </h2>
-            <div className="grid sm:grid-cols-3 gap-4 text-sm mb-4">
+          <div className="bg-white rounded-xl border-2 border-amber-200 p-6">
+            <Eyebrow>Counter Offer From Our Team</Eyebrow>
+            <div className="grid sm:grid-cols-3 gap-4 text-sm mb-4" style={monoFont}>
               <div>
-                <p className="text-gray-400 font-semibold uppercase text-xs mb-1">Original Total</p>
-                <p className="text-gray-800 font-bold">{fmtMoney(quotation.grandTotal)}</p>
+                <p className="font-sans text-[#1B211D]/40 text-xs mb-1 uppercase tracking-wide">Original Total</p>
+                <p className="text-[#1B211D] font-semibold">{fmtMoney(quotation.grandTotal)}</p>
               </div>
               <div>
-                <p className="text-gray-400 font-semibold uppercase text-xs mb-1">Your Previous Offer</p>
-                <p className="text-gray-800 font-bold">{fmtMoney(quotation.expectedBudget)}</p>
+                <p className="font-sans text-[#1B211D]/40 text-xs mb-1 uppercase tracking-wide">Your Offer</p>
+                <p className="text-[#1B211D] font-semibold">{fmtMoney(quotation.expectedBudget)}</p>
               </div>
               <div>
-                <p className="text-gray-400 font-semibold uppercase text-xs mb-1">Our Counter Offer</p>
-                <p className="text-amber-700 font-extrabold text-lg">{fmtMoney(quotation.counterOfferAmount)}</p>
+                <p className="font-sans text-amber-700/70 text-xs mb-1 uppercase tracking-wide">Counter Offer</p>
+                <p className="text-amber-700 font-bold text-base">{fmtMoney(quotation.counterOfferAmount)}</p>
               </div>
             </div>
 
             {(quotation.counterOfferItems || []).length > 0 && (
-              <div className="overflow-x-auto mb-4">
+              <div className="overflow-x-auto mb-4 -mx-6 px-6">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-amber-500 text-white text-left">
-                      <th className="px-3 py-2 rounded-tl-lg">Product</th>
-                      <th className="px-3 py-2">Qty</th>
-                      <th className="px-3 py-2">Unit Price (₹)</th>
-                      <th className="px-3 py-2">GST</th>
-                      <th className="px-3 py-2">Discount</th>
-                      <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
+                    <tr className="text-left border-b-2 border-amber-400">
+                      <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-wide text-amber-700/70 font-semibold">
+                        Product
+                      </th>
+                      <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-wide text-amber-700/70 font-semibold">
+                        Qty
+                      </th>
+                      <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-wide text-amber-700/70 font-semibold text-right">
+                        Unit Price
+                      </th>
+                      <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-wide text-amber-700/70 font-semibold text-right">
+                        GST
+                      </th>
+                      <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-wide text-amber-700/70 font-semibold text-right">
+                        Discount
+                      </th>
+                      <th className="py-2 font-mono text-[10px] uppercase tracking-wide text-amber-700/70 font-semibold text-right">
+                        Total
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {quotation.counterOfferItems.map((item, i) => (
-                      <tr key={i} className="border-b border-amber-100">
-                        <td className="px-3 py-2 text-gray-800 font-medium">{item.name}</td>
-                        <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
-                        <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                        <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
-                        <td className="px-3 py-2 text-gray-700">{item.discount}%</td>
-                        <td className="px-3 py-2 font-semibold text-gray-800">₹{Number(item.total).toFixed(2)}</td>
+                      <tr key={i} className="border-b border-amber-100 last:border-0">
+                        <td className="py-2.5 pr-3 text-[#1B211D] font-medium">{item.name}</td>
+                        <td className="py-2.5 pr-3 text-[#1B211D]/70" style={monoFont}>
+                          {item.quantity}
+                        </td>
+                        <td className="py-2.5 pr-3 text-[#1B211D]/70 text-right" style={monoFont}>
+                          ₹{Number(item.unitPrice).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 pr-3 text-[#1B211D]/70 text-right" style={monoFont}>
+                          {item.gst}%
+                        </td>
+                        <td className="py-2.5 pr-3 text-[#1B211D]/70 text-right" style={monoFont}>
+                          {item.discount}%
+                        </td>
+                        <td className="py-2.5 text-[#1B211D] font-semibold text-right" style={monoFont}>
+                          ₹{Number(item.total).toFixed(2)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <div className="max-w-sm ml-auto space-y-1 text-sm mt-3">
-                  <div className="flex justify-between text-gray-600">
+                <div className="max-w-xs ml-auto space-y-1 text-sm mt-3" style={monoFont}>
+                  <div className="flex justify-between text-[#1B211D]/60">
                     <span>Subtotal</span>
                     <span>{fmtMoney(quotation.counterOfferSubtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-[#1B211D]/60">
                     <span>Discount</span>
                     <span>− {fmtMoney(quotation.counterOfferDiscountAmount)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-[#1B211D]/60">
                     <span>GST</span>
                     <span>{fmtMoney(quotation.counterOfferGstAmount)}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-amber-50 rounded-xl px-4 py-2.5 mt-2 border border-amber-200">
-                    <span className="font-bold text-amber-700">Counter Total</span>
-                    <span className="text-lg font-extrabold text-amber-700">
-                      {fmtMoney(quotation.counterOfferAmount)}
-                    </span>
+                  <div className="flex justify-between items-center bg-amber-50 rounded-lg px-4 py-2.5 mt-2 border border-amber-200">
+                    <span className="font-sans font-semibold text-amber-700">Counter Total</span>
+                    <span className="font-semibold text-amber-700">{fmtMoney(quotation.counterOfferAmount)}</span>
                   </div>
                 </div>
               </div>
             )}
             {quotation.counterOfferMessage && (
-              <p className="text-sm text-gray-700 whitespace-pre-wrap border-t border-amber-100 pt-3">
+              <p className="text-sm text-[#1B211D]/70 whitespace-pre-wrap border-t border-amber-100 pt-3">
                 <span className="font-semibold">Message: </span>
                 {quotation.counterOfferMessage}
               </p>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 onClick={() => setCounterConfirmOpen(true)}
-                className="flex-1 bg-[#0F3D2E] hover:bg-[#0c3125] active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
+                className="flex-1 bg-[#0F2E20] hover:bg-[#0B2318] active:scale-[0.99] text-white font-semibold text-sm py-3.5 rounded-lg transition-all"
               >
                 Accept Counter Offer
               </button>
               <button
                 onClick={() => setNegotiateOpen(true)}
-                className="flex-1 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
+                className="flex-1 border-2 border-amber-400 text-amber-700 hover:bg-amber-50 active:scale-[0.99] font-semibold text-sm py-3.5 rounded-lg transition-all"
               >
                 Negotiate Again
               </button>
@@ -689,46 +791,111 @@ export default function CustomerQuotation() {
           </div>
         )}
 
-        {/* ── Action Error ── */}
+        {/* ── Action Buttons (fresh quotation) ── */}
+        {showButtons && (
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => setConfirmOpen(true)}
+              className="flex-1 bg-[#0F2E20] hover:bg-[#0B2318] active:scale-[0.99] text-white font-semibold text-sm py-3.5 rounded-lg transition-all"
+            >
+              Accept Quotation
+            </button>
+            <button
+              onClick={() => setNegotiateOpen(true)}
+              className="flex-1 border-2 border-[#0F2E20]/20 text-[#0F2E20] hover:bg-[#0F2E20]/[0.04] active:scale-[0.99] font-semibold text-sm py-3.5 rounded-lg transition-all"
+            >
+              Request Negotiation
+            </button>
+          </div>
+        )}
+
+        {/* ── Error ── */}
         {actionError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-            <AlertTriangle size={16} />
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <AlertTriangle size={16} className="shrink-0" />
             {actionError}
           </div>
         )}
 
-        {/* ── Success Screen ── */}
-        {actionState && renderSuccessScreen()}
+        {/* ── This-session success ── */}
+        {actionState === "accepted" && (
+          <div className="bg-white rounded-xl border border-[#22C55E]/25 p-10 text-center">
+            <CheckCircle2 className="mx-auto text-[#22C55E] mb-3" size={52} strokeWidth={1.5} />
+            <h2 className="font-semibold text-lg text-[#0F2E20] mb-1.5" style={displayFont}>
+              Quotation Accepted Successfully
+            </h2>
+            <p className="text-sm text-[#1B211D]/60">Our Sales Representative will contact you shortly.</p>
+          </div>
+        )}
+        {actionState === "negotiated" && (
+          <div className="bg-white rounded-xl border border-amber-200 p-10 text-center">
+            <MessageSquareWarning className="mx-auto text-amber-500 mb-3" size={52} strokeWidth={1.5} />
+            <h2 className="font-semibold text-lg text-amber-700 mb-1.5" style={displayFont}>
+              Negotiation Request Submitted
+            </h2>
+            <p className="text-sm text-[#1B211D]/60">Our team will review your request and get back to you shortly.</p>
+          </div>
+        )}
 
-        {/* ── Final Outcome + Download ── */}
+        {/* ── Awaiting review (non-actionable, non-final) ── */}
+        {!actionState &&
+          !showButtons &&
+          !showCounterOfferView &&
+          !isFinal &&
+          meta && (
+            <div className="bg-white rounded-xl border border-[#0F2E20]/8 p-8 text-center">
+              <ShieldCheck className="mx-auto text-[#0F2E20]/60 mb-3" size={32} strokeWidth={1.5} />
+              <span
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold border ${meta.classes}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                {meta.label}
+              </span>
+            </div>
+          )}
+
+        {/* ══════════════════════════════════════════════════
+            FINAL OUTCOME — always the last thing on the page,
+            and where Download PDF lives once accepted.
+           ══════════════════════════════════════════════════ */}
         {!actionState && isFinal && (
           <div
-            className={`rounded-2xl shadow-sm border p-8 text-center ${
-              effectiveStatus === "accepted"
-                ? "bg-emerald-50/60 border-emerald-200"
-                : "bg-red-50/60 border-red-200"
+            className={`rounded-xl border p-9 text-center ${
+              effectiveStatus === "accepted" ? "bg-[#0F2E20] border-[#0F2E20]" : "bg-white border-red-200"
             }`}
           >
             {effectiveStatus === "accepted" ? (
-              <Sparkles className="mx-auto text-[#C9A227] mb-3" size={36} />
+              <CheckCircle2 className="mx-auto text-[#22C55E] mb-3" size={40} strokeWidth={1.5} />
             ) : (
-              <XCircle className="mx-auto text-red-500 mb-3" size={36} />
+              <XCircle className="mx-auto text-red-500 mb-3" size={40} strokeWidth={1.5} />
             )}
-            <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1.5">Final Outcome</p>
-            <span
-              className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${statusBadge[quotation.status].classes} bg-white`}
+            <p
+              className={`font-mono text-[11px] uppercase tracking-[0.16em] mb-2 ${
+                effectiveStatus === "accepted" ? "text-white/50" : "text-[#1B211D]/40"
+              }`}
             >
-              {statusBadge[quotation.status].label}
+              Final Outcome
+            </p>
+            <span
+              className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${meta.classes} bg-white`}
+            >
+              {meta.label}
             </span>
 
+            {effectiveStatus === "accepted" && (
+              <p className="text-2xl font-semibold text-[#D9B77A] mt-4" style={monoFont}>
+                {fmtMoney(quotation.negotiatedAmount ?? quotation.grandTotal)}
+              </p>
+            )}
+
             {canDownload && (
-              <div className="mt-6">
+              <div className="mt-7">
                 <button
                   onClick={handleDownloadPdf}
                   disabled={downloading}
-                  className="inline-flex items-center gap-2 bg-[#0F3D2E] hover:bg-[#0c3125] text-white font-semibold text-sm px-6 py-3 rounded-xl shadow-md transition-all disabled:opacity-60"
+                  className="inline-flex items-center gap-2 bg-[#A9793F] hover:bg-[#96692F] text-white font-semibold text-sm px-6 py-3 rounded-lg transition-all disabled:opacity-60"
                 >
-                  <Download size={16} />
+                  {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                   {downloading ? "Preparing PDF..." : "Download Quotation PDF"}
                 </button>
               </div>
@@ -736,64 +903,34 @@ export default function CustomerQuotation() {
           </div>
         )}
 
-        {/* ── Other non-actionable states (awaiting review) ── */}
-        {!actionState &&
-          !showButtons &&
-          !showCounterOfferView &&
-          !isFinal &&
-          statusBadge[quotation.status] && (
-            <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/5 p-8 text-center">
-              <ShieldCheck className="mx-auto text-[#0F3D2E] mb-3" size={40} />
-              <span
-                className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${statusBadge[quotation.status].classes}`}
-              >
-                {statusBadge[quotation.status].label}
-              </span>
-            </div>
-          )}
-
-        {/* ── Action Buttons ── */}
-        {showButtons && (
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={() => setConfirmOpen(true)}
-              className="flex-1 bg-[#0F3D2E] hover:bg-[#0c3125] active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
-            >
-              Accept Quotation
-            </button>
-            <button
-              onClick={() => setNegotiateOpen(true)}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-md transition-all"
-            >
-              Request Negotiation
-            </button>
-          </div>
-        )}
-
-        <p className="text-center text-xs text-gray-400 pt-2">AADONA · Enterprise Quotation Portal</p>
+        <p className="text-center font-mono text-[10px] text-[#1B211D]/35 uppercase tracking-[0.14em] pt-2">
+          AADONA · Quotation Portal
+        </p>
       </div>
 
       {/* ── Confirm Accept Dialog ── */}
       {confirmOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50 animate-[fadeIn_0.2s_ease]">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Accept Quotation?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              By accepting, you confirm acceptance of the pricing and terms outlined in this
-              quotation. This action cannot be undone.
+        <div className="fixed inset-0 bg-[#0F2E20]/50 flex items-center justify-center px-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="font-semibold text-lg text-[#0F2E20] mb-2" style={displayFont}>
+              Accept Quotation?
+            </h3>
+            <p className="text-sm text-[#1B211D]/60 mb-6">
+              By accepting, you confirm acceptance of the pricing and terms outlined in this quotation. This action
+              cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmOpen(false)}
                 disabled={submitting}
-                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
+                className="flex-1 border border-[#0F2E20]/15 text-[#1B211D] font-semibold py-2.5 rounded-lg hover:bg-[#0F2E20]/[0.04] transition disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAccept}
                 disabled={submitting}
-                className="flex-1 bg-[#0F3D2E] hover:bg-[#0c3125] text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
+                className="flex-1 bg-[#0F2E20] hover:bg-[#0B2318] text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
               >
                 {submitting ? "Accepting..." : "Confirm"}
               </button>
@@ -804,26 +941,27 @@ export default function CustomerQuotation() {
 
       {/* ── Confirm Accept Counter Offer Dialog ── */}
       {counterConfirmOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50 animate-[fadeIn_0.2s_ease]">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Accept Counter Offer?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              By accepting, you confirm the counter offer of{" "}
-              <strong>{fmtMoney(quotation.counterOfferAmount)}</strong> for this quotation. This
-              action cannot be undone.
+        <div className="fixed inset-0 bg-[#0F2E20]/50 flex items-center justify-center px-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="font-semibold text-lg text-[#0F2E20] mb-2" style={displayFont}>
+              Accept Counter Offer?
+            </h3>
+            <p className="text-sm text-[#1B211D]/60 mb-6">
+              By accepting, you confirm the counter offer of <strong>{fmtMoney(quotation.counterOfferAmount)}</strong>{" "}
+              for this quotation. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setCounterConfirmOpen(false)}
                 disabled={submitting}
-                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
+                className="flex-1 border border-[#0F2E20]/15 text-[#1B211D] font-semibold py-2.5 rounded-lg hover:bg-[#0F2E20]/[0.04] transition disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAcceptCounter}
                 disabled={submitting}
-                className="flex-1 bg-[#0F3D2E] hover:bg-[#0c3125] text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
+                className="flex-1 bg-[#0F2E20] hover:bg-[#0B2318] text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
               >
                 {submitting ? "Accepting..." : "Confirm"}
               </button>
@@ -834,35 +972,35 @@ export default function CustomerQuotation() {
 
       {/* ── Negotiate Modal ── */}
       {negotiateOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50 animate-[fadeIn_0.2s_ease]">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+        <div className="fixed inset-0 bg-[#0F2E20]/50 flex items-center justify-center px-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
             <button
               onClick={() => setNegotiateOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-[#1B211D]/40 hover:text-[#1B211D]"
             >
               <X size={20} />
             </button>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Request Negotiation</h3>
-            <p className="text-sm text-gray-500 mb-5">
+            <h3 className="font-semibold text-lg text-[#0F2E20] mb-1" style={displayFont}>
+              Request Negotiation
+            </h3>
+            <p className="text-sm text-[#1B211D]/60 mb-5">
               Tell us what would work better for you and we'll get back to you.
             </p>
 
             <form onSubmit={handleNegotiate} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Reason</label>
+                <label className="block text-sm font-semibold text-[#1B211D] mb-1.5">Reason</label>
                 <textarea
                   required
                   rows={2}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="E.g. Budget constraints, competitor pricing, etc."
-                  className="w-full border border-amber-200 rounded-xl px-4 py-2.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition bg-white text-sm"
+                  className="w-full border border-[#0F2E20]/15 rounded-lg px-4 py-2.5 focus:border-[#0F2E20]/40 focus:ring-2 focus:ring-[#0F2E20]/10 outline-none transition bg-white text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Expected Total Price (₹)
-                </label>
+                <label className="block text-sm font-semibold text-[#1B211D] mb-1.5">Expected Total Price (₹)</label>
                 <input
                   type="number"
                   min="0"
@@ -871,17 +1009,17 @@ export default function CustomerQuotation() {
                   value={expectedBudget}
                   onChange={(e) => setExpectedBudget(e.target.value)}
                   placeholder="e.g. 45000"
-                  className="w-full border border-amber-200 rounded-xl px-4 py-2.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition bg-white text-sm"
+                  className="w-full border border-[#0F2E20]/15 rounded-lg px-4 py-2.5 focus:border-[#0F2E20]/40 focus:ring-2 focus:ring-[#0F2E20]/10 outline-none transition bg-white text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Additional Notes</label>
+                <label className="block text-sm font-semibold text-[#1B211D] mb-1.5">Additional Notes</label>
                 <textarea
                   rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Any other details you'd like to share (optional)"
-                  className="w-full border border-amber-200 rounded-xl px-4 py-2.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition bg-white text-sm"
+                  className="w-full border border-[#0F2E20]/15 rounded-lg px-4 py-2.5 focus:border-[#0F2E20]/40 focus:ring-2 focus:ring-[#0F2E20]/10 outline-none transition bg-white text-sm"
                 />
               </div>
 
@@ -890,7 +1028,7 @@ export default function CustomerQuotation() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
+                className="w-full bg-[#0F2E20] hover:bg-[#0B2318] text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
               >
                 {submitting ? "Submitting..." : "Submit"}
               </button>
@@ -900,4 +1038,4 @@ export default function CustomerQuotation() {
       )}
     </div>
   );
-} 
+}

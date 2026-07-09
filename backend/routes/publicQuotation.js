@@ -469,4 +469,44 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
   }
 });
 
+// ── GET /quotation/:publicToken/pdf ── (NO AUTH — customer facing)
+router.get("/quotation/:publicToken/pdf", async (req, res) => {
+  try {
+    const { publicToken } = req.params;
+
+    const quotation = await SalesQuotation.findOne({ publicToken }).populate("customer");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.status !== "accepted") {
+      return res.status(400).json({ message: "PDF is only available after the quotation has been accepted" });
+    }
+
+    const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+
+    const itemsForReport = quotation.counterOfferItems?.length
+      ? quotation.counterOfferItems
+      : quotation.items;
+
+    const finalAmount = quotation.negotiatedAmount ?? quotation.grandTotal;
+
+    const pdfBuffer = await generateQuotationPdf(quotation, {
+      finalAmount,
+      items: itemsForReport,
+      salesRep,
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=Quotation-${quotation.quotationNumber}.pdf`
+    );
+    return res.send(pdfBuffer);
+  } catch (err) {
+    console.error("Public quotation PDF error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
