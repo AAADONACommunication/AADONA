@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const transporter = require("../mailer");
 const SalesQuotation = require("../models/SalesQuotation");
 const SalesRep = require("../models/SalesRep");
-require("../models/Customer"); 
+require("../models/Customer");
 const generateQuotationPdf = require("../utils/generateQuotationPdf");
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
