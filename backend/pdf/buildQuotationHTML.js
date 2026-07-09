@@ -17,9 +17,25 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
   const salesRep = opts.salesRep || null;
   const amountLabel = opts.label || "Final Accepted Amount";
 
-  const subtotal = Number(quotation.subtotal || 0);
-  const discountAmount = Number(quotation.discountAmount || 0);
-  const gstAmount = Number(quotation.gstAmount || 0);
+  const subtotal = items.reduce(
+    (sum, item) =>
+      sum + Number(item.quantity || 0) * Number(item.unitPrice || 0),
+    0
+  );
+
+  const gstAmount = items.reduce((sum, item) => {
+    const base =
+      Number(item.quantity || 0) * Number(item.unitPrice || 0);
+
+    return sum + base * (Number(item.gst || 0) / 100);
+  }, 0);
+
+  const totalBeforeDiscount = subtotal + gstAmount;
+
+  const discountAmount = Math.max(
+    totalBeforeDiscount - finalAmount,
+    0
+  );
 
   const itemRowsHTML = items.map((item, i) => `
     <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">

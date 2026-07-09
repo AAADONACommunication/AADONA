@@ -264,14 +264,34 @@ export default function CustomerQuotation() {
   const timeline = buildTimeline(quotation);
 
   const isAccepted = effectiveStatus === "accepted";
-  const finalAmount = quotation.negotiatedAmount != null ? quotation.negotiatedAmount : quotation.grandTotal;
-  const finalItems =
-    quotation.negotiatedAmount != null &&
-    quotation.negotiatedAmount === quotation.counterOfferAmount &&
-    quotation.counterOfferItems?.length
-      ? quotation.counterOfferItems
-      : quotation.items;
+  const acceptedCounterFromHistory = [...(quotation.negotiationHistory || [])]
+    .reverse()
+    .find(
+      (h) =>
+        h.counterOfferAmount != null &&
+        h.counterOfferItems?.length &&
+        quotation.negotiatedAmount != null &&
+        Math.abs(
+          Number(h.counterOfferAmount) - Number(quotation.negotiatedAmount)
+        ) < 0.01
+    );
 
+  const finalAmount =
+    quotation.negotiatedAmount != null
+      ? Number(quotation.negotiatedAmount)
+      : Number(quotation.grandTotal || 0);
+
+  const finalItems =
+    quotation.counterOfferItems?.length &&
+    quotation.negotiatedAmount != null &&
+    Math.abs(
+      Number(quotation.counterOfferAmount) -
+        Number(quotation.negotiatedAmount)
+    ) < 0.01
+      ? quotation.counterOfferItems
+      : acceptedCounterFromHistory?.counterOfferItems?.length
+      ? acceptedCounterFromHistory.counterOfferItems
+      : quotation.items;
   // ════════════════════════════════════════
   // SUCCESS SCREENS (immediately after action, this session only)
   // ════════════════════════════════════════

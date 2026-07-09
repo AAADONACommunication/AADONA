@@ -72,14 +72,17 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.price) || 0),
     0
   );
+  const tax = subtotal * (Number(gstRate) / 100);
+
+  const totalBeforeDiscount = subtotal + tax;
+
   const discountAmount = !discountEnabled || !discountValue
     ? 0
     : discountType === "percent"
-    ? subtotal * (Number(discountValue) / 100)
-    : Number(discountValue);
-  const taxableAmount = Math.max(subtotal - discountAmount, 0);
-  const tax = taxableAmount * (Number(gstRate) / 100);
-  const total = taxableAmount + tax;
+    ? totalBeforeDiscount * (Number(discountValue) / 100)
+    : Math.min(Number(discountValue), totalBeforeDiscount);
+
+  const total = Math.max(totalBeforeDiscount - discountAmount, 0);
 
   const adminSubtotal = (selected?.items || []).reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
