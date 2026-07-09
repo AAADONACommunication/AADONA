@@ -674,7 +674,7 @@ export default function ManagePendingNegotiations() {
           <p className="text-sm text-gray-400 py-10 text-center italic">
             {loaded
               ? `No ${statusFilter === "all" ? "negotiation records" : statusFilter + " negotiations"} found.`
-              : "Loading..."}
+              : "Loading..."} 
           </p>
         ) : (
           <div className="overflow-x-auto">
