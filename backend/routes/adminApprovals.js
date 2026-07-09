@@ -47,8 +47,6 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
     const oldDiscount = Number(quotation.discountAmount) || 0;
     const oldGst = Number(quotation.gstAmount) || 0;
 
-    const gstRate = subtotal > 0 ? oldGst / subtotal : 0;
-
     let newGst = oldGst;
     const totalBeforeDiscount = parseFloat((subtotal + newGst).toFixed(2));
 
@@ -66,18 +64,45 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
     }
 
     // Spread the extra discount proportionally across items — unitPrice & gst untouched
-    const extraDiscount = parseFloat((newDiscount - oldDiscount).toFixed(2));
+    const effectiveDiscountPercent =
+      totalBeforeDiscount > 0
+        ? Math.min((newDiscount / totalBeforeDiscount) * 100, 100)
+        : 0;
+
     const revisedItems = quotation.items.map((item) => {
-      const share = subtotal > 0 ? item.total / subtotal : 0;
-      const itemExtraDiscount = parseFloat((extraDiscount * share).toFixed(2));
+      const baseAmount =
+        Number(item.quantity) * Number(item.unitPrice);
+
+      // GST calculated fully on base amount
+      const itemGst = parseFloat(
+        (baseAmount * (Number(item.gst || 0) / 100)).toFixed(2)
+      );
+
+      // First: Base + GST
+      const itemTotalBeforeDiscount = parseFloat(
+        (baseAmount + itemGst).toFixed(2)
+      );
+
+      // Then: Discount on Base + GST
+      const itemDiscountAmount = parseFloat(
+        (
+          itemTotalBeforeDiscount *
+          (effectiveDiscountPercent / 100)
+        ).toFixed(2)
+      );
+
+      const itemFinalTotal = parseFloat(
+        (itemTotalBeforeDiscount - itemDiscountAmount).toFixed(2)
+      );
+
       return {
         name: item.name,
         description: item.description,
         quantity: item.quantity,
-        unitPrice: item.unitPrice, // unchanged
-        gst: item.gst, // unchanged
-        discount: parseFloat((Number(item.discount || 0) + itemExtraDiscount).toFixed(2)),
-        total: item.total,
+        unitPrice: item.unitPrice,
+        gst: item.gst,
+        discount: parseFloat(effectiveDiscountPercent.toFixed(4)),
+        total: itemFinalTotal,
       };
     });
 
