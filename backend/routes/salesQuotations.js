@@ -6,10 +6,12 @@ const transporter = require("../mailer");
 const SalesQuotation = require("../models/SalesQuotation");
 const AdminQuotation = require("../models/AdminQuotation");
 const Customer = require("../models/Customer");
+const SalesRep = require("../models/SalesRep");
 const crypto = require("crypto");
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://aadona.com";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const generateQuotationPdf = require("../utils/generateQuotationPdf");
 
 // ── Generate unique quotation number ──
 const generateQuotationNumber = async () => {
@@ -471,7 +473,56 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
     quotation.acceptedAt = new Date();
     await quotation.save();
 
+    // ── Notify customer, sales rep, and admin — all get the final quotation as a PDF ──
     try {
+      const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
+      const pdfBuffer = await generateQuotationPdf(quotation, {
+        finalAmount: quotation.negotiatedAmount,
+        salesRep,
+      });
+      const attachments = [
+        {
+          filename: `Quotation-${quotation.quotationNumber}.pdf`,
+          content: pdfBuffer,
+          contentType: "application/pdf",
+        },
+      ];
+
+      const itemRowsHtml = quotation.items.map((item, i) => `
+        <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${Number(item.total).toFixed(2)}</td>
+        </tr>
+      `).join("");
+
+      const reportHtml = `
+        <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+          <h2 style="color:#166534">Negotiated Offer Accepted ✅</h2>
+          <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+          <p style="color:#374151;font-size:14px"><strong>Original Quotation Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
+            <thead>
+              <tr style="background:#166534">
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Discount</th>
+                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
+              </tr>
+            </thead>
+            <tbody>${itemRowsHtml}</tbody>
+          </table>
+          <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
+            Final Accepted Amount: ₹${Number(quotation.negotiatedAmount).toFixed(2)}
+          </p>
+        </div>
+      `;
+
       if (quotation.customer?.email) {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
@@ -484,60 +535,34 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
                 Good news — your offer of <strong>₹${Number(quotation.negotiatedAmount).toFixed(2)}</strong>
                 for quotation <strong>#${quotation.quotationNumber}</strong> has been accepted.
               </p>
-              <p style="color:#374151;font-size:14px">Our team will reach out to you shortly with next steps.</p>
+              <p style="color:#374151;font-size:14px">The final quotation is attached as a PDF. Our team will reach out to you shortly.</p>
             </div>
           `,
+          attachments,
         });
       }
-    } catch (mailErr) {
-      console.error("Accept-negotiation customer email failed:", mailErr.message);
-    }
 
-    // ── Full report to admin — final negotiated price with item breakdown ──
-    try {
+      if (salesRep?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: salesRep.email,
+          subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
+          html: reportHtml,
+          attachments,
+        });
+      }
+
       if (ADMIN_EMAIL) {
-        const itemRowsHtml = quotation.items.map((item, i) => `
-          <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${Number(item.total).toFixed(2)}</td>
-          </tr>
-        `).join("");
-
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: ADMIN_EMAIL,
           subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
-          html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Negotiated Offer Accepted ✅</h2>
-              <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
-              <p style="color:#374151;font-size:14px"><strong>Original Quotation Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
-                <thead>
-                  <tr style="background:#166534">
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Discount</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>${itemRowsHtml}</tbody>
-              </table>
-              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
-                Final Accepted Amount: ₹${Number(quotation.negotiatedAmount).toFixed(2)}
-              </p>
-            </div>
-          `,
+          html: reportHtml,
+          attachments,
         });
       }
     } catch (mailErr) {
-      console.error("Accept-negotiation admin report email failed:", mailErr.message);
+      console.error("Accept-negotiation notification email failed:", mailErr.message);
     }
 
     return res.json({ message: "Customer offer accepted", quotation });

@@ -8,7 +8,6 @@ const multer = require("multer");
 const crypto = require("crypto");
 const dns = require("dns").promises;
 const transporter = require("./mailer");
-const puppeteer = require("puppeteer-core");
 const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 const { BetaAnalyticsDataClient } = require("@google-analytics/data");
@@ -23,7 +22,7 @@ const startQuotationReminderCron = require("./cron/quotationReminders");
 const publicQuotationRoutes = require("./routes/publicQuotation");
 const adminApprovalRoutes = require("./routes/adminApprovals");
 
-let browserInstance = null;
+const { getBrowser, closeBrowser } = require("./helpers/browserPool");
 
 // ─── PDF Cache: slug → { url, generatedAt } ───────────────────────────────
 const pdfCache = new Map();
@@ -121,37 +120,6 @@ const isEmailDomainValid = async (email) => {
 const deleteFromFirebase = deleteFromVPS;
 
 const uploadToFirebase = (file, folder) => uploadToVPS(file, folder);
-
-/* =============================
-   BROWSER / PUPPETEER
-============================= */
-
-const getBrowser = async () => {
-  if (browserInstance) {
-    try {
-      await browserInstance.version();
-      return browserInstance;
-    } catch (e) {
-      console.log("Browser instance dead, restarting:", e.message);
-      browserInstance = null;
-    }
-  }
-
-  browserInstance = await puppeteer.launch({
-    executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome",
-    headless: "new",
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--single-process",
-    ],
-  });
-
-  console.log("Browser launched successfully");
-  return browserInstance;
-};
 
 /* =============================
    GENERATE & UPLOAD PDF (with cache)
@@ -3228,10 +3196,8 @@ app.get("/api/subscribers", verifyToken, adminLimiter, async (req, res) => {
 ============================= */
 
 process.on("SIGINT", async () => {
-  if (browserInstance) {
-    await browserInstance.close();
-    console.log("Puppeteer browser closed");
-  }
+  await closeBrowser();
+  console.log("Puppeteer browser closed");
   process.exit();
 });
 

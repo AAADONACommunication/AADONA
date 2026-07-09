@@ -4,6 +4,7 @@ const transporter = require("../mailer");
 const SalesQuotation = require("../models/SalesQuotation");
 const AdminQuotation = require("../models/AdminQuotation");
 const SalesRep = require("../models/SalesRep");
+const generateQuotationPdf = require("../utils/generateQuotationPdf");
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://aadona.com";
@@ -95,9 +96,40 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
     quotation.acceptedAt = new Date();
     await quotation.save();
 
-    // Notify Sales Representative
+    // Notify customer, sales rep, and admin — all get a PDF of the final quotation
     try {
       const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+      const pdfBuffer = await generateQuotationPdf(quotation, {
+        finalAmount: quotation.grandTotal,
+        salesRep,
+      });
+      const attachments = [
+        {
+          filename: `Quotation-${quotation.quotationNumber}.pdf`,
+          content: pdfBuffer,
+          contentType: "application/pdf",
+        },
+      ];
+
+      if (quotation.customer?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: quotation.customer.email,
+          subject: `Quotation Confirmed — #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+              <h2 style="color:#166534">Your Quotation Is Confirmed ✅</h2>
+              <p style="color:#374151;font-size:14px">
+                Thank you for confirming quotation <strong>#${quotation.quotationNumber}</strong> for
+                <strong>₹${Number(quotation.grandTotal).toFixed(2)}</strong>.
+              </p>
+              <p style="color:#374151;font-size:14px">The final quotation is attached as a PDF for your records.</p>
+            </div>
+          `,
+          attachments,
+        });
+      }
+
       if (salesRep?.email) {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
@@ -111,9 +143,30 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
                 quotation <strong>#${quotation.quotationNumber}</strong> for
                 <strong>₹${Number(quotation.grandTotal).toFixed(2)}</strong>.
               </p>
-              <p style="color:#374151;font-size:14px">Please log in to the Sales Portal to proceed.</p>
+              <p style="color:#374151;font-size:14px">Final PDF attached. Please log in to the Sales Portal to proceed.</p>
             </div>
           `,
+          attachments,
+        });
+      }
+
+      if (ADMIN_EMAIL) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: ADMIN_EMAIL,
+          subject: `Quotation Accepted — #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+              <h2 style="color:#166534">Quotation Accepted ✅</h2>
+              <p style="color:#374151;font-size:14px">
+                Quotation <strong>#${quotation.quotationNumber}</strong> has been confirmed by
+                <strong>${quotation.customer?.personalName || "the customer"}</strong> for
+                <strong>₹${Number(quotation.grandTotal).toFixed(2)}</strong>.
+              </p>
+              <p style="color:#374151;font-size:14px">Final PDF attached for your records.</p>
+            </div>
+          `,
+          attachments,
         });
       }
     } catch (mailErr) {
@@ -326,6 +379,19 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         ? quotation.counterOfferItems
         : quotation.items;
 
+      const pdfBuffer = await generateQuotationPdf(quotation, {
+        finalAmount: quotation.negotiatedAmount,
+        items: itemsForReport,
+        salesRep,
+      });
+      const attachments = [
+        {
+          filename: `Quotation-${quotation.quotationNumber}.pdf`,
+          content: pdfBuffer,
+          contentType: "application/pdf",
+        },
+      ];
+
       const itemRowsHtml = itemsForReport.map((item, i) => `
         <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
@@ -363,12 +429,23 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         </div>
       `;
 
+      if (quotation.customer?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: quotation.customer.email,
+          subject: `Quotation Confirmed — #${quotation.quotationNumber}`,
+          html: reportHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">The final quotation is attached as a PDF for your records.</p></div>`,
+          attachments,
+        });
+      }
+
       if (salesRep?.email) {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
           subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
-          html: reportHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">Please log in to the Sales Portal to proceed.</p></div>`,
+          html: reportHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">Final PDF attached. Please log in to the Sales Portal to proceed.</p></div>`,
+          attachments,
         });
       }
 
@@ -378,6 +455,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
           to: ADMIN_EMAIL,
           subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
           html: reportHtml,
+          attachments,
         });
       }
     } catch (mailErr) {
