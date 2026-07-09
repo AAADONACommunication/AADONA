@@ -41,13 +41,20 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     setSelected(quotation);
     setError("");
     setSuccessMsg("");
-    // Only pre-fill the editable pricing form if this hasn't been sent to the customer yet
-    const isAdminRevised =
-      quotation.salesQuotation?.status === "admin_revised";
 
-    if (!quotation.salesQuotation || isAdminRevised) {
+    const salesQuotation = quotation.salesQuotation;
+    const isAdminRevised =
+      salesQuotation?.status === "admin_revised";
+
+    if (!salesQuotation || isAdminRevised) {
+      // ─────────────────────────────────────────
+      // ADMIN REVISED:
+      // Backend has already preserved last Sales
+      // unit prices + GST and auto-adjusted discount.
+      // Use SalesQuotation as editable source.
+      // ─────────────────────────────────────────
       const sourceItems = isAdminRevised
-        ? quotation.items || []
+        ? salesQuotation?.items || []
         : quotation.items || [];
 
       setItems(
@@ -59,12 +66,54 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         }))
       );
 
-      setGstRate(18);
-      setDiscountEnabled(false);
-      setDiscountType("percent");
-      setDiscountValue("");
-      setReminderDays("");
-      setNotes("");
+      if (isAdminRevised) {
+        // Keep GST from the last/revised Sales quotation.
+        // Current UI supports one common GST rate.
+        const revisedGstRate =
+          salesQuotation?.items?.length > 0
+            ? Number(salesQuotation.items[0].gst || 0)
+            : 18;
+
+        setGstRate(revisedGstRate);
+
+        // Admin direct approval creates pricingRevisionType = discount_applied.
+        // Backend already calculated the required discount percentage.
+        const autoDiscountPercent =
+          salesQuotation?.pricingRevisionType === "discount_applied" &&
+          salesQuotation?.items?.length > 0
+            ? Number(salesQuotation.items[0].discount || 0)
+            : 0;
+
+        if (autoDiscountPercent > 0) {
+          setDiscountEnabled(true);
+          setDiscountType("percent");
+          setDiscountValue(
+            String(
+              parseFloat(autoDiscountPercent.toFixed(4))
+            )
+          );
+        } else {
+          setDiscountEnabled(false);
+          setDiscountType("percent");
+          setDiscountValue("");
+        }
+
+        setReminderDays(
+          salesQuotation?.reminderAfterDays
+            ? String(salesQuotation.reminderAfterDays)
+            : ""
+        );
+
+        setNotes(salesQuotation?.notes || "");
+      } else {
+        // First quotation — old/default behaviour
+        setGstRate(18);
+        setDiscountEnabled(false);
+        setDiscountType("percent");
+        setDiscountValue("");
+        setReminderDays("");
+        setNotes("");
+      }
     }
   };
 
