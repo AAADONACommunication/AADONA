@@ -2,7 +2,23 @@ import { useState, useEffect } from "react";
 import { getFirebaseAuth } from "../../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { LogOut, UserPlus } from "lucide-react";
+import {
+  LogOut,
+  UserPlus,
+  ArrowLeft,
+  Package,
+  FolderTree,
+  PenLine,
+  Zap,
+  Inbox as InboxIcon,
+  Mail,
+  ClipboardList,
+  Users,
+  FileText,
+  Handshake,
+  BarChart3,
+  LayoutGrid,
+} from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 
@@ -37,10 +53,26 @@ export const safeJson = async (res) => {
 export const inputStyle =
   "w-full border border-green-300 rounded-xl px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white";
 
+// ── Tab registry — single source of truth for the dashboard tiles + the
+// in-tab switcher dropdown, so both stay in sync automatically. ──
+const TABS = [
+  { id: "products", label: "Products", icon: Package, desc: "Manage catalog & specs" },
+  { id: "categories", label: "Categories", icon: FolderTree, desc: "Organize product taxonomy" },
+  { id: "blogs", label: "Blogs", icon: PenLine, desc: "Write & publish articles" },
+  { id: "automation", label: "Automation", icon: Zap, desc: "Auto blog generation" },
+  { id: "inbox", label: "Inbox", icon: InboxIcon, desc: "Customer inquiries" },
+  { id: "newsletter", label: "Newsletter", icon: Mail, desc: "Broadcast to subscribers" },
+  { id: "history", label: "History", icon: ClipboardList, desc: "Audit log of changes" },
+  { id: "sales", label: "Sales Reps", icon: Users, desc: "Manage sales team" },
+  { id: "quotation-requests", label: "Quotation Requests", icon: FileText, desc: "Price incoming requests" },
+  { id: "pending-negotiations", label: "Pending Negotiations", icon: Handshake, desc: "Approve, reject or revise" },
+  { id: "insights", label: "Insights", icon: BarChart3, desc: "Traffic & analytics" },
+];
+
 export default function AdminPanel() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState(null); // null = dashboard launcher
   const [loading, setLoading] = useState(true);
 
   // ── Shared Data ──
@@ -168,13 +200,15 @@ export default function AdminPanel() {
     </div>
   );
 
+  const activeTabMeta = TABS.find((t) => t.id === activeTab);
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-green-50 pt-30 px-4 md:px-10 pb-10">
         <div className="max-w-6xl mx-auto">
 
-          {/* ── Top Header Bar ── */}
+          {/* ── Top Header Bar (unchanged) ── */}
           <div className="flex justify-between items-center mb-10 flex-wrap gap-4">
             <h1 className="text-3xl font-extrabold text-green-800 sm:align-middle tracking-tight">
               Admin Dashboard
@@ -215,7 +249,7 @@ export default function AdminPanel() {
 </div>
           </div>
 
-          {/* ── Manage Admin Panel (shown above tabs when toggled) ── */}
+          {/* ── Manage Admin Panel (shown above everything when toggled) ── */}
           {(showAdminForm || showAdminList) && (
             <ManageAdmin
               showAdminForm={showAdminForm}
@@ -225,87 +259,124 @@ export default function AdminPanel() {
             />
           )}
 
-          {/* ── Tab Navigation ── */}
-          <div className="flex gap-1 border-b mb-8 overflow-x-auto">
-            {[
-              { id: "products", label: "📦 Products" },
-              { id: "categories", label: "🗂️ Categories" },
-              { id: "blogs", label: "✍️ Blogs" },
-              { id: "automation", label: "⚡ Automation" },
-              { id: "inbox", label: "📬 Inbox" },
-              { id: "newsletter", label: "📧 Newsletter" },
-              { id: "history", label: "📋 History" },
-              { id: "sales", label: "👥 Sales Reps" },
-              { id: "quotation-requests", label: "📋 Quotation Requests" },
-              { id: "pending-negotiations", label: "🤝 Pending Negotiations" },
-              { id: "insights", label: "📊 Insights" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 font-medium transition whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-b-2 border-green-600 text-green-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* ── Tab Content ── */}
-          {activeTab === "products" && (
-            <Products
-              products={products}
-              setProducts={setProducts}
-              allCategories={allCategories}
-              reloadProducts={loadProducts}
-            />
+          {/* ════════════════════════════════════════
+              DASHBOARD LAUNCHER — shown when no tab is selected
+          ════════════════════════════════════════ */}
+          {activeTab === null && (
+            <div>
+              <div className="flex items-center gap-2 mb-6 text-green-700">
+                <LayoutGrid size={20} />
+                <p className="text-sm font-semibold uppercase tracking-wide">
+                  Choose a section to get started
+                </p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                        <Icon size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800 leading-tight">{tab.label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{tab.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
-          {activeTab === "categories" && (
-            <Categories
-              allCategories={allCategories}
-              setAllCategories={setAllCategories}
-              categoriesLoading={categoriesLoading}
-              reloadCategories={loadCategories}
-              reloadProducts={loadProducts}
-            />
+          {/* ════════════════════════════════════════
+              IN-TAB NAVIGATION — shown once a section is open
+          ════════════════════════════════════════ */}
+          {activeTab !== null && (
+            <>
+              <div className="flex flex-wrap items-center gap-3 mb-8 pb-4 border-b border-green-100">
+                <button
+                  onClick={() => setActiveTab(null)}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:text-green-800 transition"
+                >
+                  <ArrowLeft size={16} /> Dashboard
+                </button>
+                <span className="text-gray-300">/</span>
+                <span className="text-sm font-bold text-gray-800">{activeTabMeta?.label}</span>
+
+                <div className="ml-auto">
+                  <select
+                    value={activeTab}
+                    onChange={(e) => setActiveTab(e.target.value)}
+                    className="text-sm border border-green-200 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium focus:border-green-400 outline-none"
+                  >
+                    {TABS.map((tab) => (
+                      <option key={tab.id} value={tab.id}>
+                        {tab.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* ── Tab Content ── */}
+              {activeTab === "products" && (
+                <Products
+                  products={products}
+                  setProducts={setProducts}
+                  allCategories={allCategories}
+                  reloadProducts={loadProducts}
+                />
+              )}
+
+              {activeTab === "categories" && (
+                <Categories
+                  allCategories={allCategories}
+                  setAllCategories={setAllCategories}
+                  categoriesLoading={categoriesLoading}
+                  reloadCategories={loadCategories}
+                  reloadProducts={loadProducts}
+                />
+              )}
+
+              {activeTab === "blogs" && (
+                <Blogs
+                  blogs={blogs}
+                  reloadBlogs={loadBlogs}
+                />
+              )}
+
+              {activeTab === "inbox" && (
+                <Inbox
+                  inquiries={inquiries}
+                  setInquiries={setInquiries}
+                  loadInquiries={loadInquiries}
+                />
+              )}
+
+              {activeTab === "automation" && <BlogAutomation />}
+
+              {activeTab === "newsletter" && <Newsletter />}
+
+              {activeTab === "history" && <History />}
+
+              {activeTab === "sales" && <ManageSales />}
+
+              {activeTab === "quotation-requests" && (
+                <ManageQuotationRequests />
+              )}
+
+              {activeTab === "pending-negotiations" && (
+                <ManagePendingNegotiations />
+              )}
+
+              {activeTab === "insights" && <Insights />}
+            </>
           )}
-
-          {activeTab === "blogs" && (
-            <Blogs
-              blogs={blogs}
-              reloadBlogs={loadBlogs}
-            />
-          )}
-
-          {activeTab === "inbox" && (
-            <Inbox
-              inquiries={inquiries}
-              setInquiries={setInquiries}
-              loadInquiries={loadInquiries}
-            />
-          )}
-
-          {activeTab === "automation" && <BlogAutomation />}
-
-          {activeTab === "newsletter" && <Newsletter />}
-
-          {activeTab === "history" && <History />}
-
-          {activeTab === "sales" && <ManageSales />}
-
-          {activeTab === "quotation-requests" && (
-            <ManageQuotationRequests />
-          )}
-
-          {activeTab === "pending-negotiations" && (
-            <ManagePendingNegotiations />
-          )}
-
-          {activeTab === "insights" && <Insights />}
 
         </div>
       </div>
