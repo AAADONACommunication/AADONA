@@ -20,6 +20,71 @@ const statusLabels = {
   rejected: "Rejected",
 };
 
+const buildNegotiationRounds = (q) => {
+  const sellerTurns = [
+    {
+      kind: "original",
+      items: q.items || [],
+      subtotal: q.subtotal,
+      discountAmount: q.discountAmount,
+      gstAmount: q.gstAmount,
+      total: q.grandTotal,
+      at: q.sentAt,
+    },
+  ];
+  const customerTurns = [];
+
+  (q.negotiationHistory || []).forEach((h) => {
+    if (h.expectedBudget != null) {
+      customerTurns.push({
+        expectedBudget: h.expectedBudget,
+        message: h.customerMessage,
+        respondedAt: h.customerRespondedAt,
+      });
+    }
+    if (h.counterOfferAmount != null) {
+      sellerTurns.push({
+        kind: "counter",
+        items: h.counterOfferItems || [],
+        subtotal: h.counterOfferSubtotal,
+        discountAmount: h.counterOfferDiscountAmount,
+        gstAmount: h.counterOfferGstAmount,
+        total: h.counterOfferAmount,
+        message: h.counterOfferMessage,
+        at: h.counterOfferAt,
+      });
+    }
+  });
+
+  // Live/current round not yet pushed to history
+  if (q.expectedBudget != null) {
+    customerTurns.push({
+      expectedBudget: q.expectedBudget,
+      message: q.customerMessage,
+      respondedAt: q.customerRespondedAt,
+    });
+  }
+  if (q.counterOfferAmount != null) {
+    sellerTurns.push({
+      kind: "counter",
+      items: q.counterOfferItems || [],
+      subtotal: q.counterOfferSubtotal,
+      discountAmount: q.counterOfferDiscountAmount,
+      gstAmount: q.counterOfferGstAmount,
+      total: q.counterOfferAmount,
+      message: q.counterOfferMessage,
+      at: q.counterOfferAt,
+    });
+  }
+
+  const roundCount = Math.max(sellerTurns.length, customerTurns.length);
+  const rounds = [];
+  for (let i = 0; i < roundCount; i++) {
+    rounds.push({ seller: sellerTurns[i] || null, customer: customerTurns[i] || null });
+  }
+  return rounds;
+};
+
 export default function SentQuotations() {
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -211,60 +276,39 @@ export default function SentQuotations() {
         </div>
 
         {/* Negotiation history */}
-        {((selected.negotiationHistory || []).length > 0 ||
-          selected.expectedBudget != null ||
-          selected.negotiatedAmount != null) && (
-          <div className="border border-orange-200 bg-orange-50 rounded-xl p-4 mb-5 space-y-3">
-            <h4 className="text-sm font-bold text-orange-800">Negotiation History</h4>
+        {(() => {
+          const rounds = buildNegotiationRounds(selected);
+          const hasNegotiation = rounds.length > 1 || rounds[0]?.customer;
+          if (!hasNegotiation) return null;
 
-            {[
-              ...(selected.negotiationHistory || []),
-              selected.expectedBudget != null
-                ? {
-                    expectedBudget: selected.expectedBudget,
-                    customerMessage: selected.customerMessage,
-                    customerRespondedAt: selected.customerRespondedAt,
-                    counterOfferAmount: selected.counterOfferAmount,
-                    counterOfferMessage: selected.counterOfferMessage,
-                    counterOfferAt: selected.counterOfferAt,
-                  }
-                : null,
-            ]
-              .filter(Boolean)
-              .map((round, i) => (
-                <div key={i} className="bg-white rounded-lg border border-orange-100 p-3 space-y-2">
+          return (
+            <div className="border border-orange-200 bg-orange-50 rounded-xl p-4 mb-5 space-y-3">
+              <h4 className="text-sm font-bold text-orange-800">Negotiation History</h4>
+
+              {rounds.map((round, i) => (
+                <div key={i} className="bg-white rounded-lg border border-orange-100 p-3 space-y-3">
                   <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
                     Round {i + 1}
                   </p>
-                  {round.expectedBudget != null && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Customer Offered</span>
-                      <span className="font-semibold text-gray-800">
-                        ₹{Number(round.expectedBudget).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                  {round.customerMessage && (
-                    <p className="text-sm text-gray-700 whitespace-pre-line">
-                      <span className="font-semibold">Customer Message: </span>
-                      {round.customerMessage}
-                    </p>
-                  )}
-                  {round.customerRespondedAt && (
-                    <p className="text-xs text-gray-500">
-                      {new Date(round.customerRespondedAt).toLocaleString("en-IN")}
-                    </p>
-                  )}
 
-                  {round.counterOfferAmount != null && (
-                    <div className="border-t border-orange-50 pt-2 mt-1.5 space-y-2">
-                      <p className="text-sm font-semibold text-gray-700">Your Counter Offer</p>
+                  {/* Seller side — what we sent */}
+                  {round.seller && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-gray-700">
+                        {round.seller.kind === "original" ? "Quotation Sent" : "Your Counter Offer"}
+                      </p>
 
-                      {(round.counterOfferItems || []).length > 0 && (
+                      {round.seller.items?.length > 0 && (
                         <div className="overflow-x-auto">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="bg-amber-100 text-amber-800 text-left">
+                              <tr
+                                className={`text-left ${
+                                  round.seller.kind === "original"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}
+                              >
                                 <th className="px-2 py-1.5 rounded-tl-md">Product</th>
                                 <th className="px-2 py-1.5">Qty</th>
                                 <th className="px-2 py-1.5">Unit Price</th>
@@ -274,8 +318,8 @@ export default function SentQuotations() {
                               </tr>
                             </thead>
                             <tbody>
-                              {round.counterOfferItems.map((item, idx) => (
-                                <tr key={idx} className="border-b border-amber-50">
+                              {round.seller.items.map((item, idx) => (
+                                <tr key={idx} className="border-b border-gray-50">
                                   <td className="px-2 py-1.5 text-gray-800 font-medium">{item.name}</td>
                                   <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
                                   <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
@@ -290,47 +334,77 @@ export default function SentQuotations() {
                       )}
 
                       <div className="space-y-1 text-sm max-w-xs ml-auto">
-                        {round.counterOfferSubtotal != null && (
+                        {round.seller.subtotal != null && (
                           <div className="flex justify-between text-gray-600">
                             <span>Subtotal</span>
-                            <span>₹{Number(round.counterOfferSubtotal).toFixed(2)}</span>
+                            <span>₹{Number(round.seller.subtotal).toFixed(2)}</span>
                           </div>
                         )}
-                        {round.counterOfferGstAmount != null && (
+                        {round.seller.gstAmount != null && (
                           <div className="flex justify-between text-gray-600">
                             <span>GST</span>
-                            <span>₹{Number(round.counterOfferGstAmount).toFixed(2)}</span>
+                            <span>₹{Number(round.seller.gstAmount).toFixed(2)}</span>
                           </div>
                         )}
-                        {round.counterOfferDiscountAmount != null && (
+                        {round.seller.discountAmount != null && (
                           <div className="flex justify-between text-gray-600">
                             <span>Discount</span>
-                            <span>− ₹{Number(round.counterOfferDiscountAmount).toFixed(2)}</span>
+                            <span>− ₹{Number(round.seller.discountAmount).toFixed(2)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between font-bold text-amber-700 border-t border-amber-100 pt-1">
-                          <span>Counter Total</span>
-                          <span>₹{Number(round.counterOfferAmount).toFixed(2)}</span>
+                        <div
+                          className={`flex justify-between font-bold border-t pt-1 ${
+                            round.seller.kind === "original"
+                              ? "text-green-700 border-green-100"
+                              : "text-amber-700 border-amber-100"
+                          }`}
+                        >
+                          <span>{round.seller.kind === "original" ? "Grand Total" : "Counter Total"}</span>
+                          <span>₹{Number(round.seller.total).toFixed(2)}</span>
                         </div>
                       </div>
+
+                      {round.seller.message && (
+                        <p className="text-sm text-gray-700 whitespace-pre-line">
+                          <span className="font-semibold">Your Message: </span>
+                          {round.seller.message}
+                        </p>
+                      )}
+                      {round.seller.at && (
+                        <p className="text-xs text-gray-500">
+                          Sent: {new Date(round.seller.at).toLocaleString("en-IN")}
+                        </p>
+                      )}
                     </div>
                   )}
 
-                  {round.counterOfferMessage && (
-                    <p className="text-sm text-gray-700 whitespace-pre-line">
-                      <span className="font-semibold">Your Message: </span>
-                      {round.counterOfferMessage}
-                    </p>
-                  )}
-                  {round.counterOfferAt && (
-                    <p className="text-xs text-gray-500">
-                      Sent: {new Date(round.counterOfferAt).toLocaleString("en-IN")}
-                    </p>
+                  {/* Customer side — their response */}
+                  {round.customer && (
+                    <div className="border-t border-orange-50 pt-2 space-y-1.5">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Customer Offered</span>
+                        <span className="font-semibold text-gray-800">
+                          ₹{Number(round.customer.expectedBudget).toFixed(2)}
+                        </span>
+                      </div>
+                      {round.customer.message && (
+                        <p className="text-sm text-gray-700 whitespace-pre-line">
+                          <span className="font-semibold">Customer Message: </span>
+                          {round.customer.message}
+                        </p>
+                      )}
+                      {round.customer.respondedAt && (
+                        <p className="text-xs text-gray-500">
+                          {new Date(round.customer.respondedAt).toLocaleString("en-IN")}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
 
         {/* Products table */}
         <div className="overflow-x-auto">
