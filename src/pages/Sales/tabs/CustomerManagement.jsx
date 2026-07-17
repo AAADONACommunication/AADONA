@@ -5,7 +5,10 @@ import { safeJson, inputStyle } from "../SalesPanel";
 
 const CUSTOMERS_API = `${import.meta.env.VITE_API_URL}/customers`;
 
+const PARTNER_TYPES = ["Partner", "SI", "Reseller", "Distributor"];
+
 const emptyForm = {
+  partnerType: "Partner",
   companyName: "",
   contactNumber: "",
   email: "",
@@ -13,6 +16,7 @@ const emptyForm = {
   city: "",
   pinCode: "",
   address: "",
+  gstNumber: "",
 };
 
 export default function CustomerManagement({ customers, setCustomers, reloadCustomers }) {
@@ -33,12 +37,15 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
         c.companyName?.toLowerCase().includes(q) ||
         c.email?.toLowerCase().includes(q) ||
         c.contactNumber?.toLowerCase().includes(q) ||
-        c.city?.toLowerCase().includes(q)
+        c.city?.toLowerCase().includes(q) ||
+        c.partnerType?.toLowerCase().includes(q) ||
+        c.gstNumber?.toLowerCase().includes(q)
     );
   }, [customers, search]);
 
   const startEdit = (customer) => {
     setForm({
+      partnerType: customer.partnerType || "Partner",
       companyName: customer.companyName || "",
       contactNumber: customer.contactNumber || "",
       email: customer.email || "",
@@ -46,6 +53,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
       city: customer.city || "",
       pinCode: customer.pinCode || "",
       address: customer.address || "",
+      gstNumber: customer.gstNumber || "",
     });
     setEditingId(customer._id);
     setError("");
@@ -158,6 +166,24 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
         <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Partner / SI / Reseller / Distributor *
+            </label>
+            <select
+              value={form.partnerType}
+              onChange={(e) => handleChange("partnerType", e.target.value)}
+              className={inputStyle}
+              required
+            >
+              {PARTNER_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
               Company Name
             </label>
             <input
@@ -170,7 +196,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Personal Name *
+              Contact Person *
             </label>
             <input
               type="text"
@@ -183,7 +209,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Contact Number *
+              Mobile Number *
             </label>
             <input
               type="tel"
@@ -196,7 +222,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Email *
+              Email ID *
             </label>
             <input
               type="email"
@@ -221,7 +247,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Pin Code
+              Pincode
             </label>
             <input
               type="text"
@@ -232,9 +258,21 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              GST Number (if applicable)
+            </label>
+            <input
+              type="text"
+              value={form.gstNumber}
+              onChange={(e) => handleChange("gstNumber", e.target.value.toUpperCase())}
+              className={inputStyle}
+            />
+          </div>
+
           <div className="sm:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Address
+              Partner Address
             </label>
             <textarea
               rows={2}
@@ -288,22 +326,28 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-green-700 text-white text-left">
+                    <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Company</th>
                     <th className="px-4 py-3">Email</th>
                     <th className="px-4 py-3">Contact</th>
                     <th className="px-4 py-3">City</th>
+                    <th className="px-4 py-3">Pincode</th>
+                    <th className="px-4 py-3">GST</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((c) => (
                     <tr key={c._id} className="border-b border-green-100 hover:bg-green-50/50">
+                      <td className="px-4 py-3 text-gray-600">{c.partnerType || "—"}</td>
                       <td className="px-4 py-3 font-medium text-gray-800">{c.personalName}</td>
                       <td className="px-4 py-3 text-gray-600">{c.companyName || "—"}</td>
                       <td className="px-4 py-3 text-gray-600">{c.email}</td>
                       <td className="px-4 py-3 text-gray-600">{c.contactNumber || "—"}</td>
                       <td className="px-4 py-3 text-gray-600">{c.city || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.pinCode || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.gstNumber || "—"}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-3">
                           <button

@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { Plus, Trash2, Search, Send, ChevronLeft, Package } from "lucide-react";
+import { Plus, Trash2, Search, Send, Package } from "lucide-react";
 import { safeJson, inputStyle } from "../SalesPanel";
 
 const REQUIREMENTS_API = `${import.meta.env.VITE_API_URL}/quotation-requests`;
@@ -19,6 +19,8 @@ export default function CreateQuotation({
   allCategories,
   reloadCustomers,
   setActiveTab,
+  prefill,
+  onPrefillConsumed,
 }) {
   const [customerId, setCustomerId] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
@@ -28,7 +30,7 @@ export default function CreateQuotation({
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // ── Product picker: browse by category, or search across everything ──
+  // ── Product picker: browse by category/sub-category, or search across everything ──
   const [pickerOpen, setPickerOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [pickerType, setPickerType] = useState(""); // "active" | "passive"
@@ -37,8 +39,21 @@ export default function CreateQuotation({
 
   const selectedCustomer = customers.find((c) => c._id === customerId);
 
+  // Coming from "Project Locking" → Product Requirement carries the
+  // selected partner (and a notes summary) straight into this form.
+  useEffect(() => {
+    if (prefill?.customerId) {
+      setCustomerId(prefill.customerId);
+      if (prefill.notes) setNotes(prefill.notes);
+      onPrefillConsumed?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill]);
+
+  // Only search results are shown — the full customer list is never
+  // rendered up front, since it gets heavy once there are a lot of them.
   const filteredCustomers = useMemo(() => {
-    if (!customerSearch.trim()) return customers;
+    if (!customerSearch.trim()) return [];
     const q = customerSearch.toLowerCase();
     return customers.filter(
       (c) =>
@@ -79,17 +94,17 @@ export default function CreateQuotation({
   }, [products, productSearch]);
 
   // Category-browsed products (only once a leaf — category, or subcategory if it has any — is picked)
+  const subCategoryOptions = pickerType && pickerCategory ? getSubCategories(pickerType, pickerCategory) : [];
   const browsedProducts = useMemo(() => {
     if (!pickerCategory) return [];
-    const subs = getSubCategories(pickerType, pickerCategory);
-    if (subs.length > 0 && !pickerSubCategory) return [];
+    if (subCategoryOptions.length > 0 && !pickerSubCategory) return [];
     return products.filter((p) => {
       if (p.type !== pickerType) return false;
       if (p.category !== pickerCategory) return false;
       if (pickerSubCategory && p.subCategory !== pickerSubCategory) return false;
       return true;
     });
-  }, [products, allCategories, pickerType, pickerCategory, pickerSubCategory]);
+  }, [products, pickerType, pickerCategory, pickerSubCategory, subCategoryOptions.length]);
 
   // ── Line item handlers (no price — sales only specifies what & how much) ──
   const addProduct = (product) => {
@@ -266,6 +281,8 @@ export default function CreateQuotation({
                 </button>{" "}
                 tab.
               </p>
+            ) : customerSearch.trim() === "" ? (
+              <p className="text-sm text-gray-400 px-1">Start typing to search customers...</p>
             ) : (
               <div className="max-h-56 overflow-y-auto border border-green-100 rounded-xl divide-y">
                 {filteredCustomers.length === 0 ? (
@@ -311,17 +328,22 @@ export default function CreateQuotation({
           </div>
         </div>
 
-        {/* ── Category browse + search picker ── */}
+        {/* ── Category browse + search picker ──
+            Type / Category / Sub-category are three dropdowns shown together
+            instead of separate click-through screens, so switching between
+            them is a single click. The matching product list stays visible
+            below and doesn't collapse after you add one — pick one, then
+            immediately pick the next. */}
         {pickerOpen && (
-          <div className="border border-green-200 rounded-xl p-4 mb-5 bg-green-50/40">
-            <div className="relative mb-3">
+          <div className="border border-green-200 rounded-xl p-4 mb-5 bg-green-50/40 space-y-4">
+            <div className="relative">
               <Search
                 size={16}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
               />
               <input
                 type="text"
-                placeholder="Search all products by name..."
+                placeholder="Or just search all products by name..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 className="w-full border border-green-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none bg-white"
@@ -362,112 +384,105 @@ export default function CreateQuotation({
               </div>
             ) : (
               <>
-                {/* Breadcrumb / back navigation */}
-                {(pickerType || pickerCategory) && (
-                  <button
-                    onClick={() => {
-                      if (pickerSubCategory) setPickerSubCategory("");
-                      else if (pickerCategory) setPickerCategory("");
-                      else setPickerType("");
-                    }}
-                    className="flex items-center gap-1 text-xs font-semibold text-green-700 hover:underline mb-3"
-                  >
-                    <ChevronLeft size={14} /> Back
-                  </button>
-                )}
-
-                {/* Step 1: Type */}
-                {!pickerType && (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {["active", "passive"].map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setPickerType(type)}
-                        className="border border-green-200 rounded-xl px-4 py-4 text-left hover:bg-green-100 transition bg-white"
-                      >
-                        <p className="font-semibold text-gray-800 capitalize">{type} Products</p>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {getCategoriesByType(type).length} categories
-                        </p>
-                      </button>
-                    ))}
+                {/* Type / Category / Sub-category — three dropdowns side by side */}
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Type</label>
+                    <select
+                      value={pickerType}
+                      onChange={(e) => {
+                        setPickerType(e.target.value);
+                        setPickerCategory("");
+                        setPickerSubCategory("");
+                      }}
+                      className="w-full border border-green-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-green-500 outline-none"
+                    >
+                      <option value="">Select type</option>
+                      <option value="active">Active Products</option>
+                      <option value="passive">Passive Products</option>
+                    </select>
                   </div>
-                )}
 
-                {/* Step 2: Category */}
-                {pickerType && !pickerCategory && (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {getCategoriesByType(pickerType).length === 0 ? (
-                      <p className="text-sm text-gray-500 col-span-2 text-center py-6">
-                        No categories under {pickerType} products.
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Category</label>
+                    <select
+                      value={pickerCategory}
+                      onChange={(e) => {
+                        setPickerCategory(e.target.value);
+                        setPickerSubCategory("");
+                      }}
+                      disabled={!pickerType}
+                      className="w-full border border-green-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-green-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                    >
+                      <option value="">
+                        {pickerType ? "Select category" : "Pick type first"}
+                      </option>
+                      {getCategoriesByType(pickerType).map((cat) => (
+                        <option key={cat._id} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Sub-category</label>
+                    <select
+                      value={pickerSubCategory}
+                      onChange={(e) => setPickerSubCategory(e.target.value)}
+                      disabled={!pickerCategory || subCategoryOptions.length === 0}
+                      className="w-full border border-green-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-green-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                    >
+                      <option value="">
+                        {!pickerCategory
+                          ? "Pick category first"
+                          : subCategoryOptions.length === 0
+                          ? "None for this category"
+                          : "Select sub-category"}
+                      </option>
+                      {subCategoryOptions.map((sub) => (
+                        <option key={sub.name} value={sub.name}>
+                          {sub.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Matching products — click one to add, list stays put so the
+                    next one can be added right away without re-navigating. */}
+                {pickerCategory && (subCategoryOptions.length === 0 || pickerSubCategory) && (
+                  <div className="max-h-64 overflow-y-auto border border-green-100 rounded-lg bg-white divide-y">
+                    {browsedProducts.length === 0 ? (
+                      <p className="text-sm text-gray-500 p-4 text-center">
+                        No products found in this category.
                       </p>
                     ) : (
-                      getCategoriesByType(pickerType).map((cat) => (
-                        <button
-                          key={cat._id}
-                          onClick={() => setPickerCategory(cat.name)}
-                          className="border border-green-200 rounded-xl px-4 py-4 text-left hover:bg-green-100 transition bg-white"
-                        >
-                          <p className="font-semibold text-gray-800">{cat.name}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {cat.subCategories?.length || 0} subcategories
-                          </p>
-                        </button>
-                      ))
+                      browsedProducts.map((p) => {
+                        const added = items.some((item) => item.productId === p._id);
+                        return (
+                          <button
+                            key={p._id}
+                            onClick={() => addProduct(p)}
+                            disabled={added}
+                            className={`w-full text-left px-4 py-2.5 flex items-center justify-between gap-3 transition ${
+                              added ? "bg-green-50 cursor-default" : "hover:bg-green-50"
+                            }`}
+                          >
+                            <p className="font-medium text-gray-800 truncate">{p.name}</p>
+                            {added ? (
+                              <span className="text-xs font-semibold text-green-600 whitespace-nowrap">
+                                Added — pick next one
+                              </span>
+                            ) : (
+                              <Plus size={14} className="text-green-600 shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                 )}
-
-                {/* Step 3: SubCategory (only if this category has any) */}
-                {pickerType &&
-                  pickerCategory &&
-                  !pickerSubCategory &&
-                  getSubCategories(pickerType, pickerCategory).length > 0 && (
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {getSubCategories(pickerType, pickerCategory).map((sub) => (
-                        <button
-                          key={sub.name}
-                          onClick={() => setPickerSubCategory(sub.name)}
-                          className="border border-green-200 rounded-xl px-4 py-4 text-left hover:bg-green-100 transition bg-white"
-                        >
-                          <p className="font-semibold text-gray-800">{sub.name}</p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                {/* Step 4: Products list */}
-                {pickerCategory &&
-                  (getSubCategories(pickerType, pickerCategory).length === 0 || pickerSubCategory) && (
-                    <div className="max-h-64 overflow-y-auto border border-green-100 rounded-lg bg-white divide-y">
-                      {browsedProducts.length === 0 ? (
-                        <p className="text-sm text-gray-500 p-4 text-center">
-                          No products found in this category.
-                        </p>
-                      ) : (
-                        browsedProducts.map((p) => {
-                          const added = items.some((item) => item.productId === p._id);
-                          return (
-                            <button
-                              key={p._id}
-                              onClick={() => addProduct(p)}
-                              disabled={added}
-                              className={`w-full text-left px-4 py-2.5 flex items-center justify-between gap-3 transition ${
-                                added ? "bg-green-50 cursor-default" : "hover:bg-green-50"
-                              }`}
-                            >
-                              <p className="font-medium text-gray-800 truncate">{p.name}</p>
-                              {added && (
-                                <span className="text-xs font-semibold text-green-600 whitespace-nowrap">
-                                  Added
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
               </>
             )}
           </div>

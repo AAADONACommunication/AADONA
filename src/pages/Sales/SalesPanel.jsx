@@ -10,6 +10,9 @@ import {
   Inbox,
   ArrowLeft,
   ArrowRight,
+  Lock,
+  History as HistoryIcon,
+  BarChart3,
 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
@@ -20,6 +23,8 @@ import CustomerManagement from "./tabs/CustomerManagement";
 import IncomingQuotations from "./tabs/AdminQuotations";
 import ProfileMenu from "./tabs/ProfileMenu";
 import SentQuotations from "./tabs/SentQuotations";
+import ProjectLocking from "./tabs/ProjectLocking";
+import Insights from "./tabs/Insights";
 
 const PRODUCTS_API = `${import.meta.env.VITE_API_URL}/products`;
 const CATEGORIES_API = `${import.meta.env.VITE_API_URL}/categories`;
@@ -40,12 +45,17 @@ export const safeJson = async (res) => {
 export const inputStyle =
   "w-full border border-green-300 rounded-xl px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white";
 
+// ── Tabs ──
+// NOTE: order below also drives the dashboard tile order (kept in one place
+// so labels/icons/desc never drift out of sync between the two).
 const TABS = [
-  { id: "customers", label: "Customers", icon: Users, desc: "Manage your customer list" },
+  { id: "customers", label: "Partners Details", icon: Users, desc: "Manage your partner list" },
+  { id: "lock", label: "Project Locking", icon: Lock, desc: "Lock projects for partners" },
   { id: "create", label: "Product Requirement", icon: FilePlus2, desc: "Send a requirement to admin" },
   { id: "incoming", label: "Admin Quotation", icon: Inbox, desc: "Pricing received from admin" },
-  { id: "sent", label: "Sent Quotations", icon: FileText, desc: "Quotations sent to customers" },
-  { id: "quotations", label: "Customer Quotation", icon: FileText, desc: "Track customer responses" },
+  { id: "quotations", label: "Partner Quotation", icon: FileText, desc: "Track partner responses" },
+  { id: "insights", label: "Insights", icon: BarChart3, desc: "Performance overview & analytics" },
+  { id: "sent", label: "History", icon: HistoryIcon, desc: "Quotations sent to customers" },
 ];
 
 const greeting = () => {
@@ -55,10 +65,22 @@ const greeting = () => {
   return "Good evening";
 };
 
+const capitalizeFirst = (str) =>
+  str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+
 export default function SalesPanel() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState(null); // null = dashboard launcher
+  // Carries the partner + end-customer details from Project Locking over to
+  // Create Quotation when the user clicks "Product Requirement" there.
+  const [projectLockData, setProjectLockData] = useState(null);
+
+  const handleProceedToRequirement = (data) => {
+    setProjectLockData(data);
+    setActiveTab("create");
+  };
+
   // TEMP (design preview): loading starts false so the panel renders immediately
   // without waiting on Firebase auth. Set back to true once auth is re-enabled below.
   const [loading, setLoading] = useState(true);
@@ -206,14 +228,27 @@ export default function SalesPanel() {
 
   const activeTabMeta = TABS.find((t) => t.id === activeTab);
 
-  // ── Live numbers for the dashboard — real data, not decoration ──
-  const awaitingResponse = quotations.filter((q) =>
-    ["sent", "viewed"].includes(q.status)
-  ).length;
+  // ── Live numbers — still used for tile badges below ──
   const needsAttention = quotations.filter((q) =>
     ["negotiation_requested", "counter_offered", "admin_revised"].includes(q.status)
   ).length;
-  const acceptedCount = quotations.filter((q) => q.status === "accepted").length;
+
+  // ── Per-tab badge counts / dynamic subtitles for the dashboard tiles ──
+  // Keeping this as a lookup (instead of hardcoding each tile) is what keeps
+  // every tile rendered through the exact same markup below — same size,
+  // same spacing, same hover treatment, no favourites.
+  const tileMeta = {
+    customers: { subtitle: `${customers.length} in your list · manage details & history`, badge: null },
+    lock: { subtitle: "Lock projects for partners", badge: null },
+    create: { subtitle: "Send a requirement to admin", badge: null },
+    incoming: { subtitle: "Pricing received from admin", badge: incomingQuotations.length || null },
+    sent: { subtitle: "Quotations you've sent out to customers", badge: null },
+    quotations: {
+      subtitle: needsAttention > 0 ? `${needsAttention} need your response` : "Track acceptance, negotiation & status",
+      badge: needsAttention || null,
+    },
+    insights: { subtitle: "Performance overview & analytics", badge: null },
+  };
 
   return (
     <>
@@ -247,134 +282,46 @@ export default function SalesPanel() {
             <div className="space-y-6">
               {/* ── Welcome banner ── */}
               <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-2xl shadow-sm p-6 sm:p-7 text-white">
-                <p className="text-green-100 text-sm font-medium">
+                <p className="text-green-100 text-sm sm:text-2xl font-medium">
                   {greeting()}
-                  {repName ? `, ${repName}` : ""}
+                  {repName ? `, ${capitalizeFirst(repName)}` : ""}
                 </p>
-                <h2 className="text-xl sm:text-2xl font-bold mt-1">Here's where things stand today.</h2>
               </div>
 
-              {/* ── Quick stats — real numbers, at a glance ── */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5">
-                  <p className="text-3xl font-extrabold text-green-800">{customers.length}</p>
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mt-1">Customers</p>
-                </div>
-                <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5">
-                  <p className="text-3xl font-extrabold text-blue-700">{awaitingResponse}</p>
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mt-1">
-                    Awaiting Customer
-                  </p>
-                </div>
-                <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5">
-                  <p className="text-3xl font-extrabold text-amber-600">{needsAttention}</p>
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mt-1">
-                    Needs Your Action
-                  </p>
-                </div>
-                <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5">
-                  <p className="text-3xl font-extrabold text-green-600">{acceptedCount}</p>
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mt-1">Accepted</p>
-                </div>
-              </div>
-
-              {/* ── Bento-style section tiles — asymmetric so it never looks sparse ── */}
+              {/* ── Section tiles — every tab gets the exact same card, same size ── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <button
-                  onClick={() => setActiveTab("customers")}
-                  className="group lg:col-span-2 flex items-center justify-between gap-4 bg-white rounded-2xl border border-green-100 shadow-sm p-6 text-left hover:border-green-400 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                      <Users size={22} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800 text-lg">Customers</p>
-                      <p className="text-sm text-gray-500">
-                        {customers.length} in your list &middot; manage details & history
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight
-                    size={18}
-                    className="text-gray-300 group-hover:text-green-600 transition-colors shrink-0"
-                  />
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("create")}
-                  className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-6 text-left hover:border-green-400 hover:shadow-md transition-all"
-                >
-                  <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                    <FilePlus2 size={20} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-800">Product Requirement</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Send a requirement to admin</p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("incoming")}
-                  className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-6 text-left hover:border-green-400 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                      <Inbox size={20} />
-                    </div>
-                    {incomingQuotations.length > 0 && (
-                      <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                        {incomingQuotations.length}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-800">Admin Quotation</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Pricing received from admin</p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("sent")}
-                  className="group lg:col-span-2 flex items-center justify-between gap-4 bg-white rounded-2xl border border-green-100 shadow-sm p-6 text-left hover:border-green-400 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                      <FileText size={22} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800 text-lg">Sent Quotations</p>
-                      <p className="text-sm text-gray-500">Quotations you've sent out to customers</p>
-                    </div>
-                  </div>
-                  <ArrowRight
-                    size={18}
-                    className="text-gray-300 group-hover:text-green-600 transition-colors shrink-0"
-                  />
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("quotations")}
-                  className="group lg:col-span-2 flex items-center justify-between gap-4 bg-white rounded-2xl border border-green-100 shadow-sm p-6 text-left hover:border-green-400 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                      <FileText size={22} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800 text-lg">Customer Quotation</p>
-                      <p className="text-sm text-gray-500">
-                        {needsAttention > 0
-                          ? `${needsAttention} need your response`
-                          : "Track acceptance, negotiation & status"}
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight
-                    size={18}
-                    className="text-gray-300 group-hover:text-green-600 transition-colors shrink-0"
-                  />
-                </button>
+                {TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const meta = tileMeta[tab.id] || {};
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-6 text-left hover:border-green-400 hover:shadow-md transition-all h-full"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                          <Icon size={20} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {meta.badge ? (
+                            <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                              {meta.badge}
+                            </span>
+                          ) : null}
+                          <ArrowRight
+                            size={16}
+                            className="text-gray-300 group-hover:text-green-600 transition-colors shrink-0"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">{tab.label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{meta.subtitle || tab.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -417,6 +364,8 @@ export default function SalesPanel() {
                   allCategories={allCategories}
                   reloadCustomers={loadCustomers}
                   setActiveTab={setActiveTab}
+                  prefill={projectLockData}
+                  onPrefillConsumed={() => setProjectLockData(null)}
                 />
               )}
 
@@ -443,6 +392,23 @@ export default function SalesPanel() {
                   customers={customers}
                   setCustomers={setCustomers}
                   reloadCustomers={loadCustomers}
+                />
+              )}
+
+              {activeTab === "lock" && (
+                <ProjectLocking
+                  customers={customers}
+                  products={products}
+                  onProceedToRequirement={handleProceedToRequirement}
+                />
+              )}
+
+              {activeTab === "insights" && (
+                <Insights
+                  customers={customers}
+                  quotations={quotations}
+                  incomingQuotations={incomingQuotations}
+                  products={products}
                 />
               )}
             </>
