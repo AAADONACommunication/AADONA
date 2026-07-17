@@ -231,30 +231,30 @@ export default function Insights() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
           <div className="flex flex-wrap items-start justify-between gap-6">
-            <div>
-              <h2 className="text-lg font-bold text-green-800">
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold text-green-800 break-words">
                 {p.customer?.personalName || "Unknown Partner"}
               </h2>
               {p.customer?.companyName && (
-                <p className="text-sm text-gray-600">{p.customer.companyName}</p>
+                <p className="text-sm text-gray-600 break-words">{p.customer.companyName}</p>
               )}
-              <p className="text-sm text-gray-500">{p.customer?.email}</p>
+              <p className="text-sm text-gray-500 break-words">{p.customer?.email}</p>
 
               <div className="mt-4 space-y-1.5 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: BUCKET_COLORS.accepted }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.accepted }} />
                   <span className="text-gray-700">
                     Accepted — {p.counts.accepted} (₹{p.totals.accepted.toFixed(2)})
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: BUCKET_COLORS.pending }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.pending }} />
                   <span className="text-gray-700">
                     Pending — {p.counts.pending} (₹{p.totals.pending.toFixed(2)})
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: BUCKET_COLORS.rejected }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.rejected }} />
                   <span className="text-gray-700">
                     Rejected — {p.counts.rejected} (₹{p.totals.rejected.toFixed(2)})
                   </span>
@@ -273,7 +273,41 @@ export default function Insights() {
           <h3 className="text-sm font-bold text-green-800 px-6 pt-5 pb-2">
             Quotations with {p.customer?.personalName || "this partner"}
           </h3>
-          <div className="overflow-x-auto">
+
+          {/* ── Mobile: stacked cards ── */}
+          <div className="space-y-3 p-4 sm:hidden">
+            {p.quotations
+              .slice()
+              .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+              .map((q) => (
+                <div key={q._id} className="border border-green-100 rounded-xl p-3">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <p className="font-medium text-gray-800 text-sm break-words">
+                      {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
+                    </p>
+                    <span
+                      className="px-2.5 py-1 rounded-full text-xs font-semibold capitalize shrink-0"
+                      style={{
+                        background: `${BUCKET_COLORS[bucketOf(q.status)]}1A`,
+                        color: BUCKET_COLORS[bucketOf(q.status)],
+                      }}
+                    >
+                      {q.status ? q.status.replace(/_/g, " ") : "—"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-1">
+                    End Customer: <span className="text-gray-700">{parseEndCustomer(q.notes) || "—"}</span>
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>{q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}</span>
+                    <span className="font-semibold text-gray-800">₹{amountOf(q).toFixed(2)}</span>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* ── sm and up: table layout ── */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-green-700 text-white text-left">
@@ -330,7 +364,7 @@ export default function Insights() {
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
         <div className="flex flex-wrap items-center gap-6 justify-between">
-          <div>
+          <div className="min-w-0">
             <h2 className="text-lg font-bold text-green-800 mb-1">All Partners — Quotation Overview</h2>
             <p className="text-sm text-gray-500">
               Combined value of every quotation you've sent, across all partners.
@@ -338,19 +372,19 @@ export default function Insights() {
 
             <div className="mt-4 space-y-1.5 text-sm">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: BUCKET_COLORS.accepted }} />
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.accepted }} />
                 <span className="text-gray-700">
                   Accepted — {overall.counts.accepted} (₹{overall.totals.accepted.toFixed(2)})
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: BUCKET_COLORS.pending }} />
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.pending }} />
                 <span className="text-gray-700">
                   Pending — {overall.counts.pending} (₹{overall.totals.pending.toFixed(2)})
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: BUCKET_COLORS.rejected }} />
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.rejected }} />
                 <span className="text-gray-700">
                   Rejected — {overall.counts.rejected} (₹{overall.totals.rejected.toFixed(2)})
                 </span>
@@ -392,18 +426,21 @@ export default function Insights() {
               <button
                 key={p.id}
                 onClick={() => setSelectedPartnerId(p.id)}
-                className="w-full text-left px-4 py-3.5 flex items-center justify-between gap-4 hover:bg-green-50 transition"
+                className="w-full text-left px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 hover:bg-green-50 transition"
               >
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 truncate">
+                {/* Name + company/email — always visible, never gets squeezed out */}
+                <div className="min-w-0 sm:flex-1">
+                  <p className="font-semibold text-gray-800 break-words sm:truncate">
                     {p.customer?.personalName || "Unknown Partner"}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 break-words sm:truncate">
                     {p.customer?.companyName ? `${p.customer.companyName} · ` : ""}
                     {p.customer?.email}
                   </p>
                 </div>
-                <div className="flex items-center gap-4 shrink-0 text-xs">
+
+                {/* Stats — wrap onto their own line(s) on mobile, single row on sm+ */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:shrink-0 text-xs">
                   <span className="text-gray-500">
                     {p.quotations.length} quotation{p.quotations.length !== 1 ? "s" : ""}
                   </span>
