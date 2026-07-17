@@ -493,54 +493,106 @@ export default function CreateQuotation({
             No products added yet. Use "Add from category" or "Add custom item" above.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-green-700 text-white text-left">
-                  <th className="px-3 py-2 rounded-tl-lg">Product</th>
-                  <th className="px-3 py-2">Qty</th>
-                  <th className="px-3 py-2 rounded-tr-lg"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={index} className="border-b border-green-100">
-                    <td className="px-3 py-2 min-w-[260px]">
+          <>
+            {/* ── Mobile: stacked cards, so Qty is always visible without
+                horizontal scrolling ── */}
+            <div className="space-y-3 sm:hidden">
+              {items.map((item, index) => (
+                <div
+                  key={index}
+                  className="border border-green-100 rounded-xl p-3 bg-white"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex-1 min-w-0">
                       {item.isManual ? (
                         <input
                           type="text"
                           value={item.name}
                           onChange={(e) => updateItem(index, "name", e.target.value)}
                           placeholder="Item name"
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-green-500 outline-none"
                         />
                       ) : (
-                        <p className="font-medium text-gray-800">{item.name}</p>
+                        <p className="font-medium text-gray-800 text-sm break-words">
+                          {item.name}
+                        </p>
                       )}
-                    </td>
-                    <td className="px-3 py-2 w-28">
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        onClick={() => removeItem(index)}
-                        className="text-red-500 hover:text-red-700"
-                        aria-label="Remove item"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+                    </div>
+                    <button
+                      onClick={() => removeItem(index)}
+                      className="text-red-500 hover:text-red-700 shrink-0 p-1"
+                      aria-label="Remove item"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold text-gray-500 shrink-0">
+                      Qty
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                      className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-green-500 outline-none"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── sm and up: table layout ── */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-green-700 text-white text-left">
+                    <th className="px-3 py-2 rounded-tl-lg">Product</th>
+                    <th className="px-3 py-2">Qty</th>
+                    <th className="px-3 py-2 rounded-tr-lg"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => (
+                    <tr key={index} className="border-b border-green-100">
+                      <td className="px-3 py-2 min-w-[260px]">
+                        {item.isManual ? (
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => updateItem(index, "name", e.target.value)}
+                            placeholder="Item name"
+                            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                          />
+                        ) : (
+                          <p className="font-medium text-gray-800">{item.name}</p>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 w-28">
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={() => removeItem(index)}
+                          className="text-red-500 hover:text-red-700"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
