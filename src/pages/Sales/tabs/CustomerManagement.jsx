@@ -97,7 +97,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
         }
       );
       const data = await safeJson(res);
-      if (!res.ok) throw new Error(data?.message || "Failed to save customer");
+      if (!res.ok) throw new Error(data?.message || "Failed to save partner");
 
       await reloadCustomers?.();
       setSuccessMsg(isEdit ? "Customer updated." : "Customer added.");
@@ -105,7 +105,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
       setEditingId(null);
     } catch (err) {
       console.error("Save customer error:", err);
-      setError(err.message || "Failed to save customer");
+      setError(err.message || "Failed to save partner");
     } finally {
       setSubmitting(false);
     }
@@ -140,7 +140,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
       <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-green-800">
-            {editingId ? "Edit Customer" : "Add Customer"}
+            {editingId ? "Edit Customer" : "Add Partner"}
           </h2>
           {editingId && (
             <button
@@ -297,7 +297,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
               disabled={submitting}
               className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60"
             >
-              {submitting ? "Saving..." : editingId ? "Save Changes" : "Add Customer"}
+              {submitting ? "Saving..." : editingId ? "Save Changes" : "Add Partner"}
             </button>
           </div>
         </form>
