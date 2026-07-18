@@ -18,13 +18,20 @@ const AdminQuotationSchema = new mongoose.Schema(
       ref: "Customer",
       required: true,
     },
+
+    endCustomer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "EndCustomer",
+      default: null,
+    },
+
     items: [
       {
         name: { type: String, required: true },
         description: { type: String, default: "" },
         quantity: { type: Number, required: true },
         unitPrice: { type: Number, required: true },
-        total: { type: Number, required: true }, // quantity * unitPrice
+        total: { type: Number, required: true },
       },
     ],
     subtotal: { type: Number, required: true },

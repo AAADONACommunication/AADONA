@@ -75,12 +75,14 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
 
   const filtered = useMemo(() => {
     return quotations.filter((q) => {
-      const customerName =
-        q.customer?.name || q.customerName || "";
+      const s = search.trim().toLowerCase();
       const matchesSearch =
-        !search.trim() ||
-        customerName.toLowerCase().includes(search.toLowerCase()) ||
-        q.quotationNumber?.toLowerCase().includes(search.toLowerCase());
+        !s ||
+        q.customer?.personalName?.toLowerCase().includes(s) ||
+        q.customer?.companyName?.toLowerCase().includes(s) ||
+        q.endCustomer?.endCustomerName?.toLowerCase().includes(s) ||
+        q.endCustomer?.organizationName?.toLowerCase().includes(s) ||
+        q.quotationNumber?.toLowerCase().includes(s);
       const matchesStatus = statusFilter === "all" || q.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
@@ -724,7 +726,8 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               <thead>
                 <tr className="bg-green-700 text-white text-left">
                   <th className="px-4 py-3">Quotation #</th>
-                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3">Partner</th>
+                  <th className="px-4 py-3">End Customer</th>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Total (₹)</th>
                   <th className="px-4 py-3">Status</th>
@@ -738,7 +741,10 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                       {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
-                      {q.customer?.personalName || q.customer?.companyName || q.customerName || "—"}
+                      {q.customer?.personalName || q.customer?.companyName || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {q.endCustomer?.endCustomerName || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
@@ -813,8 +819,12 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
             </div>
 
             <p className="text-sm text-gray-600 mb-1">
-              <span className="font-semibold">Customer:</span>{" "}
-              {viewing.customer?.personalName || viewing.customer?.companyName || viewing.customerName || "—"}
+              <span className="font-semibold">Partner:</span>{" "}
+              {viewing.customer?.personalName || viewing.customer?.companyName || "—"}
+            </p>
+            <p className="text-sm text-gray-600 mb-1">
+              <span className="font-semibold">End Customer:</span>{" "}
+              {viewing.endCustomer?.endCustomerName || "—"}
             </p>
             {viewing.validTill && (
               <p className="text-sm text-gray-600 mb-3">

@@ -33,14 +33,6 @@ const BUCKET_LABELS = {
 // otherwise the (last) grand total.
 const amountOf = (q) => Number(q.negotiatedAmount ?? q.grandTotal ?? 0);
 
-// End customer name was folded into the free-text "notes" field by
-// ProjectLocking's buildNotes() as a "End Customer: <name>" line.
-const parseEndCustomer = (notes) => {
-  if (!notes) return null;
-  const match = notes.match(/End Customer:\s*(.+)/);
-  return match ? match[1].trim() : null;
-};
-
 // ── Pure-SVG pie chart, no charting library dependency ──
 function PieChart({ segments, size = 180 }) {
   const total = segments.reduce((sum, s) => sum + s.value, 0);
@@ -296,7 +288,11 @@ export default function Insights() {
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mb-1">
-                    End Customer: <span className="text-gray-700">{parseEndCustomer(q.notes) || "—"}</span>
+                    End Customer:{" "}
+                    <span className="text-gray-700">
+                      {q.endCustomer?.endCustomerName || "—"}
+                      {q.endCustomer?.organizationName ? ` — ${q.endCustomer.organizationName}` : ""}
+                    </span>
                   </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}</span>
@@ -328,7 +324,12 @@ export default function Insights() {
                         {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                       </td>
                       <td className="px-4 py-3 text-gray-700">
-                        {parseEndCustomer(q.notes) || "—"}
+                        {q.endCustomer?.endCustomerName || "—"}
+                        {q.endCustomer?.organizationName && (
+                          <span className="block text-xs text-gray-400">
+                            {q.endCustomer.organizationName}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
                         {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}

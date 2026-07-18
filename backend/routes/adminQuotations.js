@@ -9,6 +9,7 @@ const SalesRep = require("../models/SalesRep");
 const Customer = require("../models/Customer");
 const QuotationRequest = require("../models/QuotationRequest");
 const SalesQuotation = require("../models/SalesQuotation");
+const EndCustomer = require("../models/EndCustomer");
 
 // ── POST /admin/quotation-requests/:id/price ──
 router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res) => {
@@ -69,6 +70,11 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       return res.status(404).json({ message: "Customer not found" });
     }
 
+    // 5.5 Fetch End Customer (optional — carried over from the quotation request/project lock)
+    const endCustomer = quotationRequest.endCustomer
+      ? await EndCustomer.findById(quotationRequest.endCustomer)
+      : null;
+
     // 6. Calculate per item — NO GST
     const calculatedItems = items.map((item) => {
       const quantity = Number(item.quantity);
@@ -97,6 +103,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       quotationRequest: quotationRequest._id,
       salesRepUid: quotationRequest.salesRepUid,
       customer: customer._id,
+      endCustomer: endCustomer ? endCustomer._id : null,
       items: calculatedItems,
       subtotal,
       remarks: notes?.trim() || "",
@@ -159,7 +166,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                       <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">#${requestNumber}</td>
                     </tr>
                     <tr>
-                      <td style="padding:4px 0;color:#6b7280;font-size:13px">Customer</td>
+                      <td style="padding:4px 0;color:#6b7280;font-size:13px">Partner</td>
                       <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
                         ${customer.personalName}
                       </td>
@@ -169,6 +176,13 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                       <td style="padding:4px 0;color:#6b7280;font-size:13px">Company</td>
                       <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
                         ${customer.companyName}
+                      </td>
+                    </tr>` : ""}
+                    ${endCustomer?.endCustomerName ? `
+                    <tr>
+                      <td style="padding:4px 0;color:#6b7280;font-size:13px">End Customer</td>
+                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
+                        ${endCustomer.endCustomerName}${endCustomer.organizationName ? ` — ${endCustomer.organizationName}` : ""}
                       </td>
                     </tr>` : ""}
                     <tr>
@@ -291,6 +305,7 @@ router.get("/admin-quotations", verifySalesToken, async (req, res) => {
   try {
     const quotations = await AdminQuotation.find({ salesRepUid: req.salesRep.uid })
       .populate("customer")
+      .populate("endCustomer")
       .populate("quotationRequest")
       .sort({ createdAt: -1 });
 
@@ -324,6 +339,7 @@ router.get("/admin-quotations/:id", verifySalesToken, async (req, res) => {
 
     const quotation = await AdminQuotation.findById(req.params.id)
       .populate("customer")
+      .populate("endCustomer")
       .populate("quotationRequest");
 
     if (!quotation) {

@@ -6,6 +6,7 @@ const transporter = require("../mailer");
 const SalesQuotation = require("../models/SalesQuotation");
 const AdminQuotation = require("../models/AdminQuotation");
 const Customer = require("../models/Customer");
+const EndCustomer = require("../models/EndCustomer");
 const SalesRep = require("../models/SalesRep");
 const crypto = require("crypto");
 
@@ -88,6 +89,14 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
+
+    // 5.5 Fetch End Customer (optional — old requests may not have one)
+    const endCustomerDoc = adminQuotation.endCustomer
+      ? await EndCustomer.findById(adminQuotation.endCustomer)
+      : null;
+
+    // 5.6 Fetch Sales Rep — shown to the Partner as their point of contact
+    const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
 
     // 6. Build items — quantity ALWAYS from AdminQuotation, never trust frontend
     const rawItems = adminQuotation.items.map((adminItem, index) => {
@@ -181,6 +190,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     const salesQuotation = await SalesQuotation.create({
       sourceQuotation: adminQuotation._id,
       customer: customer._id,
+      endCustomer: adminQuotation.endCustomer || null, // carried over from AdminQuotation, may be null for old records
       salesRepUid: req.salesRep.uid,
       quotationNumber,
       publicToken,
@@ -280,6 +290,13 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
                         ${customer.companyName}
                       </td>
                     </tr>` : ""}
+                    ${endCustomerDoc?.endCustomerName ? `
+                    <tr>
+                      <td style="padding:4px 0;color:#6b7280;font-size:13px">End Customer</td>
+                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
+                        ${endCustomerDoc.endCustomerName}${endCustomerDoc.organizationName ? ` — ${endCustomerDoc.organizationName}` : ""}
+                      </td>
+                    </tr>` : ""}
                     <tr>
                       <td style="padding:4px 0;color:#6b7280;font-size:13px">Date</td>
                       <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
@@ -371,6 +388,18 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
                 </td>
               </tr>
 
+              <!-- Sales Contact -->
+              <tr>
+                <td style="padding:20px 32px 0">
+                  <div style="background:#f9fafb;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
+                    <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                    <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
+                    ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
+                    ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+                  </div>
+                </td>
+              </tr>
+
               <!-- Footer -->
               <tr>
                 <td style="padding:28px 32px;text-align:center">
@@ -409,7 +438,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
 router.get("/sales-quotations", verifySalesToken, async (req, res) => {
   try {
     const quotations = await SalesQuotation.find({ salesRepUid: req.salesRep.uid })
-      .populate("customer")
+      .populate("customer").populate("endCustomer")
       .populate("sourceQuotation")
       .sort({ createdAt: -1 });
 
@@ -428,7 +457,7 @@ router.get("/sales-quotations/:id", verifySalesToken, async (req, res) => {
     }
 
     const quotation = await SalesQuotation.findById(req.params.id)
-      .populate("customer")
+      .populate("customer").populate("endCustomer")
       .populate("sourceQuotation");
 
     if (!quotation) {
@@ -454,7 +483,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const quotation = await SalesQuotation.findById(id).populate("customer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -483,17 +512,22 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
     // ── Notify customer, sales rep, and admin — all get the final quotation as a PDF ──
     try {
       const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
-      const pdfBuffer = await generateQuotationPdf(quotation, {
-        finalAmount: quotation.negotiatedAmount,
-        salesRep,
-      });
-      const attachments = [
+
+      const makeAttachment = async (copyLabel) => [
         {
           filename: `Quotation-${quotation.quotationNumber}.pdf`,
-          content: pdfBuffer,
+          content: await generateQuotationPdf(quotation, {
+            finalAmount: quotation.negotiatedAmount,
+            salesRep,
+            copyLabel,
+          }),
           contentType: "application/pdf",
         },
       ];
+
+      const partnerAttachments = await makeAttachment("Partner's Copy");
+      const salesAttachments = await makeAttachment("Sales Copy");
+      const adminAttachments = await makeAttachment("AADONA Copy");
 
       const itemRowsHtml = quotation.items.map((item, i) => `
         <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
@@ -509,7 +543,9 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
       const reportHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
           <h2 style="color:#166534">Negotiated Offer Accepted ✅</h2>
-          <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+          <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
+          <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+          <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
           <p style="color:#374151;font-size:14px"><strong>Original Quotation Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
             <thead>
@@ -543,9 +579,15 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
                 for quotation <strong>#${quotation.quotationNumber}</strong> has been accepted.
               </p>
               <p style="color:#374151;font-size:14px">The final quotation is attached as a PDF. Our team will reach out to you shortly.</p>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
+                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRep.phone}</p>` : ""}
+                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRep.email}</p>` : ""}
+              </div>
             </div>
           `,
-          attachments,
+          attachments: partnerAttachments,
         });
       }
 
@@ -555,7 +597,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
           to: salesRep.email,
           subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
           html: reportHtml,
-          attachments,
+          attachments: salesAttachments,
         });
       }
 
@@ -565,7 +607,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
           to: ADMIN_EMAIL,
           subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
           html: reportHtml,
-          attachments,
+          attachments: adminAttachments,
         });
       }
     } catch (mailErr) {
@@ -589,7 +631,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
 
     const { items, gstRate, discount, counterOfferMessage } = req.body;
 
-    const quotation = await SalesQuotation.findById(id).populate("customer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -689,6 +731,8 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
     quotation.status = "counter_offered";
     await quotation.save();
 
+    const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
+
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
 
     const itemRowsHtml = calculatedItems.map((item, i) => `
@@ -741,6 +785,12 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
                   View Counter Offer
                 </a>
               </div>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #ea580c">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+              </div>
             </div>
           `,
         });
@@ -767,7 +817,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     const { items, gstRate, discount } = req.body;
 
     const quotation = await SalesQuotation.findById(id)
-      .populate("customer")
+      .populate("customer").populate("endCustomer")
       .populate("sourceQuotation");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
@@ -949,6 +999,8 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     quotation.adminApprovedAmount = adminQuotation.subtotal;
     await quotation.save();
 
+    const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
+
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
     const itemRowsHtml = calculatedItems.map((item, i) => `
       <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
@@ -990,6 +1042,12 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
                   View Revised Quotation
                 </a>
               </div>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+              </div>
             </div>
           `,
         });
@@ -1015,7 +1073,7 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const quotation = await SalesQuotation.findById(id).populate("customer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -1067,6 +1125,8 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
     quotation.customerRespondedAt = null;
     await quotation.save();
 
+    const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
+
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
     const itemRowsHtml = quotation.items.map((item, i) => `
       <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
@@ -1108,6 +1168,12 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
                   View Quotation
                 </a>
               </div>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+              </div>
             </div>
           `,
         });
@@ -1136,7 +1202,7 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
 
     const { items, gstRate, discount } = req.body;
 
-    const quotation = await SalesQuotation.findById(id).populate("customer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -1271,6 +1337,8 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
     quotation.customerRespondedAt = null;
     await quotation.save();
 
+    const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
+
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
     const itemRowsHtml = calculatedItems.map((item, i) => `
       <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
@@ -1311,6 +1379,12 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
                 <a href="${viewQuotationUrl}" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
                   View Quotation
                 </a>
+              </div>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
               </div>
             </div>
           `,

@@ -33,6 +33,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       (q) =>
         q.customer?.personalName?.toLowerCase().includes(term) ||
         q.customer?.companyName?.toLowerCase().includes(term) ||
+        q.endCustomer?.endCustomerName?.toLowerCase().includes(term) ||
+        q.endCustomer?.organizationName?.toLowerCase().includes(term) ||
         q.quotationNumber?.toLowerCase().includes(term)
     );
   }, [incomingQuotations, search]);
@@ -324,7 +326,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by customer or quotation #..."
+            placeholder="Search by partner, end customer, or quotation #..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
@@ -342,7 +344,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 <thead>
                   <tr className="bg-green-700 text-white text-left">
                     <th className="px-4 py-3">Quotation #</th>
-                    <th className="px-4 py-3">Customer</th>
+                    <th className="px-4 py-3">Partner</th>
+                    <th className="px-4 py-3">End Customer</th>
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Admin Total (₹)</th>
                     <th className="px-4 py-3">Status</th>
@@ -363,6 +366,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                         </td>
                         <td className="px-4 py-3 text-gray-700">
                           {q.customer?.personalName || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {q.endCustomer?.endCustomerName || "—"}
                         </td>
                         <td className="px-4 py-3 text-gray-600">
                           {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
@@ -439,7 +445,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
         <div className="grid sm:grid-cols-2 gap-3 mb-4 text-sm">
           <p className="text-gray-700">
-            <span className="font-semibold">Customer:</span>{" "}
+            <span className="font-semibold">Partner:</span>{" "}
             {selected.customer?.personalName || "—"}
           </p>
           <p className="text-gray-700">
@@ -453,6 +459,67 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             <span className="font-semibold">Contact:</span>{" "}
             {selected.customer?.contactNumber || "—"}
           </p>
+          <p className="text-gray-700">
+            <span className="font-semibold">Partner Type:</span>{" "}
+            {selected.customer?.partnerType || "—"}
+          </p>
+          <p className="text-gray-700">
+            <span className="font-semibold">GST:</span>{" "}
+            {selected.customer?.gstNumber || "—"}
+          </p>
+          <p className="text-gray-700">
+            <span className="font-semibold">Address:</span>{" "}
+            {selected.customer?.address || "—"}
+          </p>
+        </div>
+
+        {/* ── End Customer — real backend data, never notes ── */}
+        <div className="border-t border-gray-200 pt-4 mb-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">
+            End Customer
+          </p>
+          {selected.endCustomer ? (
+            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+              <p className="text-gray-700">
+                <span className="font-semibold">Name:</span>{" "}
+                {selected.endCustomer.endCustomerName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Organization:</span>{" "}
+                {selected.endCustomer.organizationName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">City / State:</span>{" "}
+                {[selected.endCustomer.city, selected.endCustomer.state].filter(Boolean).join(", ") || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Contact Person:</span>{" "}
+                {selected.endCustomer.contactPerson || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Designation:</span>{" "}
+                {selected.endCustomer.designation || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Mobile:</span>{" "}
+                {selected.endCustomer.mobileNumber || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Email:</span>{" "}
+                {selected.endCustomer.emailId || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Industry:</span>{" "}
+                {selected.endCustomer.industryVertical || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Address:</span>{" "}
+                {selected.endCustomer.customerAddress || "—"}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No end customer was locked for this quotation.</p>
+          )}
         </div>
 
         <div className="overflow-x-auto">

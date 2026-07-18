@@ -35,6 +35,7 @@ router.get(
         ],
       })
         .populate("customer")
+        .populate("endCustomer")
         .populate("sourceQuotation")
         .sort({ updatedAt: -1 });
 
@@ -60,7 +61,7 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const quotation = await SalesQuotation.findById(id).populate("customer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -180,7 +181,8 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Admin Approved the Discounted Price</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-              <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
               <p style="color:#374151;font-size:14px"><strong>Approved Customer Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <p style="color:#374151;font-size:14px">You can now proceed to finalize this with the customer.</p>
             </div>
@@ -206,7 +208,7 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const quotation = await SalesQuotation.findById(id).populate("customer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -230,7 +232,8 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
             <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
               <h2 style="color:#b91c1c">Admin Rejected the Discounted Price</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-              <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
               <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <p style="color:#374151;font-size:14px">
                 The quotation has been returned to your Sales Portal.
@@ -264,6 +267,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
 
     const quotation = await SalesQuotation.findById(id)
       .populate("customer")
+      .populate("endCustomer")
       .populate("sourceQuotation");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
@@ -367,7 +371,8 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Admin Has Revised the Pricing</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-              <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
               <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
                 <thead>

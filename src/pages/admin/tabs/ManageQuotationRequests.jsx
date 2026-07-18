@@ -66,6 +66,8 @@ export default function ManageQuotationRequests() {
       (r) =>
         r.customer?.personalName?.toLowerCase().includes(q) ||
         r.customer?.companyName?.toLowerCase().includes(q) ||
+        r.endCustomer?.endCustomerName?.toLowerCase().includes(q) ||
+        r.endCustomer?.organizationName?.toLowerCase().includes(q) ||
         r.requestNumber?.toLowerCase().includes(q) ||
         r.salesRep?.name?.toLowerCase().includes(q)
     );
@@ -211,25 +213,10 @@ export default function ManageQuotationRequests() {
             </span>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+          <div className="grid sm:grid-cols-2 gap-3 text-sm mb-4">
             <p className="text-gray-700">
               <span className="font-semibold">Sales Rep:</span>{" "}
               {selected.salesRep?.name || "—"} ({selected.salesRep?.email || "—"})
-            </p>
-            <p className="text-gray-700">
-              <span className="font-semibold">Customer:</span>{" "}
-              {selected.customer?.personalName || "—"}
-            </p>
-            <p className="text-gray-700">
-              <span className="font-semibold">Company:</span>{" "}
-              {selected.customer?.companyName || "—"}
-            </p>
-            <p className="text-gray-700">
-              <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
-            </p>
-            <p className="text-gray-700">
-              <span className="font-semibold">Contact:</span>{" "}
-              {selected.customer?.contactNumber || "—"}
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Requested On:</span>{" "}
@@ -237,8 +224,96 @@ export default function ManageQuotationRequests() {
             </p>
           </div>
 
+          {/* ── Partner Details ── */}
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+              Partner Details
+            </p>
+            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+              <p className="text-gray-700">
+                <span className="font-semibold">Partner Name:</span>{" "}
+                {selected.customer?.personalName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Company:</span>{" "}
+                {selected.customer?.companyName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Partner Type:</span>{" "}
+                {selected.customer?.partnerType || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">GST:</span> {selected.customer?.gstNumber || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Address:</span>{" "}
+                {selected.customer?.address || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Phone:</span>{" "}
+                {selected.customer?.contactNumber || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
+              </p>
+            </div>
+          </div>
+
+          {/* ── End Customer Details — from quotation.endCustomer, never from notes ── */}
+          <div className="border-t border-gray-100 mt-4 pt-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+              End Customer Details
+            </p>
+            {selected.endCustomer ? (
+              <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                <p className="text-gray-700">
+                  <span className="font-semibold">End Customer Name:</span>{" "}
+                  {selected.endCustomer.endCustomerName || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Organization:</span>{" "}
+                  {selected.endCustomer.organizationName || "—"}
+                </p>
+                <p className="text-gray-700 sm:col-span-2">
+                  <span className="font-semibold">Address:</span>{" "}
+                  {selected.endCustomer.customerAddress || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">City:</span> {selected.endCustomer.city || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">State:</span> {selected.endCustomer.state || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Contact Person:</span>{" "}
+                  {selected.endCustomer.contactPerson || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Designation:</span>{" "}
+                  {selected.endCustomer.designation || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Mobile:</span>{" "}
+                  {selected.endCustomer.mobileNumber || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Email:</span>{" "}
+                  {selected.endCustomer.emailId || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Industry:</span>{" "}
+                  {selected.endCustomer.industryVertical || "—"}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">
+                No end customer was locked for this request.
+              </p>
+            )}
+          </div>
+
           {selected.notes && (
-            <p className="text-sm text-gray-600 mt-3 border-t border-gray-100 pt-3">
+            <p className="text-sm text-gray-600 mt-4 border-t border-gray-100 pt-3">
               <span className="font-semibold">Sales rep notes:</span> {selected.notes}
             </p>
           )}
@@ -617,7 +692,7 @@ export default function ManageQuotationRequests() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by customer, request #, or sales rep..."
+            placeholder="Search by partner, end customer, request #, or sales rep..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
@@ -656,7 +731,8 @@ export default function ManageQuotationRequests() {
                 <tr className="bg-green-50 text-left">
                   <th className="px-4 py-3 text-gray-600 font-semibold">Request #</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Sales Rep</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Customer</th>
+                  <th className="px-4 py-3 text-gray-600 font-semibold">Partner</th>
+                  <th className="px-4 py-3 text-gray-600 font-semibold">End Customer</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Items</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Date</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Status</th>
@@ -674,6 +750,9 @@ export default function ManageQuotationRequests() {
                     <td className="px-4 py-3 text-gray-600">{r.salesRep?.name || "—"}</td>
                     <td className="px-4 py-3 text-gray-600">
                       {r.customer?.personalName || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {r.endCustomer?.endCustomerName || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">{(r.items || []).length} items</td>
                     <td className="px-4 py-3 text-gray-600">

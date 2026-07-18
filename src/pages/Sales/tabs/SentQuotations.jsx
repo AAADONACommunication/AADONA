@@ -178,6 +178,8 @@ export default function SentQuotations() {
       (item) =>
         item.customer?.personalName?.toLowerCase().includes(q) ||
         item.customer?.companyName?.toLowerCase().includes(q) ||
+        item.endCustomer?.endCustomerName?.toLowerCase().includes(q) ||
+        item.endCustomer?.organizationName?.toLowerCase().includes(q) ||
         item.quotationNumber?.toLowerCase().includes(q)
     );
   }, [quotations, search]);
@@ -221,8 +223,9 @@ export default function SentQuotations() {
                 <thead>
                   <tr className="bg-green-700 text-white text-left">
                     <th className="px-4 py-3">Quotation #</th>
-                    <th className="px-4 py-3">Customer</th>
+                    <th className="px-4 py-3">Partner</th>
                     <th className="px-4 py-3">Company</th>
+                    <th className="px-4 py-3">End Customer</th>
                     <th className="px-4 py-3">Date Sent</th>
                     <th className="px-4 py-3">Grand Total (₹)</th>
                     <th className="px-4 py-3">Status</th>
@@ -245,6 +248,9 @@ export default function SentQuotations() {
                       </td>
                       <td className="px-4 py-3 text-gray-700">
                         {item.customer?.companyName || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">
+                        {item.endCustomer?.endCustomerName || "—"}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
                         {item.sentAt ? new Date(item.sentAt).toLocaleDateString() : "—"}
@@ -313,12 +319,20 @@ export default function SentQuotations() {
         {/* Customer details */}
         <div className="grid sm:grid-cols-2 gap-3 mb-5 text-sm bg-gray-50 rounded-xl p-4">
           <p className="text-gray-700">
-            <span className="font-semibold">Customer:</span>{" "}
+            <span className="font-semibold">Partner:</span>{" "}
             {selected.customer?.personalName || "—"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Company:</span>{" "}
             {selected.customer?.companyName || "—"}
+          </p>
+          <p className="text-gray-700">
+            <span className="font-semibold">Partner Type:</span>{" "}
+            {selected.customer?.partnerType || "—"}
+          </p>
+          <p className="text-gray-700">
+            <span className="font-semibold">GST:</span>{" "}
+            {selected.customer?.gstNumber || "—"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
@@ -327,6 +341,56 @@ export default function SentQuotations() {
             <span className="font-semibold">Contact:</span>{" "}
             {selected.customer?.contactNumber || "—"}
           </p>
+          <p className="text-gray-700 sm:col-span-2">
+            <span className="font-semibold">Address:</span>{" "}
+            {selected.customer?.address || "—"}
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3 mb-5 text-sm bg-gray-50 rounded-xl p-4">
+          <p className="text-gray-700 sm:col-span-2 font-bold text-xs uppercase tracking-wide text-green-700">
+            End Customer Details
+          </p>
+          {selected.endCustomer ? (
+            <>
+              <p className="text-gray-700">
+                <span className="font-semibold">Name:</span>{" "}
+                {selected.endCustomer.endCustomerName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Organization:</span>{" "}
+                {selected.endCustomer.organizationName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Contact Person:</span>{" "}
+                {selected.endCustomer.contactPerson || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Designation:</span>{" "}
+                {selected.endCustomer.designation || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Mobile:</span>{" "}
+                {selected.endCustomer.mobileNumber || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Email:</span>{" "}
+                {selected.endCustomer.emailId || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Industry:</span>{" "}
+                {selected.endCustomer.industryVertical || "—"}
+              </p>
+              <p className="text-gray-700 sm:col-span-2">
+                <span className="font-semibold">Address:</span>{" "}
+                {selected.endCustomer.customerAddress || "—"}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-400 italic sm:col-span-2">
+              No end customer was locked for this quotation.
+            </p>
+          )}
         </div>
 
         {/* Complete quotation / negotiation history */}

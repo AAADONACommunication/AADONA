@@ -13,6 +13,13 @@ const SalesQuotationSchema = new mongoose.Schema(
       ref: "Customer",
       required: true,
     },
+
+    endCustomer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "EndCustomer",
+      default: null,
+    },
+
     salesRepUid: { type: String, required: true, index: true },
     quotationNumber: { type: String, required: true, unique: true, index: true },
     publicToken: {
@@ -88,9 +95,6 @@ const SalesQuotationSchema = new mongoose.Schema(
     adminApprovedAt: { type: Date, default: null },
     adminRejectedAt: { type: Date, default: null },
     adminApprovedAmount: { type: Number, default: null },
-    // ── Distinguishes how the admin_revised pricing was produced ──
-    // "discount_applied" → Approve As-Is (item price/GST untouched, discount raised to hit customer's offer)
-    // "item_price_revised" → Revise Pricing (admin manually changed per-item unit price)
     pricingRevisionType: {
       type: String,
       enum: ["discount_applied", "item_price_revised"],

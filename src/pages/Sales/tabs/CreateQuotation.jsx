@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { Plus, Trash2, Search, Send, Package } from "lucide-react";
+import { Plus, Trash2, Search, Send, Package, Building2 } from "lucide-react";
 import { safeJson, inputStyle } from "../SalesPanel";
 
 const REQUIREMENTS_API = `${import.meta.env.VITE_API_URL}/quotation-requests`;
+const PROJECT_LOCK_API = `${import.meta.env.VITE_API_URL}/project-lock`;
 
 const emptyManualItem = {
   isManual: true,
@@ -30,6 +31,14 @@ export default function CreateQuotation({
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // ── End customer — always a real endCustomerId from the backend, never
+  // rebuilt from notes. Either it arrives via prefill (Project Locking →
+  // "Product Requirement") or the rep picks a previously-locked one below. ──
+  const [endCustomerId, setEndCustomerId] = useState("");
+  const [endCustomerName, setEndCustomerName] = useState(""); // display-only fallback until the list loads
+  const [endCustomerOptions, setEndCustomerOptions] = useState([]);
+  const [endCustomerOptionsLoading, setEndCustomerOptionsLoading] = useState(false);
+
   // ── Product picker: browse by category/sub-category, or search across everything ──
   const [pickerOpen, setPickerOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
@@ -40,15 +49,58 @@ export default function CreateQuotation({
   const selectedCustomer = customers.find((c) => c._id === customerId);
 
   // Coming from "Project Locking" → Product Requirement carries the
-  // selected partner (and a notes summary) straight into this form.
+  // selected partner AND the locked end customer's real ID straight into
+  // this form. Notes are left alone — they're never used to carry the
+  // end customer anymore.
   useEffect(() => {
     if (prefill?.customerId) {
       setCustomerId(prefill.customerId);
+      setEndCustomerId(prefill.endCustomerId || "");
+      setEndCustomerName(prefill.endCustomerName || "");
       if (prefill.notes) setNotes(prefill.notes);
       onPrefillConsumed?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill]);
+
+  // Whenever the selected partner changes, load their saved end customers so
+  // the rep can pick one here even without going through Project Locking
+  // again. The endCustomerId itself is only ever set from this list or from
+  // prefill — never typed/free-text.
+  useEffect(() => {
+    if (!customerId) {
+      setEndCustomerOptions([]);
+      return;
+    }
+    loadEndCustomerOptions(customerId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerId]);
+
+  const loadEndCustomerOptions = async (partnerId) => {
+    setEndCustomerOptionsLoading(true);
+    try {
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch(`${PROJECT_LOCK_API}/partners/${partnerId}/end-customers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(text);
+      const data = JSON.parse(text);
+      setEndCustomerOptions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("End customers load error:", err);
+      setEndCustomerOptions([]);
+    } finally {
+      setEndCustomerOptionsLoading(false);
+    }
+  };
+
+  // The selected end-customer object — falls back to the prefill name so
+  // something sensible shows immediately, before the options list has loaded.
+  const selectedEndCustomer =
+    endCustomerOptions.find((ec) => ec._id === endCustomerId) ||
+    (endCustomerId ? { endCustomerName, organizationName: "", city: "", state: "" } : null);
 
   // Only search results are shown — the full customer list is never
   // rendered up front, since it gets heavy once there are a lot of them.
@@ -141,12 +193,16 @@ export default function CreateQuotation({
   const resetForm = () => {
     setCustomerId("");
     setCustomerSearch("");
+    setEndCustomerId("");
+    setEndCustomerName("");
+    setEndCustomerOptions([]);
     setItems([]);
     setNotes("");
   };
 
   const validateForm = () => {
-    if (!customerId) return "Please select a customer.";
+    if (!customerId) return "Please select a partner.";
+    if (!endCustomerId) return "Please select an end customer for this partner.";
     if (items.length === 0) return "Add at least one product the customer needs.";
     for (const item of items) {
       if (!item.name.trim()) return "Every line item needs a product name.";
@@ -157,6 +213,7 @@ export default function CreateQuotation({
 
   const buildPayload = () => ({
     customer: customerId,
+    endCustomer: endCustomerId,
     items: items.map((item) => ({
       product: item.productId || undefined,
       name: item.name,
@@ -228,9 +285,9 @@ export default function CreateQuotation({
         .
       </p>
 
-      {/* ── Customer Selection ── */}
+      {/* ── Partner Selection ── */}
       <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-        <h2 className="text-lg font-bold text-green-800 mb-4">Customer</h2>
+        <h2 className="text-lg font-bold text-green-800 mb-4">Partner</h2>
 
         {selectedCustomer ? (
           <div className="flex items-start justify-between gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
@@ -248,7 +305,12 @@ export default function CreateQuotation({
               )}
             </div>
             <button
-              onClick={() => setCustomerId("")}
+              onClick={() => {
+                setCustomerId("");
+                setEndCustomerId("");
+                setEndCustomerName("");
+                setEndCustomerOptions([]);
+              }}
               className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap"
             >
               Change
@@ -263,7 +325,7 @@ export default function CreateQuotation({
               />
               <input
                 type="text"
-                placeholder="Search customers by name, company, or email..."
+                placeholder="Search partners by name, company, or email..."
                 value={customerSearch}
                 onChange={(e) => setCustomerSearch(e.target.value)}
                 className={`${inputStyle} pl-9`}
@@ -272,21 +334,21 @@ export default function CreateQuotation({
 
             {customers.length === 0 ? (
               <p className="text-sm text-gray-500">
-                No customers yet. Add one from the{" "}
+                No partners yet. Add one from the{" "}
                 <button
                   onClick={() => setActiveTab?.("customers")}
                   className="text-green-700 font-semibold hover:underline"
                 >
-                  Customers
+                  Partners Details
                 </button>{" "}
                 tab.
               </p>
             ) : customerSearch.trim() === "" ? (
-              <p className="text-sm text-gray-400 px-1">Start typing to search customers...</p>
+              <p className="text-sm text-gray-400 px-1">Start typing to search partners...</p>
             ) : (
               <div className="max-h-56 overflow-y-auto border border-green-100 rounded-xl divide-y">
                 {filteredCustomers.length === 0 ? (
-                  <p className="text-sm text-gray-500 p-4">No matching customers.</p>
+                  <p className="text-sm text-gray-500 p-4">No matching partners.</p>
                 ) : (
                   filteredCustomers.map((c) => (
                     <button
@@ -307,6 +369,78 @@ export default function CreateQuotation({
           </div>
         )}
       </div>
+
+      {/* ── End Customer — always a real endCustomerId, never typed here ── */}
+      {selectedCustomer && (
+        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Building2 size={18} className="text-green-700" />
+            <h2 className="text-lg font-bold text-green-800">End Customer</h2>
+          </div>
+
+          {selectedEndCustomer ? (
+            <div className="flex items-start justify-between gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
+              <div>
+                <p className="font-semibold text-gray-800">{selectedEndCustomer.endCustomerName}</p>
+                {selectedEndCustomer.organizationName && (
+                  <p className="text-sm text-gray-600">{selectedEndCustomer.organizationName}</p>
+                )}
+                {(selectedEndCustomer.city || selectedEndCustomer.state) && (
+                  <p className="text-sm text-gray-600">
+                    {[selectedEndCustomer.city, selectedEndCustomer.state].filter(Boolean).join(", ")}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setEndCustomerId("")}
+                className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap"
+              >
+                Change
+              </button>
+            </div>
+          ) : endCustomerOptionsLoading ? (
+            <p className="text-sm text-gray-400">Loading saved end customers...</p>
+          ) : endCustomerOptions.length > 0 ? (
+            <div>
+              <p className="text-sm text-gray-500 mb-3">
+                Select an end customer already locked for this partner:
+              </p>
+              <div className="max-h-56 overflow-y-auto border border-green-100 rounded-xl divide-y">
+                {endCustomerOptions.map((ec) => (
+                  <button
+                    key={ec._id}
+                    onClick={() => setEndCustomerId(ec._id)}
+                    className="w-full text-left px-4 py-3 hover:bg-green-50 transition"
+                  >
+                    <p className="font-medium text-gray-800">{ec.endCustomerName}</p>
+                    <p className="text-xs text-gray-500">
+                      {ec.organizationName}
+                      {ec.city ? ` · ${ec.city}` : ""}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setActiveTab?.("lock")}
+                className="mt-3 text-sm font-semibold text-green-700 hover:underline"
+              >
+                Lock a new project for a different end customer →
+              </button>
+            </div>
+          ) : (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-sm">
+              No end customer locked for this partner yet.{" "}
+              <button
+                onClick={() => setActiveTab?.("lock")}
+                className="font-semibold underline"
+              >
+                Go to Project Locking
+              </button>{" "}
+              to lock one before sending a requirement.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Product Requirement (no price) ── */}
       <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">

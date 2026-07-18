@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-// Reuse the SAME back cover asset as the product datasheet
 const backBase64 = fs.readFileSync(
   path.resolve(__dirname, "../assets/back.png")
 ).toString("base64");
@@ -16,6 +15,9 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
   const items = opts.items || quotation.items;
   const salesRep = opts.salesRep || null;
   const amountLabel = opts.label || "Final Accepted Amount";
+  const copyLabel = opts.copyLabel || null;
+
+  const endCustomer = quotation.endCustomer || null;
 
   const subtotal = items.reduce(
     (sum, item) =>
@@ -105,8 +107,14 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     <div style="flex:1;">
       <img src="data:image/png;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
     </div>
-    <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#1b7f4c;text-transform:uppercase;">
-      Final Quotation
+    <div style="text-align:right;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#1b7f4c;text-transform:uppercase;">
+        Final Quotation
+      </div>
+      ${copyLabel ? `
+      <div style="font-size:8px;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-top:2px;">
+        ${copyLabel}
+      </div>` : ""}
     </div>
   </div>
 
@@ -122,11 +130,11 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
       Date: ${new Date().toLocaleDateString("en-IN")}
     </div>
 
-    <!-- Customer + Sales Rep details -->
-    <div style="display:flex;gap:24px;margin-bottom:28px;padding-left:14px;">
+    <!-- Partner + End Customer details -->
+    <div style="display:flex;gap:24px;margin-bottom:20px;padding-left:14px;">
       <div style="flex:1;">
         <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
-          Customer Details
+          Partner Details
         </div>
         <table style="width:100%;font-size:12px;color:#374151;">
           <tr>
@@ -152,19 +160,51 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
 
       <div style="flex:1;">
         <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
-          Sales Representative
+          End Customer Details
         </div>
         <table style="width:100%;font-size:12px;color:#374151;">
           <tr>
             <td style="padding:3px 0;color:#6b7280;width:80px;">Name</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.name || "—"}</td>
+            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer?.endCustomerName || "—"}</td>
           </tr>
+          ${endCustomer?.organizationName ? `
           <tr>
-            <td style="padding:3px 0;color:#6b7280;">Email</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.email || "—"}</td>
-          </tr>
+            <td style="padding:3px 0;color:#6b7280;">Organization</td>
+            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.organizationName}</td>
+          </tr>` : ""}
+          ${endCustomer?.city ? `
+          <tr>
+            <td style="padding:3px 0;color:#6b7280;">City</td>
+            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.city}</td>
+          </tr>` : ""}
+          ${endCustomer?.mobileNumber ? `
+          <tr>
+            <td style="padding:3px 0;color:#6b7280;">Contact</td>
+            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.mobileNumber}</td>
+          </tr>` : ""}
         </table>
       </div>
+    </div>
+
+    <!-- Sales Representative -->
+    <div style="margin-bottom:28px;padding-left:14px;">
+      <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
+        Sales Representative
+      </div>
+      <table style="width:50%;font-size:12px;color:#374151;">
+        <tr>
+          <td style="padding:3px 0;color:#6b7280;width:80px;">Name</td>
+          <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.name || "—"}</td>
+        </tr>
+        <tr>
+          <td style="padding:3px 0;color:#6b7280;">Email</td>
+          <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.email || "—"}</td>
+        </tr>
+        <tr>
+          <td style="padding:3px 0;color:#6b7280;">Phone</td>
+          <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.phone || "—"}</td>
+        </tr>
+      </table>
     </div>
 
     <!-- Item table -->

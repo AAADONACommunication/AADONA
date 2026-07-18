@@ -90,6 +90,8 @@ export default function ManagePendingNegotiations() {
     return (
       q.customer?.personalName?.toLowerCase().includes(s) ||
       q.customer?.companyName?.toLowerCase().includes(s) ||
+      q.endCustomer?.endCustomerName?.toLowerCase().includes(s) ||
+      q.endCustomer?.organizationName?.toLowerCase().includes(s) ||
       q.quotationNumber?.toLowerCase().includes(s)
     );
   });
@@ -263,15 +265,84 @@ export default function ManagePendingNegotiations() {
             Quotation #{selected.quotationNumber}
           </h2>
 
-          <div className="grid sm:grid-cols-2 gap-3 text-sm mb-4">
-            <p className="text-gray-700">
-              <span className="font-semibold">Customer:</span>{" "}
-              {selected.customer?.personalName || "—"}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+              Partner Details
             </p>
-            <p className="text-gray-700">
-              <span className="font-semibold">Company:</span>{" "}
-              {selected.customer?.companyName || "—"}
+            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+              <p className="text-gray-700">
+                <span className="font-semibold">Partner Name:</span>{" "}
+                {selected.customer?.personalName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Company:</span>{" "}
+                {selected.customer?.companyName || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Contact:</span>{" "}
+                {selected.customer?.contactNumber || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Partner Type:</span>{" "}
+                {selected.customer?.partnerType || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">GST:</span>{" "}
+                {selected.customer?.gstNumber || "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Address:</span>{" "}
+                {selected.customer?.address || "—"}
+              </p>
+            </div>
+          </div>
+
+          <div className="pb-4 mb-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+              End Customer Details
             </p>
+            {selected.endCustomer ? (
+              <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                <p className="text-gray-700">
+                  <span className="font-semibold">End Customer Name:</span>{" "}
+                  {selected.endCustomer.endCustomerName || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Organization:</span>{" "}
+                  {selected.endCustomer.organizationName || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">City / State:</span>{" "}
+                  {[selected.endCustomer.city, selected.endCustomer.state].filter(Boolean).join(", ") || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Contact Person:</span>{" "}
+                  {selected.endCustomer.contactPerson || "—"}
+                  {selected.endCustomer.designation ? ` (${selected.endCustomer.designation})` : ""}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Mobile:</span>{" "}
+                  {selected.endCustomer.mobileNumber || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Email:</span>{" "}
+                  {selected.endCustomer.emailId || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Industry:</span>{" "}
+                  {selected.endCustomer.industryVertical || "—"}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">Address:</span>{" "}
+                  {selected.endCustomer.customerAddress || "—"}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">No end customer was locked for this quotation.</p>
+            )}
           </div>
 
           <div className="grid sm:grid-cols-3 gap-3 text-sm bg-orange-50 border border-orange-200 rounded-xl p-4">
@@ -624,7 +695,7 @@ export default function ManagePendingNegotiations() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Search by customer or quotation #..."
+          placeholder="Search by partner, end customer, or quotation #..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
@@ -682,7 +753,8 @@ export default function ManagePendingNegotiations() {
               <thead>
                 <tr className="bg-orange-50 text-left">
                   <th className="px-4 py-3 text-gray-600 font-semibold">Quotation #</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Customer</th>
+                  <th className="px-4 py-3 text-gray-600 font-semibold">Partner</th>
+                  <th className="px-4 py-3 text-gray-600 font-semibold">End Customer</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Admin Subtotal</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Customer Offer</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Requested On</th>
@@ -699,6 +771,9 @@ export default function ManagePendingNegotiations() {
                     <td className="px-4 py-3 font-medium text-gray-800">{q.quotationNumber}</td>
                     <td className="px-4 py-3 text-gray-600">
                       {q.customer?.personalName || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {q.endCustomer?.endCustomerName || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
                       ₹{Number(q.sourceQuotation?.subtotal || 0).toFixed(2)}

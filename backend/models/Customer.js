@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const CustomerSchema = new mongoose.Schema(
   {
-    salesRepUid: { type: String, required: true, index: true }, // Firebase UID of sales rep
+    salesRepUid: { type: String, required: true, index: true },
     companyName: { type: String, default: "" },
     personalName: { type: String, required: true },
     contactNumber: { type: String, required: true },
@@ -10,6 +10,8 @@ const CustomerSchema = new mongoose.Schema(
     city: { type: String, default: "" },
     pinCode: { type: String, default: "" },
     address: { type: String, default: "" },
+    partnerType: { type: String, default: "" },
+    gstNumber: { type: String, default: "" },
   },
   { timestamps: true }
 );

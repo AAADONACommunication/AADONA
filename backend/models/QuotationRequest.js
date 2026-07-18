@@ -17,12 +17,18 @@ const QuotationRequestSchema = new mongoose.Schema(
     salesRepUid: { type: String, required: true, index: true }, // Firebase UID of sales rep
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true },
 
+    endCustomer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "EndCustomer",
+      default: null,
+    },
+
     items: { type: [QuotationRequestItemSchema], required: true },
     notes: { type: String, default: "" },
 
     status: {
       type: String,
-      enum: ["pending", "quoted"], // quoted = admin has priced it (AdminQuotation exists)
+      enum: ["pending", "quoted"],
       default: "pending",
       index: true,
     },

@@ -5,6 +5,7 @@ const QuotationRequest = require("../models/QuotationRequest");
 const Customer = require("../models/Customer");
 const SalesRep = require("../models/SalesRep");
 const AdminQuotation = require("../models/AdminQuotation");
+const EndCustomer = require("../models/EndCustomer");
 
 const verifyToken = require("../middleware/verifyToken"); // admin middleware
 const verifySalesToken = require("../middleware/verifySalesToken");
@@ -37,7 +38,7 @@ const generateRequestNumber = async () => {
 ========================================================= */
 router.post("/quotation-requests", verifySalesToken, async (req, res) => {
   try {
-    const { customer, items, notes } = req.body;
+    const { customer, endCustomer, items, notes } = req.body;
 
     if (!customer) {
       return res.status(400).json({ message: "Customer is required" });
@@ -64,6 +65,18 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
+    // If an end customer (project lock) was supplied, make sure it belongs to this partner
+    let endCustomerDoc = null;
+    if (endCustomer) {
+      endCustomerDoc = await EndCustomer.findOne({
+        _id: endCustomer,
+        partner: customerDoc._id,
+      });
+      if (!endCustomerDoc) {
+        return res.status(404).json({ message: "End customer not found for this partner" });
+      }
+    }
+
     const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
 
     const requestNumber = await generateRequestNumber();
@@ -72,6 +85,7 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
       requestNumber,
       salesRepUid: req.salesRep.uid,
       customer: customerDoc._id,
+      endCustomer: endCustomerDoc ? endCustomerDoc._id : null,
       items: items.map((item) => ({
         product: item.product || null,
         name: item.name.trim(),
@@ -107,9 +121,11 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
 
               <table border="0" cellpadding="6" cellspacing="0" style="width:100%;font-size:14px;margin-bottom:16px">
                 <tr><td style="color:#6b7280;width:140px"><b>Sales Rep</b></td><td>${salesRep?.name || "-"} (${salesRep?.email || "-"})</td></tr>
-                <tr><td style="color:#6b7280"><b>Customer</b></td><td>${customerDoc.personalName}${customerDoc.companyName ? ` — ${customerDoc.companyName}` : ""}</td></tr>
-                <tr><td style="color:#6b7280"><b>Customer Email</b></td><td>${customerDoc.email}</td></tr>
-                <tr><td style="color:#6b7280"><b>Contact</b></td><td>${customerDoc.contactNumber || "-"}</td></tr>
+                <tr><td style="color:#6b7280"><b>Sales Rep Contact</b></td><td>${salesRep?.phone || "-"}</td></tr>
+                <tr><td style="color:#6b7280"><b>Partner</b></td><td>${customerDoc.personalName}${customerDoc.companyName ? ` — ${customerDoc.companyName}` : ""}</td></tr>
+                <tr><td style="color:#6b7280"><b>Partner Email</b></td><td>${customerDoc.email}</td></tr>
+                <tr><td style="color:#6b7280"><b>Partner Contact</b></td><td>${customerDoc.contactNumber || "-"}</td></tr>
+                <tr><td style="color:#6b7280"><b>End Customer</b></td><td>${endCustomerDoc?.endCustomerName ? `${endCustomerDoc.endCustomerName}${endCustomerDoc.organizationName ? ` — ${endCustomerDoc.organizationName}` : ""}` : "-"}</td></tr>
               </table>
 
               <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">
@@ -153,6 +169,7 @@ router.get("/quotation-requests", verifySalesToken, async (req, res) => {
   try {
     const requests = await QuotationRequest.find({ salesRepUid: req.salesRep.uid })
       .populate("customer")
+      .populate("endCustomer")
       .sort({ createdAt: -1 });
     res.json(requests);
   } catch (err) {
@@ -174,12 +191,13 @@ router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
 
     const requests = await QuotationRequest.find(query)
       .populate("customer")
+      .populate("endCustomer")
       .sort({ createdAt: -1 });
 
-    // Attach sales rep name/email
+    // Attach sales rep name/email/phone
     const salesReps = await SalesRep.find(
       {},
-      { uid: 1, name: 1, email: 1 }
+      { uid: 1, name: 1, email: 1, phone: 1 }
     );
 
     const repMap = {};
@@ -187,6 +205,7 @@ router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
       repMap[rep.uid] = {
         name: rep.name,
         email: rep.email,
+        phone: rep.phone,
       };
     });
 
@@ -238,7 +257,7 @@ router.get(
     try {
       const request = await QuotationRequest.findById(
         req.params.id
-      ).populate("customer");
+      ).populate("customer").populate("endCustomer");
 
       if (!request) {
         return res.status(404).json({
@@ -263,6 +282,7 @@ router.get(
           ? {
               name: salesRep.name,
               email: salesRep.email,
+              phone: salesRep.phone,
             }
           : null,
 

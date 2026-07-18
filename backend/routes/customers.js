@@ -32,6 +32,8 @@ router.post("/customers", verifySalesToken, async (req, res) => {
       city: city || "",
       pinCode: pinCode || "",
       address: address || "",
+      partnerType: partnerType || "",
+      gstNumber: gstNumber || "",
     });
 
     res.status(201).json(customer);
@@ -59,7 +61,7 @@ router.put("/customers/:id", verifySalesToken, async (req, res) => {
 
     const updated = await Customer.findByIdAndUpdate(
       req.params.id,
-      { companyName, personalName, contactNumber, email, city, pinCode, address },
+      { companyName, personalName, contactNumber, email, city, pinCode, address, partnerType, gstNumber },
       { new: true }
     );
 

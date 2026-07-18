@@ -21,6 +21,12 @@ const toPublicQuotation = (quotation, salesRep) => ({
         contactNumber: quotation.customer.contactNumber,
       }
     : null,
+  endCustomer: quotation.endCustomer
+    ? {
+        endCustomerName: quotation.endCustomer.endCustomerName,
+        organizationName: quotation.endCustomer.organizationName,
+      }
+    : null,
   items: quotation.items,
   subtotal: quotation.subtotal,
   discountAmount: quotation.discountAmount,
@@ -46,7 +52,7 @@ const toPublicQuotation = (quotation, salesRep) => ({
   negotiatedAt: quotation.negotiatedAt,
   negotiationHistory: quotation.negotiationHistory || [],
   validTill: quotation.sourceQuotation?.validTill || null,
-  salesRep: salesRep ? { name: salesRep.name, email: salesRep.email } : null,
+  salesRep: salesRep ? { name: salesRep.name, email: salesRep.email, phone: salesRep.phone } : null,
 });
 
 // ── GET /quotation/:publicToken ── (NO AUTH — customer facing)
@@ -56,6 +62,7 @@ router.get("/quotation/:publicToken", async (req, res) => {
 
     const quotation = await SalesQuotation.findOne({ publicToken })
       .populate("customer")
+      .populate("endCustomer")
       .populate("sourceQuotation");
 
     if (!quotation) {
@@ -85,6 +92,7 @@ router.get("/quotation/:publicToken/pdf", async (req, res) => {
 
     const quotation = await SalesQuotation.findOne({ publicToken })
       .populate("customer")
+      .populate("endCustomer")
       .populate("sourceQuotation");
 
     if (!quotation) {
@@ -110,7 +118,13 @@ router.get("/quotation/:publicToken/pdf", async (req, res) => {
       label = "Final Accepted Amount";
     }
 
-    const pdfBuffer = await generateQuotationPdf(quotation, { finalAmount, items, salesRep, label });
+    const pdfBuffer = await generateQuotationPdf(quotation, {
+      finalAmount,
+      items,
+      salesRep,
+      label,
+      copyLabel: "Partner's Copy",
+    });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename=Quotation-${quotation.quotationNumber}.pdf`);
@@ -126,7 +140,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
   try {
     const { publicToken } = req.params;
 
-    const quotation = await SalesQuotation.findOne({ publicToken }).populate("customer");
+    const quotation = await SalesQuotation.findOne({ publicToken }).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -142,20 +156,25 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
     quotation.acceptedAt = new Date();
     await quotation.save();
 
-    // Notify customer, sales rep, and admin — all get a PDF of the final quotation
+    // Notify customer, sales rep, and admin — each gets their own labeled copy of the PDF
     try {
       const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
-      const pdfBuffer = await generateQuotationPdf(quotation, {
-        finalAmount: quotation.grandTotal,
-        salesRep,
-      });
-      const attachments = [
+
+      const makeAttachment = async (copyLabel) => [
         {
           filename: `Quotation-${quotation.quotationNumber}.pdf`,
-          content: pdfBuffer,
+          content: await generateQuotationPdf(quotation, {
+            finalAmount: quotation.grandTotal,
+            salesRep,
+            copyLabel,
+          }),
           contentType: "application/pdf",
         },
       ];
+
+      const partnerAttachments = await makeAttachment("Partner's Copy");
+      const salesAttachments = await makeAttachment("Sales Copy");
+      const adminAttachments = await makeAttachment("AADONA Copy");
 
       if (quotation.customer?.email) {
         await transporter.sendMail({
@@ -170,9 +189,15 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
                 <strong>₹${Number(quotation.grandTotal).toFixed(2)}</strong>.
               </p>
               <p style="color:#374151;font-size:14px">The final quotation is attached as a PDF for your records.</p>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
+                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRep.phone}</p>` : ""}
+                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRep.email}</p>` : ""}
+              </div>
             </div>
           `,
-          attachments,
+          attachments: partnerAttachments,
         });
       }
 
@@ -184,6 +209,8 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Quotation Accepted ✅</h2>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
               <p style="color:#374151;font-size:14px">
                 <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted
                 quotation <strong>#${quotation.quotationNumber}</strong> for
@@ -192,7 +219,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
               <p style="color:#374151;font-size:14px">Final PDF attached. Please log in to the Sales Portal to proceed.</p>
             </div>
           `,
-          attachments,
+          attachments: salesAttachments,
         });
       }
 
@@ -204,6 +231,9 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Quotation Accepted ✅</h2>
+              <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || "—"} ${salesRep?.phone ? `(${salesRep.phone})` : ""}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
               <p style="color:#374151;font-size:14px">
                 Quotation <strong>#${quotation.quotationNumber}</strong> has been confirmed by
                 <strong>${quotation.customer?.personalName || "the customer"}</strong> for
@@ -212,7 +242,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
               <p style="color:#374151;font-size:14px">Final PDF attached for your records.</p>
             </div>
           `,
-          attachments,
+          attachments: adminAttachments,
         });
       }
     } catch (mailErr) {
@@ -242,6 +272,7 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
 
     const quotation = await SalesQuotation.findOne({ publicToken })
       .populate("customer")
+      .populate("endCustomer")
       .populate("sourceQuotation");
 
     if (!quotation) {
@@ -309,7 +340,8 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
               <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
                 <h2 style="color:#c2410c">Customer Requested Negotiation</h2>
                 <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-                <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+                <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+                <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
                 <p style="color:#374151;font-size:14px"><strong>Current Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
                 <p style="color:#374151;font-size:14px"><strong>Customer Expected Total:</strong> ₹${expected.toFixed(2)}</p>
                 <p style="color:#374151;font-size:14px;white-space:pre-line"><strong>Message:</strong><br/>${combinedMessage}</p>
@@ -333,8 +365,10 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
               <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
                 <h2 style="color:#c2410c">Customer Requested Negotiation</h2>
                 <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-                <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+                <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+                <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
                 <p style="color:#374151;font-size:14px"><strong>Sales Rep:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
+                <p style="color:#374151;font-size:14px"><strong>Sales Rep Contact:</strong> ${salesRep?.phone || "—"}</p>
                 <p style="color:#374151;font-size:14px"><strong>Admin Price:</strong> ₹${adminSubtotal.toFixed(2)}</p>
                 <p style="color:#374151;font-size:14px"><strong>Current Quotation Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
                 <p style="color:#374151;font-size:14px"><strong>Customer Expected Total:</strong> ₹${expected.toFixed(2)}</p>
@@ -359,8 +393,10 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
           <h2 style="color:#b91c1c">Admin Approval Required</h2>
           <table style="font-size:14px;color:#374151;border-collapse:collapse">
             <tr><td style="padding:4px 12px 4px 0"><strong>Quotation Number</strong></td><td>#${quotation.quotationNumber}</td></tr>
-            <tr><td style="padding:4px 12px 4px 0"><strong>Customer</strong></td><td>${quotation.customer?.personalName || "—"}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0"><strong>Partner</strong></td><td>${quotation.customer?.personalName || "—"}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0"><strong>End Customer</strong></td><td>${quotation.endCustomer?.endCustomerName || "—"}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Sales Representative</strong></td><td>${salesRep?.name || quotation.salesRepUid}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0"><strong>Sales Rep Contact</strong></td><td>${salesRep?.phone || "—"}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Admin Approved Amount</strong></td><td>₹${adminSubtotal.toFixed(2)}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Sales Quotation Amount</strong></td><td>₹${Number(quotation.grandTotal).toFixed(2)}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Customer Requested Amount</strong></td><td>₹${expected.toFixed(2)}</td></tr>
@@ -397,7 +433,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
   try {
     const { publicToken } = req.params;
 
-    const quotation = await SalesQuotation.findOne({ publicToken }).populate("customer");
+    const quotation = await SalesQuotation.findOne({ publicToken }).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -425,18 +461,22 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         ? quotation.counterOfferItems
         : quotation.items;
 
-      const pdfBuffer = await generateQuotationPdf(quotation, {
-        finalAmount: quotation.negotiatedAmount,
-        items: itemsForReport,
-        salesRep,
-      });
-      const attachments = [
+      const makeAttachment = async (copyLabel) => [
         {
           filename: `Quotation-${quotation.quotationNumber}.pdf`,
-          content: pdfBuffer,
+          content: await generateQuotationPdf(quotation, {
+            finalAmount: quotation.negotiatedAmount,
+            items: itemsForReport,
+            salesRep,
+            copyLabel,
+          }),
           contentType: "application/pdf",
         },
       ];
+
+      const partnerAttachments = await makeAttachment("Partner's Copy");
+      const salesAttachments = await makeAttachment("Sales Copy");
+      const adminAttachments = await makeAttachment("AADONA Copy");
 
       const itemRowsHtml = itemsForReport.map((item, i) => `
         <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
@@ -449,29 +489,55 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         </tr>
       `).join("");
 
-      const reportHtml = `
+      const productTableHtml = `
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
+          <thead>
+            <tr style="background:#166534">
+              <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
+              <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
+              <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
+              <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
+              <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Discount</th>
+              <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
+            </tr>
+          </thead>
+          <tbody>${itemRowsHtml}</tbody>
+        </table>
+        <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
+          Final Accepted Amount: ₹${Number(quotation.negotiatedAmount).toFixed(2)}
+        </p>
+      `;
+
+      // ── Partner-facing copy — no internal admin info, includes their sales contact ──
+      const partnerHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
           <h2 style="color:#166534">Counter Offer Accepted ✅</h2>
           <p style="color:#374151;font-size:14px">
             <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted the
             counter offer for quotation <strong>#${quotation.quotationNumber}</strong>.
           </p>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
-            <thead>
-              <tr style="background:#166534">
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Discount</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
-              </tr>
-            </thead>
-            <tbody>${itemRowsHtml}</tbody>
-          </table>
-          <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
-            Final Accepted Amount: ₹${Number(quotation.negotiatedAmount).toFixed(2)}
+          ${productTableHtml}
+          <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+            <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
+            ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRep.phone}</p>` : ""}
+            ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRep.email}</p>` : ""}
+          </div>
+        </div>
+      `;
+
+      // ── Sales Rep / Admin copy — includes Partner, End Customer, Sales Rep identity ──
+      const reportHtml = `
+        <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
+          <h2 style="color:#166534">Counter Offer Accepted ✅</h2>
+          <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid} ${salesRep?.phone ? `(${salesRep.phone})` : ""}</p>
+          <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+          <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+          <p style="color:#374151;font-size:14px">
+            <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted the
+            counter offer for quotation <strong>#${quotation.quotationNumber}</strong>.
           </p>
+          ${productTableHtml}
         </div>
       `;
 
@@ -480,8 +546,8 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
           subject: `Quotation Confirmed — #${quotation.quotationNumber}`,
-          html: reportHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">The final quotation is attached as a PDF for your records.</p></div>`,
-          attachments,
+          html: partnerHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">The final quotation is attached as a PDF for your records.</p></div>`,
+          attachments: partnerAttachments,
         });
       }
 
@@ -491,7 +557,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
           to: salesRep.email,
           subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
           html: reportHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">Final PDF attached. Please log in to the Sales Portal to proceed.</p></div>`,
-          attachments,
+          attachments: salesAttachments,
         });
       }
 
@@ -501,7 +567,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
           to: ADMIN_EMAIL,
           subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
           html: reportHtml,
-          attachments,
+          attachments: adminAttachments,
         });
       }
     } catch (mailErr) {
