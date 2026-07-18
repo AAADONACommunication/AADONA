@@ -104,7 +104,7 @@ router.post("/project-lock", verifySalesToken, async (req, res) => {
   }
 });
 
-router.get("/partners/:partnerId/history", verifySalesToken, async (req, res) => {
+router.get("/project-lock/partners/:partnerId/history", verifySalesToken, async (req, res) => {
   try {
     const { partnerId } = req.params;
 
@@ -166,7 +166,7 @@ router.get("/partners/:partnerId/history", verifySalesToken, async (req, res) =>
   }
 });
 
-router.get("/partners/:partnerId/end-customers", verifySalesToken, async (req, res) => {
+router.get("/project-lock/partners/:partnerId/end-customers", verifySalesToken, async (req, res) => {
   try {
     const { partnerId } = req.params;
 
