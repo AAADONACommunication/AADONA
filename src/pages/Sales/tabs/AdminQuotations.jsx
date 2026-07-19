@@ -45,6 +45,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     setSuccessMsg("");
 
     const salesQuotation = quotation.salesQuotation;
+    const adminItems = quotation.items || [];
 
     const isAdminRevised =
       salesQuotation?.status === "admin_revised";
@@ -58,15 +59,35 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     if (!salesQuotation || isEditableReturn) {
       const sourceItems = isEditableReturn
         ? salesQuotation?.items || []
-        : quotation.items || [];
+        : adminItems;
 
       setItems(
-        sourceItems.map((item) => ({
-          name: item.name,
-          description: item.description || "",
-          quantity: item.quantity,
-          price: Number(item.unitPrice || 0),
-        }))
+        sourceItems.map((item, idx) => {
+          // Find the matching admin item to anchor the margin % against.
+          const adminItem =
+            adminItems[idx]?.name === item.name
+              ? adminItems[idx]
+              : adminItems.find((a) => a.name === item.name) || adminItems[idx];
+
+          const adminPrice = Number(adminItem?.unitPrice ?? item.unitPrice ?? 0);
+          const currentPrice = Number(item.unitPrice ?? item.price ?? 0);
+
+          // When restoring a previously edited quotation, back-calculate the
+          // margin % that produced the stored price. Otherwise start blank.
+          const marginPercent =
+            isEditableReturn && adminPrice > 0
+              ? parseFloat((((currentPrice - adminPrice) / adminPrice) * 100).toFixed(2))
+              : "";
+
+          return {
+            name: item.name,
+            description: item.description || "",
+            quantity: item.quantity,
+            adminPrice,
+            marginPercent: isEditableReturn ? String(marginPercent) : "",
+            price: isEditableReturn ? currentPrice : adminPrice,
+          };
+        })
       );
 
       if (isEditableReturn) {
@@ -114,9 +135,23 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
   const backToList = () => setSelected(null);
 
-  const updateItem = (index, field, value) => {
+  // Margin % drives price now: price = adminPrice + adminPrice * margin / 100
+  const updateItemMargin = (index, value) => {
     setItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+      prev.map((item, i) => {
+        if (i !== index) return item;
+
+        const marginNum = value === "" || value === "-" ? "" : Number(value);
+        const validMargin = marginNum === "" || isNaN(marginNum) ? 0 : marginNum;
+
+        const newPrice = item.adminPrice + (item.adminPrice * validMargin) / 100;
+
+        return {
+          ...item,
+          marginPercent: value,
+          price: newPrice,
+        };
+      })
     );
   };
 
@@ -199,7 +234,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       setSubmitting(false);
     }
   };
-  
+
   const handleSendRevisedToCustomer = async (e) => {
     e.preventDefault();
     setError("");
@@ -340,7 +375,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead>
                   <tr className="bg-green-700 text-white text-left">
                     <th className="px-4 py-3">Quotation #</th>
@@ -522,8 +557,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           )}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-1 px-1">
+          <table className="w-full min-w-[520px] text-sm">
             <thead>
               <tr className="bg-gray-200 text-gray-700 text-left">
                 <th className="px-3 py-2 rounded-tl-lg">Product</th>
@@ -584,8 +619,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             This has already been sent to the customer and can no longer be edited here.
           </p>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-1 px-1">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="bg-green-700 text-white text-left">
                   <th className="px-3 py-2 rounded-tl-lg">Product</th>
@@ -641,7 +676,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           )}
         </div>
       ) : (
-        // ── Not sent yet — EDITABLE form (same as before) ──
+        // ── Not sent yet — EDITABLE form (margin % based pricing) ──
         <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
           <h2 className="text-lg font-bold text-green-800 mb-1">
             {salesQuotation?.status === "admin_rejected_to_sales"
@@ -655,17 +690,17 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           </h2>
           <p className="text-sm text-gray-500 mb-4">
             {salesQuotation?.status === "admin_rejected_to_sales"
-              ? "Admin rejected the customer's requested price. Your last customer quotation is restored below. Edit price, GST, or discount and resend it."
+              ? "Admin rejected the customer's requested price. Your last customer quotation is restored below. Edit margin %, GST, or discount and resend it."
               : salesQuotation?.status === "admin_revised" &&
                 salesQuotation?.pricingRevisionType === "discount_applied"
               ? "Admin approved the customer's requested pricing through discount adjustment. Review it, make any allowed edits, and send it to the customer."
               : salesQuotation?.status === "admin_revised"
               ? "Review the revised pricing, adjust GST or discount if needed, and send it to the customer."
-              : "Set your own price, GST, and discount. Only this version is sent to the customer — the admin quotation above is never shown to them."}
+              : "Set your margin % over the admin price. Only this version is sent to the customer — the admin quotation above is never shown to them."}
           </p>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-1 px-1">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="bg-green-700 text-white text-left">
                   <th className="px-3 py-2 rounded-tl-lg">Product</th>
@@ -677,27 +712,37 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               <tbody>
                 {items.map((item, index) => (
                   <tr key={index} className="border-b border-green-100">
-                    <td className="px-3 py-2 text-gray-800 font-medium min-w-[180px]">
+                    <td className="px-3 py-2 text-gray-800 font-medium min-w-[160px]">
                       {item.name}
                     </td>
-                    <td className="px-3 py-2 w-24">
+                    <td className="px-3 py-2 w-20">
                       <input
                         type="number"
                         min="1"
                         value={item.quantity}
                         readOnly
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none bg-gray-50"
                       />
                     </td>
-                    <td className="px-3 py-2 w-32">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.price}
-                        onChange={(e) => updateItem(index, "price", e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
-                      />
+                    <td className="px-3 py-2 w-36">
+                      <div className="font-semibold text-gray-800 mb-1">
+                        ₹{(Number(item.price) || 0).toFixed(2)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-500 text-xs">Margin</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={item.marginPercent}
+                          onChange={(e) => updateItemMargin(index, e.target.value)}
+                          placeholder="0"
+                          className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-xs focus:border-green-500 outline-none"
+                        />
+                        <span className="text-gray-500 text-xs">%</span>
+                      </div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        Admin: ₹{Number(item.adminPrice).toFixed(2)}
+                      </div>
                     </td>
                     <td className="px-3 py-2 font-semibold text-gray-700">
                       ₹{((Number(item.quantity) || 0) * (Number(item.price) || 0)).toFixed(2)}
