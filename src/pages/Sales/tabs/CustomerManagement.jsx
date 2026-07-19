@@ -100,11 +100,11 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
       if (!res.ok) throw new Error(data?.message || "Failed to save partner");
 
       await reloadCustomers?.();
-      setSuccessMsg(isEdit ? "Customer updated." : "Customer added.");
+      setSuccessMsg(isEdit ? "Partner updated." : "Partner added.");
       setForm(emptyForm);
       setEditingId(null);
     } catch (err) {
-      console.error("Save customer error:", err);
+      console.error("Save partner error:", err);
       setError(err.message || "Failed to save partner");
     } finally {
       setSubmitting(false);
@@ -112,7 +112,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this customer? This cannot be undone.")) return;
+    if (!window.confirm("Delete this partner? This cannot be undone.")) return;
 
     setDeletingId(id);
     try {
