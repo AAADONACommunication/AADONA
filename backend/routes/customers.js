@@ -17,7 +17,7 @@ router.get("/customers", verifySalesToken, async (req, res) => {
 // ── ADD CUSTOMER ──
 router.post("/customers", verifySalesToken, async (req, res) => {
   try {
-    const { companyName, personalName, contactNumber, email, city, pinCode, address } = req.body;
+    const { companyName, personalName, contactNumber, email, city, pinCode, address, partnerType, gstNumber } = req.body;
 
     if (!personalName || !contactNumber || !email) {
       return res.status(400).json({ message: "Personal name, contact number and email are required" });
@@ -53,7 +53,7 @@ router.put("/customers/:id", verifySalesToken, async (req, res) => {
 
     if (!customer) return res.status(404).json({ message: "Customer not found" });
 
-    const { companyName, personalName, contactNumber, email, city, pinCode, address } = req.body;
+    const { companyName, personalName, contactNumber, email, city, pinCode, address, partnerType, gstNumber } = req.body;
 
     if (!personalName || !contactNumber || !email) {
       return res.status(400).json({ message: "Personal name, contact number and email are required" });
