@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   Search,
   ArrowRight,
@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   IndianRupee,
+  AlertCircle,
 } from "lucide-react";
 import { inputStyle } from "../SalesPanel";
 import { getFirebaseAuth } from "../../../firebase"; // adjust this path to match your project structure
@@ -49,6 +50,27 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
   const [form, setForm] = useState(emptyEndCustomer);
   const [error, setError] = useState("");
   const [locking, setLocking] = useState(false);
+
+  // ── Error is shown as an inline banner above the form and scrolls the ──
+  // page fully to the top so it's visible. Auto-dismisses after a few seconds.
+  const rootRef = useRef(null);
+  const errorRef = useRef(null);
+  const showError = (message) => {
+    setError(message);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      document.documentElement.scrollTo?.({ top: 0, left: 0, behavior: "smooth" });
+      document.body.scrollTo?.({ top: 0, left: 0, behavior: "smooth" });
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(timer);
+  }, [error]);
 
   // ── Saved end customers for the selected partner (autocomplete + duplicate detection) ──
   const [endCustomers, setEndCustomers] = useState([]);
@@ -185,7 +207,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
     setError("");
     const validationError = validateForm();
     if (validationError) {
-      setError(validationError);
+      showError(validationError);
       return;
     }
 
@@ -222,20 +244,14 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
       resetAll();
     } catch (err) {
       console.error("Project lock error:", err);
-      setError(err.message || "Failed to lock project. Please try again.");
+      showError(err.message || "Failed to lock project. Please try again.");
     } finally {
       setLocking(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-          {error}
-        </div>
-      )}
-
+    <div className="space-y-8" ref={rootRef}>
       <p className="text-sm text-gray-500">
         Lock a project to a partner by capturing the end customer's details. Once you continue, the project is
         saved on the server and you'll be taken straight to{" "}
@@ -356,7 +372,17 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
 
       {/* ── End Customer Details — only appears once a partner is selected ── */}
       {selectedCustomer && (
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+        <>
+          {error && (
+            <div
+              ref={errorRef}
+              className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm"
+            >
+              <AlertCircle size={18} className="shrink-0 mt-0.5" />
+              <p className="flex-1">{error}</p>
+            </div>
+          )}
+          <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
           <div className="flex items-center gap-2 mb-1.5">
             <Building2 size={18} className="text-green-700" />
             <h2 className="text-lg font-bold text-green-800">End Customer Details</h2>
@@ -510,7 +536,8 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
               {!locking && <ArrowRight size={16} />}
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

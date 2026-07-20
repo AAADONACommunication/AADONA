@@ -13,11 +13,12 @@ import {
   Lock,
   History as HistoryIcon,
   BarChart3,
+  Briefcase,
 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 
-import CreateQuotation from "./tabs/CreateQuotation";
+import CreateQuotation from "./tabs/ProductRequirement";
 import QuotationsList from "./tabs/QuotationsList";
 import CustomerManagement from "./tabs/CustomerManagement";
 import IncomingQuotations from "./tabs/AdminQuotations";
@@ -58,6 +59,8 @@ const TABS = [
   { id: "sent", label: "History", icon: HistoryIcon, desc: "Quotations sent to customers" },
 ];
 
+// Time-of-day greeting — now used as the banner's smaller subtitle line,
+// while the main headline always reads "Hello, {name}".
 const greeting = () => {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -67,6 +70,13 @@ const greeting = () => {
 
 const capitalizeFirst = (str) =>
   str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+
+const todayLong = () =>
+  new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
 export default function SalesPanel() {
   const navigate = useNavigate();
@@ -255,23 +265,42 @@ export default function SalesPanel() {
       <Navbar />
       <div className="min-h-screen bg-green-50 pt-30 px-4 md:px-10 pb-10">
         <div className="max-w-6xl mx-auto">
-          {/* ── Top Header Bar (unchanged) ── */}
-          <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-            <h1 className="text-3xl font-extrabold text-green-800 sm:align-middle tracking-tight">
-              Sales Portal
-            </h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+          {/* ── Top Header Bar ──
+              Logo mark uses a subtle gradient + ring instead of a flat fill.
+              The profile/logout card lifts slightly on hover, and the logout
+              button now fills solid red with a small scale/shadow on hover
+              (was just a faint tint before) so the action feels more
+              deliberate without being a heavy block by default. */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between mb-8 gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 text-white flex items-center justify-center shadow-md ring-1 ring-green-900/10 shrink-0">
+                <Briefcase size={20} />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-green-800 tracking-tight leading-tight truncate">
+                  Sales Portal
+                </h1>
+                <p className="hidden sm:block text-xs sm:text-sm text-gray-500">
+                  Manage quotations, partners &amp; more
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-white rounded-2xl border border-green-100 shadow-sm hover:shadow-md transition-shadow pl-2 pr-1.5 py-1.5 sm:pl-3 sm:pr-2 shrink-0">
+              <ProfileMenu />
+              <div className="w-px h-6 bg-green-100" />
               <button
                 onClick={async () => {
                   const auth = await getFirebaseAuth();
                   await signOut(auth);
                   navigate("/sales-ctrl-500");
                 }}
-                className="flex items-center justify-center gap-2 bg-red-500 text-white w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-red-600 transition shadow-md text-sm sm:text-base font-semibold"
+                title="Logout"
+                className="group flex items-center gap-1.5 text-red-600 hover:text-white hover:bg-red-500 hover:shadow-md hover:scale-[1.03] active:scale-95 px-2.5 sm:px-3 py-2 rounded-xl transition-all duration-150 text-sm font-semibold"
               >
-                <LogOut size={18} /> Logout
+                <LogOut size={16} className="transition-transform duration-150 group-hover:-translate-x-0.5" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
-              <ProfileMenu />
             </div>
           </div>
 
@@ -280,12 +309,32 @@ export default function SalesPanel() {
           ════════════════════════════════════════ */}
           {activeTab === null && (
             <div className="space-y-6">
-              {/* ── Welcome banner ── */}
-              <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-2xl shadow-sm p-6 sm:p-7 text-white">
-                <p className="text-green-100 text-sm sm:text-2xl font-medium">
-                  {greeting()}
-                  {repName ? `, ${capitalizeFirst(repName)}` : ""}
-                </p>
+              {/* ── Welcome banner ──
+                  Headline is always "Hello, {name}"; the old time-of-day
+                  greeting ("Good morning/afternoon/evening") moved down to a
+                  smaller subtitle line alongside today's date. Font sizes now
+                  step up smoothly across breakpoints instead of jumping
+                  straight from text-sm to text-2xl. */}
+              <div className="relative overflow-hidden bg-gradient-to-r from-green-700 to-green-600 rounded-2xl shadow-sm p-5 sm:p-7">
+                {/* Decorative background accent — purely visual, clipped by overflow-hidden */}
+                <div className="pointer-events-none absolute -right-10 -top-10 w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white/10" />
+                <div className="pointer-events-none absolute -right-4 bottom-0 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white/5" />
+
+                <div className="relative flex items-center gap-3 sm:gap-4">
+                  <div className="hidden xs:flex sm:flex shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/15 ring-1 ring-white/20 items-center justify-center text-white text-base sm:text-xl font-bold">
+                    {repName ? capitalizeFirst(repName).charAt(0) : "S"}
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white break-words">
+                      Hello{repName ? `, ${capitalizeFirst(repName)}` : ""}
+                      <span className="ml-1 align-middle">👋</span>
+                    </p>
+                    <p className="text-green-100 text-xs sm:text-sm mt-1 truncate sm:whitespace-normal">
+                      {greeting()} · {todayLong()}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* ── Section tiles — every tab gets the exact same card, same size ── */}

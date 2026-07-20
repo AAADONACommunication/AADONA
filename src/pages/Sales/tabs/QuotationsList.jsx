@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { Search, Download, Mail, Trash2, Eye } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { safeJson } from "../SalesPanel";
 
 const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
@@ -113,16 +113,6 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
     } finally {
       setDeletingId(null);
     }
-  };
-
-  const handleDownloadPdf = (quotation) => {
-    // TODO: wire up PDF generation/download for an existing quotation
-    console.log("Download PDF for", quotation);
-  };
-
-  const handleSendEmail = (quotation) => {
-    // TODO: wire up email resend for an existing quotation
-    console.log("Email quotation", quotation);
   };
 
   const handleAcceptNegotiation = async (quotation) => {
@@ -736,7 +726,11 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               </thead>
               <tbody>
                 {filtered.map((q) => (
-                  <tr key={q._id} className="border-b border-green-100 hover:bg-green-50/50">
+                  <tr
+                    key={q._id}
+                    onClick={() => setViewing(q)}
+                    className="border-b border-green-100 hover:bg-green-50/50 cursor-pointer"
+                  >
                     <td className="px-4 py-3 font-medium text-gray-800">
                       {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                     </td>
@@ -764,28 +758,10 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => setViewing(q)}
-                          className="text-gray-500 hover:text-green-700"
-                          aria-label="View quotation"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDownloadPdf(q)}
-                          className="text-gray-500 hover:text-green-700"
-                          aria-label="Download PDF"
-                        >
-                          <Download size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleSendEmail(q)}
-                          className="text-gray-500 hover:text-green-700"
-                          aria-label="Email quotation"
-                        >
-                          <Mail size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(q._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(q._id);
+                          }}
                           disabled={deletingId === q._id}
                           className="text-red-500 hover:text-red-700 disabled:opacity-50"
                           aria-label="Delete quotation"

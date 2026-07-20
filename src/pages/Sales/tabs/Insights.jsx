@@ -95,6 +95,13 @@ export default function Insights() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [selectedPartnerId, setSelectedPartnerId] = useState(null);
+  const [detailSearch, setDetailSearch] = useState("");
+
+  // Reset the detail-view search whenever a different partner is opened
+  // (or the user navigates back to the overview).
+  useEffect(() => {
+    setDetailSearch("");
+  }, [selectedPartnerId]);
 
   useEffect(() => {
     loadQuotations();
@@ -170,6 +177,9 @@ export default function Insights() {
     );
   }, [quotations]);
 
+  // Partner-level search now also matches on the end customer named on any
+  // of that partner's quotations (endCustomer.endCustomerName / organizationName),
+  // since the end customer isn't the partner itself but lives per-quotation.
   const filteredPartners = useMemo(() => {
     if (!search.trim()) return partners;
     const q = search.toLowerCase();
@@ -177,7 +187,12 @@ export default function Insights() {
       (p) =>
         p.customer?.personalName?.toLowerCase().includes(q) ||
         p.customer?.companyName?.toLowerCase().includes(q) ||
-        p.customer?.email?.toLowerCase().includes(q)
+        p.customer?.email?.toLowerCase().includes(q) ||
+        p.quotations.some(
+          (quo) =>
+            quo.endCustomer?.endCustomerName?.toLowerCase().includes(q) ||
+            quo.endCustomer?.organizationName?.toLowerCase().includes(q)
+        )
     );
   }, [partners, search]);
 
@@ -211,6 +226,29 @@ export default function Insights() {
       { key: "pending", value: p.totals.pending, color: BUCKET_COLORS.pending },
       { key: "rejected", value: p.totals.rejected, color: BUCKET_COLORS.rejected },
     ];
+
+    // Filter this partner's quotations by end customer name/organization, by
+    // amount (e.g. "1500" matches ₹1500.00), or by date — matches the
+    // locale-formatted date (e.g. "7/20/2026") or ISO form (e.g. "2026-07-20"),
+    // so partial matches like a year or month still work.
+    const dq = detailSearch.trim().toLowerCase();
+    const sortedQuotations = p.quotations
+      .slice()
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    const filteredQuotations = dq
+      ? sortedQuotations.filter((q) => {
+          const created = q.createdAt ? new Date(q.createdAt) : null;
+          const localeDate = created ? created.toLocaleDateString().toLowerCase() : "";
+          const isoDate = created ? created.toISOString().slice(0, 10) : ""; // e.g. 2026-07-20
+          return (
+            q.endCustomer?.endCustomerName?.toLowerCase().includes(dq) ||
+            q.endCustomer?.organizationName?.toLowerCase().includes(dq) ||
+            amountOf(q).toFixed(2).includes(dq) ||
+            localeDate.includes(dq) ||
+            isoDate.includes(dq)
+          );
+        })
+      : sortedQuotations;
 
     return (
       <div className="space-y-6">
@@ -266,11 +304,28 @@ export default function Insights() {
             Quotations with {p.customer?.personalName || "this partner"}
           </h3>
 
+          <div className="px-6 pb-4 max-w-sm">
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by end customer, amount, or date..."
+                value={detailSearch}
+                onChange={(e) => setDetailSearch(e.target.value)}
+                className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+              />
+            </div>
+          </div>
+
+          {filteredQuotations.length === 0 && (
+            <p className="text-sm text-gray-500 pb-6 px-6 text-center">
+              No quotations match "{detailSearch}".
+            </p>
+          )}
+
           {/* ── Mobile: stacked cards ── */}
           <div className="space-y-3 p-4 sm:hidden">
-            {p.quotations
-              .slice()
-              .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+            {filteredQuotations
               .map((q) => (
                 <div key={q._id} className="border border-green-100 rounded-xl p-3">
                   <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -315,10 +370,7 @@ export default function Insights() {
                 </tr>
               </thead>
               <tbody>
-                {p.quotations
-                  .slice()
-                  .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-                  .map((q) => (
+                {filteredQuotations.map((q) => (
                     <tr key={q._id} className="border-b border-green-100">
                       <td className="px-4 py-3 font-medium text-gray-800">
                         {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
@@ -410,7 +462,7 @@ export default function Insights() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search partners by name, company, or email..."
+            placeholder="Search partners by name, company, email, or end customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"

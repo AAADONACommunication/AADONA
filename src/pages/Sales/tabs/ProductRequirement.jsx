@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { Plus, Trash2, Search, Send, Package, Building2 } from "lucide-react";
 import { safeJson, inputStyle } from "../SalesPanel";
@@ -30,6 +30,21 @@ export default function CreateQuotation({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // ── Scroll the page fully to the top whenever an error is shown, so the
+  // banner is always visible regardless of how far down the form was scrolled. ──
+  const rootRef = useRef(null);
+  const errorRef = useRef(null);
+  const showError = (message) => {
+    setError(message);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      document.documentElement.scrollTo?.({ top: 0, left: 0, behavior: "smooth" });
+      document.body.scrollTo?.({ top: 0, left: 0, behavior: "smooth" });
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   // ── End customer — always a real endCustomerId from the backend, never
   // rebuilt from notes. Either it arrives via prefill (Project Locking →
@@ -231,7 +246,7 @@ export default function CreateQuotation({
 
     const validationError = validateForm();
     if (validationError) {
-      setError(validationError);
+      showError(validationError);
       return;
     }
 
@@ -254,25 +269,14 @@ export default function CreateQuotation({
       resetForm();
     } catch (err) {
       console.error("Send requirement error:", err);
-      setError(err.message || "Failed to send requirement to admin");
+      showError(err.message || "Failed to send requirement to admin");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-          {error}
-        </div>
-      )}
-      {successMsg && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
-          {successMsg}
-        </div>
-      )}
-
+    <div className="space-y-6 sm:space-y-8" ref={rootRef}>
       <p className="text-sm text-gray-500">
         Note down what the customer needs — products and quantities. Pricing is
         decided by admin and will come back to you under{" "}
@@ -285,23 +289,34 @@ export default function CreateQuotation({
         .
       </p>
 
+      {error && (
+        <div ref={errorRef} className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm break-words">
+          {error}
+        </div>
+      )}
+      {successMsg && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm break-words">
+          {successMsg}
+        </div>
+      )}
+
       {/* ── Partner Selection ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
         <h2 className="text-lg font-bold text-green-800 mb-4">Partner</h2>
 
         {selectedCustomer ? (
-          <div className="flex items-start justify-between gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
-            <div>
-              <p className="font-semibold text-gray-800">{selectedCustomer.personalName}</p>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="min-w-0">
+              <p className="font-semibold text-gray-800 break-words">{selectedCustomer.personalName}</p>
               {selectedCustomer.companyName && (
-                <p className="text-sm text-gray-600">{selectedCustomer.companyName}</p>
+                <p className="text-sm text-gray-600 break-words">{selectedCustomer.companyName}</p>
               )}
-              <p className="text-sm text-gray-600">{selectedCustomer.email}</p>
+              <p className="text-sm text-gray-600 break-words">{selectedCustomer.email}</p>
               {selectedCustomer.contactNumber && (
-                <p className="text-sm text-gray-600">{selectedCustomer.contactNumber}</p>
+                <p className="text-sm text-gray-600 break-words">{selectedCustomer.contactNumber}</p>
               )}
               {selectedCustomer.city && (
-                <p className="text-sm text-gray-600">{selectedCustomer.city}</p>
+                <p className="text-sm text-gray-600 break-words">{selectedCustomer.city}</p>
               )}
             </div>
             <button
@@ -311,7 +326,7 @@ export default function CreateQuotation({
                 setEndCustomerName("");
                 setEndCustomerOptions([]);
               }}
-              className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap"
+              className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap self-start"
             >
               Change
             </button>
@@ -356,8 +371,8 @@ export default function CreateQuotation({
                       onClick={() => setCustomerId(c._id)}
                       className="w-full text-left px-4 py-3 hover:bg-green-50 transition"
                     >
-                      <p className="font-medium text-gray-800">{c.personalName}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-gray-800 break-words">{c.personalName}</p>
+                      <p className="text-xs text-gray-500 break-words">
                         {c.companyName ? `${c.companyName} · ` : ""}
                         {c.email}
                       </p>
@@ -372,28 +387,28 @@ export default function CreateQuotation({
 
       {/* ── End Customer — always a real endCustomerId, never typed here ── */}
       {selectedCustomer && (
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Building2 size={18} className="text-green-700" />
+            <Building2 size={18} className="text-green-700 shrink-0" />
             <h2 className="text-lg font-bold text-green-800">End Customer</h2>
           </div>
 
           {selectedEndCustomer ? (
-            <div className="flex items-start justify-between gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
-              <div>
-                <p className="font-semibold text-gray-800">{selectedEndCustomer.endCustomerName}</p>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-800 break-words">{selectedEndCustomer.endCustomerName}</p>
                 {selectedEndCustomer.organizationName && (
-                  <p className="text-sm text-gray-600">{selectedEndCustomer.organizationName}</p>
+                  <p className="text-sm text-gray-600 break-words">{selectedEndCustomer.organizationName}</p>
                 )}
                 {(selectedEndCustomer.city || selectedEndCustomer.state) && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 break-words">
                     {[selectedEndCustomer.city, selectedEndCustomer.state].filter(Boolean).join(", ")}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => setEndCustomerId("")}
-                className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap"
+                className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap self-start"
               >
                 Change
               </button>
@@ -412,8 +427,8 @@ export default function CreateQuotation({
                     onClick={() => setEndCustomerId(ec._id)}
                     className="w-full text-left px-4 py-3 hover:bg-green-50 transition"
                   >
-                    <p className="font-medium text-gray-800">{ec.endCustomerName}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-medium text-gray-800 break-words">{ec.endCustomerName}</p>
+                    <p className="text-xs text-gray-500 break-words">
                       {ec.organizationName}
                       {ec.city ? ` · ${ec.city}` : ""}
                     </p>
@@ -428,7 +443,7 @@ export default function CreateQuotation({
               </button>
             </div>
           ) : (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-sm">
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-sm break-words">
               No end customer locked for this partner yet.{" "}
               <button
                 onClick={() => setActiveTab?.("lock")}
@@ -443,19 +458,19 @@ export default function CreateQuotation({
       )}
 
       {/* ── Product Requirement (no price) ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <h2 className="text-lg font-bold text-green-800">Product Requirement</h2>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => (pickerOpen ? closePicker() : setPickerOpen(true))}
-              className="flex items-center gap-1.5 bg-white border border-green-300 text-green-700 px-3 py-2 rounded-lg hover:bg-green-50 transition text-sm font-semibold"
+              className="flex items-center justify-center gap-1.5 bg-white border border-green-300 text-green-700 px-3 py-2 rounded-lg hover:bg-green-50 transition text-sm font-semibold flex-1 sm:flex-none"
             >
               <Package size={16} /> {pickerOpen ? "Close" : "Add from category"}
             </button>
             <button
               onClick={addManualItem}
-              className="flex items-center gap-1.5 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold"
+              className="flex items-center justify-center gap-1.5 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold flex-1 sm:flex-none"
             >
               <Plus size={16} /> Add custom item
             </button>
@@ -469,7 +484,7 @@ export default function CreateQuotation({
             below and doesn't collapse after you add one — pick one, then
             immediately pick the next. */}
         {pickerOpen && (
-          <div className="border border-green-200 rounded-xl p-4 mb-5 bg-green-50/40 space-y-4">
+          <div className="border border-green-200 rounded-xl p-3 sm:p-4 mb-5 bg-green-50/40 space-y-4">
             <div className="relative">
               <Search
                 size={16}
@@ -518,8 +533,8 @@ export default function CreateQuotation({
               </div>
             ) : (
               <>
-                {/* Type / Category / Sub-category — three dropdowns side by side */}
-                <div className="grid sm:grid-cols-3 gap-3">
+                {/* Type / Category / Sub-category — three dropdowns, stacked on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Type</label>
                     <select
@@ -731,7 +746,7 @@ export default function CreateQuotation({
       </div>
 
       {/* ── Notes ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
         <label className="block text-sm font-semibold text-gray-700 mb-1.5">
           Notes for Admin
         </label>
@@ -749,7 +764,7 @@ export default function CreateQuotation({
         <button
           onClick={handleSendToAdmin}
           disabled={submitting}
-          className="flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Send size={16} /> {submitting ? "Sending..." : "Send Requirement to Admin"}
         </button>
