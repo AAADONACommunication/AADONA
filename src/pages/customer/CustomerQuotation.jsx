@@ -434,7 +434,7 @@ export default function CustomerQuotation() {
             <span
               className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-base font-bold ${statusBadge[effectiveStatus].classes}`}
             >
-              <span className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full ${statusBadge[effectiveStatus].dot}`} />
+              <span className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full animate-pulse ${statusBadge[effectiveStatus].dot}`} />
               {statusBadge[effectiveStatus].label}
             </span>
           )}
@@ -899,9 +899,8 @@ export default function CustomerQuotation() {
               <span className="text-2xl font-extrabold text-white">
                 ₹{Number(finalAmount || 0).toFixed(2)}
               </span>
-            </div>
-            <a
-              href={pdfUrl}
+           </div>          
+              <a href={pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-5 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-green-700 to-green-600 hover:shadow-md hover:scale-[1.01] text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all"
