@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { Search, Trash2 } from "lucide-react";
 import { safeJson } from "../SalesPanel";
+import RejectQuotationModal from "../../components/shared/RejectQuotationModal";
 
 const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
@@ -42,6 +43,11 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   // ── Negotiation action state ──
   const [actingId, setActingId] = useState(null);
   const [actionError, setActionError] = useState("");
+  // ── Reject quotation state ──
+  const [rejectModalOpen, setRejectModalOpen] = useState(null); // holds the quotation being rejected
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
+  const [rejectError, setRejectError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [counterModalOpen, setCounterModalOpen] = useState(false);
   const [counterItems, setCounterItems] = useState([]);
   const [counterGstRate, setCounterGstRate] = useState(18);
@@ -140,6 +146,32 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
       setActionError(err.message || "Failed to accept offer");
     } finally {
       setActingId(null);
+    }
+  };
+
+  const handleReject = async (reason) => {
+    if (!rejectModalOpen) return;
+    setRejectSubmitting(true);
+    setRejectError("");
+    try {
+      const headers = { "Content-Type": "application/json", ...(await authHeader()) };
+      const res = await fetch(`${QUOTATIONS_API}/${rejectModalOpen._id}/reject`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ reason }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.message || "Failed to reject quotation");
+      setRejectModalOpen(null);
+      setViewing(null);
+      reloadQuotations?.();
+      setSuccessMessage("Quotation rejected successfully"); // TODO: swap for your real notification call
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error("Reject quotation error:", err);
+      setRejectError(err.message || "Failed to reject quotation");
+    } finally {
+      setRejectSubmitting(false);
     }
   };
 
@@ -824,7 +856,37 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               </span>
             </div>
 
-            {renderNegotiationSection(viewing)}
+            {viewing.status === "rejected" ? (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 space-y-1.5">
+                <p className="text-sm font-bold text-red-700">Quotation Rejected</p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Rejected By:</span>{" "}
+                  {viewing.rejectedBy === "partner" ? "Partner" : viewing.rejectedBy === "sales" ? "Sales" : "—"}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Rejected Date:</span>{" "}
+                  {viewing.rejectedAt ? new Date(viewing.rejectedAt).toLocaleString("en-IN") : "—"}
+                </p>
+                {viewing.rejectReason && (
+                  <p className="text-sm text-gray-700">
+                    <span className="font-semibold">Reason:</span> {viewing.rejectReason}
+                  </p>
+                )}
+              </div>
+            ) : (
+              renderNegotiationSection(viewing)
+            )}
+
+            {viewing.status !== "accepted" && viewing.status !== "rejected" && (
+              <div className="mb-4">
+                <button
+                  onClick={() => { setRejectError(""); setRejectModalOpen(viewing); }}
+                  className="w-full bg-white border-2 border-red-500 text-red-600 hover:bg-red-50 text-sm font-semibold py-2 rounded-lg transition"
+                >
+                  Reject Quotation
+                </button>
+              </div>
+            )}
 
             <div className="border border-green-100 rounded-xl divide-y mb-4">
               {(viewing.items || []).map((item, i) => (
@@ -1342,6 +1404,23 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ── Reject Quotation Modal ── */}
+      <RejectQuotationModal
+        isOpen={!!rejectModalOpen}
+        onClose={() => { setRejectModalOpen(null); setRejectError(""); }}
+        onConfirm={handleReject}
+        loading={rejectSubmitting}
+        error={rejectError}
+        title={`Reject Quotation #${rejectModalOpen?.quotationNumber || ""}?`}
+      />
+
+      {/* ── Success notification — swap for your app's existing toast system ── */}
+      {successMessage && (
+        <div className="fixed bottom-6 right-6 bg-green-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-lg z-[80]">
+          {successMessage}
         </div>
       )}
     </div>

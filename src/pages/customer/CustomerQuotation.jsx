@@ -20,6 +20,7 @@ import {
   History as HistoryIcon,
 } from "lucide-react";
 import logo from "../../assets/logo.avif";
+import RejectQuotationModal from "../../components/shared/RejectQuotationModal";
 
 const PUBLIC_API = `${import.meta.env.VITE_API_URL}/public/quotation`;
 
@@ -235,11 +236,15 @@ export default function CustomerQuotation() {
     }
   };
 
-  const handleReject = async () => {
+  const handleReject = async (reason) => {
     setSubmitting(true);
     setActionError("");
     try {
-      const res = await fetch(`${PUBLIC_API}/${token}/reject`, { method: "POST" });
+      const res = await fetch(`${PUBLIC_API}/${token}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.message || "Failed to submit response");
       setRejectConfirmOpen(false);
@@ -837,7 +842,31 @@ export default function CustomerQuotation() {
         {actionState && renderSuccessScreen()}
 
         {/* ── Already-actioned badge (rejected / awaiting approval etc.) ── */}
-        {!actionState && !showButtons && !showCounterOfferView && !isAccepted && statusBadge[quotation.status] && (
+        {!actionState && !showButtons && !showCounterOfferView && !isAccepted && quotation.status === "rejected" && (
+          <div className="bg-white rounded-2xl border-2 border-red-200 shadow-sm p-8 text-center">
+            <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+              <XCircle className="text-red-600" size={26} />
+            </div>
+            <h2 className="text-lg font-extrabold text-red-700 mb-3">Quotation Rejected</h2>
+            <div className="max-w-xs mx-auto text-left text-sm space-y-1.5">
+              <p className="text-gray-700">
+                <span className="font-semibold">Rejected By:</span>{" "}
+                {quotation.rejectedBy === "partner" ? "You" : quotation.rejectedBy === "sales" ? "Sales Team" : "—"}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Rejected Date:</span>{" "}
+                {quotation.rejectedAt ? new Date(quotation.rejectedAt).toLocaleString("en-IN") : "—"}
+              </p>
+              {quotation.rejectReason && (
+                <p className="text-gray-700">
+                  <span className="font-semibold">Reason:</span> {quotation.rejectReason}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {!actionState && !showButtons && !showCounterOfferView && !isAccepted && quotation.status !== "rejected" && statusBadge[quotation.status] && (
           <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-8 text-center">
             <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
               <ShieldCheck className="text-green-600" size={26} />
@@ -989,33 +1018,14 @@ export default function CustomerQuotation() {
       )}
 
       {/* ── Confirm Do Not Proceed Dialog ── */}
-      {rejectConfirmOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <h3 className="text-lg font-extrabold text-gray-800 mb-2">Do Not Proceed?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              This will let our sales team know you don't wish to proceed with this quotation. This action
-              cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setRejectConfirmOpen(false)}
-                disabled={submitting}
-                className="flex-1 border border-green-200 text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-green-50 transition disabled:opacity-60"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                disabled={submitting}
-                className="flex-1 bg-red-600 text-white font-semibold py-2.5 rounded-xl hover:bg-red-700 transition disabled:opacity-60"
-              >
-                {submitting ? "Submitting..." : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RejectQuotationModal
+        isOpen={rejectConfirmOpen}
+        onClose={() => setRejectConfirmOpen(false)}
+        onConfirm={handleReject}
+        loading={submitting}
+        error={actionError}
+        title="Do Not Proceed?"
+      />
 
       {/* ── Negotiate Modal ── */}
       {negotiateOpen && (

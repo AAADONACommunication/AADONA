@@ -1394,4 +1394,75 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
   }
 });
 
+// ── POST /sales-quotations/:id/reject ──
+router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const { reason } = req.body;
+    const rejectReason = reason && reason.trim() ? reason.trim() : "";
+
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.salesRepUid !== req.salesRep.uid) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    if (quotation.status === "accepted") {
+      return res.status(400).json({ message: "Cannot reject an already accepted quotation" });
+    }
+    if (quotation.status === "rejected") {
+      return res.status(400).json({ message: "Quotation is already rejected" });
+    }
+
+    quotation.status = "rejected";
+    quotation.rejectedBy = "sales";
+    quotation.rejectReason = rejectReason;
+    quotation.rejectedAt = new Date();
+    await quotation.save();
+
+    // ── Notify Partner only — no link, no request to respond ──
+    try {
+      const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
+
+      if (quotation.customer?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: quotation.customer.email,
+          subject: `Quotation Withdrawn — #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
+              <h2 style="color:#b91c1c">Quotation Withdrawn</h2>
+              <p style="color:#374151;font-size:14px">
+                Quotation <strong>#${quotation.quotationNumber}</strong> has been withdrawn.
+              </p>
+              ${quotation.rejectReason ? `<p style="color:#374151;font-size:14px"><strong>Reason:</strong> ${quotation.rejectReason}</p>` : ""}
+              <p style="color:#374151;font-size:14px"><strong>Grand Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #b91c1c">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
+                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
+                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}
+              </div>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Sales-reject notification email failed:", mailErr.message);
+    }
+
+    return res.json({ message: "Quotation rejected", quotation });
+  } catch (err) {
+    console.error("Sales reject quotation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

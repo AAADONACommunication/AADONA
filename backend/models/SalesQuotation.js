@@ -64,6 +64,12 @@ const SalesQuotationSchema = new mongoose.Schema(
     viewedAt: { type: Date },
     acceptedAt: { type: Date },
     rejectedAt: { type: Date },
+    rejectedBy: {
+      type: String,
+      enum: ["sales", "partner"],
+      default: null,
+    },
+    rejectReason: { type: String, default: "" },
 
     // ── Reminder scheduling ──
     reminderAfterDays: {

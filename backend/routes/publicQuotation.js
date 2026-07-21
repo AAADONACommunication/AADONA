@@ -32,6 +32,8 @@ const toPublicQuotation = (quotation, salesRep) => ({
   viewedAt: quotation.viewedAt,
   acceptedAt: quotation.acceptedAt,
   rejectedAt: quotation.rejectedAt,
+  rejectedBy: quotation.rejectedBy,
+  rejectReason: quotation.rejectReason,
   customerMessage: quotation.customerMessage,
   expectedBudget: quotation.expectedBudget,
   customerRespondedAt: quotation.customerRespondedAt,
@@ -571,6 +573,66 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
     return res.json({ message: "Counter offer accepted successfully", status: quotation.status });
   } catch (err) {
     console.error("Accept counter offer error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /quotation/:publicToken/reject ──
+router.post("/quotation/:publicToken/reject", async (req, res) => {
+  try {
+    const { publicToken } = req.params;
+    const { reason } = req.body;
+    const rejectReason = reason && reason.trim() ? reason.trim() : "";
+
+    const quotation = await SalesQuotation.findOne({ publicToken })
+      .populate("customer")
+      .populate("endCustomer");
+
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.status === "accepted") {
+      return res.status(400).json({ message: "Cannot reject an already accepted quotation" });
+    }
+    if (quotation.status === "rejected") {
+      return res.status(400).json({ message: "Quotation is already rejected" });
+    }
+
+    quotation.status = "rejected";
+    quotation.rejectedBy = "partner";
+    quotation.rejectReason = rejectReason;
+    quotation.rejectedAt = new Date();
+    await quotation.save();
+
+    // ── Notify Sales Representative only ──
+    try {
+      const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
+
+      if (salesRep?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: salesRep.email,
+          subject: `Quotation Rejected — #${quotation.quotationNumber}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
+              <h2 style="color:#b91c1c">Quotation Rejected by Partner</h2>
+              <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+              ${quotation.rejectReason ? `<p style="color:#374151;font-size:14px"><strong>Reason:</strong> ${quotation.rejectReason}</p>` : ""}
+              <p style="color:#374151;font-size:14px"><strong>Grand Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
+              <p style="color:#374151;font-size:14px"><strong>Rejected At:</strong> ${quotation.rejectedAt.toLocaleString("en-IN")}</p>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Partner-reject notification email failed:", mailErr.message);
+    }
+
+    return res.json({ message: "Quotation rejected", status: quotation.status });
+  } catch (err) {
+    console.error("Reject quotation error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 });

@@ -411,6 +411,25 @@ export default function SentQuotations() {
           </span>
         </div>
 
+        {selected.status === "rejected" && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-5 space-y-1.5 text-sm">
+            <p className="font-bold text-red-700">Quotation Rejected</p>
+            <p className="text-gray-700">
+              <span className="font-semibold">Rejected By:</span>{" "}
+              {selected.rejectedBy === "partner" ? "Partner" : selected.rejectedBy === "sales" ? "Sales" : "—"}
+            </p>
+            <p className="text-gray-700">
+              <span className="font-semibold">Rejected Date:</span>{" "}
+              {selected.rejectedAt ? new Date(selected.rejectedAt).toLocaleString("en-IN") : "—"}
+            </p>
+            {selected.rejectReason && (
+              <p className="text-gray-700">
+                <span className="font-semibold">Reason:</span> {selected.rejectReason}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Customer details */}
         <div className="grid sm:grid-cols-2 gap-2.5 sm:gap-3 mb-4 sm:mb-5 text-sm bg-gray-50 rounded-xl p-3.5 sm:p-4">
           <p className="text-gray-700">
