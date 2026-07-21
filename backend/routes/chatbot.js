@@ -728,7 +728,7 @@ router.post('/chat/summary', async (req, res) => {
       .map(m => {
         const isBot = m.role === 'bot' || m.role === 'assistant';
         const bg = isBot ? '#f0fdf4' : '#ffffff';
-        const label = isBot ? '🤖 AADONA Assistant' : `👤 ${nameLabel}`;
+        const label = isBot ? 'AADONA Assistant' : `${nameLabel}`;
         const labelColor = isBot ? '#166534' : '#1e40af';
         return `
           <tr style="background:${bg}">
@@ -747,11 +747,11 @@ router.post('/chat/summary', async (req, res) => {
       await transporter.sendMail({
         from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
         to: process.env.COMPANY_EMAIL,
-        subject: `🔄 User Resumed Chat — ${name} (+91 ${phone})`,
+        subject: `User Resumed Chat — ${name} (+91 ${phone})`,
         html: `
           <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;border:1px solid #fef08a;border-radius:12px">
             <div style="background:#fefce8;padding:16px 20px;border-radius:8px;margin-bottom:20px;border-left:4px solid #f59e0b">
-              <h2 style="color:#854d0e;margin:0 0 6px">🔄 User Resumed Chat</h2>
+              <h2 style="color:#854d0e;margin:0 0 6px">User Resumed Chat</h2>
               <p style="color:#713f12;font-size:14px;margin:0"><b>${name}</b> (+91 ${phone}${city ? `, ${city}` : ''}) has <b>resumed the conversation</b> after being inactive.</p>
               <p style="color:#92400e;font-size:12px;margin:8px 0 0">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</p>
             </div>
@@ -768,7 +768,7 @@ router.post('/chat/summary', async (req, res) => {
     await transporter.sendMail({
       from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
       to: process.env.COMPANY_EMAIL,
-      subject: `💬 Chat Summary — ${name} (+91 ${phone})${req.body.trigger === 'close' ? ' (Tab Closed)' : ' (10 min Inactivity)'}`,
+      subject: `Chat Summary — ${name} (+91 ${phone})${req.body.trigger === 'close' ? ' (Tab Closed)' : ' (10 min Inactivity)'}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;border:1px solid #d1fae5;border-radius:12px">
           <h2 style="color:#065f46;margin-bottom:4px">Chat Summary (${req.body.trigger === 'close' ? 'Tab Closed' : '10 min Inactivity'})</h2>

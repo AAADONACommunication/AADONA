@@ -172,7 +172,7 @@ router.post("/admin/sales/invite", verifyToken, async (req, res) => {
       `,
     });
 
-    res.json({ message: "Invite sent successfully ✅" });
+    res.json({ message: "Invite sent successfully " });
   } catch (err) {
     console.log("Send invite error:", err.message);
     res.status(500).json({ error: err.message });
@@ -301,7 +301,7 @@ router.post("/sales/signup/verify", async (req, res) => {
     invite.used = true;
     await invite.save();
 
-    res.status(201).json({ message: "Account created successfully ✅", salesRep });
+    res.status(201).json({ message: "Account created successfully ", salesRep });
   } catch (err) {
     console.log("Signup verify error:", err.message);
     if (err.code === "auth/email-already-exists") {

@@ -16,6 +16,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
   const salesRep = opts.salesRep || null;
   const amountLabel = opts.label || "Final Accepted Amount";
   const copyLabel = opts.copyLabel || null;
+  const isPartnerCopy = copyLabel === "Partner's Copy";
 
   const endCustomer = quotation.endCustomer || null;
 
@@ -157,34 +158,35 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
           </tr>` : ""}
         </table>
       </div>
-
-      <div style="flex:1;">
-        <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
-          End Customer Details
-        </div>
-        <table style="width:100%;font-size:12px;color:#374151;">
-          <tr>
-            <td style="padding:3px 0;color:#6b7280;width:80px;">Name</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer?.endCustomerName || "—"}</td>
-          </tr>
-          ${endCustomer?.organizationName ? `
-          <tr>
-            <td style="padding:3px 0;color:#6b7280;">Organization</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.organizationName}</td>
-          </tr>` : ""}
-          ${endCustomer?.city ? `
-          <tr>
-            <td style="padding:3px 0;color:#6b7280;">City</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.city}</td>
-          </tr>` : ""}
-          ${endCustomer?.mobileNumber ? `
-          <tr>
-            <td style="padding:3px 0;color:#6b7280;">Contact</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.mobileNumber}</td>
-          </tr>` : ""}
-        </table>
+      
+      ${!isPartnerCopy ? `
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
+            End Customer Details
+          </div>
+          <table style="width:100%;font-size:12px;color:#374151;">
+            <tr>
+              <td style="padding:3px 0;color:#6b7280;width:80px;">Name</td>
+              <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer?.endCustomerName || "—"}</td>
+            </tr>
+            ${endCustomer?.organizationName ? `
+            <tr>
+              <td style="padding:3px 0;color:#6b7280;">Organization</td>
+              <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.organizationName}</td>
+            </tr>` : ""}
+            ${endCustomer?.city ? `
+            <tr>
+              <td style="padding:3px 0;color:#6b7280;">City</td>
+              <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.city}</td>
+            </tr>` : ""}
+            ${endCustomer?.mobileNumber ? `
+            <tr>
+              <td style="padding:3px 0;color:#6b7280;">Contact</td>
+              <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer.mobileNumber}</td>
+            </tr>` : ""}
+          </table>
+        </div>` : ""}
       </div>
-    </div>
 
     <!-- Sales Representative -->
     <div style="margin-bottom:28px;padding-left:14px;">

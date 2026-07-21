@@ -467,7 +467,7 @@ const generateSlug = (name) =>
 ============================= */
 
 app.get("/", (req, res) => {
-  res.send("API Running 🚀");
+  res.send("API Running");
 });
 
 /* =============================
@@ -1233,7 +1233,7 @@ app.post("/api/create-admin", verifyToken, async (req, res) => {
       changes: { email: { new: email } },
     });
 
-    res.json({ message: "New Admin Created ✅" });
+    res.json({ message: "New Admin Created" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -1276,7 +1276,7 @@ app.delete("/api/delete-admin/:uid", verifyToken, async (req, res) => {
       changes: { email: { old: userRecord.email, new: "DELETED" } },
     });
 
-    res.json({ message: "Admin removed successfully ✅" });
+    res.json({ message: "Admin removed successfully" });
   } catch (err) {
     if (err.code === "auth/user-not-found")
       return res.status(404).json({ message: "User not found in Firebase." });
@@ -1348,7 +1348,7 @@ app.post("/api/save-related-products", verifyToken, async (req, res) => {
       }
     );
 
-    res.json({ message: "Related products saved successfully ✅", result });
+    res.json({ message: "Related products saved successfully", result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1437,7 +1437,7 @@ app.put("/api/related-products/remove", verifyToken, async (req, res) => {
     );
 
     res.json({
-      message: "Product removed from related list ✅",
+      message: "Product removed from related list",
       relatedProducts: related.relatedProducts,
     });
   } catch (err) {
@@ -1714,7 +1714,7 @@ app.post("/api/admin/generate-blogs", verifyToken, (req, res) => {
 
   py.on("close", (code) => {
     if (code === 0) {
-      res.json({ success: true, message: "Blog generated successfully 🚀" });
+      res.json({ success: true, message: "Blog generated successfully" });
     } else {
       const lastError = errorOutput
         .split("\n")
@@ -1811,7 +1811,7 @@ mongoose.connection.once("open", async () => {
           : false;
 
         if (scheduledTimePassedToday && !last24Hours) {
-          console.log("⚠️ Missed run detected — running now...");
+          console.log("Missed run detected — running now...");
           const { spawn } = require("child_process");
           const path = require("path");
           const scriptPath = path.join(__dirname, "../python-automation/main.py");
@@ -1855,7 +1855,7 @@ app.post("/api/admin/blog-schedule", verifyToken, async (req, res) => {
       changes: { schedule: { new: `Day ${dayOfWeek}, ${hour}:${minute} IST` } }
     });
 
-    res.json({ message: "Schedule saved ✅", schedule });
+    res.json({ message: "Schedule saved", schedule });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1926,7 +1926,7 @@ app.post("/api/inquiries/:id/reply", verifyToken, async (req, res) => {
     inquiry.status = "replied";
     await inquiry.save();
 
-    res.json({ message: "Reply sent successfully ✅", inquiry });
+    res.json({ message: "Reply sent successfully", inquiry });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2938,11 +2938,11 @@ app.post("/api/newsletter-subscribe", formLimiter, async (req, res) => {
     transporter.sendMail({
       from: `"AADONA Newsletter" <${process.env.EMAIL_USER}>`,
       to: process.env.COMPANY_EMAIL,
-      subject: `New Newsletter Subscriber 🎉`,
+      subject: `New Newsletter Subscriber`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;
           padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534">New Subscriber 🎉</h2>
+          <h2 style="color:#166534">New Subscriber</h2>
           <div style="background:#f0fdf4;padding:16px;border-radius:8px;
             border-left:4px solid #16a34a;margin:20px 0">
             <b>Email:</b> ${cleanEmail}<br/>
@@ -2981,7 +2981,7 @@ app.get("/test-mail", async (req, res) => {
       text: "Working",
     });
 
-    res.send("MAIL SENT ✅");
+    res.send("MAIL SENT");
   } catch (err) {
     console.log("MAIL ERROR:", err);
     res.status(500).send(err.message);

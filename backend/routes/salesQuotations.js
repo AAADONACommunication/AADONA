@@ -290,13 +290,6 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
                         ${customer.companyName}
                       </td>
                     </tr>` : ""}
-                    ${endCustomerDoc?.endCustomerName ? `
-                    <tr>
-                      <td style="padding:4px 0;color:#6b7280;font-size:13px">End Customer</td>
-                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
-                        ${endCustomerDoc.endCustomerName}${endCustomerDoc.organizationName ? ` — ${endCustomerDoc.organizationName}` : ""}
-                      </td>
-                    </tr>` : ""}
                     <tr>
                       <td style="padding:4px 0;color:#6b7280;font-size:13px">Date</td>
                       <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
@@ -394,8 +387,8 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
                   <div style="background:#f9fafb;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
                     <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                     <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                    ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
-                    ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+                    ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
+                    ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
                   </div>
                 </td>
               </tr>
@@ -542,7 +535,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
 
       const reportHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-          <h2 style="color:#166534">Negotiated Offer Accepted ✅</h2>
+          <h2 style="color:#166534">Negotiated Offer Accepted </h2>
           <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
           <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
           <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
@@ -573,7 +566,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
           subject: `Your Offer Has Been Accepted — #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Your Offer Was Accepted ✅</h2>
+              <h2 style="color:#166534">Your Offer Was Accepted </h2>
               <p style="color:#374151;font-size:14px">
                 Good news — your offer of <strong>₹${Number(quotation.negotiatedAmount).toFixed(2)}</strong>
                 for quotation <strong>#${quotation.quotationNumber}</strong> has been accepted.
@@ -582,8 +575,8 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
                 <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
-                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRep.phone}</p>` : ""}
-                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRep.email}</p>` : ""}
+                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
+                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}
               </div>
             </div>
           `,
@@ -788,8 +781,8 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #ea580c">
                 <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
               </div>
             </div>
           `,
@@ -1045,8 +1038,8 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
                 <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
               </div>
             </div>
           `,
@@ -1171,8 +1164,8 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
                 <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
               </div>
             </div>
           `,
@@ -1383,8 +1376,8 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
                 <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRepForEmail.email}</p>` : ""}
+                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
+                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
               </div>
             </div>
           `,

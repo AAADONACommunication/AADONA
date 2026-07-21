@@ -21,12 +21,6 @@ const toPublicQuotation = (quotation, salesRep) => ({
         contactNumber: quotation.customer.contactNumber,
       }
     : null,
-  endCustomer: quotation.endCustomer
-    ? {
-        endCustomerName: quotation.endCustomer.endCustomerName,
-        organizationName: quotation.endCustomer.organizationName,
-      }
-    : null,
   items: quotation.items,
   subtotal: quotation.subtotal,
   discountAmount: quotation.discountAmount,
@@ -183,7 +177,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
           subject: `Quotation Confirmed — #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Your Quotation Is Confirmed ✅</h2>
+              <h2 style="color:#166534">Your Quotation Is Confirmed </h2>
               <p style="color:#374151;font-size:14px">
                 Thank you for confirming quotation <strong>#${quotation.quotationNumber}</strong> for
                 <strong>₹${Number(quotation.grandTotal).toFixed(2)}</strong>.
@@ -192,8 +186,8 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
                 <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
-                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRep.phone}</p>` : ""}
-                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRep.email}</p>` : ""}
+                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
+                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}
               </div>
             </div>
           `,
@@ -208,7 +202,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
           subject: `Quotation Accepted — #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Quotation Accepted ✅</h2>
+              <h2 style="color:#166534">Quotation Accepted </h2>
               <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
               <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
               <p style="color:#374151;font-size:14px">
@@ -230,7 +224,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
           subject: `Quotation Accepted — #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Quotation Accepted ✅</h2>
+              <h2 style="color:#166534">Quotation Accepted </h2>
               <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || "—"} ${salesRep?.phone ? `(${salesRep.phone})` : ""}</p>
               <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
               <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
@@ -511,7 +505,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
       // ── Partner-facing copy — no internal admin info, includes their sales contact ──
       const partnerHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-          <h2 style="color:#166534">Counter Offer Accepted ✅</h2>
+          <h2 style="color:#166534">Counter Offer Accepted </h2>
           <p style="color:#374151;font-size:14px">
             <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted the
             counter offer for quotation <strong>#${quotation.quotationNumber}</strong>.
@@ -520,8 +514,8 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
           <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
             <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
             <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
-            ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">📞 ${salesRep.phone}</p>` : ""}
-            ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151">✉️ ${salesRep.email}</p>` : ""}
+            ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
+            ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}
           </div>
         </div>
       `;
@@ -529,7 +523,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
       // ── Sales Rep / Admin copy — includes Partner, End Customer, Sales Rep identity ──
       const reportHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-          <h2 style="color:#166534">Counter Offer Accepted ✅</h2>
+          <h2 style="color:#166534">Counter Offer Accepted </h2>
           <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid} ${salesRep?.phone ? `(${salesRep.phone})` : ""}</p>
           <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
           <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
