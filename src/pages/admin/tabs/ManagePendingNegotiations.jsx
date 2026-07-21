@@ -431,7 +431,7 @@ export default function ManagePendingNegotiations() {
 
                       {version.at && (
                         <p className="text-xs text-gray-500">
-                          {new Date(version.at).toLocaleString("en-IN")}
+                          {new Date(version.at).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}
                         </p>
                       )}
                     </div>

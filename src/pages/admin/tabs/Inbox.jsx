@@ -107,7 +107,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
 
   const inboxFormatDateFull = (dateStr) => {
     if (!dateStr) return "—";
-    return new Date(dateStr).toLocaleString("en-IN", {
+    return new Date(dateStr).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }, {
       day: "numeric", month: "short", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });

@@ -662,7 +662,7 @@ export default function ManageQuotationRequests() {
                             <p className="text-[11px] text-gray-400 mt-3 text-right">
                               {new Date(
                                 revision.revisedAt
-                              ).toLocaleString("en-IN")}
+                              ).toLocaleString("en-IN", {timeZone: "Asia/Kolkata" })}
                             </p>
                           )}
                         </div>

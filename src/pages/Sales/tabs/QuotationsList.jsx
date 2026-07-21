@@ -499,7 +499,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
             )}
             {round.customerRespondedAt && (
               <p className="text-xs text-gray-500">
-                {new Date(round.customerRespondedAt).toLocaleString("en-IN")}
+                {new Date(round.customerRespondedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
               </p>
             )}
 
@@ -571,7 +571,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
             )}
             {round.counterOfferAt && (
               <p className="text-xs text-gray-500">
-                Sent: {new Date(round.counterOfferAt).toLocaleString("en-IN")}
+                Sent: {new Date(round.counterOfferAt).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"},{ dateStyle: "short", timeStyle: "short" })}
               </p>
             )}
           </div>
@@ -865,7 +865,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="font-semibold">Rejected Date:</span>{" "}
-                  {viewing.rejectedAt ? new Date(viewing.rejectedAt).toLocaleString("en-IN") : "—"}
+                  {viewing.rejectedAt ? new Date(viewing.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
                 </p>
                 {viewing.rejectReason && (
                   <p className="text-sm text-gray-700">

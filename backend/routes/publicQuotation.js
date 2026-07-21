@@ -621,7 +621,7 @@ router.post("/quotation/:publicToken/reject", async (req, res) => {
               <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
               ${quotation.rejectReason ? `<p style="color:#374151;font-size:14px"><strong>Reason:</strong> ${quotation.rejectReason}</p>` : ""}
               <p style="color:#374151;font-size:14px"><strong>Grand Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
-              <p style="color:#374151;font-size:14px"><strong>Rejected At:</strong> ${quotation.rejectedAt.toLocaleString("en-IN")}</p>
+              <p style="color:#374151;font-size:14px"><strong>Rejected At:</strong> ${quotation.rejectedAt.toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</p>
             </div>
           `,
         });

@@ -23,7 +23,7 @@ const formatDuration = (raw) => {
   return `${Math.floor(s / 60)}m ${s % 60}s`;
 };
 
-const fmt = (n) => Number(n || 0).toLocaleString("en-IN");
+const fmt = (n) => Number(n || 0).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
 
 const TRAFFIC_COLORS = {
   "Organic Search":  "bg-green-500",

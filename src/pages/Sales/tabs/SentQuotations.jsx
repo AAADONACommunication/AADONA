@@ -420,7 +420,7 @@ export default function SentQuotations() {
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Rejected Date:</span>{" "}
-              {selected.rejectedAt ? new Date(selected.rejectedAt).toLocaleString("en-IN") : "—"}
+              {selected.rejectedAt ? new Date(selected.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
             </p>
             {selected.rejectReason && (
               <p className="text-gray-700">
@@ -558,7 +558,7 @@ export default function SentQuotations() {
 
                       {entry.at && (
                         <span className="text-xs text-gray-500">
-                          {new Date(entry.at).toLocaleString("en-IN")}
+                          {new Date(entry.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
                         </span>
                       )}
                     </div>

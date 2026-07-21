@@ -322,7 +322,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
                   <StatChip
                     icon={<IndianRupee size={13} />}
                     label="Total Business"
-                    value={`₹${Number(analytics.analytics.totalBusiness || 0).toLocaleString("en-IN")}`}
+                    value={`₹${Number(analytics.analytics.totalBusiness || 0).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}`}
                     tone="green"
                   />
                 </div>

@@ -676,7 +676,7 @@ export default function CustomerQuotation() {
 
                         {entry.at && (
                           <p className="text-[10px] text-gray-400 shrink-0">
-                            {new Date(entry.at).toLocaleString("en-IN")}
+                            {new Date(entry.at).toLocaleString("en-IN", {timeZone: "Asia/Kolkata" })}
                           </p>
                         )}
                       </div>
@@ -855,7 +855,7 @@ export default function CustomerQuotation() {
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Rejected Date:</span>{" "}
-                {quotation.rejectedAt ? new Date(quotation.rejectedAt).toLocaleString("en-IN") : "—"}
+                {quotation.rejectedAt ? new Date(quotation.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
               </p>
               {quotation.rejectReason && (
                 <p className="text-gray-700">
