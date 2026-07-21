@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getFirebaseAuth } from "../../../firebase";
 import { Trash2, Send, Users, TrendingUp } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
@@ -6,6 +7,7 @@ import { safeJson, inputStyle } from "../AdminPanel";
 const SALES_API = `${import.meta.env.VITE_API_URL}/admin/sales`;
 
 export default function ManageSales() {
+  const navigate = useNavigate();
   const [salesReps, setSalesReps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
