@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Eye } from "lucide-react";
 import { safeJson } from "../SalesPanel";
-import RejectQuotationModal from "../../components/shared/RejectQuotationModal";
+import RejectQuotationModal from "../../../components/shared/RejectQuotationModal";
 
 const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
@@ -37,7 +37,6 @@ const getStatusLabel = (status) =>
 export default function QuotationsList({ quotations, reloadQuotations }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [deletingId, setDeletingId] = useState(null);
   const [viewing, setViewing] = useState(null);
 
   // ── Negotiation action state ──
@@ -103,27 +102,6 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
     const auth = await getFirebaseAuth();
     const token = await auth.currentUser?.getIdToken();
     return { Authorization: `Bearer ${token}` };
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this quotation? This cannot be undone.")) return;
-
-    setDeletingId(id);
-    try {
-      const headers = await authHeader();
-      const res = await fetch(`${QUOTATIONS_API}/${id}`, {
-        method: "DELETE",
-        headers,
-      });
-      await safeJson(res);
-      if (!res.ok) throw new Error("Failed to delete quotation");
-      reloadQuotations?.();
-    } catch (err) {
-      console.error("Delete quotation error:", err);
-      alert(err.message || "Failed to delete quotation");
-    } finally {
-      setDeletingId(null);
-    }
   };
 
   const handleAcceptNegotiation = async (quotation) => {
@@ -695,7 +673,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               disabled={actingId === q._id}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
             >
-              {actingId === q._id ? "Accepting..." : "Accept Customer Offer"}
+              {actingId === q._id ? "Accepting..." : "Accept Partner's Offer"}
             </button>
             <button
               onClick={() => openCounterModal(q)}
@@ -792,20 +770,16 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                         {getStatusLabel(q.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(q._id);
-                          }}
-                          disabled={deletingId === q._id}
-                          className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                          aria-label="Delete quotation"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewing(q);
+                        }}
+                        className="text-green-700 font-semibold hover:underline"
+                      >
+                        View
+                      </button>
                     </td>
                   </tr>
                 ))}

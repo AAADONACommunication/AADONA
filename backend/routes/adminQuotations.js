@@ -257,9 +257,9 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                 <td style="padding:20px 32px 0">
                   <div style="background:#fefce8;border-left:4px solid #eab308;border-radius:8px;padding:14px 16px">
                     <p style="margin:0;font-size:12px;color:#854d0e">
-                      Note: This is an internal pricing document for sales use only. Do not share this email with the customer.. 
-                      Do NOT share this email with the customer. 
-                      You may add your own markup, GST, and discount before sending the final quotation to the customer.
+                      Note: This is an internal pricing document for sales use only. Do not share this email with the partner. 
+                      Do NOT share this email with the partner. 
+                      You may add your own markup, GST, and discount before sending the final quotation to the partner.
                     </p>
                   </div>
                 </td>
