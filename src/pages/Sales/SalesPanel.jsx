@@ -230,9 +230,11 @@ export default function SalesPanel() {
 
   if (loading)
     return (
-      <div className="h-screen flex flex-col items-center justify-center text-green-700 font-bold italic">
-        <h1>Verifying Sales Access...</h1>
-        <p>Please wait while we authenticate your session.</p>
+      <div className="h-screen flex flex-col items-center justify-center text-center px-6 text-green-700 font-bold italic">
+        <h1 className="text-lg sm:text-xl">Verifying Sales Access...</h1>
+        <p className="text-sm sm:text-base font-normal not-italic mt-1 text-green-600">
+          Please wait while we authenticate your session.
+        </p>
       </div>
     );
 
@@ -263,7 +265,7 @@ export default function SalesPanel() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-green-50 pt-30 px-4 md:px-10 pb-10">
+      <div className="min-h-screen bg-green-50 pt-29 sm:pt-24 md:pt-30 px-3 sm:px-6 md:px-10 pb-8 sm:pb-10">
         <div className="max-w-6xl mx-auto">
           {/* ── Top Header Bar ──
               Logo mark uses a subtle gradient + ring instead of a flat fill.
@@ -271,13 +273,14 @@ export default function SalesPanel() {
               button now fills solid red with a small scale/shadow on hover
               (was just a faint tint before) so the action feels more
               deliberate without being a heavy block by default. */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between mb-8 gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 text-white flex items-center justify-center shadow-md ring-1 ring-green-900/10 shrink-0">
-                <Briefcase size={20} />
+          <div className="flex flex-wrap items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 text-white flex items-center justify-center shadow-md ring-1 ring-green-900/10 shrink-0">
+                <Briefcase size={18} className="sm:hidden" />
+                <Briefcase size={20} className="hidden sm:block" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-green-800 tracking-tight leading-tight truncate">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-green-800 tracking-tight leading-tight truncate">
                   Sales Portal
                 </h1>
                 <p className="hidden sm:block text-xs sm:text-sm text-gray-500">
@@ -286,7 +289,7 @@ export default function SalesPanel() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 bg-white rounded-2xl border border-green-100 shadow-sm hover:shadow-md transition-shadow pl-2 pr-1.5 py-1.5 sm:pl-3 sm:pr-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-white rounded-2xl border border-green-100 shadow-sm hover:shadow-md transition-shadow pl-1.5 pr-1 py-1 sm:pl-3 sm:pr-2 sm:py-1.5 shrink-0">
               <ProfileMenu />
               <div className="w-px h-6 bg-green-100" />
               <button
@@ -296,9 +299,10 @@ export default function SalesPanel() {
                   navigate("/sales-ctrl-500");
                 }}
                 title="Logout"
-                className="group flex items-center gap-1.5 text-red-600 hover:text-white hover:bg-red-500 hover:shadow-md hover:scale-[1.03] active:scale-95 px-2.5 sm:px-3 py-2 rounded-xl transition-all duration-150 text-sm font-semibold"
+                className="group flex items-center gap-1.5 text-red-600 hover:text-white hover:bg-red-500 hover:shadow-md hover:scale-[1.03] active:scale-95 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-all duration-150 text-xs sm:text-sm font-semibold"
               >
-                <LogOut size={16} className="transition-transform duration-150 group-hover:-translate-x-0.5" />
+                <LogOut size={15} className="sm:hidden transition-transform duration-150 group-hover:-translate-x-0.5" />
+                <LogOut size={16} className="hidden sm:block transition-transform duration-150 group-hover:-translate-x-0.5" />
                 <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
@@ -308,25 +312,25 @@ export default function SalesPanel() {
               DASHBOARD — shown when no tab is selected
           ════════════════════════════════════════ */}
           {activeTab === null && (
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {/* ── Welcome banner ──
                   Headline is always "Hello, {name}"; the old time-of-day
                   greeting ("Good morning/afternoon/evening") moved down to a
                   smaller subtitle line alongside today's date. Font sizes now
                   step up smoothly across breakpoints instead of jumping
                   straight from text-sm to text-2xl. */}
-              <div className="relative overflow-hidden bg-gradient-to-r from-green-700 to-green-600 rounded-2xl shadow-sm p-5 sm:p-7">
+              <div className="relative overflow-hidden bg-gradient-to-r from-green-700 to-green-600 rounded-2xl shadow-sm p-4 sm:p-7">
                 {/* Decorative background accent — purely visual, clipped by overflow-hidden */}
                 <div className="pointer-events-none absolute -right-10 -top-10 w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white/10" />
                 <div className="pointer-events-none absolute -right-4 bottom-0 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white/5" />
 
                 <div className="relative flex items-center gap-3 sm:gap-4">
-                  <div className="hidden xs:flex sm:flex shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/15 ring-1 ring-white/20 items-center justify-center text-white text-base sm:text-xl font-bold">
+                  <div className="flex shrink-0 w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/15 ring-1 ring-white/20 items-center justify-center text-white text-sm sm:text-xl font-bold">
                     {repName ? capitalizeFirst(repName).charAt(0) : "S"}
                   </div>
 
                   <div className="min-w-0">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white break-words">
+                    <p className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white break-words">
                       Hello{repName ? `, ${capitalizeFirst(repName)}` : ""}
                       <span className="ml-1 align-middle">👋</span>
                     </p>
@@ -337,8 +341,11 @@ export default function SalesPanel() {
                 </div>
               </div>
 
-              {/* ── Section tiles — every tab gets the exact same card, same size ── */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* ── Section tiles — every tab gets the exact same card, same size ──
+                  Single column on phones so each tile stays full-width and
+                  thumb-friendly; grows to 2-up on small tablets and 4-up on
+                  larger screens. */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {TABS.map((tab) => {
                   const Icon = tab.icon;
                   const meta = tileMeta[tab.id] || {};
@@ -346,27 +353,37 @@ export default function SalesPanel() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-6 text-left hover:border-green-400 hover:shadow-md transition-all h-full"
+                      className="group relative flex items-center sm:flex-col sm:items-start gap-3 sm:gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-4 sm:p-6 text-left hover:border-green-400 hover:shadow-md active:scale-[0.99] transition-all h-full"
                     >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                          <Icon size={20} />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {meta.badge ? (
-                            <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                              {meta.badge}
-                            </span>
-                          ) : null}
-                          <ArrowRight
-                            size={16}
-                            className="text-gray-300 group-hover:text-green-600 transition-colors shrink-0"
-                          />
-                        </div>
+                      <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors shrink-0">
+                        <Icon size={20} />
                       </div>
-                      <div>
-                        <p className="font-bold text-gray-800">{tab.label}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{meta.subtitle || tab.desc}</p>
+
+                      <div className="flex-1 min-w-0 sm:w-full">
+                        <div className="flex items-center justify-between w-full sm:mb-0">
+                          <p className="font-bold text-gray-800 truncate">{tab.label}</p>
+                          <div className="flex items-center gap-2 shrink-0 sm:hidden">
+                            {meta.badge ? (
+                              <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                                {meta.badge}
+                              </span>
+                            ) : null}
+                            <ArrowRight size={16} className="text-gray-300 group-hover:text-green-600 transition-colors" />
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate sm:whitespace-normal">
+                          {meta.subtitle || tab.desc}
+                        </p>
+                      </div>
+
+                      {/* Desktop-only badge/arrow row, mirrors original layout above the label */}
+                      <div className="hidden sm:flex items-center gap-2 absolute top-6 right-6">
+                        {meta.badge ? (
+                          <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                            {meta.badge}
+                          </span>
+                        ) : null}
+                        <ArrowRight size={16} className="text-gray-300 group-hover:text-green-600 transition-colors shrink-0" />
                       </div>
                     </button>
                   );
@@ -380,21 +397,21 @@ export default function SalesPanel() {
           ════════════════════════════════════════ */}
           {activeTab !== null && (
             <>
-              <div className="flex flex-wrap items-center gap-3 mb-8 pb-4 border-b border-green-100">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 mb-6 sm:mb-8 pb-4 border-b border-green-100">
                 <button
                   onClick={() => setActiveTab(null)}
                   className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:text-green-800 transition"
                 >
                   <ArrowLeft size={16} /> Dashboard
                 </button>
-                <span className="text-gray-300">/</span>
-                <span className="text-sm font-bold text-gray-800">{activeTabMeta?.label}</span>
+                <span className="text-gray-300 hidden xs:inline">/</span>
+                <span className="text-sm font-bold text-gray-800 truncate">{activeTabMeta?.label}</span>
 
-                <div className="ml-auto">
+                <div className="w-full sm:w-auto sm:ml-auto order-last sm:order-none">
                   <select
                     value={activeTab}
                     onChange={(e) => setActiveTab(e.target.value)}
-                    className="text-sm border border-green-200 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium focus:border-green-400 outline-none"
+                    className="w-full sm:w-auto text-sm border border-green-200 rounded-lg px-3 py-2.5 sm:py-2 bg-white text-gray-700 font-medium focus:border-green-400 outline-none"
                   >
                     {TABS.map((tab) => (
                       <option key={tab.id} value={tab.id}>
