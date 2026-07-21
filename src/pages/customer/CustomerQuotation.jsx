@@ -432,17 +432,6 @@ export default function CustomerQuotation() {
               </span>
             )}
           </div>
-
-          {statusBadge[effectiveStatus] && (
-            <span
-              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-base font-bold isolate animate-pulse ${statusBadge[effectiveStatus].classes}`}
-            >
-              <span
-                className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full ${statusBadge[effectiveStatus].dot} animate-pulse`}
-              />
-              {statusBadge[effectiveStatus].label}
-            </span>
-          )}
         </div>
       </div>
 
