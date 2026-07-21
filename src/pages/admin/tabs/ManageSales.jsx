@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { Mail, UserX, UserCheck, Trash2, Send, Users } from "lucide-react";
+import { Trash2, Send, Users, TrendingUp } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
 
 const SALES_API = `${import.meta.env.VITE_API_URL}/admin/sales`;
@@ -67,22 +67,6 @@ export default function ManageSales() {
       setError(err.message);
     } finally {
       setInviting(false);
-    }
-  };
-
-  const handleToggle = async (uid, isActive) => {
-    try {
-      const token = await getToken();
-      const res = await fetch(`${SALES_API}/${uid}/toggle`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to toggle");
-      setSalesReps((prev) =>
-        prev.map((s) => (s.uid === uid ? { ...s, isActive: !isActive } : s))
-      );
-    } catch (err) {
-      alert(err.message);
     }
   };
 
@@ -189,15 +173,11 @@ export default function ManageSales() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleToggle(rep.uid, rep.isActive)}
-                          title={rep.isActive ? "Deactivate" : "Activate"}
-                          className={`p-1.5 rounded-lg transition ${
-                            rep.isActive
-                              ? "bg-orange-50 text-orange-500 hover:bg-orange-100"
-                              : "bg-green-50 text-green-600 hover:bg-green-100"
-                          }`}
+                          onClick={() => navigate(`/admin/sales/${rep.uid}/insights`)}
+                          title="View Insights"
+                          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
                         >
-                          {rep.isActive ? <UserX size={15} /> : <UserCheck size={15} />}
+                          <TrendingUp size={15} />
                         </button>
                         <button
                           onClick={() => handleDelete(rep.uid, rep.name)}

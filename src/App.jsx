@@ -46,6 +46,7 @@ const SalesLogin = lazy(() => import("./pages/Sales/SalesLogin"));
 const SalesPanel = lazy(() => import("./pages/Sales/SalesPanel"));
 const SalesSignup = lazy(() => import("./pages/Sales/SalesSignup"));
 const CustomerQuotation = lazy(() => import("./pages/customer/CustomerQuotation"));
+const AdminSalesInsights = lazy(() => import("./pages/admin/tabs/AdminSalesInsights"));
 
 // GLOBAL COMPONENTS
 import Breadcrumbs from "./BreadCrumbs";
@@ -62,7 +63,8 @@ const AppContent = () => {
     location.pathname === "/sales-ctrl-500" ||
     location.pathname === "/sales-portal-100" ||
     location.pathname.startsWith("/sales-signup/") ||
-    location.pathname.startsWith("/quotation/");
+    location.pathname.startsWith("/quotation/") ||
+    location.pathname.startsWith("/admin/sales/");
 
   // 404 PAGE CHECK //
   const is404Page = location.pathname === "/404";
@@ -108,6 +110,16 @@ const AppContent = () => {
           <Route path="/sales-ctrl-500" element={<SalesLogin />}/>
           <Route path="/sales-portal-100" element={<SalesPanel />}/>
           <Route path="/sales-signup/:token" element={<SalesSignup />}/>
+
+          {/* ADMIN — SALES INSIGHTS */}
+          <Route
+            path="/admin/sales/:uid/insights"
+            element={
+              <ProtectedRoute>
+                <AdminSalesInsights />
+              </ProtectedRoute>
+            }
+          />
 
           {/* CUSTOMER QUOTATION */}
           <Route path="/quotation/:token" element={<CustomerQuotation />} />
