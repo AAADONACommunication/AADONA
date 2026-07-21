@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { ChevronLeft, Search, Bell, Lock, ChevronRight, CalendarDays, X } from "lucide-react";
+import { ChevronLeft, Search, Bell, Lock, ChevronRight } from "lucide-react";
 
 const SALES_QUOTES_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
@@ -18,15 +18,6 @@ const statusLabels = {
   negotiation_requested: "Negotiation Requested",
   accepted: "Accepted",
   rejected: "Rejected",
-};
-
-// yyyy-mm-dd (from <input type="date">) -> local calendar day match against an ISO timestamp
-const isSameLocalDay = (isoString, ymd) => {
-  if (!isoString || !ymd) return false;
-  const d = new Date(isoString);
-  if (isNaN(d.getTime())) return false;
-  const [y, m, day] = ymd.split("-").map(Number);
-  return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
 };
 
 // Lets the free-text search box also match typed dates, e.g. "12/07/2025",
@@ -174,10 +165,10 @@ export default function SentQuotations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState(""); // yyyy-mm-dd from <input type="date">
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     loadQuotations();
   }, []);
 
@@ -203,32 +194,29 @@ export default function SentQuotations() {
   };
 
   const filtered = useMemo(() => {
-    let result = quotations;
-
-    // Exact-day filter from the date picker
-    if (dateFilter) {
-      result = result.filter((item) => isSameLocalDay(item.sentAt, dateFilter));
-    }
+    const q = search.trim().toLowerCase();
+    if (!q) return quotations;
 
     // Free-text search — matches customer/company/quotation# AND typed dates
-    const q = search.trim().toLowerCase();
-    if (q) {
-      result = result.filter(
-        (item) =>
-          item.customer?.personalName?.toLowerCase().includes(q) ||
-          item.customer?.companyName?.toLowerCase().includes(q) ||
-          item.endCustomer?.endCustomerName?.toLowerCase().includes(q) ||
-          item.endCustomer?.organizationName?.toLowerCase().includes(q) ||
-          item.quotationNumber?.toLowerCase().includes(q) ||
-          dateMatchesQuery(item.sentAt, q)
-      );
-    }
+    return quotations.filter(
+      (item) =>
+        item.customer?.personalName?.toLowerCase().includes(q) ||
+        item.customer?.companyName?.toLowerCase().includes(q) ||
+        item.endCustomer?.endCustomerName?.toLowerCase().includes(q) ||
+        item.endCustomer?.organizationName?.toLowerCase().includes(q) ||
+        item.quotationNumber?.toLowerCase().includes(q) ||
+        dateMatchesQuery(item.sentAt, q)
+    );
+  }, [quotations, search]);
 
-    return result;
-  }, [quotations, search, dateFilter]);
-
-  const openQuotation = (item) => setSelected(item);
-  const backToList = () => setSelected(null);
+  const openQuotation = (item) => {
+    setSelected(item);
+    window.scrollTo(0, 0);
+  };
+  const backToList = () => {
+    setSelected(null);
+    window.scrollTo(0, 0);
+  };
 
   // ════════════════════════════════════════
   // LIST VIEW
@@ -236,37 +224,15 @@ export default function SentQuotations() {
   if (!selected) {
     return (
       <div className="space-y-4 sm:space-y-5">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by customer, quotation # or date..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 text-sm sm:text-base focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
-            />
-          </div>
-
-          <div className="relative w-full sm:w-56">
-            <CalendarDays size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full border border-green-300 rounded-xl pl-9 pr-9 py-2.5 text-sm sm:text-base focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
-            />
-            {dateFilter && (
-              <button
-                type="button"
-                onClick={() => setDateFilter("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                aria-label="Clear date filter"
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
+        <div className="relative max-w-sm">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by customer, quotation # or date..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 text-sm sm:text-base focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+          />
         </div>
 
         {error && (
@@ -284,7 +250,7 @@ export default function SentQuotations() {
             <p className="text-sm text-gray-500 py-10 text-center">
               {quotations.length === 0
                 ? "No quotations sent to customers yet."
-                : "No quotations match your search/date filter."}
+                : "No quotations match your search."}
             </p>
           </div>
         ) : (

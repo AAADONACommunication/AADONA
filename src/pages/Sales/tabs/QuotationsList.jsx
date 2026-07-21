@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { Search, Trash2 } from "lucide-react";
 import { safeJson } from "../SalesPanel";
@@ -72,6 +72,11 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   const [editApprovedDiscountValue, setEditApprovedDiscountValue] = useState("");
   const [editApprovedSubmitting, setEditApprovedSubmitting] = useState(false);
   const [editApprovedError, setEditApprovedError] = useState("");
+
+  // Scroll to top whenever this tab opens (mounts)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
 
   const filtered = useMemo(() => {
     return quotations.filter((q) => {

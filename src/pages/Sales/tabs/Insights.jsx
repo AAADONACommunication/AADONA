@@ -103,7 +103,14 @@ export default function Insights() {
     setDetailSearch("");
   }, [selectedPartnerId]);
 
+  // Scroll to top whenever this tab first mounts, and whenever we switch
+  // between the overview and a partner's detail view.
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [selectedPartnerId]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
     loadQuotations();
   }, []);
 

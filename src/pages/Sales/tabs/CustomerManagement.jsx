@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { Pencil, Trash2, Search, X } from "lucide-react";
 import { safeJson, inputStyle } from "../SalesPanel";
@@ -27,6 +27,11 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
   const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Scroll to top whenever this tab opens (mounts)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return customers;

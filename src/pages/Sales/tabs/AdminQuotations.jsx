@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { ChevronLeft, Lock, Download, Mail, Search, Bell } from "lucide-react";
 import { safeJson, inputStyle } from "../SalesPanel";
@@ -25,6 +25,11 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Scroll to top whenever this tab opens (mounts)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return incomingQuotations;

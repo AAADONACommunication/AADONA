@@ -31,6 +31,11 @@ export default function CreateQuotation({
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // Scroll to top whenever this tab opens (mounts)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
+
   // ── Scroll the page fully to the top whenever an error is shown, so the
   // banner is always visible regardless of how far down the form was scrolled. ──
   const rootRef = useRef(null);

@@ -51,6 +51,11 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
   const [error, setError] = useState("");
   const [locking, setLocking] = useState(false);
 
+  // Scroll to top whenever this tab opens (mounts)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
+
   // ── Error is shown as an inline banner above the form and scrolls the ──
   // page fully to the top so it's visible. Auto-dismisses after a few seconds.
   const rootRef = useRef(null);
