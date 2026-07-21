@@ -18,6 +18,7 @@ const customerRoutes = require("./routes/customers");
 const quotationRoutes = require("./routes/quotations");
 const adminQuotationsRoutes = require("./routes/adminQuotations");
 const salesQuotationsRoutes = require("./routes/salesQuotations");
+const adminSalesRoutes = require("./routes/adminSales");
 const projectLockRoutes = require("./routes/projectLock");
 const startQuotationReminderCron = require("./cron/quotationReminders");
 const publicQuotationRoutes = require("./routes/publicQuotation");
@@ -239,6 +240,7 @@ app.use("/api", salesQuotationsRoutes);
 app.use("/api", projectLockRoutes);
 app.use("/api/public", publicQuotationRoutes);
 app.use("/api", adminApprovalRoutes);
+app.use("/api/admin/sales", adminSalesRoutes);
 
 // SEO / Security headers for all responses
 app.use((req, res, next) => {
