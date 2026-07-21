@@ -413,7 +413,10 @@ export default function CustomerQuotation() {
   return (
     <div className="min-h-screen bg-green-50">
       {/* ── Top bar — logo only, no separate wordmark ── */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-green-100">
+      {/* NOTE: backdrop-blur removed here — combined with `sticky` it was causing
+          the whole bar to repaint/flicker on some mobile browsers. Solid bg-white
+          avoids that GPU-compositing flicker entirely. */}
+      <div className="sticky top-0 z-40 bg-white border-b border-green-100">
         <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-3">
           <div className="h-12 sm:h-16 flex items-center shrink-0">
             {!logoFailed ? (
@@ -432,9 +435,15 @@ export default function CustomerQuotation() {
 
           {statusBadge[effectiveStatus] && (
             <span
-              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-base font-bold ${statusBadge[effectiveStatus].classes}`}
+              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-base font-bold isolate ${statusBadge[effectiveStatus].classes}`}
             >
-              <span className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full animate-pulse ${statusBadge[effectiveStatus].dot}`} />
+              {/* Only this dot should blink. `isolate` + its own GPU layer
+                  (willChange/transform) keeps the pulse animation from
+                  triggering a repaint of the whole sticky navbar on mobile. */}
+              <span
+                className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full animate-pulse ${statusBadge[effectiveStatus].dot}`}
+                style={{ willChange: "opacity", transform: "translateZ(0)" }}
+              />
               {statusBadge[effectiveStatus].label}
             </span>
           )}
