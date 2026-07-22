@@ -2,12 +2,13 @@ import { useEffect, useState, useMemo } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { Search, ChevronLeft, TrendingUp } from "lucide-react";
 
+
 const SALES_QUOTES_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
 // Statuses recorded on a sales-quotation (see QuotationsList.jsx / SentQuotations.jsx)
 // are bucketed into 3 groups for the insights view.
 const ACCEPTED_STATUSES = ["accepted"];
-const REJECTED_STATUSES = ["rejected", "expired"];
+const REJECTED_STATUSES = ["rejected", "closed"];
 // everything else (draft, sent, viewed, negotiation_requested, counter_offered,
 // awaiting_admin_approval, admin_revised) counts as "pending"
 

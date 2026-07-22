@@ -940,6 +940,36 @@ export default function SentQuotations() {
                 <input
                   type="radio"
                   name="closeReason"
+                  checked={closeReasonOption === "Partner not interested"}
+                  onChange={() => setCloseReasonOption("Partner not interested")}
+                  className="accent-gray-600"
+                />
+                Partner not interested
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="closeReason"
+                  checked={closeReasonOption === "Quotation replaced by another quotation"}
+                  onChange={() => setCloseReasonOption("Quotation replaced by another quotation")}
+                  className="accent-gray-600"
+                />
+                Quotation replaced by another quotation
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="closeReason"
+                  checked={closeReasonOption === "Duplicate quotation"}
+                  onChange={() => setCloseReasonOption("Duplicate quotation")}
+                  className="accent-gray-600"
+                />
+                Duplicate quotation
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="closeReason"
                   checked={closeReasonOption === "Other"}
                   onChange={() => setCloseReasonOption("Other")}
                   className="accent-gray-600"

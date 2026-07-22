@@ -11,7 +11,6 @@ const statusStyles = {
   sent: "bg-blue-100 text-blue-700",
   accepted: "bg-green-100 text-green-700",
   rejected: "bg-red-100 text-red-700",
-  expired: "bg-orange-100 text-orange-700",
   negotiation_requested: "bg-orange-100 text-orange-700",
   awaiting_admin_approval: "bg-purple-100 text-purple-700",
   counter_offered: "bg-amber-100 text-amber-700",
@@ -25,7 +24,6 @@ const statusLabels = {
   viewed: "Viewed",
   accepted: "Accepted",
   rejected: "Rejected",
-  expired: "Expired",
   negotiation_requested: "Negotiation Requested",
   awaiting_admin_approval: "Awaiting Admin Approval",
   counter_offered: "Counter Offered",
@@ -718,7 +716,6 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
           <option value="accepted">Accepted</option>
           <option value="rejected">Rejected</option>
           <option value="closed">Closed</option>
-          <option value="expired">Expired</option>
         </select>
       </div>
 

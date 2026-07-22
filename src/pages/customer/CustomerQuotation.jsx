@@ -25,6 +25,7 @@ import {
   RefreshCw,
   Loader2,
   ChevronDown,
+  Ban,
 } from "lucide-react";
 import logo from "../../assets/logo.avif";
 import RejectQuotationModal from "../../Components/shared/RejectQuotationModal";
@@ -67,6 +68,12 @@ const statusBadge = {
     dot: "bg-red-500",
     classes: "bg-red-100 text-red-700 border-red-200",
     icon: XCircle,
+  },
+  closed: { 
+    label: "Closed", 
+    dot: "bg-gray-500", 
+    classes: "bg-gray-100 text-gray-700 border-gray-200", 
+    icon: Ban 
   },
 };
 
@@ -493,11 +500,9 @@ export default function CustomerQuotation() {
       ? "rejected"
       : quotation.status;
 
-  const showButtons =
-    actionState === null &&
-    !["accepted", "negotiation_requested", "awaiting_admin_approval", "rejected", "counter_offered"].includes(
-      quotation.status
-    );
+  const showButtons = actionState === null && !["accepted", "negotiation_requested", "awaiting_admin_approval", "rejected", "counter_offered", "closed"].includes(
+    quotation.status
+  );
 
   const showCounterOfferView = actionState === null && quotation.status === "counter_offered";
 

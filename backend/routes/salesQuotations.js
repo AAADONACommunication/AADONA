@@ -1497,7 +1497,8 @@ router.post("/sales-quotations/:id/close", verifySalesToken, async (req, res) =>
 
     // ── Stop any future reminder ──
     quotation.reminderSent = true; // cron query filters on this, so it's locked out immediately
-
+    quotation.reminderAt = null;
+    quotation.reminderAfterDays = null;
     await quotation.save();
 
     // ── Courtesy email to Partner ──
