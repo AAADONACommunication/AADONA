@@ -379,34 +379,6 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
       } catch (mailErr) {
         console.error("Negotiation email failed:", mailErr.message);
       }
-
-      // ── FYI copy to admin — informational only, no action needed from admin here ──
-      try {
-        if (ADMIN_EMAIL) {
-          await transporter.sendMail({
-            from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
-            to: ADMIN_EMAIL,
-            subject: `[FYI] Negotiation (within rep authority) — #${quotation.quotationNumber}`,
-            html: `
-              <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
-                <h2 style="color:#c2410c">Customer Requested Negotiation</h2>
-                <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-                <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-                <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
-                <p style="color:#374151;font-size:14px"><strong>Sales Rep:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
-                <p style="color:#374151;font-size:14px"><strong>Sales Rep Contact:</strong> ${salesRep?.phone || "—"}</p>
-                <p style="color:#374151;font-size:14px"><strong>Admin Price:</strong> ₹${adminSubtotal.toFixed(2)}</p>
-                <p style="color:#374151;font-size:14px"><strong>Current Quotation Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
-                <p style="color:#374151;font-size:14px"><strong>Customer Expected Total:</strong> ₹${expected.toFixed(2)}</p>
-                <p style="color:#374151;font-size:14px;white-space:pre-line"><strong>Message:</strong><br/>${combinedMessage}</p>
-                <p style="color:#6b7280;font-size:12px">This is within the sales rep's pricing authority — no action needed from you. Shared for visibility only.</p>
-              </div>
-            `,
-          });
-        }
-      } catch (mailErr) {
-        console.error("Admin FYI negotiation email failed:", mailErr.message);
-      }
     } else {
       // ── Below admin's minimum approved price — needs admin sign-off ──
       quotation.status = "awaiting_admin_approval";
