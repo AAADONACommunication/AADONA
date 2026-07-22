@@ -139,6 +139,9 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
 
     // Snapshot before overwrite (audit trail)
     quotation.negotiationHistory.push({
+      type: "admin_revision",
+      actor: "admin",
+      eventAt: new Date(),
       expectedBudget: quotation.expectedBudget,
       customerMessage: quotation.customerMessage,
       customerRespondedAt: quotation.customerRespondedAt,
@@ -151,6 +154,21 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
         discount: i.discount,
         total: i.total,
       })),
+      adminRevisedSubtotal: subtotal,
+      adminRevisedDiscountAmount: parseFloat(newDiscount.toFixed(2)),
+      adminRevisedGstAmount: newGst,
+      revisedGrandTotal: newGrandTotal,
+      revisedAt: new Date(),
+      recordedAt: new Date(),
+    });
+
+    quotation.negotiationHistory.push({
+      type: "admin_approved",
+      actor: "admin",
+      eventAt: new Date(),
+      expectedBudget: quotation.expectedBudget,
+      customerMessage: quotation.customerMessage,
+      customerRespondedAt: quotation.customerRespondedAt,
       adminRevisedSubtotal: subtotal,
       adminRevisedDiscountAmount: parseFloat(newDiscount.toFixed(2)),
       adminRevisedGstAmount: newGst,
@@ -219,6 +237,24 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
     quotation.status = "admin_rejected_to_sales";
     quotation.adminRejectedAt = new Date();
     quotation.rejectedAt = null;
+    const rejectedAt = new Date();
+
+    quotation.status = "admin_rejected_to_sales";
+    quotation.adminRejectedAt = rejectedAt;
+    quotation.rejectedAt = null;
+
+    quotation.negotiationHistory.push({
+        type: "admin_rejected",
+        actor: "admin",
+        eventAt: rejectedAt,
+
+        expectedBudget: quotation.expectedBudget,
+        customerMessage: quotation.customerMessage,
+        customerRespondedAt: quotation.customerRespondedAt,
+
+        recordedAt: rejectedAt,
+    });
+
     await quotation.save();
 
     try {
@@ -323,6 +359,9 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     await adminQuotation.save();
 
     quotation.negotiationHistory.push({
+      type: "admin_revision",
+      actor: "admin",
+      eventAt: new Date(),
       expectedBudget: quotation.expectedBudget,
       customerMessage: quotation.customerMessage,
       customerRespondedAt: quotation.customerRespondedAt,

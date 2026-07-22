@@ -34,6 +34,183 @@ const statusLabels = {
 const getStatusLabel = (status) =>
   statusLabels[status] || (status ? status.replace(/_/g, " ") : "Draft");
 
+const calcItemTotal = (item) => {
+  if (item?.total != null && !Number.isNaN(Number(item.total))) return Number(item.total);
+  const qty = Number(item?.quantity) || 0;
+  const price = Number(item?.unitPrice) || 0;
+  const gstPct = Number(item?.gst) || 0;
+  const discountVal = Number(item?.discount) || 0;
+  const discountType = item?.discountType || "percent";
+  const base = qty * price;
+  const discountAmt = discountType === "flat" ? discountVal : base * (discountVal / 100);
+  const taxable = Math.max(base - discountAmt, 0);
+  const gstAmt = taxable * (gstPct / 100);
+  return taxable + gstAmt;
+};
+
+const normalizeItems = (items = []) =>
+  (items || []).map((item) => ({
+    ...item,
+    name: item?.name || "Item",
+    quantity: Number(item?.quantity) || 0,
+    unitPrice: Number(item?.unitPrice) || 0,
+    gst: item?.gst ?? 0,
+    discount: item?.discount ?? 0,
+    discountType: item?.discountType || "percent",
+    total: calcItemTotal(item),
+  }));
+
+const computeTotalsFromItems = (items = []) => {
+  const subtotal = items.reduce(
+    (sum, it) => sum + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0),
+    0
+  );
+  const discountAmount = items.reduce((sum, it) => {
+    const base = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+    const dVal = Number(it.discount) || 0;
+    return sum + (it.discountType === "flat" ? dVal : base * (dVal / 100));
+  }, 0);
+  const gstAmount = items.reduce((sum, it) => {
+    const base = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+    const dVal = Number(it.discount) || 0;
+    const dAmt = it.discountType === "flat" ? dVal : base * (dVal / 100);
+    const itemTaxable = Math.max(base - dAmt, 0);
+    return sum + itemTaxable * ((Number(it.gst) || 0) / 100);
+  }, 0);
+  const taxable = Math.max(subtotal - discountAmount, 0);
+  return { subtotal, discountAmount, gstAmount, grandTotal: taxable + gstAmount };
+};
+
+const resolveMoneyFields = (rawItems, provided = {}) => {
+  const items = normalizeItems(rawItems);
+  const computed = computeTotalsFromItems(items);
+  return {
+    items,
+    subtotal: provided.subtotal ?? computed.subtotal,
+    discountAmount: provided.discountAmount ?? computed.discountAmount,
+    gstAmount: provided.gstAmount ?? computed.gstAmount,
+    total: provided.total ?? computed.grandTotal,
+  };
+};
+
+// ── Normalizes both legacy and new event types into a display bucket ──
+const TYPE_META = {
+  sales_sent:            { bucket: "seller",   sellerKind: "original", label: "Sales Quotation Sent" },
+  viewed:                { bucket: "viewed",   label: "Partner Viewed Quotation" },
+  partner_offer:         { bucket: "customer", label: "Partner Requested Negotiation" },
+  sales_counter_offer:   { bucket: "seller",   sellerKind: "counter",  label: "Sales Counter Offer" },
+  admin_revision:        { bucket: "admin",    label: "Admin Revised Pricing" },
+  admin_approved:        { bucket: "admin",    label: "Admin Approved Pricing" },
+  sales_revised:         { bucket: "seller",   sellerKind: "revised",  label: "Sales Sent Revised Quotation" },
+  partner_accepted:      { bucket: "accepted", label: "Partner Accepted" },
+  sales_accepted:        { bucket: "accepted", label: "Sales Accepted Partner Offer" },
+  accepted:              { bucket: "accepted", label: "Quotation Accepted" }, // legacy
+  partner_rejected:      { bucket: "rejected", label: "Partner Rejected" },
+  admin_rejected:        { bucket: "rejected", label: "Admin Rejected" },
+  rejected:              { bucket: "rejected", label: "Quotation Rejected" }, // legacy
+  sales_closed:          { bucket: "closed",   label: "Quotation Closed by Sales" },
+  closed:                { bucket: "closed",   label: "Quotation Closed" },   // legacy
+};
+
+const metaFor = (type) => TYPE_META[type] || { bucket: "seller", label: type?.replace(/_/g, " ") || "Event" };
+
+// Reuses the existing money/item resolution helper you already have (resolveMoneyFields / calcItemTotal)
+const buildTimeline = (q) => {
+  const timeline = [];
+
+  // ── 1. Admin quotation created (from sourceQuotation, if populated) ──
+  if (q.sourceQuotation?.createdAt) {
+    timeline.push({
+      kind: "admin",
+      label: "Admin Quotation Created",
+      ...resolveMoneyFields(q.sourceQuotation.items || [], {
+        subtotal: q.sourceQuotation.subtotal,
+      }),
+      at: q.sourceQuotation.createdAt,
+    });
+  }
+
+  // ── 2. Admin's own internal revisions (AdminQuotation.revisionHistory) ──
+  (q.sourceQuotation?.revisionHistory || []).forEach((rev) => {
+    timeline.push({
+      kind: "admin",
+      label: "Admin Quotation Revised (Internal)",
+      ...resolveMoneyFields(rev.items || [], { subtotal: rev.subtotal }),
+      message: rev.remarks,
+      at: rev.revisedAt,
+    });
+  });
+
+  // ── 3. Original sales quotation snapshot (unchanged from before) ──
+  const originalRaw = q.originalSnapshot?.items?.length ? q.originalSnapshot.items : q.items || [];
+  timeline.push({
+    kind: "seller",
+    sellerKind: "original",
+    label: "Original Quotation Sent",
+    ...resolveMoneyFields(originalRaw, {
+      subtotal: q.originalSnapshot?.subtotal ?? q.subtotal,
+      discountAmount: q.originalSnapshot?.discountAmount ?? q.discountAmount,
+      gstAmount: q.originalSnapshot?.gstAmount ?? q.gstAmount,
+      total: q.originalSnapshot?.grandTotal ?? q.grandTotal,
+    }),
+    at: q.originalSnapshot?.sentAt || q.sentAt || q.createdAt,
+  });
+
+  // ── 4. negotiationHistory — every event, old and new types alike ──
+  (q.negotiationHistory || []).forEach((h) => {
+    const meta = metaFor(h.type);
+    const at = h.eventAt || h.recordedAt || h.revisedAt || h.counterOfferAt || h.revisedSalesSentAt || h.customerRespondedAt;
+    if (!at) return;
+
+    if (meta.bucket === "customer") {
+      timeline.push({
+        kind: "customer",
+        label: meta.label,
+        expectedBudget: h.expectedBudget,
+        message: h.customerMessage,
+        actor: h.actor,
+        at,
+      });
+    } else if (meta.bucket === "seller" || meta.bucket === "admin") {
+      const items = h.counterOfferItems?.length
+        ? h.counterOfferItems
+        : h.adminRevisedItems?.length
+        ? h.adminRevisedItems
+        : h.revisedSalesItems || [];
+      timeline.push({
+        kind: meta.bucket,
+        sellerKind: meta.sellerKind,
+        label: meta.label,
+        ...resolveMoneyFields(items, {
+          subtotal: h.counterOfferSubtotal ?? h.adminRevisedSubtotal ?? h.revisedSalesSubtotal,
+          discountAmount: h.counterOfferDiscountAmount ?? h.adminRevisedDiscountAmount ?? h.revisedSalesDiscountAmount,
+          gstAmount: h.counterOfferGstAmount ?? h.adminRevisedGstAmount ?? h.revisedSalesGstAmount,
+          total: h.counterOfferAmount ?? h.revisedGrandTotal ?? h.revisedSalesGrandTotal,
+        }),
+        message: h.counterOfferMessage || h.customerMessage,
+        actor: h.actor,
+        at,
+      });
+    } else if (meta.bucket === "viewed") {
+      timeline.push({ kind: "viewed", label: meta.label, actor: h.actor, at });
+    } else if (meta.bucket === "accepted") {
+      timeline.push({
+        kind: "accepted",
+        label: meta.label,
+        total: h.revisedSalesGrandTotal ?? h.counterOfferAmount ?? h.expectedBudget ?? q.negotiatedAmount ?? q.grandTotal ?? 0,
+        actor: h.actor,
+        at,
+      });
+    } else if (meta.bucket === "rejected") {
+      timeline.push({ kind: "rejected", label: meta.label, actor: h.actor, message: h.customerMessage, at });
+    } else if (meta.bucket === "closed") {
+      timeline.push({ kind: "closed", label: meta.label, actor: h.actor, at });
+    }
+  });
+
+  return timeline.filter((x) => x.at).sort((a, b) => new Date(a.at) - new Date(b.at));
+};
+
 export default function QuotationsList({ quotations, reloadQuotations }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -418,240 +595,204 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
     }
   };
   
+  const cardStyles = {
+    original: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800", badge: "bg-emerald-600" },
+    counter: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", badge: "bg-amber-500" },
+    revised: { bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800", badge: "bg-purple-600" },
+    admin: { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800", badge: "bg-blue-600" },
+    customer: { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800", badge: "bg-orange-500" },
+    accepted: { bg: "bg-green-50", border: "border-green-300", text: "text-green-800", badge: "bg-green-600" },
+    rejected: { bg: "bg-red-50", border: "border-red-300", text: "text-red-800", badge: "bg-red-600" },
+    closed: { bg: "bg-gray-50", border: "border-gray-300", text: "text-gray-700", badge: "bg-gray-500" },
+  };
+
+  const getCardStyle = (entry) => {
+    if (entry.kind === "customer") return cardStyles.customer;
+    if (entry.kind === "admin") return cardStyles.admin;
+    if (entry.kind === "accepted") return cardStyles.accepted;
+    if (entry.kind === "rejected") return cardStyles.rejected;
+    if (entry.kind === "closed") return cardStyles.closed;
+    return cardStyles[entry.sellerKind] || cardStyles.original;
+  };
+
   const renderNegotiationSection = (q) => {
-    const hasHistory = (q.negotiationHistory || []).length > 0;
-    const hasActiveOffer = q.expectedBudget != null;
-    const hasFinal = q.negotiatedAmount != null;
+    const timeline = buildNegotiationRounds(q);
     const isAdminRevised = q.status === "admin_revised";
+    const isActionable =
+      q.status === "negotiation_requested" || q.status === "counter_offered";
 
-    // Nothing to show if there was never any negotiation on this quotation
-    if (!hasHistory && !hasActiveOffer && !hasFinal && !isAdminRevised) return null;
-
-    const original = Number(q.grandTotal || 0);
-    const isActionable = ["negotiation_requested", "counter_offered"].includes(q.status);
-
-    // ── Build a flat timeline: past rounds + current round ──
-    const rounds = [
-      ...(q.negotiationHistory || []),
-      // Current/live round — only include if it has actual data
-      hasActiveOffer
-        ? {
-            expectedBudget: q.expectedBudget,
-            customerMessage: q.customerMessage,
-            customerRespondedAt: q.customerRespondedAt,
-            counterOfferAmount: q.counterOfferAmount,
-            counterOfferSubtotal: q.counterOfferSubtotal,
-            counterOfferDiscountAmount: q.counterOfferDiscountAmount,
-            counterOfferGstAmount: q.counterOfferGstAmount,
-            counterOfferItems: q.counterOfferItems,
-            counterOfferMessage: q.counterOfferMessage,
-            counterOfferAt: q.counterOfferAt,
-          }
-        : null,
-    ].filter(Boolean);
+    if (timeline.length <= 1 && !isAdminRevised) {
+      return null;
+    }
 
     return (
-      <div className="border border-orange-200 bg-orange-50 rounded-xl p-4 mb-4 space-y-3">
-        <h4 className="text-sm font-bold text-orange-800 mb-1">Negotiation History</h4>
+      <div className="border border-green-200 bg-green-50/40 rounded-2xl p-4 mb-4">
+        <h4 className="text-sm font-bold text-gray-800 mb-4">
+          Complete Quotation History
+        </h4>
 
-        <div className="flex justify-between text-sm bg-white rounded-lg px-3 py-2 border border-orange-100">
-          <span className="text-gray-600">Original Total</span>
-          <span className="font-semibold text-gray-800">₹{original.toFixed(2)}</span>
-        </div>
+        <div>
+          {timeline.map((entry, i) => {
+            const style = getCardStyle(entry);
+            const isCustomer = entry.kind === "customer";
+            const isAdmin = entry.kind === "admin";
+            const isSeller = entry.kind === "seller";
+            const isAccepted = entry.kind === "accepted";
+            const isRejected = entry.kind === "rejected";
+            const isClosed = entry.kind === "closed";
+            const hasItemTable = (isSeller || isAdmin) && (entry.items?.length || 0) > 0;
 
-        {rounds.map((round, i) => (
-          <div key={i} className="bg-white rounded-lg border border-orange-100 p-3 space-y-2">
-            <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
-              Round {i + 1}
-            </p>
-            {round.expectedBudget != null && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Customer Offered</span>
-                <span className="font-semibold text-gray-800">₹{Number(round.expectedBudget).toFixed(2)}</span>
-              </div>
-            )}
-            {round.customerMessage && (
-              <p className="text-sm text-gray-700 whitespace-pre-line">
-                <span className="font-semibold">Customer Message: </span>
-                {round.customerMessage}
-              </p>
-            )}
-            {round.customerRespondedAt && (
-              <p className="text-xs text-gray-500">
-                {new Date(round.customerRespondedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
-              </p>
-            )}
+            return (
+              <div key={`${entry.kind}-${entry.at || i}-${i}`}>
+                <div className={`rounded-xl border ${style.bg} ${style.border} p-4 shadow-sm`}>
+                  <div className="flex justify-between items-center mb-3 gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${style.badge}`} />
+                      <p className={`font-bold text-sm ${style.text}`}>{entry.label}</p>
+                    </div>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      {entry.at
+                        ? new Date(entry.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+                        : "—"}
+                    </span>
+                  </div>
 
-            {round.counterOfferAmount != null && (
-              <div className="border-t border-orange-50 pt-2 mt-1.5 space-y-2">
-                <p className="text-sm font-semibold text-gray-700">Your Counter Offer</p>
+                  {isCustomer && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Expected Budget</span>
+                        <span className="font-bold text-orange-700">
+                          ₹{Number(entry.expectedBudget || 0).toFixed(2)}
+                        </span>
+                      </div>
+                      {entry.message && (
+                        <p className="text-sm text-gray-700 whitespace-pre-line bg-white/60 rounded-lg p-2 border border-orange-100">
+                          <span className="font-semibold">Partner Message: </span>
+                          {entry.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
-                {(round.counterOfferItems || []).length > 0 && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-amber-100 text-amber-800 text-left">
-                          <th className="px-2 py-1.5 rounded-tl-md">Product</th>
-                          <th className="px-2 py-1.5">Qty</th>
-                          <th className="px-2 py-1.5">Unit Price</th>
-                          <th className="px-2 py-1.5">GST</th>
-                          <th className="px-2 py-1.5">Discount</th>
-                          <th className="px-2 py-1.5 rounded-tr-md">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {round.counterOfferItems.map((item, idx) => (
-                          <tr key={idx} className="border-b border-amber-50">
-                            <td className="px-2 py-1.5 text-gray-800 font-medium">{item.name}</td>
-                            <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
-                            <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                            <td className="px-2 py-1.5 text-gray-700">{item.gst}%</td>
-                            <td className="px-2 py-1.5 text-gray-700">{Number(item.discount).toFixed(2)}%</td>
-                            <td className="px-2 py-1.5 font-semibold text-gray-800">₹{Number(item.total).toFixed(2)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  {hasItemTable && (
+                    <>
+                      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white/70">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-gray-100 text-left text-gray-600">
+                              <th className="px-2 py-2">Product</th>
+                              <th className="px-2 py-2">Qty</th>
+                              <th className="px-2 py-2">Price</th>
+                              <th className="px-2 py-2">GST</th>
+                              <th className="px-2 py-2">Discount</th>
+                              <th className="px-2 py-2">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(entry.items || []).map((item, idx) => (
+                              <tr key={idx} className="border-t border-gray-100">
+                                <td className="px-2 py-2 text-gray-800">{item?.name || "—"}</td>
+                                <td className="px-2 py-2 text-gray-700">{item?.quantity ?? 0}</td>
+                                <td className="px-2 py-2 text-gray-700">
+                                  ₹{Number(item?.unitPrice || 0).toFixed(2)}
+                                </td>
+                                <td className="px-2 py-2 text-gray-700">{Number(item?.gst || 0)}%</td>
+                                <td className="px-2 py-2 text-gray-700">
+                                  {Number(item?.discount || 0).toFixed(2)}
+                                  {item?.discountType === "flat" ? " ₹" : "%"}
+                                </td>
+                                <td className="px-2 py-2 font-semibold text-gray-800">
+                                  ₹{Number(item?.total || 0).toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="mt-3 space-y-1 text-sm max-w-xs ml-auto bg-white/60 rounded-lg p-3 border border-gray-100">
+                        <div className="flex justify-between text-gray-600">
+                          <span>Subtotal</span>
+                          <span>₹{Number(entry.subtotal || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-gray-600">
+                          <span>Discount</span>
+                          <span>− ₹{Number(entry.discountAmount || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-gray-600">
+                          <span>GST</span>
+                          <span>₹{Number(entry.gstAmount || 0).toFixed(2)}</span>
+                        </div>
+                        <div className={`flex justify-between border-t pt-1.5 mt-1 font-bold ${style.text}`}>
+                          <span>Grand Total</span>
+                          <span>₹{Number(entry.total || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      {entry.message && (
+                        <p className="mt-3 text-sm text-gray-700 whitespace-pre-line bg-white/60 rounded-lg p-2 border border-gray-100">
+                          <span className="font-semibold">Message: </span>
+                          {entry.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {isAccepted && (
+                    <div className="text-center py-3">
+                      <p className="text-xs uppercase tracking-wide text-green-700 font-semibold mb-1">
+                        Accepted Amount
+                      </p>
+                      <p className="text-2xl font-bold text-green-700">
+                        ₹{Number(entry.total || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+
+                  {isRejected && (
+                    <div className="space-y-1">
+                      <p className="font-semibold text-red-700 text-sm">Quotation Rejected</p>
+                      {entry.message && (
+                        <p className="text-sm text-gray-700">
+                          <span className="font-semibold">Reason: </span>
+                          {entry.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {isClosed && (
+                    <p className="font-semibold text-gray-700 text-sm">Negotiation Closed</p>
+                  )}
+                </div>
+
+                {i !== timeline.length - 1 && (
+                  <div className="flex justify-center py-1.5">
+                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 shadow-sm">
+                      ↓
+                    </div>
                   </div>
                 )}
-
-                <div className="space-y-1 text-sm max-w-xs ml-auto">
-                  {round.counterOfferSubtotal != null && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
-                      <span>₹{Number(round.counterOfferSubtotal).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {round.counterOfferGstAmount != null && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>GST</span>
-                      <span>₹{Number(round.counterOfferGstAmount).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {round.counterOfferDiscountAmount != null && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Discount</span>
-                      <span>− ₹{Number(round.counterOfferDiscountAmount).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between font-bold text-amber-700 border-t border-amber-100 pt-1">
-                    <span>Counter Total</span>
-                    <span>₹{Number(round.counterOfferAmount).toFixed(2)}</span>
-                  </div>
-                </div>
               </div>
-            )}
+            );
+          })}
+        </div>
 
-            {round.counterOfferMessage && (
-              <p className="text-sm text-gray-700 whitespace-pre-line">
-                <span className="font-semibold">Your Message: </span>
-                {round.counterOfferMessage}
-              </p>
-            )}
-            {round.counterOfferAt && (
-              <p className="text-xs text-gray-500">
-                Sent: {new Date(round.counterOfferAt).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"},{ dateStyle: "short", timeStyle: "short" })}
-              </p>
-            )}
-          </div>
-        ))}
-
-        {hasFinal && (
-          <div className="flex justify-between items-center bg-green-50 border border-green-200 rounded-lg px-3 py-2.5">
-            <span className="text-sm font-bold text-green-800">
-              Final Accepted Price {q.negotiatedAt ? `(${new Date(q.negotiatedAt).toLocaleDateString("en-IN")})` : ""}
-            </span>
-            <span className="text-lg font-extrabold text-green-700">
-              ₹{Number(q.negotiatedAmount).toFixed(2)}
-            </span>
-          </div>
-        )}
+        {actionError && <p className="text-sm text-red-600 mt-3">{actionError}</p>}
+        {sendApprovedError && <p className="text-sm text-red-600 mt-3">{sendApprovedError}</p>}
 
         {isAdminRevised && q.pricingRevisionType === "discount_applied" && (
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
-            <p className="text-sm font-bold text-purple-800">Admin Approved Customer's Price</p>
-            <p className="text-xs text-gray-600">
-              Item price and GST are unchanged — admin adjusted the discount so the total matches the customer's offer. Review below and send as-is.
-            </p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-purple-100 text-purple-800 text-left">
-                    <th className="px-2 py-1.5 rounded-tl-md">Product</th>
-                    <th className="px-2 py-1.5">Qty</th>
-                    <th className="px-2 py-1.5">Unit Price</th>
-                    <th className="px-2 py-1.5">GST</th>
-                    <th className="px-2 py-1.5 rounded-tr-md">Discount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(q.items || []).map((item, i) => (
-                    <tr key={i} className="border-b border-purple-50">
-                      <td className="px-2 py-1.5 text-gray-800 font-medium">{item.name}</td>
-                      <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
-                      <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                      <td className="px-2 py-1.5 text-gray-700">{item.gst}%</td>
-                      <td className="px-2 py-1.5 font-semibold text-purple-700">₹{Number(item.discount).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex justify-end text-sm font-bold text-purple-700 pt-1">
-              New Grand Total: ₹{Number(q.grandTotal || 0).toFixed(2)}
-            </div>
-          </div>
-        )}
-
-        {isAdminRevised && q.pricingRevisionType === "item_price_revised" && (
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
-            <p className="text-sm font-bold text-purple-800">Admin Has Revised Pricing</p>
-            <p className="text-xs text-gray-600">
-              Review the new admin price below, apply your GST and discount, and resend the quotation to the customer.
-            </p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-purple-100 text-purple-800 text-left">
-                    <th className="px-2 py-1.5 rounded-tl-md">Product</th>
-                    <th className="px-2 py-1.5">Qty</th>
-                    <th className="px-2 py-1.5 rounded-tr-md">New Admin Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(q.sourceQuotation?.items || []).map((item, i) => (
-                    <tr key={i} className="border-b border-purple-50">
-                      <td className="px-2 py-1.5 text-gray-800 font-medium">{item.name}</td>
-                      <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
-                      <td className="px-2 py-1.5 font-semibold text-purple-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {q.sourceQuotation?.remarks && (
-              <p className="text-xs text-gray-600">
-                <span className="font-semibold">Admin Notes:</span> {q.sourceQuotation.remarks}
-              </p>
-            )}
-          </div>
-        )}
-
-        {actionError && <p className="text-sm text-red-600">{actionError}</p>}
-        {sendApprovedError && <p className="text-sm text-red-600">{sendApprovedError}</p>}
-
-        {isAdminRevised && q.pricingRevisionType === "discount_applied" && (
-          <div className="flex gap-3">
+          <div className="flex gap-3 mt-4">
             <button
               onClick={() => handleSendApproved(q)}
               disabled={sendingApprovedId === q._id}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 font-semibold"
             >
               {sendingApprovedId === q._id ? "Sending..." : "Send As-Is"}
             </button>
             <button
               onClick={() => openEditApprovedModal(q)}
-              className="flex-1 bg-white border-2 border-purple-600 text-purple-700 hover:bg-purple-50 text-sm font-semibold py-2 rounded-lg transition"
+              className="flex-1 border-2 border-purple-600 text-purple-700 rounded-lg py-2 font-semibold hover:bg-purple-50"
             >
               Edit Pricing
             </button>
@@ -661,24 +802,24 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
         {isAdminRevised && q.pricingRevisionType === "item_price_revised" && (
           <button
             onClick={() => openResendModal(q)}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 rounded-lg transition"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 font-semibold mt-4"
           >
-            Set Pricing & Resend to Customer
+            Set Pricing & Resend
           </button>
         )}
 
         {isActionable && (
-          <div className="flex gap-3 pt-1">
+          <div className="flex gap-3 mt-4">
             <button
               onClick={() => handleAcceptNegotiation(q)}
               disabled={actingId === q._id}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg transition disabled:opacity-60"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg py-2 font-semibold"
             >
-              {actingId === q._id ? "Accepting..." : "Accept Partner's Offer"}
+              {actingId === q._id ? "Accepting..." : "Accept Partner Offer"}
             </button>
             <button
               onClick={() => openCounterModal(q)}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold py-2 rounded-lg transition"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg py-2 font-semibold"
             >
               Send Counter Offer
             </button>

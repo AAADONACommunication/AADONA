@@ -190,7 +190,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     const salesQuotation = await SalesQuotation.create({
       sourceQuotation: adminQuotation._id,
       customer: customer._id,
-      endCustomer: adminQuotation.endCustomer || null, // carried over from AdminQuotation, may be null for old records
+      endCustomer: adminQuotation.endCustomer || null,
       salesRepUid: req.salesRep.uid,
       quotationNumber,
       publicToken,
@@ -200,7 +200,6 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       discountAmount,
       gstAmount,
       grandTotal,
-
       originalSnapshot: {
         items: calculatedItems.map((i) => ({
           name: i.name,
@@ -223,6 +222,27 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       sentAt: initialSentAt,
       reminderAfterDays: reminderAfterDaysValue,
       reminderAt,
+      negotiationHistory: [
+        {
+          type: "sales_sent",
+          actor: "sales",
+          eventAt: initialSentAt,
+          counterOfferItems: calculatedItems.map((i) => ({
+            name: i.name,
+            description: i.description || "",
+            quantity: i.quantity,
+            unitPrice: i.unitPrice,
+            gst: i.gst,
+            discount: i.discount,
+            total: i.total,
+          })),
+          counterOfferSubtotal: subtotal,
+          counterOfferDiscountAmount: discountAmount,
+          counterOfferGstAmount: gstAmount,
+          counterOfferAmount: grandTotal,
+          recordedAt: initialSentAt,
+        },
+      ]
     });
 
     // 10. Build email HTML
@@ -502,6 +522,17 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
     quotation.negotiatedAt = new Date();
     quotation.status = "accepted";
     quotation.acceptedAt = new Date();
+    quotation.negotiationHistory.push({
+        type: "sales_accepted",
+        actor: "sales",
+        eventAt: new Date(),
+
+        expectedBudget: quotation.expectedBudget,
+        customerMessage: quotation.customerMessage,
+        customerRespondedAt: quotation.customerRespondedAt,
+
+        recordedAt: new Date(),
+    });
     await quotation.save();
 
     // ── Notify partner, sales rep, and admin — all get the final quotation as a PDF ──
@@ -724,6 +755,23 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
     quotation.counterOfferMessage = (counterOfferMessage || "").trim();
     quotation.counterOfferAt = new Date();
     quotation.status = "counter_offered";
+    quotation.negotiationHistory.push({
+        type: "sales_counter_offer",
+        actor: "sales",
+        eventAt: new Date(),
+
+        counterOfferAmount: grandTotal,
+        counterOfferSubtotal: subtotal,
+        counterOfferDiscountAmount: discountAmount,
+        counterOfferGstAmount: gstAmount,
+
+        counterOfferItems: calculatedItems,
+
+        counterOfferMessage: quotation.counterOfferMessage,
+        counterOfferAt: quotation.counterOfferAt,
+
+        recordedAt: new Date(),
+    });
     await quotation.save();
 
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
@@ -955,6 +1003,9 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     // ── Preserve rejected partner negotiation before clearing fields ──
     if (quotation.status === "admin_rejected_to_sales") {
       quotation.negotiationHistory.push({
+        type: "sales_revised",
+        actor: "sales",
+        eventAt: new Date(),
         expectedBudget: quotation.expectedBudget,
         customerMessage: quotation.customerMessage,
         customerRespondedAt: quotation.customerRespondedAt,
@@ -1118,6 +1169,21 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
     quotation.expectedBudget = null;
     quotation.customerMessage = "";
     quotation.customerRespondedAt = null;
+    quotation.negotiationHistory.push({
+        type: "sales_revised",
+        actor: "sales",
+        eventAt: new Date(),
+
+        revisedSalesItems: quotation.items,
+
+        revisedSalesSubtotal: quotation.subtotal,
+        revisedSalesDiscountAmount: quotation.discountAmount,
+        revisedSalesGstAmount: quotation.gstAmount,
+        revisedSalesGrandTotal: quotation.grandTotal,
+        revisedSalesSentAt: new Date(),
+
+        recordedAt: new Date(),
+    });
     await quotation.save();
 
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
@@ -1330,6 +1396,21 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
     quotation.expectedBudget = null;
     quotation.customerMessage = "";
     quotation.customerRespondedAt = null;
+    quotation.negotiationHistory.push({
+        type: "sales_revised",
+        actor: "sales",
+        eventAt: new Date(),
+
+        revisedSalesItems: calculatedItems,
+
+        revisedSalesSubtotal: subtotal,
+        revisedSalesDiscountAmount: discountAmount,
+        revisedSalesGstAmount: gstAmount,
+        revisedSalesGrandTotal: grandTotal,
+        revisedSalesSentAt: new Date(),
+
+        recordedAt: new Date(),
+    });
     await quotation.save();
 
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
@@ -1427,6 +1508,15 @@ router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) =
     quotation.rejectedBy = "sales";
     quotation.rejectReason = rejectReason;
     quotation.rejectedAt = new Date();
+    quotation.negotiationHistory.push({
+        type: "rejected",
+        actor: "sales",
+        eventAt: new Date(),
+
+        customerMessage: `Quotation Rejected${rejectReason ? `: ${rejectReason}` : ""}`,
+
+        recordedAt: new Date(),
+    });
     await quotation.save();
 
     // ── Notify Partner only — no link, no request to respond ──
@@ -1494,6 +1584,13 @@ router.post("/sales-quotations/:id/close", verifySalesToken, async (req, res) =>
     }
 
     quotation.status = "closed";
+    quotation.negotiationHistory.push({
+      type: "sales_closed",
+      actor: "sales", 
+      customerMessage: `Quotation Closed by Sales: ${closeReason}`,
+      customerRespondedAt: quotation.closedAt,
+      recordedAt: new Date(),
+    });
     quotation.closedAt = new Date();
     quotation.closedBy = "sales";
     quotation.closeReason = reason;

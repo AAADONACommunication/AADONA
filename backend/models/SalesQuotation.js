@@ -148,6 +148,39 @@ const SalesQuotationSchema = new mongoose.Schema(
       type: [
         {
           _id: false,
+
+          type: {
+            type: String,
+            enum: [
+              "partner_offer",
+              "sales_counter_offer",
+              "admin_revision",
+              "sales_revised",
+              "accepted",
+              "rejected",
+              "closed",
+              "sales_sent",
+              "viewed",
+              "admin_approved",
+              "partner_accepted",
+              "sales_accepted",
+              "partner_rejected",
+              "admin_rejected",
+              "sales_closed",
+            ],
+            required: true,
+          },
+
+          actor: {
+            type: String,
+            enum: ["partner", "sales", "admin"],
+            required: true,
+          },
+
+          eventAt: {
+            type: Date,
+            default: Date.now,
+          },
           expectedBudget: Number,
           customerMessage: String,
           customerRespondedAt: Date,

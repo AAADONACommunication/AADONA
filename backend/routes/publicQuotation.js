@@ -89,6 +89,12 @@ router.get("/quotation/:publicToken", async (req, res) => {
     if (quotation.status === "sent") {
       quotation.status = "viewed";
       quotation.viewedAt = new Date();
+      quotation.negotiationHistory.push({
+        type: "viewed",
+        actor: "partner",
+        eventAt: quotation.viewedAt,
+        recordedAt: quotation.viewedAt,
+      });
       await quotation.save();
     }
 
@@ -177,6 +183,15 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
 
     quotation.status = "accepted";
     quotation.acceptedAt = new Date();
+    quotation.negotiationHistory.push({
+      type: "partner_accepted",
+      actor: "partner",
+      eventAt: new Date(),
+      expectedBudget: quotation.negotiatedAmount ?? quotation.grandTotal,
+      customerMessage: "Quotation Accepted",
+      customerRespondedAt: quotation.acceptedAt,
+      recordedAt: new Date(),
+    });
     await quotation.save();
 
     // Notify customer, sales rep, and admin — each gets their own labeled copy of the PDF
@@ -319,6 +334,9 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
     if (quotation.customerRespondedAt || quotation.counterOfferAt) {
       quotation.negotiationHistory = quotation.negotiationHistory || [];
       quotation.negotiationHistory.push({
+        type: "partner_offer",
+        actor: "partner",
+        eventAt: new Date(),
         expectedBudget: quotation.expectedBudget,
         customerMessage: quotation.customerMessage,
         customerRespondedAt: quotation.customerRespondedAt,
@@ -453,6 +471,20 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
     quotation.negotiatedAt = new Date();
     quotation.status = "accepted";
     quotation.acceptedAt = new Date();
+    quotation.negotiationHistory.push({
+      type: "partner_accepted",
+      actor: "partner",
+      eventAt: new Date(),
+      expectedBudget: quotation.negotiatedAmount,
+      customerMessage: "Counter Offer Accepted",
+      customerRespondedAt: quotation.acceptedAt,
+      counterOfferAmount: quotation.counterOfferAmount,
+      counterOfferSubtotal: quotation.counterOfferSubtotal,
+      counterOfferDiscountAmount: quotation.counterOfferDiscountAmount,
+      counterOfferGstAmount: quotation.counterOfferGstAmount,
+      counterOfferItems: quotation.counterOfferItems,
+      recordedAt: new Date(),
+    });
     await quotation.save();
 
     try {
@@ -607,10 +639,24 @@ router.post("/quotation/:publicToken/reject", async (req, res) => {
       return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
 
+    const rejectedAt = new Date();
+
     quotation.status = "rejected";
     quotation.rejectedBy = "partner";
     quotation.rejectReason = rejectReason;
-    quotation.rejectedAt = new Date();
+    quotation.rejectedAt = rejectedAt;
+
+    quotation.negotiationHistory.push({
+        type: "partner_rejected",
+        actor: "partner",
+        eventAt: rejectedAt,
+
+        customerMessage: `Quotation Rejected${rejectReason ? `: ${rejectReason}` : ""}`,
+        customerRespondedAt: rejectedAt,
+
+        recordedAt: rejectedAt,
+    });
+
     await quotation.save();
 
     // ── Notify Sales Representative only ──

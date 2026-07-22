@@ -48,123 +48,122 @@ const dateMatchesQuery = (isoString, query) => {
   return variants.some((v) => v.toLowerCase().includes(query));
 };
 
-const buildNegotiationRounds = (q) => {
+// ── Normalizes both legacy and new event types into a display bucket ──
+const TYPE_META = {
+  sales_sent:            { bucket: "seller",   sellerKind: "original", label: "Sales Quotation Sent" },
+  viewed:                { bucket: "viewed",   label: "Partner Viewed Quotation" },
+  partner_offer:         { bucket: "customer", label: "Partner Requested Negotiation" },
+  sales_counter_offer:   { bucket: "seller",   sellerKind: "counter",  label: "Sales Counter Offer" },
+  admin_revision:        { bucket: "admin",    label: "Admin Revised Pricing" },
+  admin_approved:        { bucket: "admin",    label: "Admin Approved Pricing" },
+  sales_revised:         { bucket: "seller",   sellerKind: "revised",  label: "Sales Sent Revised Quotation" },
+  partner_accepted:      { bucket: "accepted", label: "Partner Accepted" },
+  sales_accepted:        { bucket: "accepted", label: "Sales Accepted Partner Offer" },
+  accepted:              { bucket: "accepted", label: "Quotation Accepted" }, // legacy
+  partner_rejected:      { bucket: "rejected", label: "Partner Rejected" },
+  admin_rejected:        { bucket: "rejected", label: "Admin Rejected" },
+  rejected:              { bucket: "rejected", label: "Quotation Rejected" }, // legacy
+  sales_closed:          { bucket: "closed",   label: "Quotation Closed by Sales" },
+  closed:                { bucket: "closed",   label: "Quotation Closed" },   // legacy
+};
+
+const metaFor = (type) => TYPE_META[type] || { bucket: "seller", label: type?.replace(/_/g, " ") || "Event" };
+
+// Reuses the existing money/item resolution helper you already have (resolveMoneyFields / calcItemTotal)
+const buildTimeline = (q) => {
   const timeline = [];
 
-  const original = q.originalSnapshot;
+  // ── 1. Admin quotation created (from sourceQuotation, if populated) ──
+  if (q.sourceQuotation?.createdAt) {
+    timeline.push({
+      kind: "admin",
+      label: "Admin Quotation Created",
+      ...resolveMoneyFields(q.sourceQuotation.items || [], {
+        subtotal: q.sourceQuotation.subtotal,
+      }),
+      at: q.sourceQuotation.createdAt,
+    });
+  }
 
+  // ── 2. Admin's own internal revisions (AdminQuotation.revisionHistory) ──
+  (q.sourceQuotation?.revisionHistory || []).forEach((rev) => {
+    timeline.push({
+      kind: "admin",
+      label: "Admin Quotation Revised (Internal)",
+      ...resolveMoneyFields(rev.items || [], { subtotal: rev.subtotal }),
+      message: rev.remarks,
+      at: rev.revisedAt,
+    });
+  });
+
+  // ── 3. Original sales quotation snapshot (unchanged from before) ──
+  const originalRaw = q.originalSnapshot?.items?.length ? q.originalSnapshot.items : q.items || [];
   timeline.push({
     kind: "seller",
     sellerKind: "original",
     label: "Original Quotation Sent",
-    items:
-      original?.items?.length
-        ? original.items
-        : q.items || [],
-    subtotal:
-      original?.subtotal != null
-        ? original.subtotal
-        : q.subtotal,
-    discountAmount:
-      original?.discountAmount != null
-        ? original.discountAmount
-        : q.discountAmount,
-    gstAmount:
-      original?.gstAmount != null
-        ? original.gstAmount
-        : q.gstAmount,
-    total:
-      original?.grandTotal != null
-        ? original.grandTotal
-        : q.grandTotal,
-    at:
-      original?.sentAt ||
-      q.createdAt ||
-      q.sentAt,
+    ...resolveMoneyFields(originalRaw, {
+      subtotal: q.originalSnapshot?.subtotal ?? q.subtotal,
+      discountAmount: q.originalSnapshot?.discountAmount ?? q.discountAmount,
+      gstAmount: q.originalSnapshot?.gstAmount ?? q.gstAmount,
+      total: q.originalSnapshot?.grandTotal ?? q.grandTotal,
+    }),
+    at: q.originalSnapshot?.sentAt || q.sentAt || q.createdAt,
   });
 
+  // ── 4. negotiationHistory — every event, old and new types alike ──
   (q.negotiationHistory || []).forEach((h) => {
-    if (h.expectedBudget != null) {
+    const meta = metaFor(h.type);
+    const at = h.eventAt || h.recordedAt || h.revisedAt || h.counterOfferAt || h.revisedSalesSentAt || h.customerRespondedAt;
+    if (!at) return;
+
+    if (meta.bucket === "customer") {
       timeline.push({
         kind: "customer",
-        label: "Customer Offer",
+        label: meta.label,
         expectedBudget: h.expectedBudget,
         message: h.customerMessage,
-        at: h.customerRespondedAt || h.recordedAt,
+        actor: h.actor,
+        at,
       });
-    }
-
-    if (h.counterOfferAmount != null) {
+    } else if (meta.bucket === "seller" || meta.bucket === "admin") {
+      const items = h.counterOfferItems?.length
+        ? h.counterOfferItems
+        : h.adminRevisedItems?.length
+        ? h.adminRevisedItems
+        : h.revisedSalesItems || [];
       timeline.push({
-        kind: "seller",
-        sellerKind: "counter",
-        label: "Sales Counter Offer",
-        items: h.counterOfferItems || [],
-        subtotal: h.counterOfferSubtotal,
-        discountAmount: h.counterOfferDiscountAmount,
-        gstAmount: h.counterOfferGstAmount,
-        total: h.counterOfferAmount,
-        message: h.counterOfferMessage,
-        at: h.counterOfferAt || h.recordedAt,
+        kind: meta.bucket,
+        sellerKind: meta.sellerKind,
+        label: meta.label,
+        ...resolveMoneyFields(items, {
+          subtotal: h.counterOfferSubtotal ?? h.adminRevisedSubtotal ?? h.revisedSalesSubtotal,
+          discountAmount: h.counterOfferDiscountAmount ?? h.adminRevisedDiscountAmount ?? h.revisedSalesDiscountAmount,
+          gstAmount: h.counterOfferGstAmount ?? h.adminRevisedGstAmount ?? h.revisedSalesGstAmount,
+          total: h.counterOfferAmount ?? h.revisedGrandTotal ?? h.revisedSalesGrandTotal,
+        }),
+        message: h.counterOfferMessage || h.customerMessage,
+        actor: h.actor,
+        at,
       });
-    }
-
-    if (h.adminRevisedItems?.length) {
+    } else if (meta.bucket === "viewed") {
+      timeline.push({ kind: "viewed", label: meta.label, actor: h.actor, at });
+    } else if (meta.bucket === "accepted") {
       timeline.push({
-        kind: "admin",
-        label: "Admin Revised Quotation",
-        items: h.adminRevisedItems,
-        subtotal: h.adminRevisedSubtotal,
-        discountAmount: h.adminRevisedDiscountAmount,
-        gstAmount: h.adminRevisedGstAmount,
-        total: h.revisedGrandTotal,
-        at: h.revisedAt || h.recordedAt,
+        kind: "accepted",
+        label: meta.label,
+        total: h.revisedSalesGrandTotal ?? h.counterOfferAmount ?? h.expectedBudget ?? q.negotiatedAmount ?? q.grandTotal ?? 0,
+        actor: h.actor,
+        at,
       });
-    }
-
-    if (h.revisedSalesItems?.length) {
-      timeline.push({
-        kind: "seller",
-        sellerKind: "revised",
-        label: "Revised Quotation Sent to Customer",
-        items: h.revisedSalesItems,
-        subtotal: h.revisedSalesSubtotal,
-        discountAmount: h.revisedSalesDiscountAmount,
-        gstAmount: h.revisedSalesGstAmount,
-        total: h.revisedSalesGrandTotal,
-        at: h.revisedSalesSentAt,
-      });
+    } else if (meta.bucket === "rejected") {
+      timeline.push({ kind: "rejected", label: meta.label, actor: h.actor, message: h.customerMessage, at });
+    } else if (meta.bucket === "closed") {
+      timeline.push({ kind: "closed", label: meta.label, actor: h.actor, at });
     }
   });
 
-  if (q.expectedBudget != null) {
-    timeline.push({
-      kind: "customer",
-      label: "Customer Offer",
-      expectedBudget: q.expectedBudget,
-      message: q.customerMessage,
-      at: q.customerRespondedAt,
-    });
-  }
-
-  if (q.counterOfferAmount != null) {
-    timeline.push({
-      kind: "seller",
-      sellerKind: "counter",
-      label: "Sales Counter Offer",
-      items: q.counterOfferItems || [],
-      subtotal: q.counterOfferSubtotal,
-      discountAmount: q.counterOfferDiscountAmount,
-      gstAmount: q.counterOfferGstAmount,
-      total: q.counterOfferAmount,
-      message: q.counterOfferMessage,
-      at: q.counterOfferAt,
-    });
-  }
-
-  return timeline
-    .filter((x) => x.at)
-    .sort((a, b) => new Date(b.at) - new Date(a.at));
+  return timeline.filter((x) => x.at).sort((a, b) => new Date(a.at) - new Date(b.at));
 };
 
 export default function SentQuotations() {
@@ -612,7 +611,9 @@ export default function SentQuotations() {
               {timeline.map((entry, i) => {
                 const isCustomer = entry.kind === "customer";
                 const isAdmin = entry.kind === "admin";
-                const isSeller = entry.kind === "seller";
+                const isAccepted = entry.kind === "accepted";
+                const isRejected = entry.kind === "rejected";
+                const isClosed = entry.kind === "closed";
 
                 return (
                   <div
@@ -620,6 +621,12 @@ export default function SentQuotations() {
                     className={`rounded-xl border p-3.5 sm:p-4 ${
                       isCustomer
                         ? "bg-orange-50 border-orange-200"
+                        : isAccepted
+                        ? "bg-green-50 border-green-200"
+                        : isRejected
+                        ? "bg-red-50 border-red-200"
+                        : isClosed
+                        ? "bg-gray-50 border-gray-300"
                         : isAdmin
                         ? "bg-blue-50 border-blue-200"
                         : entry.sellerKind === "revised"
@@ -634,6 +641,12 @@ export default function SentQuotations() {
                         className={`text-sm font-bold ${
                           isCustomer
                             ? "text-orange-800"
+                            : isAccepted
+                            ? "text-green-800"
+                            : isRejected
+                            ? "text-red-800"
+                            : isClosed
+                            ? "text-gray-800"
                             : isAdmin
                             ? "text-blue-800"
                             : entry.sellerKind === "revised"
@@ -643,7 +656,7 @@ export default function SentQuotations() {
                             : "text-green-800"
                         }`}
                       >
-                        {i + 1}. {entry.label}
+                        {entry.label}
                       </p>
 
                       {entry.at && (
@@ -655,26 +668,75 @@ export default function SentQuotations() {
 
                     {/* Customer offer */}
                     {isCustomer ? (
+
                       <div className="space-y-2">
+
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">
-                            Customer Offered
-                          </span>
+                          <span>Partner Offered</span>
+
                           <span className="font-bold text-orange-800">
                             ₹{Number(entry.expectedBudget || 0).toFixed(2)}
                           </span>
                         </div>
 
                         {entry.message && (
-                          <p className="text-sm text-gray-700 whitespace-pre-line">
+                          <p className="text-sm text-gray-700">
                             <span className="font-semibold">
-                              Customer Message:{" "}
-                            </span>
+                              Partner Message :
+                            </span>{" "}
                             {entry.message}
                           </p>
                         )}
+
                       </div>
+
+                    ) : isAccepted ? (
+
+                      <div className="space-y-2">
+
+                        <div className="flex justify-between">
+                          <span>Accepted By</span>
+                          <span>{entry.actor}</span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span>Final Amount</span>
+
+                          <span>
+                            ₹{Number(entry.total || 0).toFixed(2)}
+                          </span>
+                        </div>
+
+                      </div>
+
+                    ) : isRejected ? (
+
+                      <div className="space-y-2">
+
+                        <div className="flex justify-between">
+                          <span>Rejected By</span>
+                          <span>{entry.actor}</span>
+                        </div>
+
+                        {entry.message && (
+                          <p>{entry.message}</p>
+                        )}
+
+                      </div>
+
+                    ) : isClosed ? (
+
+                      <div className="space-y-2">
+
+                        <div className="flex justify-between">
+                          <span>Closed By</span>
+                          <span>{entry.actor}</span>
+                        </div>
+
+                      </div>
+
                     ) : (
+
                       <>
                         {/* Admin / Seller quotation items */}
                         {entry.items?.length > 0 && (
