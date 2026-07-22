@@ -908,60 +908,62 @@ export default function SentQuotations() {
                         )}
 
                         {/* Totals */}
-                        <div className="space-y-1 text-sm max-w-xs sm:ml-auto mt-3">
-                          {entry.subtotal != null && (
-                            <div className="flex justify-between text-gray-600">
-                              <span>Subtotal</span>
+                        {entry.kind !== "viewed" && (
+                          <div className="space-y-1 text-sm max-w-xs sm:ml-auto mt-3">
+                            {entry.subtotal != null && (
+                              <div className="flex justify-between text-gray-600">
+                                <span>Subtotal</span>
+                                <span>
+                                  ₹{Number(entry.subtotal).toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+
+                            {entry.gstAmount != null && (
+                              <div className="flex justify-between text-gray-600">
+                                <span>GST</span>
+                                <span>
+                                  ₹{Number(entry.gstAmount).toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+
+                            {entry.discountAmount != null && (
+                              <div className="flex justify-between text-gray-600">
+                                <span>Discount</span>
+                                <span>
+                                  − ₹{Number(entry.discountAmount).toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+
+                            <div
+                              className={`flex justify-between font-bold border-t pt-1 ${
+                                isAdmin
+                                  ? "text-blue-700 border-blue-200"
+                                  : entry.sellerKind === "revised"
+                                  ? "text-purple-700 border-purple-200"
+                                  : entry.sellerKind === "counter"
+                                  ? "text-amber-700 border-amber-200"
+                                  : "text-green-700 border-green-200"
+                              }`}
+                            >
                               <span>
-                                ₹{Number(entry.subtotal).toFixed(2)}
+                                {isAdmin
+                                  ? "Admin Revised Total"
+                                  : entry.sellerKind === "counter"
+                                  ? "Counter Total"
+                                  : entry.sellerKind === "revised"
+                                  ? "Revised Total"
+                                  : "Grand Total"}
+                              </span>
+
+                              <span>
+                                ₹{Number(entry.total || 0).toFixed(2)}
                               </span>
                             </div>
-                          )}
-
-                          {entry.gstAmount != null && (
-                            <div className="flex justify-between text-gray-600">
-                              <span>GST</span>
-                              <span>
-                                ₹{Number(entry.gstAmount).toFixed(2)}
-                              </span>
-                            </div>
-                          )}
-
-                          {entry.discountAmount != null && (
-                            <div className="flex justify-between text-gray-600">
-                              <span>Discount</span>
-                              <span>
-                                − ₹{Number(entry.discountAmount).toFixed(2)}
-                              </span>
-                            </div>
-                          )}
-
-                          <div
-                            className={`flex justify-between font-bold border-t pt-1 ${
-                              isAdmin
-                                ? "text-blue-700 border-blue-200"
-                                : entry.sellerKind === "revised"
-                                ? "text-purple-700 border-purple-200"
-                                : entry.sellerKind === "counter"
-                                ? "text-amber-700 border-amber-200"
-                                : "text-green-700 border-green-200"
-                            }`}
-                          >
-                            <span>
-                              {isAdmin
-                                ? "Admin Revised Total"
-                                : entry.sellerKind === "counter"
-                                ? "Counter Total"
-                                : entry.sellerKind === "revised"
-                                ? "Revised Total"
-                                : "Grand Total"}
-                            </span>
-
-                            <span>
-                              ₹{Number(entry.total || 0).toFixed(2)}
-                            </span>
                           </div>
-                        </div>
+                        )}
 
                         {entry.message && (
                           <p className="text-sm text-gray-700 whitespace-pre-line mt-3">
