@@ -518,8 +518,44 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
     }
 
     // grandTotal is left untouched — it remains the audit trail of the original quotation.
-    quotation.negotiatedAmount = quotation.expectedBudget;
+    const targetGrandTotal = Number(quotation.expectedBudget);
+
+    const subtotal = Number(quotation.subtotal);
+    const gstAmount = Number(quotation.gstAmount);
+
+    const totalBeforeDiscount = subtotal + gstAmount;
+
+    const effectiveDiscountPercent =
+      totalBeforeDiscount <= 0
+        ? 0
+        : ((totalBeforeDiscount - targetGrandTotal) / totalBeforeDiscount) * 100;
+
+    const updatedItems = quotation.items.map((item) => {
+      const baseAmount = Number(item.quantity) * Number(item.unitPrice);
+      const itemGst = baseAmount * (Number(item.gst) / 100);
+
+      const beforeDiscount = baseAmount + itemGst;
+
+      const discountAmt =
+        beforeDiscount * (effectiveDiscountPercent / 100);
+
+      return {
+        ...item.toObject(),
+        discount: Number(effectiveDiscountPercent.toFixed(2)),
+        total: Number((beforeDiscount - discountAmt).toFixed(2)),
+      };
+    });
+
+    quotation.items = updatedItems;
+    quotation.discountAmount = Number(
+      (totalBeforeDiscount - targetGrandTotal).toFixed(2)
+    );
+
+    quotation.grandTotal = targetGrandTotal;
+
+    quotation.negotiatedAmount = targetGrandTotal;
     quotation.negotiatedAt = new Date();
+
     quotation.status = "accepted";
     quotation.acceptedAt = new Date();
     quotation.negotiationHistory.push({

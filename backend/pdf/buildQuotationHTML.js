@@ -14,7 +14,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     opts.finalAmount != null ? Number(opts.finalAmount) : Number(quotation.grandTotal);
   const items = opts.items || quotation.items;
   const salesRep = opts.salesRep || null;
-  const amountLabel = opts.label || "Final Accepted Amount";
+  const amountLabel = "Grand Total";
   const copyLabel = opts.copyLabel || null;
   const isPartnerCopy = copyLabel === "Partner's Copy";
 
@@ -248,7 +248,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     </div>
 
     <div style="margin-top:30px;font-size:10px;color:#9ca3af;padding-left:14px;">
-      This is a system-generated confirmation of the final accepted quotation.
+      This is a system-generated quotation.
     </div>
   </div>
 </div>

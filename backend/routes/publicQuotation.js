@@ -127,22 +127,9 @@ router.get("/quotation/:publicToken/pdf", async (req, res) => {
 
     const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
 
-    let finalAmount = Number(quotation.grandTotal);
-    let items = quotation.items;
-    let label = "Total Quotation Amount";
-
-    if (quotation.status === "accepted") {
-      finalAmount =
-        quotation.negotiatedAmount != null ? Number(quotation.negotiatedAmount) : Number(quotation.grandTotal);
-      if (
-        quotation.negotiatedAmount != null &&
-        quotation.negotiatedAmount === quotation.counterOfferAmount &&
-        quotation.counterOfferItems?.length
-      ) {
-        items = quotation.counterOfferItems;
-      }
-      label = "Final Accepted Amount";
-    }
+    const finalAmount = Number(quotation.grandTotal);
+    const items = quotation.items;
+    const label = "Grand Total";
 
     const pdfBuffer = await generateQuotationPdf(quotation, {
       finalAmount,
@@ -490,19 +477,16 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
     try {
       const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
 
-      const itemsForReport = quotation.counterOfferItems?.length
-        ? quotation.counterOfferItems
-        : quotation.items;
+      const itemsForReport = quotation.items;
 
       const makeAttachment = async (copyLabel) => [
         {
-          filename: `Quotation-${quotation.quotationNumber}.pdf`,
           content: await generateQuotationPdf(quotation, {
-            finalAmount: quotation.negotiatedAmount,
-            items: itemsForReport,
+            finalAmount: quotation.grandTotal,
+            items: quotation.items,
             salesRep,
             copyLabel,
-          }),
+        }),
           contentType: "application/pdf",
         },
       ];
@@ -537,7 +521,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
           <tbody>${itemRowsHtml}</tbody>
         </table>
         <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
-          Final Accepted Amount: ₹${Number(quotation.negotiatedAmount).toFixed(2)}
+          Grand Total: ₹${Number(quotation.grandTotal).toFixed(2)}
         </p>
       `;
 

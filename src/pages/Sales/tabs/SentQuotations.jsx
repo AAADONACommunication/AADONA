@@ -48,6 +48,65 @@ const dateMatchesQuery = (isoString, query) => {
   return variants.some((v) => v.toLowerCase().includes(query));
 };
 
+const calcItemTotal = (item) => {
+  if (item?.total != null && !Number.isNaN(Number(item.total))) return Number(item.total);
+  const qty = Number(item?.quantity) || 0;
+  const price = Number(item?.unitPrice) || 0;
+  const gstPct = Number(item?.gst) || 0;
+  const discountVal = Number(item?.discount) || 0;
+  const discountType = item?.discountType || "percent";
+  const base = qty * price;
+  const discountAmt = discountType === "flat" ? discountVal : base * (discountVal / 100);
+  const taxable = Math.max(base - discountAmt, 0);
+  const gstAmt = taxable * (gstPct / 100);
+  return taxable + gstAmt;
+};
+
+const normalizeItems = (items = []) =>
+  (items || []).map((item) => ({
+    ...item,
+    name: item?.name || "Item",
+    quantity: Number(item?.quantity) || 0,
+    unitPrice: Number(item?.unitPrice) || 0,
+    gst: item?.gst ?? 0,
+    discount: item?.discount ?? 0,
+    discountType: item?.discountType || "percent",
+    total: calcItemTotal(item),
+  }));
+
+const computeTotalsFromItems = (items = []) => {
+  const subtotal = items.reduce(
+    (sum, it) => sum + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0),
+    0
+  );
+  const discountAmount = items.reduce((sum, it) => {
+    const base = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+    const dVal = Number(it.discount) || 0;
+    return sum + (it.discountType === "flat" ? dVal : base * (dVal / 100));
+  }, 0);
+  const gstAmount = items.reduce((sum, it) => {
+    const base = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+    const dVal = Number(it.discount) || 0;
+    const dAmt = it.discountType === "flat" ? dVal : base * (dVal / 100);
+    const itemTaxable = Math.max(base - dAmt, 0);
+    return sum + itemTaxable * ((Number(it.gst) || 0) / 100);
+  }, 0);
+  const taxable = Math.max(subtotal - discountAmount, 0);
+  return { subtotal, discountAmount, gstAmount, grandTotal: taxable + gstAmount };
+};
+
+const resolveMoneyFields = (rawItems, provided = {}) => {
+  const items = normalizeItems(rawItems);
+  const computed = computeTotalsFromItems(items);
+  return {
+    items,
+    subtotal: provided.subtotal ?? computed.subtotal,
+    discountAmount: provided.discountAmount ?? computed.discountAmount,
+    gstAmount: provided.gstAmount ?? computed.gstAmount,
+    total: provided.total ?? computed.grandTotal,
+  };
+};
+
 // ── Normalizes both legacy and new event types into a display bucket ──
 const TYPE_META = {
   sales_sent:            { bucket: "seller",   sellerKind: "original", label: "Sales Quotation Sent" },
@@ -152,7 +211,12 @@ const buildTimeline = (q) => {
       timeline.push({
         kind: "accepted",
         label: meta.label,
-        total: h.revisedSalesGrandTotal ?? h.counterOfferAmount ?? h.expectedBudget ?? q.negotiatedAmount ?? q.grandTotal ?? 0,
+        ...resolveMoneyFields(q.items, {
+          subtotal: q.subtotal,
+          discountAmount: q.discountAmount,
+          gstAmount: q.gstAmount,
+          total: q.grandTotal,
+        }),
         actor: h.actor,
         at,
       });
@@ -598,7 +662,7 @@ export default function SentQuotations() {
 
         {/* Complete quotation / negotiation history */}
         {(() => {
-          const timeline = buildNegotiationRounds(selected);
+          const timeline = buildTimeline(selected);
 
           if (timeline.length <= 1) return null;
 
@@ -689,28 +753,64 @@ export default function SentQuotations() {
                         )}
 
                       </div>
-
                     ) : isAccepted ? (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-green-100">
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>GST</th>
+                                <th>Discount</th>
+                                <th>Total</th>
+                              </tr>
+                            </thead>
 
-                      <div className="space-y-2">
-
-                        <div className="flex justify-between">
-                          <span>Accepted By</span>
-                          <span>{entry.actor}</span>
+                            <tbody>
+                              {entry.items?.map((item, idx) => (
+                                <tr key={idx}>
+                                  <td>{item.name}</td>
+                                  <td>{item.quantity}</td>
+                                  <td>₹{Number(item.unitPrice).toFixed(2)}</td>
+                                  <td>{Number(item.gst).toFixed(2)}%</td>
+                                  <td>{Number(item.discount).toFixed(2)}%</td>
+                                  <td>₹{Number(item.total).toFixed(2)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
 
-                        <div className="flex justify-between">
-                          <span>Final Amount</span>
+                        <div className="mt-3 space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span>Subtotal</span>
+                            <span>₹{Number(entry.subtotal).toFixed(2)}</span>
+                          </div>
 
-                          <span>
-                            ₹{Number(entry.total || 0).toFixed(2)}
-                          </span>
+                          <div className="flex justify-between">
+                            <span>Discount</span>
+                            <span>− ₹{Number(entry.discountAmount).toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex justify-between">
+                            <span>GST</span>
+                            <span>₹{Number(entry.gstAmount).toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex justify-between font-bold border-t pt-2">
+                            <span>Grand Total</span>
+                            <span>₹{Number(entry.total).toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex justify-between">
+                            <span>Accepted By</span>
+                            <span>{entry.actor}</span>
+                          </div>
                         </div>
-
-                      </div>
-
-                    ) : isRejected ? (
-
+                      </>
+                      ) : isRejected ? (
                       <div className="space-y-2">
 
                         <div className="flex justify-between">
@@ -772,7 +872,7 @@ export default function SentQuotations() {
                               </thead>
 
                               <tbody>
-                                {entry.items.map((item, idx) => (
+                                {entry.items?.map((item, idx) => (
                                   <tr
                                     key={idx}
                                     className="border-b border-gray-100"
@@ -928,17 +1028,9 @@ export default function SentQuotations() {
               <span>₹{Number(selected.gstAmount || 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
-              <span>Grand Total (Original)</span>
+              <span>Grand Total</span>
               <span>₹{Number(selected.grandTotal || 0).toFixed(2)}</span>
             </div>
-            {selected.negotiatedAmount != null && (
-              <div className="flex justify-between items-center bg-green-50 border border-green-200 rounded-lg px-3 py-2 mt-2 gap-2">
-                <span className="font-bold text-green-800">Final Accepted Price</span>
-                <span className="text-base sm:text-lg font-extrabold text-green-700 whitespace-nowrap">
-                  ₹{Number(selected.negotiatedAmount).toFixed(2)}
-                </span>
-              </div>
-            )}
           </div>
         </div>
 

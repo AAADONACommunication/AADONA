@@ -616,7 +616,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
   };
 
   const renderNegotiationSection = (q) => {
-    const timeline = buildNegotiationRounds(q);
+    const timeline = buildTimeline(q);
     const isAdminRevised = q.status === "admin_revised";
     const isActionable =
       q.status === "negotiation_requested" || q.status === "counter_offered";

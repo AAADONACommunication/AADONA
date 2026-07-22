@@ -522,22 +522,9 @@ export default function CustomerQuotation() {
         ) < 0.01
     );
 
-  const finalAmount =
-    quotation.negotiatedAmount != null
-      ? Number(quotation.negotiatedAmount)
-      : Number(quotation.grandTotal || 0);
+  const finalAmount = Number(quotation.grandTotal || 0);
 
-  const finalItems =
-    quotation.counterOfferItems?.length &&
-    quotation.negotiatedAmount != null &&
-    Math.abs(
-      Number(quotation.counterOfferAmount) -
-        Number(quotation.negotiatedAmount)
-    ) < 0.01
-      ? quotation.counterOfferItems
-      : acceptedCounterFromHistory?.counterOfferItems?.length
-      ? acceptedCounterFromHistory.counterOfferItems
-      : quotation.items;
+  const finalItems = quotation.items;
   // ════════════════════════════════════════
   // SUCCESS SCREENS (immediately after action, this session only)
   // ════════════════════════════════════════
