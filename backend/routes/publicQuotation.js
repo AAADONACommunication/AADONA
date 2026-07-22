@@ -351,6 +351,16 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
     quotation.expectedBudget = expected;
     quotation.customerRespondedAt = new Date();
 
+    quotation.negotiationHistory.push({
+      type: "partner_offer",
+      actor: "partner",
+      eventAt: quotation.customerRespondedAt,
+      expectedBudget: quotation.expectedBudget,
+      customerMessage: quotation.customerMessage,
+      customerRespondedAt: quotation.customerRespondedAt,
+      recordedAt: new Date(),
+    });
+
     const adminSubtotal = Number(quotation.sourceQuotation?.subtotal || 0);
     quotation.adminApprovedAmount = adminSubtotal;
 
