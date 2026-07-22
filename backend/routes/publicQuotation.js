@@ -9,47 +9,67 @@ const generateQuotationPdf = require("../utils/generateQuotationPdf");
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://aadona.com";
 
+
 // ── Helper: strip internal/admin-only fields before sending to customer ──
-const toPublicQuotation = (quotation, salesRep) => ({
-  _id: quotation._id,
-  quotationNumber: quotation.quotationNumber,
-  customer: quotation.customer
-    ? {
-        personalName: quotation.customer.personalName,
-        companyName: quotation.customer.companyName,
-        email: quotation.customer.email,
-        contactNumber: quotation.customer.contactNumber,
-      }
-    : null,
-  items: quotation.items,
-  subtotal: quotation.subtotal,
-  discountAmount: quotation.discountAmount,
-  gstAmount: quotation.gstAmount,
-  grandTotal: quotation.grandTotal,
-  notes: quotation.notes,
-  status: quotation.status,
-  sentAt: quotation.sentAt,
-  viewedAt: quotation.viewedAt,
-  acceptedAt: quotation.acceptedAt,
-  rejectedAt: quotation.rejectedAt,
-  rejectedBy: quotation.rejectedBy,
-  rejectReason: quotation.rejectReason,
-  customerMessage: quotation.customerMessage,
-  expectedBudget: quotation.expectedBudget,
-  customerRespondedAt: quotation.customerRespondedAt,
-  counterOfferAmount: quotation.counterOfferAmount,
-  counterOfferSubtotal: quotation.counterOfferSubtotal,
-  counterOfferDiscountAmount: quotation.counterOfferDiscountAmount,
-  counterOfferGstAmount: quotation.counterOfferGstAmount,
-  counterOfferItems: quotation.counterOfferItems,
-  counterOfferMessage: quotation.counterOfferMessage,
-  counterOfferAt: quotation.counterOfferAt,
-  negotiatedAmount: quotation.negotiatedAmount,
-  negotiatedAt: quotation.negotiatedAt,
-  negotiationHistory: quotation.negotiationHistory || [],
-  validTill: quotation.sourceQuotation?.validTill || null,
-  salesRep: salesRep ? { name: salesRep.name, email: salesRep.email, phone: salesRep.phone } : null,
-});
+const toPublicQuotation = (quotation, salesRep) => {
+  // ── Closed quotation: sirf minimal safe data bhejo, pricing/items KABHI mat bhejo ──
+  if (quotation.status === "closed") {
+    return {
+      _id: quotation._id,
+      quotationNumber: quotation.quotationNumber,
+      status: quotation.status,
+      closedAt: quotation.closedAt,
+      closeReason: quotation.closeReason,
+      salesRep: salesRep
+        ? { name: salesRep.name, email: salesRep.email, phone: salesRep.phone }
+        : null,
+    };
+  }
+
+  // ── Normal case: existing behaviour bilkul waisa hi ──
+  return {
+    _id: quotation._id,
+    quotationNumber: quotation.quotationNumber,
+    customer: quotation.customer
+      ? {
+          personalName: quotation.customer.personalName,
+          companyName: quotation.customer.companyName,
+          email: quotation.customer.email,
+          contactNumber: quotation.customer.contactNumber,
+        }
+      : null,
+    items: quotation.items,
+    subtotal: quotation.subtotal,
+    discountAmount: quotation.discountAmount,
+    gstAmount: quotation.gstAmount,
+    grandTotal: quotation.grandTotal,
+    notes: quotation.notes,
+    status: quotation.status,
+    sentAt: quotation.sentAt,
+    viewedAt: quotation.viewedAt,
+    acceptedAt: quotation.acceptedAt,
+    rejectedAt: quotation.rejectedAt,
+    rejectedBy: quotation.rejectedBy,
+    rejectReason: quotation.rejectReason,
+    customerMessage: quotation.customerMessage,
+    expectedBudget: quotation.expectedBudget,
+    customerRespondedAt: quotation.customerRespondedAt,
+    counterOfferAmount: quotation.counterOfferAmount,
+    counterOfferSubtotal: quotation.counterOfferSubtotal,
+    counterOfferDiscountAmount: quotation.counterOfferDiscountAmount,
+    counterOfferGstAmount: quotation.counterOfferGstAmount,
+    counterOfferItems: quotation.counterOfferItems,
+    counterOfferMessage: quotation.counterOfferMessage,
+    counterOfferAt: quotation.counterOfferAt,
+    negotiatedAmount: quotation.negotiatedAmount,
+    negotiatedAt: quotation.negotiatedAt,
+    negotiationHistory: quotation.negotiationHistory || [],
+    validTill: quotation.sourceQuotation?.validTill || null,
+    salesRep: salesRep
+      ? { name: salesRep.name, email: salesRep.email, phone: salesRep.phone }
+      : null,
+  };
+};
 
 // ── GET /quotation/:publicToken ── (NO AUTH — customer facing)
 router.get("/quotation/:publicToken", async (req, res) => {
@@ -93,6 +113,10 @@ router.get("/quotation/:publicToken/pdf", async (req, res) => {
 
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    if (quotation.status === "closed") {
+      return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
 
     const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
@@ -146,6 +170,9 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
     }
     if (quotation.status === "rejected") {
       return res.status(400).json({ message: "This quotation was rejected and cannot be accepted" });
+    }
+    if (quotation.status === "closed") {
+      return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
 
     quotation.status = "accepted";
@@ -273,6 +300,9 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
 
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
+    }
+    if (quotation.status === "closed") {
+      return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
     if (["accepted", "rejected"].includes(quotation.status)) {
       return res.status(400).json({ message: `Quotation already ${quotation.status}, cannot negotiate` });
@@ -434,6 +464,9 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
       return res.status(404).json({ message: "Quotation not found" });
     }
 
+    if (quotation.status === "closed") {
+      return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
+    }
     if (quotation.status !== "counter_offered") {
       return res.status(400).json({
         message: `Cannot accept counter offer from status "${quotation.status}"`,
@@ -597,6 +630,9 @@ router.post("/quotation/:publicToken/reject", async (req, res) => {
     }
     if (quotation.status === "rejected") {
       return res.status(400).json({ message: "Quotation is already rejected" });
+    }
+    if (quotation.status === "closed") {
+      return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
 
     quotation.status = "rejected";

@@ -1464,4 +1464,79 @@ router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) =
   }
 });
 
+// ── POST /sales-quotations/:id/close ──
+router.post("/sales-quotations/:id/close", verifySalesToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const { closeReason } = req.body;
+    const reason = closeReason && closeReason.trim() ? closeReason.trim() : "No response from Partner";
+
+    const quotation = await SalesQuotation.findById(id).populate("customer");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+    if (quotation.salesRepUid !== req.salesRep.uid) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const closableStatuses = ["sent", "viewed", "negotiation_requested", "counter_offered"];
+    if (!closableStatuses.includes(quotation.status)) {
+      return res.status(400).json({
+        message: `Cannot close quotation from status "${quotation.status}"`,
+      });
+    }
+
+    quotation.status = "closed";
+    quotation.closedAt = new Date();
+    quotation.closedBy = "sales";
+    quotation.closeReason = reason;
+
+    // ── Stop any future reminder ──
+    quotation.reminderSent = true; // cron query filters on this, so it's locked out immediately
+
+    await quotation.save();
+
+    // ── Courtesy email to Partner ──
+    try {
+      const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
+      if (quotation.customer?.email) {
+        await transporter.sendMail({
+          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          to: quotation.customer.email,
+          subject: `Quotation Closed – AADONA Communication`,
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:24px;background:#f9fafb">
+              <h2 style="color:#374151">Quotation Closed</h2>
+              <p style="color:#374151;font-size:14px">
+                Your quotation <strong>#${quotation.quotationNumber}</strong> has been closed due to
+                no response within the expected timeframe.
+              </p>
+              <p style="color:#374151;font-size:14px">
+                If you are still interested, please contact your Sales Representative to request a new quotation.
+              </p>
+              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #6b7280">
+                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
+                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
+                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}
+              </div>
+            </div>
+          `,
+        });
+      }
+    } catch (mailErr) {
+      console.error("Close-quotation courtesy email failed:", mailErr.message);
+    }
+
+    return res.json({ message: "Quotation closed", quotation });
+  } catch (err) {
+    console.error("Close quotation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

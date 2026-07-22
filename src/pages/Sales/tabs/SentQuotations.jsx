@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { ChevronLeft, Search, Bell, Lock, ChevronRight } from "lucide-react";
+import { ChevronLeft, Search, Bell, Lock, ChevronRight, Ban, X, AlertTriangle } from "lucide-react";
 
 const SALES_QUOTES_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
@@ -8,17 +8,24 @@ const statusStyles = {
   sent: "bg-yellow-100 text-yellow-700",
   viewed: "bg-blue-100 text-blue-700",
   negotiation_requested: "bg-orange-100 text-orange-700",
+  counter_offered: "bg-amber-100 text-amber-700",
   accepted: "bg-green-100 text-green-700",
   rejected: "bg-red-100 text-red-700",
+  closed: "bg-gray-200 text-gray-700",
 };
 
 const statusLabels = {
   sent: "Sent",
   viewed: "Viewed",
   negotiation_requested: "Negotiation Requested",
+  counter_offered: "Counter Offered",
   accepted: "Accepted",
   rejected: "Rejected",
+  closed: "Closed",
 };
+
+// Statuses from which sales can manually close a quotation
+const CLOSABLE_STATUSES = ["sent", "viewed", "negotiation_requested", "counter_offered"];
 
 // Lets the free-text search box also match typed dates, e.g. "12/07/2025",
 // "2025-07-12", "12 Jul", "July 2025" etc. against a quotation's sent date.
@@ -167,6 +174,13 @@ export default function SentQuotations() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
 
+  // ── Close Quotation state ──
+  const [closeModalOpen, setCloseModalOpen] = useState(false);
+  const [closeReasonOption, setCloseReasonOption] = useState("No response from Partner");
+  const [closeReasonOther, setCloseReasonOther] = useState("");
+  const [closeSubmitting, setCloseSubmitting] = useState(false);
+  const [closeError, setCloseError] = useState("");
+
   useEffect(() => {
     window.scrollTo(0, 0);
     loadQuotations();
@@ -208,6 +222,46 @@ export default function SentQuotations() {
         dateMatchesQuery(item.sentAt, q)
     );
   }, [quotations, search]);
+
+  const handleCloseQuotation = async () => {
+    if (!selected) return;
+    const finalReason =
+      closeReasonOption === "Other" ? (closeReasonOther.trim() || "Other") : closeReasonOption;
+
+    setCloseSubmitting(true);
+    setCloseError("");
+    try {
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch(`${SALES_QUOTES_API}/${selected._id}/close`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ closeReason: finalReason }),
+      });
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Server returned an unexpected response.");
+      }
+      if (!res.ok) throw new Error(data?.message || "Failed to close quotation");
+
+      setSelected(data.quotation);
+      setCloseModalOpen(false);
+      setCloseReasonOption("No response from Partner");
+      setCloseReasonOther("");
+      await loadQuotations();
+    } catch (err) {
+      console.error("Close quotation error:", err);
+      setCloseError(err.message || "Failed to close quotation");
+    } finally {
+      setCloseSubmitting(false);
+    }
+  };
 
   const openQuotation = (item) => {
     setSelected(item);
@@ -402,13 +456,23 @@ export default function SentQuotations() {
               <span className="text-xs sm:text-sm font-normal text-gray-500">— read only</span>
             </h2>
           </div>
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold capitalize shrink-0 ${
-              statusStyles[selected.status] || "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {statusLabels[selected.status] || selected.status}
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
+                statusStyles[selected.status] || "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {statusLabels[selected.status] || selected.status}
+            </span>
+            {CLOSABLE_STATUSES.includes(selected.status) && (
+              <button
+                onClick={() => { setCloseError(""); setCloseModalOpen(true); }}
+                className="flex items-center gap-1.5 bg-white border-2 border-gray-400 text-gray-700 hover:bg-gray-50 text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+              >
+                <Ban size={14} /> Close Quotation
+              </button>
+            )}
+          </div>
         </div>
 
         {selected.status === "rejected" && (
@@ -425,6 +489,26 @@ export default function SentQuotations() {
             {selected.rejectReason && (
               <p className="text-gray-700">
                 <span className="font-semibold">Reason:</span> {selected.rejectReason}
+              </p>
+            )}
+          </div>
+        )}
+
+        {selected.status === "closed" && (
+          <div className="bg-gray-50 border border-gray-300 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-5 space-y-1.5 text-sm">
+            <p className="font-bold text-gray-700 flex items-center gap-1.5">
+              <Ban size={15} /> Quotation Closed by Sales
+            </p>
+            <p className="text-gray-700">
+              <span className="font-semibold">Closed By:</span> Sales
+            </p>
+            <p className="text-gray-700">
+              <span className="font-semibold">Closed At:</span>{" "}
+              {selected.closedAt ? new Date(selected.closedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
+            </p>
+            {selected.closeReason && (
+              <p className="text-gray-700">
+                <span className="font-semibold">Reason:</span> {selected.closeReason}
               </p>
             )}
           </div>
@@ -820,6 +904,84 @@ export default function SentQuotations() {
           </div>
         </div>
       </div>
+
+      {/* ── Close Quotation Confirmation Modal ── */}
+      {closeModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
+            <button
+              onClick={() => setCloseModalOpen(false)}
+              aria-label="Close dialog"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 rounded-full p-1"
+            >
+              <X size={18} />
+            </button>
+            <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+              <Ban className="text-gray-600" size={20} />
+            </div>
+            <h3 className="text-lg font-extrabold text-gray-800 mb-2">Close Quotation?</h3>
+            <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+              This will close quotation <strong>#{selected?.quotationNumber}</strong> and stop all
+              future reminders. The partner will be notified. This cannot be undone.
+            </p>
+
+            <div className="space-y-2 mb-4">
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="closeReason"
+                  checked={closeReasonOption === "No response from Partner"}
+                  onChange={() => setCloseReasonOption("No response from Partner")}
+                  className="accent-gray-600"
+                />
+                No response from Partner
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="closeReason"
+                  checked={closeReasonOption === "Other"}
+                  onChange={() => setCloseReasonOption("Other")}
+                  className="accent-gray-600"
+                />
+                Other
+              </label>
+              {closeReasonOption === "Other" && (
+                <input
+                  type="text"
+                  value={closeReasonOther}
+                  onChange={(e) => setCloseReasonOther(e.target.value)}
+                  placeholder="Enter reason"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-gray-500 outline-none mt-1"
+                />
+              )}
+            </div>
+
+            {closeError && (
+              <p className="text-sm text-red-600 flex items-center gap-1.5 mb-3">
+                <AlertTriangle size={14} /> {closeError}
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCloseModalOpen(false)}
+                disabled={closeSubmitting}
+                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-gray-50 transition disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCloseQuotation}
+                disabled={closeSubmitting}
+                className="flex-1 bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-xl transition disabled:opacity-60"
+              >
+                {closeSubmitting ? "Closing..." : "Close"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

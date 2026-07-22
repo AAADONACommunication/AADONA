@@ -56,6 +56,7 @@ const SalesQuotationSchema = new mongoose.Schema(
         "counter_offered",
         "admin_revised",
         "admin_rejected_to_sales",
+        "closed",
       ],
       default: "sent",
       index: true,
@@ -70,6 +71,14 @@ const SalesQuotationSchema = new mongoose.Schema(
       default: null,
     },
     rejectReason: { type: String, default: "" },
+
+    closedAt: { type: Date, default: null },
+    closedBy: {
+      type: String,
+      enum: ["sales"],
+      default: null,
+    },
+    closeReason: { type: String, default: "" },
 
     // ── Reminder scheduling ──
     reminderAfterDays: {

@@ -16,6 +16,7 @@ const statusStyles = {
   awaiting_admin_approval: "bg-purple-100 text-purple-700",
   counter_offered: "bg-amber-100 text-amber-700",
   admin_revised: "bg-purple-100 text-purple-700",
+  closed: "bg-gray-200 text-gray-700",
 };
 
 const statusLabels = {
@@ -29,6 +30,7 @@ const statusLabels = {
   awaiting_admin_approval: "Awaiting Admin Approval",
   counter_offered: "Counter Offered",
   admin_revised: "Admin Revised — Action Needed",
+  closed: "Closed",
 };
 
 const getStatusLabel = (status) =>
@@ -715,6 +717,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
           <option value="admin_revised">Admin Revised</option>
           <option value="accepted">Accepted</option>
           <option value="rejected">Rejected</option>
+          <option value="closed">Closed</option>
           <option value="expired">Expired</option>
         </select>
       </div>
