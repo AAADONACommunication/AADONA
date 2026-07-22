@@ -95,7 +95,8 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         q.quotationNumber?.toLowerCase().includes(s);
       const matchesStatus = statusFilter === "all" || q.status === statusFilter;
       return matchesSearch && matchesStatus;
-    });
+    })
+    .sort((a, b) => new Date(b.createdAt || b.sentAt) - new Date(a.createdAt || a.sentAt));
   }, [quotations, search, statusFilter]);
 
   const authHeader = async () => {

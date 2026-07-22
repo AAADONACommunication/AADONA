@@ -164,7 +164,7 @@ const buildNegotiationRounds = (q) => {
 
   return timeline
     .filter((x) => x.at)
-    .sort((a, b) => new Date(a.at) - new Date(b.at));
+    .sort((a, b) => new Date(b.at) - new Date(a.at));
 };
 
 export default function SentQuotations() {
@@ -209,17 +209,23 @@ export default function SentQuotations() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return quotations;
 
-    // Free-text search — matches customer/company/quotation# AND typed dates
-    return quotations.filter(
-      (item) =>
-        item.customer?.personalName?.toLowerCase().includes(q) ||
-        item.customer?.companyName?.toLowerCase().includes(q) ||
-        item.endCustomer?.endCustomerName?.toLowerCase().includes(q) ||
-        item.endCustomer?.organizationName?.toLowerCase().includes(q) ||
-        item.quotationNumber?.toLowerCase().includes(q) ||
-        dateMatchesQuery(item.sentAt, q)
+    const result = !q
+      ? [...quotations]
+      : quotations.filter(
+          (item) =>
+            item.customer?.personalName?.toLowerCase().includes(q) ||
+            item.customer?.companyName?.toLowerCase().includes(q) ||
+            item.endCustomer?.endCustomerName?.toLowerCase().includes(q) ||
+            item.endCustomer?.organizationName?.toLowerCase().includes(q) ||
+            item.quotationNumber?.toLowerCase().includes(q) ||
+            dateMatchesQuery(item.sentAt, q)
+        );
+
+    return result.sort(
+      (a, b) =>
+        new Date(b.sentAt || b.createdAt) -
+        new Date(a.sentAt || a.createdAt)
     );
   }, [quotations, search]);
 
