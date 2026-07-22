@@ -431,7 +431,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
 router.get("/sales-quotations", verifySalesToken, async (req, res) => {
   try {
     const quotations = await SalesQuotation.find({ salesRepUid: req.salesRep.uid })
-      .populate("partner").populate("endCustomer")
+      .populate("customer").populate("endCustomer")
       .populate("sourceQuotation")
       .sort({ createdAt: -1 });
 
@@ -450,7 +450,7 @@ router.get("/sales-quotations/:id", verifySalesToken, async (req, res) => {
     }
 
     const quotation = await SalesQuotation.findById(req.params.id)
-      .populate("partner").populate("endCustomer")
+      .populate("customer").populate("endCustomer")
       .populate("sourceQuotation");
 
     if (!quotation) {
@@ -476,7 +476,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const quotation = await SalesQuotation.findById(id).populate("partner").populate("endCustomer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -624,7 +624,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
 
     const { items, gstRate, discount, counterOfferMessage } = req.body;
 
-    const quotation = await SalesQuotation.findById(id).populate("partner").populate("endCustomer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -810,7 +810,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     const { items, gstRate, discount } = req.body;
 
     const quotation = await SalesQuotation.findById(id)
-      .populate("partner").populate("endCustomer")
+      .populate("customer").populate("endCustomer")
       .populate("sourceQuotation");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
@@ -1066,7 +1066,7 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const quotation = await SalesQuotation.findById(id).populate("partner").populate("endCustomer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -1195,7 +1195,7 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
 
     const { items, gstRate, discount } = req.body;
 
-    const quotation = await SalesQuotation.findById(id).populate("partner").populate("endCustomer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
@@ -1405,7 +1405,7 @@ router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) =
     const { reason } = req.body;
     const rejectReason = reason && reason.trim() ? reason.trim() : "";
 
-    const quotation = await SalesQuotation.findById(id).populate("partner").populate("endCustomer");
+    const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }
