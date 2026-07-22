@@ -430,14 +430,13 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
 // ── GET /sales-quotations ──
 router.get("/sales-quotations", verifySalesToken, async (req, res) => {
   try {
-    const quotations = await SalesQuotation.find({ salesRepUid: req.salesRep.uid })
-      .populate("customer").populate("endCustomer")
-      .populate("sourceQuotation")
-      .sort({ createdAt: -1 });
+    const quotations = await SalesQuotation.find({
+      salesRepUid: req.salesRep.uid,
+    });
 
     return res.json(quotations);
   } catch (err) {
-    console.error("Get sales quotations error:", err.message);
+    console.error("Get sales quotations error:", err);
     return res.status(500).json({ error: err.message });
   }
 });
