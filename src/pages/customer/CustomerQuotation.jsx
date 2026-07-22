@@ -20,7 +20,7 @@ import {
   History as HistoryIcon,
 } from "lucide-react";
 import logo from "../../assets/logo.avif";
-import RejectQuotationModal from "../../components/shared/RejectQuotationModal";
+import RejectQuotationModal from "../../Components/shared/RejectQuotationModal";
 
 const PUBLIC_API = `${import.meta.env.VITE_API_URL}/public/quotation`;
 
