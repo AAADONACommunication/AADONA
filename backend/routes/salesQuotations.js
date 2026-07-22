@@ -432,7 +432,10 @@ router.get("/sales-quotations", verifySalesToken, async (req, res) => {
   try {
     const quotations = await SalesQuotation.find({
       salesRepUid: req.salesRep.uid,
-    });
+    })
+      .populate("customer")
+      .populate("endCustomer")
+      .populate("sourceQuotation");
 
     return res.json(quotations);
   } catch (err) {
