@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { Search, Eye } from "lucide-react";
 import { safeJson } from "../SalesPanel";
-import RejectQuotationModal from "../../../components/shared/RejectQuotationModal";
+import RejectQuotationModal from "../../../Components/shared/RejectQuotationModal";
 
 const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
