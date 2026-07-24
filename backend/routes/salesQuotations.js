@@ -298,9 +298,8 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
                   </h2>
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                      <td style="padding:4px 0;color:#6b7280;font-size:13px;width:140px">Customer</td>
-                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
-                        ${customer.personalName}
+                      <td style="padding:4px 0;color:#6b7280;font-size:13px;width:140px">Partner</td>
+                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">${customer.personalName}
                       </td>
                     </tr>
                     ${customer.companyName ? `
