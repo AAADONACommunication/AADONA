@@ -92,12 +92,16 @@ const safeJson = async (res) => {
 const buildTimeline = (q) => {
   const timeline = [];
 
-  // Original quotation sent by Sales
+  // This snapshot tracks the quotation's current/live totals rather than a
+  // frozen record of the very first quotation sent — its amount and
+  // timestamp both move as the record is updated. So instead of treating it
+  // as "what came first", it's shown as the final/current state and always
+  // pinned to the bottom of the trail.
   const original = q.originalSnapshot;
 
-  timeline.push({
+  const finalEntry = {
     kind: "sales",
-    label: "Original Quotation",
+    label: "Final Quotation",
     amount:
       original?.grandTotal != null
         ? original.grandTotal
@@ -110,7 +114,7 @@ const buildTimeline = (q) => {
       original?.sentAt ||
       q.createdAt ||
       q.sentAt,
-  });
+  };
 
   // Completed / archived history
   (q.negotiationHistory || []).forEach((h) => {
@@ -173,9 +177,30 @@ const buildTimeline = (q) => {
     });
   }
 
-  return timeline
+  // Dedupe: the backend can log the same negotiation round more than once
+  // (e.g. a retry writes an identical history entry). Two entries are the
+  // same event if they share kind + label + amount + timestamp, so collapse
+  // those down to one before rendering.
+  const seen = new Set();
+  const deduped = timeline
     .filter((entry) => entry.at)
+    .filter((entry) => {
+      const key = `${entry.kind}|${entry.label}|${entry.amount}|${entry.at}|${entry.message || ""}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .sort((a, b) => new Date(a.at) - new Date(b.at));
+
+  // The very first thing to happen in the trail is always Sales reaching out —
+  // it isn't a "counter" to anything, so relabel it rather than calling it a
+  // counter offer.
+  if (deduped.length && deduped[0].kind === "sales" && deduped[0].label === "Sales Counter Offer") {
+    deduped[0] = { ...deduped[0], label: "Sales Offer" };
+  }
+
+  // Final/current state always trails the real negotiation trail.
+  return [...deduped, finalEntry];
 };
 
 // ────────────────────────────────────────────────────────────────
@@ -598,9 +623,9 @@ export default function CustomerQuotation() {
       {/* NOTE: backdrop-blur removed here — combined with `sticky` it was causing
           the whole bar to repaint/flicker on some mobile browsers. Solid bg-white
           avoids that GPU-compositing flicker entirely. */}
-      <div className="sticky top-0 z-40 bg-white border-b border-green-100">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-3">
-          <div className="h-12 sm:h-16 flex items-center shrink-0">
+      <div className="sticky top-0 z-40 bg-white/95 border-b border-green-100 shadow-[0_1px_0_0_rgba(21,128,61,0.05)]">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 py-3.5 flex items-center justify-between gap-3">
+          <div className="h-11 sm:h-14 flex items-center shrink-0">
             {!logoFailed ? (
               <img
                 src={logo}
@@ -614,24 +639,46 @@ export default function CustomerQuotation() {
               </span>
             )}
           </div>
+          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-100 rounded-full px-3.5 py-1.5">
+            <ShieldCheck size={13} />
+            Secure Partner Portal
+          </div>
         </div>
       </div>
 
       {/* ── Page heading ── */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6 pt-7 pb-1">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-green-800 tracking-tight">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 pt-8 pb-1">
+        <h1 className="text-2xl sm:text-[28px] font-extrabold text-green-900 tracking-tight">
           Quotation Portal
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Review your quotation and respond to our sales team
+        <p className="text-sm text-gray-500 mt-1.5">
+          Review your quotation and respond to our sales team, at your own pace.
         </p>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 space-y-6">
         {/* ═══════════════ HERO — glass card, everything at a glance ═══════════════ */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-green-700 via-green-700 to-green-900 rounded-3xl shadow-md p-6 sm:p-8 insights-fade-in">
-          <div className="pointer-events-none absolute -right-10 -top-16 w-52 h-52 sm:w-64 sm:h-64 rounded-full bg-white/10" />
-          <div className="pointer-events-none absolute -right-6 bottom-0 w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-white/5" />
+        <div className="relative overflow-hidden bg-gradient-to-br from-green-700 via-green-700 to-green-900 rounded-3xl shadow-lg shadow-green-900/10 p-6 sm:p-8 insights-fade-in">
+          {/* Signature: a faint network/circuit trace, nodding to Aadona's
+              networking-hardware identity instead of a generic decorative blob. */}
+          <svg
+            className="pointer-events-none absolute right-0 top-0 h-full w-2/3 sm:w-1/2 opacity-[0.14]"
+            viewBox="0 0 400 260"
+            fill="none"
+            preserveAspectRatio="xMaxYMid slice"
+          >
+            <path d="M60 40 H180 V110 H340" stroke="white" strokeWidth="1.5" />
+            <path d="M120 130 H240 V200 H380" stroke="white" strokeWidth="1.5" />
+            <path d="M20 190 H100 V230" stroke="white" strokeWidth="1.5" />
+            <circle cx="60" cy="40" r="4.5" fill="white" />
+            <circle cx="180" cy="110" r="4.5" fill="white" />
+            <circle cx="340" cy="110" r="4.5" fill="white" />
+            <circle cx="120" cy="130" r="4.5" fill="white" />
+            <circle cx="240" cy="200" r="4.5" fill="white" />
+            <circle cx="380" cy="200" r="4.5" fill="white" />
+            <circle cx="20" cy="190" r="4.5" fill="white" />
+            <circle cx="100" cy="230" r="4.5" fill="white" />
+          </svg>
           <div className="pointer-events-none absolute left-1/3 -bottom-20 w-40 h-40 rounded-full bg-black/10 blur-2xl" />
 
           <div className="relative">
@@ -1087,6 +1134,17 @@ export default function CustomerQuotation() {
             </button>
           </div>
         )}
+      </div>
+
+      {/* ── Footer ── */}
+      <div className="border-t border-green-100 bg-white mt-10">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={14} className="text-green-600" />
+            <span>This is a secure, unique link generated only for you.</span>
+          </div>
+          <span>© {new Date().getFullYear()} Aadona · All rights reserved</span>
+        </div>
       </div>
 
       {/* ── Confirm Accept Dialog ── */}
