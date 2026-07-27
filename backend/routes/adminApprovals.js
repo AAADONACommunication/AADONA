@@ -273,8 +273,7 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
               <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <p style="color:#374151;font-size:14px">
                 The quotation has been returned to your Sales Portal.
-                Your last customer quotation is preserved. You can edit the price,
-                GST, or discount and resend it to the customer.
+                You can edit the price or discount and resend it to the customer.
               </p>
             </div>
           `,
@@ -335,6 +334,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
         description: existingItem.description || "",
         quantity,
         unitPrice,
+        gst: existingItem.gst,
         total,
       };
     });
@@ -371,14 +371,16 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
         description: i.description || "",
         quantity: i.quantity,
         unitPrice: i.unitPrice,
-        gst: 0,
+        gst: i.gst,
         discount: 0,
         total: i.total,
       })),
 
       adminRevisedSubtotal: revisedSubtotal,
       adminRevisedDiscountAmount: 0,
-      adminRevisedGstAmount: 0,
+      adminRevisedGstAmount: parseFloat(
+        revisedItems.reduce((sum, i) => sum + (i.quantity * i.unitPrice * (i.gst / 100)), 0).toFixed(2)
+      ),
       revisedGrandTotal: revisedSubtotal,
       revisedAt: new Date(),
       recordedAt: new Date(),
@@ -426,7 +428,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
               </table>
               <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">New Subtotal: ₹${revisedSubtotal.toFixed(2)}</p>
               ${adminQuotation.remarks ? `<p style="color:#374151;font-size:14px"><strong>Admin Notes:</strong> ${adminQuotation.remarks}</p>` : ""}
-              <p style="color:#374151;font-size:14px">Please log in to the Sales Portal, apply your GST/discount, and resend the revised quotation to the customer.</p>
+              <p style="color:#374151;font-size:14px">Please log in to the Sales Portal, apply your discount, and resend the revised quotation to the customer.</p>
             </div>
           `,
         });

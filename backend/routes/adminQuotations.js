@@ -48,13 +48,15 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
         return res.status(400).json({ message: "Every item must have a name" });
       }
       const unitPrice = Number(item.unitPrice);
-        if (!Number.isFinite(unitPrice) || unitPrice < 0) {
-            return res.status(400).json({
-                message: `Invalid price for item: ${item.name}`,
-            });
-        }
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        return res.status(400).json({ message: `Invalid price for item: ${item.name}` });
+      }
       if (!item.quantity || Number(item.quantity) <= 0) {
         return res.status(400).json({ message: `Invalid quantity for item: ${item.name}` });
+      }
+      const gst = Number(item.gst);
+      if (!Number.isFinite(gst) || gst < 0 || gst > 100) {
+        return res.status(400).json({ message: `Invalid GST for item: ${item.name}` });
       }
     }
 
@@ -80,12 +82,12 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       const quantity = Number(item.quantity);
       const unitPrice = Number(item.unitPrice);
       const total = parseFloat((quantity * unitPrice).toFixed(2));
-
       return {
         name: item.name.trim(),
         description: item.description || "",
         quantity,
         unitPrice,
+        gst: Number(item.gst),
         total,
       };
     });
@@ -130,6 +132,10 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
         <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
           ₹${item.unitPrice.toFixed(2)}
         </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
+          ${item.gst}
+        %</td>
+
         <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">
           ₹${item.total.toFixed(2)}
         </td>
@@ -210,6 +216,9 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                         </th>
                         <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">
                           Unit Price
+                        </th>
+                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">
+                          GST
                         </th>
                         <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">
                           Total

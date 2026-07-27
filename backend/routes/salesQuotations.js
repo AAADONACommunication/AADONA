@@ -30,10 +30,250 @@ const generateQuotationNumber = async () => {
   return quotationNumber;
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// SHARED CUSTOMER-FACING QUOTATION EMAIL TEMPLATE
+// One consistent premium layout used by every partner/customer quotation
+// email (initial send, counter-offer, resend-revised, send-approved,
+// send-approved-edited, and the accepted-offer email).
+//
+// Table columns: Product | Qty | Unit Price | GST | Total  (NO Discount column)
+// Totals block : Subtotal | Discount (₹ amount only) | GST | Grand Total
+// ─────────────────────────────────────────────────────────────────────────
+function buildQuotationEmailHtml({
+  heading, // optional context banner, e.g. "We've Sent You a Counter Offer"
+  quotationNumber,
+  customer,
+  items, // [{ name, description, quantity, unitPrice, gst, total }]
+  subtotal,
+  discountAmount,
+  gstAmount,
+  grandTotal,
+  notes,
+  extraMessage, // optional free-text paragraph (e.g. counter-offer message)
+  viewQuotationUrl, // omit to hide the CTA button
+  ctaLabel = "View Quotation",
+  salesRepForEmail,
+}) {
+  const itemRowsHtml = items
+    .map(
+      (item, i) => `
+      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">
+          ${item.name}
+          ${item.description ? `<br/><span style="font-size:12px;color:#6b7280">${item.description}</span>` : ""}
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:center">
+          ${item.quantity}
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
+          ₹${Number(item.unitPrice).toFixed(2)}
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
+          ${item.gst}%
+        </td>
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">
+          ₹${Number(item.total).toFixed(2)}
+        </td>
+      </tr>
+    `
+    )
+    .join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"/></head>
+    <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 0">
+        <tr><td align="center">
+          <table width="650" cellpadding="0" cellspacing="0"
+            style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+
+            <!-- Header -->
+            <tr>
+              <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
+                <h1 style="color:#ffffff;margin:0;font-size:36px;font-weight:900;letter-spacing:1px">AADONA</h1>
+                <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Your Quotation</p>
+              </td>
+            </tr>
+
+            ${
+              heading
+                ? `
+            <!-- Context Heading -->
+            <tr>
+              <td style="padding:28px 32px 0">
+                <h2 style="color:#166534;font-size:19px;margin:0">${heading}</h2>
+              </td>
+            </tr>`
+                : ""
+            }
+
+            <!-- Info -->
+            <tr>
+              <td style="padding:${heading ? "16px" : "28px"} 32px 0">
+                <h2 style="color:#166534;font-size:18px;margin:0 0 16px">
+                  Quotation #${quotationNumber}
+                </h2>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;font-size:13px;width:140px">Partner</td>
+                    <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">${customer.personalName}
+                    </td>
+                  </tr>
+                  ${
+                    customer.companyName
+                      ? `
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;font-size:13px">Company</td>
+                    <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
+                      ${customer.companyName}
+                    </td>
+                  </tr>`
+                      : ""
+                  }
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;font-size:13px">Date</td>
+                    <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
+                      ${new Date().toLocaleDateString("en-IN")}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            ${
+              extraMessage && extraMessage.trim()
+                ? `
+            <tr>
+              <td style="padding:16px 32px 0">
+                <p style="color:#374151;font-size:14px;margin:0;white-space:pre-line">${extraMessage.trim()}</p>
+              </td>
+            </tr>`
+                : ""
+            }
+
+            <!-- Product Table -->
+            <tr>
+              <td style="padding:24px 32px 0">
+                <table width="100%" cellpadding="0" cellspacing="0"
+                  style="border-collapse:collapse;border-radius:8px;overflow:hidden">
+                  <thead>
+                    <tr style="background:#166534">
+                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:left;font-size:13px">Product</th>
+                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:center;font-size:13px">Qty</th>
+                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Unit Price</th>
+                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">GST</th>
+                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemRowsHtml}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Totals -->
+            <tr>
+              <td style="padding:16px 32px 0">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Subtotal</td>
+                    <td style="text-align:right;padding:4px 0 4px 24px;color:#111827;font-size:13px;width:120px">
+                      ₹${Number(subtotal).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Discount</td>
+                    <td style="text-align:right;padding:4px 0;color:#dc2626;font-size:13px">
+                      − ₹${Number(discountAmount).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">GST</td>
+                    <td style="text-align:right;padding:4px 0;color:#111827;font-size:13px">
+                      ₹${Number(gstAmount).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><hr style="border:none;border-top:2px solid #e5e7eb;margin:8px 0"/></td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">Grand Total</td>
+                    <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">
+                      ₹${Number(grandTotal).toFixed(2)}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            ${
+              notes && notes.trim()
+                ? `
+            <tr>
+              <td style="padding:20px 32px 0">
+                <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
+                  <p style="margin:0;font-size:13px;font-weight:600;color:#166534;margin-bottom:4px">Notes</p>
+                  <p style="margin:0;font-size:13px;color:#374151">${notes.trim()}</p>
+                </div>
+              </td>
+            </tr>`
+                : ""
+            }
+
+            ${
+              viewQuotationUrl
+                ? `
+            <!-- View Quotation Button -->
+            <tr>
+              <td style="padding:28px 32px 0;text-align:center">
+                <a href="${viewQuotationUrl}"
+                  style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;
+                  font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
+                  ${ctaLabel}
+                </a>
+                <p style="color:#9ca3af;font-size:11px;margin:12px 0 0">
+                  You can review the full details and respond directly from this page.
+                </p>
+              </td>
+            </tr>`
+                : ""
+            }
+
+            <!-- Sales Contact -->
+            <tr>
+              <td style="padding:20px 32px 0">
+                <div style="background:#f9fafb;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                  <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
+                  ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
+                  ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding:28px 32px;text-align:center">
+                <p style="color:#374151;font-size:14px;margin:0 0 4px">Regards,</p>
+                <p style="color:#166534;font-weight:700;font-size:15px;margin:0">AADONA</p>
+              </td>
+            </tr>
+
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
 // ── POST /sales-quotations/send ──
 router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
   try {
-    const { sourceQuotation, items, notes, gstRate, discount } = req.body;
+    const { sourceQuotation, items, notes, discount } = req.body;
 
     // 1. Validate sourceQuotation
     if (!sourceQuotation || !mongoose.Types.ObjectId.isValid(sourceQuotation)) {
@@ -71,12 +311,6 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     });
     }
 
-    // ── Top-level GST / discount (quotation-wide, not per-item) ──
-    const gstPercent = Number(gstRate);
-    if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
-      return res.status(400).json({ message: "Invalid GST rate" });
-    }
-
     let discountType = "percent";
     let discountValue = 0;
     if (discount && Number.isFinite(Number(discount.value)) && Number(discount.value) > 0) {
@@ -98,36 +332,32 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
     // 5.6 Fetch Sales Rep — shown to the Partner as their point of contact
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
 
-    // 6. Build items — quantity ALWAYS from AdminQuotation, never trust frontend
     const rawItems = adminQuotation.items.map((adminItem, index) => {
       const incoming = items[index] || {};
-
       const unitPrice = Number(incoming.unitPrice);
       if (!Number.isFinite(unitPrice) || unitPrice < 0) {
         throw new Error(`Invalid unit price for item: ${adminItem.name}`);
       }
-
-      // Sales price cannot be lower than admin price
       if (unitPrice < adminItem.unitPrice) {
-        throw new Error(
-          `Price for "${adminItem.name}" cannot be lower than admin price (₹${adminItem.unitPrice})`
-        );
+        throw new Error(`Price for "${adminItem.name}" cannot be lower than admin price (₹${adminItem.unitPrice})`);
       }
-
-      const quantity = adminItem.quantity; // LOCKED - never from frontend
-
+      const quantity = adminItem.quantity;
       return {
         name: adminItem.name,
         description: adminItem.description || "",
         quantity,
         unitPrice,
+        gst: adminItem.gst,          // ← LOCKED from AdminQuotation, sales edit nahi kar sakta
         baseAmount: quantity * unitPrice,
       };
     });
 
     const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
-    const gstOnSubtotal = rawSubtotal * (gstPercent / 100);
-    const totalBeforeDiscount = rawSubtotal + gstOnSubtotal;
+    const rawGstTotal = rawItems.reduce(
+      (sum, i) => sum + i.baseAmount * (Number(i.gst) / 100),
+      0
+    );
+    const totalBeforeDiscount = rawSubtotal + rawGstTotal;
 
     const effectiveDiscountPercent =
       totalBeforeDiscount <= 0
@@ -137,7 +367,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
         : Math.min(discountValue, 100);
 
     const calculatedItems = rawItems.map((item) => {
-      const itemGst = parseFloat((item.baseAmount * (gstPercent / 100)).toFixed(2));
+      const itemGst = parseFloat((item.baseAmount * (item.gst / 100)).toFixed(2));   // ← per-item gst
       const itemTotalBeforeDiscount = item.baseAmount + itemGst;
       const itemDiscount = parseFloat((itemTotalBeforeDiscount * (effectiveDiscountPercent / 100)).toFixed(2));
       const total = parseFloat((itemTotalBeforeDiscount - itemDiscount).toFixed(2));
@@ -147,24 +377,21 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        gst: gstPercent,
+        gst: item.gst,             // ← locked gst as-is, sales isse edit nahi karta
         discount: effectiveDiscountPercent,
         total,
       };
     });
 
-    // 7. Calculate overall totals
     const subtotal = parseFloat(rawSubtotal.toFixed(2));
-    const gstAmount = parseFloat(gstOnSubtotal.toFixed(2));
+    const gstAmount = parseFloat(rawGstTotal.toFixed(2));  // sum of all item-wise gst
     const discountAmount = parseFloat(
       calculatedItems.reduce((sum, item, i) => {
-        const itemTotalBeforeDiscount = rawItems[i].baseAmount + (rawItems[i].baseAmount * gstPercent) / 100;
+        const itemTotalBeforeDiscount = rawItems[i].baseAmount + (rawItems[i].baseAmount * rawItems[i].gst) / 100;
         return sum + itemTotalBeforeDiscount * (item.discount / 100);
       }, 0).toFixed(2)
     );
-    const grandTotal = parseFloat(
-      calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
-    );
+    const grandTotal = parseFloat(calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2));
 
     // 8. Generate quotation number
     const quotationNumber = await generateQuotationNumber();
@@ -245,194 +472,29 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       ]
     });
 
-    // 10. Build email HTML
-    const itemRowsHtml = calculatedItems.map((item, i) => `
-      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">
-          ${item.name}
-          ${item.description ? `<br/><span style="font-size:12px;color:#6b7280">${item.description}</span>` : ""}
-        </td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:center">
-          ${item.quantity}
-        </td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
-          ₹${item.unitPrice.toFixed(2)}
-        </td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
-          ${item.gst}%
-        </td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
-          ${item.discount}%
-        </td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">
-          ₹${item.total.toFixed(2)}
-        </td>
-      </tr>
-    `).join("");
-
+    // 10. Build email HTML (shared template)
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${publicToken}`;
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="UTF-8"/></head>
-      <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 0">
-          <tr><td align="center">
-            <table width="650" cellpadding="0" cellspacing="0" 
-              style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
-
-              <!-- Header -->
-              <tr>
-                <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
-                  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800">AADONA Communication</h1>
-                  <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Your Quotation</p>
-                </td>
-              </tr>
-
-              <!-- Info -->
-              <tr>
-                <td style="padding:28px 32px 0">
-                  <h2 style="color:#166534;font-size:18px;margin:0 0 16px">
-                    Quotation #${quotationNumber}
-                  </h2>
-                  <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td style="padding:4px 0;color:#6b7280;font-size:13px;width:140px">Partner</td>
-                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">${customer.personalName}
-                      </td>
-                    </tr>
-                    ${customer.companyName ? `
-                    <tr>
-                      <td style="padding:4px 0;color:#6b7280;font-size:13px">Company</td>
-                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
-                        ${customer.companyName}
-                      </td>
-                    </tr>` : ""}
-                    <tr>
-                      <td style="padding:4px 0;color:#6b7280;font-size:13px">Date</td>
-                      <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
-                        ${new Date().toLocaleDateString("en-IN")}
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-              <!-- Product Table -->
-              <tr>
-                <td style="padding:24px 32px 0">
-                  <table width="100%" cellpadding="0" cellspacing="0" 
-                    style="border-collapse:collapse;border-radius:8px;overflow:hidden">
-                    <thead>
-                      <tr style="background:#166534">
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:left;font-size:13px">Product</th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:center;font-size:13px">Qty</th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Unit Price</th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">GST</th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Discount</th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${itemRowsHtml}
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-
-              <!-- Totals -->
-              <tr>
-                <td style="padding:16px 32px 0">
-                  <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Subtotal</td>
-                      <td style="text-align:right;padding:4px 0 4px 24px;color:#111827;font-size:13px;width:120px">
-                        ₹${subtotal.toFixed(2)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Discount</td>
-                      <td style="text-align:right;padding:4px 0;color:#dc2626;font-size:13px">
-                        − ₹${discountAmount.toFixed(2)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">GST</td>
-                      <td style="text-align:right;padding:4px 0;color:#111827;font-size:13px">
-                        ₹${gstAmount.toFixed(2)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colspan="2"><hr style="border:none;border-top:2px solid #e5e7eb;margin:8px 0"/></td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">Grand Total</td>
-                      <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">
-                        ₹${grandTotal.toFixed(2)}
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-              ${notes && notes.trim() ? `
-              <tr>
-                <td style="padding:20px 32px 0">
-                  <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
-                    <p style="margin:0;font-size:13px;font-weight:600;color:#166534;margin-bottom:4px">Notes</p>
-                    <p style="margin:0;font-size:13px;color:#374151">${notes.trim()}</p>
-                  </div>
-                </td>
-              </tr>` : ""}
-
-              <!-- View Quotation Button -->
-              <tr>
-                <td style="padding:28px 32px 0;text-align:center">
-                  <a href="${viewQuotationUrl}"
-                    style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;
-                    font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
-                    View Quotation
-                  </a>
-                  <p style="color:#9ca3af;font-size:11px;margin:12px 0 0">
-                    You can review the full details and respond directly from this page.
-                  </p>
-                </td>
-              </tr>
-
-              <!-- Sales Contact -->
-              <tr>
-                <td style="padding:20px 32px 0">
-                  <div style="background:#f9fafb;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
-                    <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
-                    <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                    ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
-                    ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Footer -->
-              <tr>
-                <td style="padding:28px 32px;text-align:center">
-                  <p style="color:#374151;font-size:14px;margin:0 0 4px">Regards,</p>
-                  <p style="color:#166534;font-weight:700;font-size:15px;margin:0">AADONA</p>
-                </td>
-              </tr>
-
-            </table>
-          </td></tr>
-        </table>
-      </body>
-      </html>
-    `;
+    const emailHtml = buildQuotationEmailHtml({
+      quotationNumber,
+      customer,
+      items: calculatedItems,
+      subtotal,
+      discountAmount,
+      gstAmount,
+      grandTotal,
+      notes,
+      viewQuotationUrl,
+      ctaLabel: "View Quotation",
+      salesRepForEmail,
+    });
 
     // 11. Send email to partner
     try {
         await transporter.sendMail({
-            from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+            from: `"AADONA" <${process.env.EMAIL_USER}>`,
             to: customer.email,
-            subject: `Quotation #${quotationNumber} — AADONA Communication`,
+            subject: `Quotation #${quotationNumber} — AADONA`,
             html: emailHtml,
         });
     } catch (err) {
@@ -590,13 +652,14 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
       const salesAttachments = await makeAttachment("Sales Copy");
       const adminAttachments = await makeAttachment("AADONA Copy");
 
-      const itemRowsHtml = quotation.items.map((item, i) => `
+      // ── Internal report (Sales / Admin) — kept as an internal report email,
+      //    not the customer template. No discount column; grand total shown. ──
+      const internalItemRowsHtml = quotation.items.map((item, i) => `
         <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${Number(item.total).toFixed(2)}</td>
         </tr>
       `).join("");
@@ -607,7 +670,6 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
           <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
           <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
           <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
-          <p style="color:#374151;font-size:14px"><strong>Original Quotation Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
             <thead>
               <tr style="background:#166534">
@@ -615,46 +677,50 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
                 <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
                 <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
                 <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Discount</th>
                 <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
               </tr>
             </thead>
-            <tbody>${itemRowsHtml}</tbody>
+            <tbody>${internalItemRowsHtml}</tbody>
           </table>
+          <p style="color:#374151;font-size:14px"><strong>Subtotal:</strong> ₹${Number(quotation.subtotal).toFixed(2)}</p>
+          <p style="color:#374151;font-size:14px"><strong>Discount:</strong> − ₹${Number(quotation.discountAmount).toFixed(2)}</p>
+          <p style="color:#374151;font-size:14px"><strong>GST:</strong> ₹${Number(quotation.gstAmount).toFixed(2)}</p>
           <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
-            Final Accepted Amount: ₹${Number(quotation.negotiatedAmount).toFixed(2)}
+            Grand Total (Accepted Amount): ₹${Number(quotation.negotiatedAmount).toFixed(2)}
           </p>
         </div>
       `;
 
+      // ── Customer email — now uses the SAME shared quotation template as every other quotation email ──
+      const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
+      const acceptedEmailHtml = buildQuotationEmailHtml({
+        heading: "Your Offer Was Accepted",
+        quotationNumber: quotation.quotationNumber,
+        customer: quotation.customer,
+        items: quotation.items,
+        subtotal: quotation.subtotal,
+        discountAmount: quotation.discountAmount,
+        gstAmount: quotation.gstAmount,
+        grandTotal: quotation.grandTotal,
+        extraMessage: `Good news — your offer of ₹${Number(quotation.negotiatedAmount).toFixed(2)} for this quotation has been accepted. The final quotation is attached as a PDF. Our team will reach out to you shortly.`,
+        viewQuotationUrl,
+        ctaLabel: "View Quotation",
+        salesRepForEmail: salesRep,
+      });
+
       if (quotation.customer?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Your Offer Has Been Accepted — #${quotation.quotationNumber}`,
-          html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Your Offer Was Accepted </h2>
-              <p style="color:#374151;font-size:14px">
-                Good news — your offer of <strong>₹${Number(quotation.negotiatedAmount).toFixed(2)}</strong>
-                for quotation <strong>#${quotation.quotationNumber}</strong> has been accepted.
-              </p>
-              <p style="color:#374151;font-size:14px">The final quotation is attached as a PDF. Our team will reach out to you shortly.</p>
-              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
-                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
-                <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
-                ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
-                ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}
-              </div>
-            </div>
-          `,
+          subject: `Your Offer Has Been Accepted — #${quotation.quotationNumber} — AADONA`,
+          html: acceptedEmailHtml,
           attachments: partnerAttachments,
         });
       }
 
       if (salesRep?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
           subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
           html: reportHtml,
@@ -664,7 +730,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
 
       if (ADMIN_EMAIL) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: ADMIN_EMAIL,
           subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
           html: reportHtml,
@@ -690,7 +756,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const { items, gstRate, discount, counterOfferMessage } = req.body;
+    const { items, discount, counterOfferMessage } = req.body;
 
     const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
@@ -715,12 +781,6 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       return res.status(400).json({ message: "Items mismatch with original quotation" });
     }
 
-    // ── Validate GST + discount (same rules as /sales-quotations/send) ──
-    const gstPercent = Number(gstRate);
-    if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
-      return res.status(400).json({ message: "Invalid GST rate" });
-    }
-
     let discountType = "percent";
     let discountValue = 0;
     if (discount && Number.isFinite(Number(discount.value)) && Number(discount.value) > 0) {
@@ -736,11 +796,11 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
         throw new Error(`Invalid unit price for item: ${originalItem.name}`);
       }
       const quantity = originalItem.quantity;
+      const gst = originalItem.gst;              // ← locked, never from req.body
       const baseAmount = quantity * unitPrice;
-      const gstAmt = parseFloat((baseAmount * (gstPercent / 100)).toFixed(2));
+      const gstAmt = parseFloat((baseAmount * (gst / 100)).toFixed(2));
       const totalWithGst = parseFloat((baseAmount + gstAmt).toFixed(2));
-
-      return { name: originalItem.name, description: originalItem.description || "", quantity, unitPrice, baseAmount, gstAmt, totalWithGst };
+      return { name: originalItem.name, description: originalItem.description || "", quantity, unitPrice, gst, baseAmount, gstAmt, totalWithGst };
     });
 
     // discount is now a % (or flat) of the (base + GST) total, not the base alone
@@ -757,15 +817,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       const discountAmt = parseFloat((item.totalWithGst * (effectiveDiscountPercent / 100)).toFixed(2));
       const total = parseFloat((item.totalWithGst - discountAmt).toFixed(2));
 
-      return {
-        name: item.name,
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        gst: gstPercent,
-        discount: effectiveDiscountPercent,
-        total,
-      };
+      return { name: item.name, description: item.description, quantity: item.quantity, unitPrice: item.unitPrice, gst: item.gst, discount: effectiveDiscountPercent, total };
     });
 
     const subtotal = parseFloat(
@@ -813,64 +865,28 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
 
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
 
-    const itemRowsHtml = calculatedItems.map((item, i) => `
-      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#fff7ed"}">
-        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px">${item.name}</td>
-        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:center">${item.quantity}</td>
-        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
-        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:right">${item.gst}%</td>
-        <td style="padding:8px 10px;border:1px solid #fed7aa;color:#374151;font-size:13px;text-align:right">${item.discount}%</td>
-        <td style="padding:8px 10px;border:1px solid #fed7aa;font-weight:600;color:#c2410c;font-size:13px;text-align:right">₹${item.total.toFixed(2)}</td>
-      </tr>
-    `).join("");
+    const emailHtml = buildQuotationEmailHtml({
+      heading: "We've Sent You a Counter Offer",
+      quotationNumber: quotation.quotationNumber,
+      customer: quotation.customer,
+      items: calculatedItems,
+      subtotal,
+      discountAmount,
+      gstAmount,
+      grandTotal,
+      extraMessage: quotation.counterOfferMessage,
+      viewQuotationUrl,
+      ctaLabel: "View Counter Offer",
+      salesRepForEmail,
+    });
 
     try {
       if (quotation.customer?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Counter Offer — Quotation #${quotation.quotationNumber}`,
-          html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
-              <h2 style="color:#c2410c;margin:0 0 16px">We've Sent You a Counter Offer</h2>
-              <p style="color:#374151;font-size:14px;margin:0 0 16px">
-                Quotation <strong>#${quotation.quotationNumber}</strong> — revised pricing below.
-              </p>
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:16px">
-                <thead>
-                  <tr style="background:#ea580c">
-                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:left">Product</th>
-                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px">Qty</th>
-                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">Unit Price</th>
-                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">GST</th>
-                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">Discount</th>
-                    <th style="padding:8px 10px;border:1px solid #ea580c;color:#fff;font-size:12px;text-align:right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>${itemRowsHtml}</tbody>
-              </table>
-              <p style="color:#c2410c;font-size:16px;font-weight:800;text-align:right;margin:0 0 16px">
-                Grand Total: ₹${grandTotal.toFixed(2)}
-              </p>
-              ${quotation.counterOfferMessage ? `
-              <p style="color:#374151;font-size:14px;white-space:pre-line">
-                <strong>Message:</strong><br/>${quotation.counterOfferMessage}
-              </p>` : ""}
-              <div style="text-align:center;margin-top:20px">
-                <a href="${viewQuotationUrl}"
-                  style="display:inline-block;background:#ea580c;color:#ffffff;text-decoration:none;
-                  font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px">
-                  View Counter Offer
-                </a>
-              </div>
-              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #ea580c">
-                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
-                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
-              </div>
-            </div>
-          `,
+          subject: `Counter Offer — Quotation #${quotation.quotationNumber} — AADONA`,
+          html: emailHtml,
         });
       }
     } catch (mailErr) {
@@ -892,7 +908,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const { items, gstRate, discount } = req.body;
+    const { items, discount } = req.body;
 
     const quotation = await SalesQuotation.findById(id)
       .populate("customer").populate("endCustomer")
@@ -932,11 +948,6 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       return res.status(400).json({ message: "Items array must match the revised admin quotation" });
     }
 
-    const gstPercent = Number(gstRate);
-    if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
-      return res.status(400).json({ message: "Invalid GST rate" });
-    }
-
     let discountType = "percent";
     let discountValue = 0;
     if (discount && Number.isFinite(Number(discount.value)) && Number(discount.value) > 0) {
@@ -962,13 +973,17 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
         description: adminItem.description || "",
         quantity,
         unitPrice,
+        gst: adminItem.gst,              // ← LOCKED, sales edit nahi kar sakta
         baseAmount: quantity * unitPrice,
       };
     });
 
     const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
-    const gstOnSubtotal = rawSubtotal * (gstPercent / 100);
-    const totalBeforeDiscount = rawSubtotal + gstOnSubtotal;
+    const rawGstTotal = rawItems.reduce(
+      (sum, i) => sum + i.baseAmount * (Number(i.gst) / 100),
+      0
+    );
+    const totalBeforeDiscount = rawSubtotal + rawGstTotal;
 
     const effectiveDiscountPercent =
       totalBeforeDiscount <= 0
@@ -978,7 +993,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
         : Math.min(discountValue, 100);
 
     const calculatedItems = rawItems.map((item) => {
-      const itemGst = parseFloat((item.baseAmount * (gstPercent / 100)).toFixed(2));
+      const itemGst = parseFloat((item.baseAmount * (item.gst / 100)).toFixed(2));
       const itemTotalBeforeDiscount = item.baseAmount + itemGst;
       const itemDiscount = parseFloat((itemTotalBeforeDiscount * (effectiveDiscountPercent / 100)).toFixed(2));
       const total = parseFloat((itemTotalBeforeDiscount - itemDiscount).toFixed(2));
@@ -988,17 +1003,17 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        gst: gstPercent,
+        gst: item.gst,
         discount: effectiveDiscountPercent,
         total,
       };
     });
 
     const subtotal = parseFloat(rawSubtotal.toFixed(2));
-    const gstAmount = parseFloat(gstOnSubtotal.toFixed(2));
+    const gstAmount = parseFloat(rawGstTotal.toFixed(2));
     const discountAmount = parseFloat(
       calculatedItems.reduce((sum, item, i) => {
-        const itemTotalBeforeDiscount = rawItems[i].baseAmount + (rawItems[i].baseAmount * gstPercent) / 100;
+        const itemTotalBeforeDiscount = rawItems[i].baseAmount + (rawItems[i].baseAmount * rawItems[i].gst) / 100;
         return sum + itemTotalBeforeDiscount * (item.discount / 100);
       }, 0).toFixed(2)
     );
@@ -1083,54 +1098,28 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
 
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
-    const itemRowsHtml = calculatedItems.map((item, i) => `
-      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${item.total.toFixed(2)}</td>
-      </tr>
-    `).join("");
+
+    const emailHtml = buildQuotationEmailHtml({
+      heading: "We've Revised Your Quotation",
+      quotationNumber: quotation.quotationNumber,
+      customer: quotation.customer,
+      items: calculatedItems,
+      subtotal,
+      discountAmount,
+      gstAmount,
+      grandTotal,
+      viewQuotationUrl,
+      ctaLabel: "View Revised Quotation",
+      salesRepForEmail,
+    });
 
     try {
       if (quotation.customer?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Revised Quotation #${quotation.quotationNumber} — AADONA Communication`,
-          html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">We've Revised Your Quotation</h2>
-              <p style="color:#374151;font-size:14px">Quotation <strong>#${quotation.quotationNumber}</strong> — updated pricing below.</p>
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
-                <thead>
-                  <tr style="background:#166534">
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:left">Product</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px">Qty</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Unit Price</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">GST</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Discount</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>${itemRowsHtml}</tbody>
-              </table>
-              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">Grand Total: ₹${grandTotal.toFixed(2)}</p>
-              <div style="text-align:center;margin-top:20px">
-                <a href="${viewQuotationUrl}" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
-                  View Revised Quotation
-                </a>
-              </div>
-              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
-                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
-                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
-              </div>
-            </div>
-          `,
+          subject: `Revised Quotation #${quotation.quotationNumber} — AADONA`,
+          html: emailHtml,
         });
       }
     } catch (mailErr) {
@@ -1224,54 +1213,28 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
 
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
-    const itemRowsHtml = quotation.items.map((item, i) => `
-      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${item.total.toFixed(2)}</td>
-      </tr>
-    `).join("");
+
+    const emailHtml = buildQuotationEmailHtml({
+      heading: "We've Approved Your Requested Price",
+      quotationNumber: quotation.quotationNumber,
+      customer: quotation.customer,
+      items: quotation.items,
+      subtotal: quotation.subtotal,
+      discountAmount: quotation.discountAmount,
+      gstAmount: quotation.gstAmount,
+      grandTotal: quotation.grandTotal,
+      viewQuotationUrl,
+      ctaLabel: "View Quotation",
+      salesRepForEmail,
+    });
 
     try {
       if (quotation.customer?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Updated Quotation #${quotation.quotationNumber} — AADONA Communication`,
-          html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">We've Approved Your Requested Price</h2>
-              <p style="color:#374151;font-size:14px">Quotation <strong>#${quotation.quotationNumber}</strong> — updated pricing below.</p>
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
-                <thead>
-                  <tr style="background:#166534">
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:left">Product</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px">Qty</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Unit Price</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">GST</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Discount</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>${itemRowsHtml}</tbody>
-              </table>
-              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">Grand Total: ₹${Number(quotation.grandTotal).toFixed(2)}</p>
-              <div style="text-align:center;margin-top:20px">
-                <a href="${viewQuotationUrl}" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
-                  View Quotation
-                </a>
-              </div>
-              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
-                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
-                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
-              </div>
-            </div>
-          `,
+          subject: `Updated Quotation #${quotation.quotationNumber} — AADONA`,
+          html: emailHtml,
         });
       }
     } catch (mailErr) {
@@ -1286,17 +1249,14 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
 });
 
 // ── POST /sales-quotations/:id/send-approved-edited ──
-// For the "Approve As-Is" (discount_applied) flow, but the rep wants to tweak
-// GST/discount before sending instead of sending admin's pricing as-is.
-// Item unitPrice cannot go below what admin already locked in.
-router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, async (req, res) => {
+  router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const { items, gstRate, discount } = req.body;
+    const { items, discount } = req.body;
 
     const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
@@ -1318,11 +1278,6 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
 
     if (!items || !Array.isArray(items) || items.length !== quotation.items.length) {
       return res.status(400).json({ message: "Items array must match the current quotation" });
-    }
-
-    const gstPercent = Number(gstRate);
-    if (!Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
-      return res.status(400).json({ message: "Invalid GST rate" });
     }
 
     let discountType = "percent";
@@ -1350,13 +1305,17 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
         description: currentItem.description || "",
         quantity,
         unitPrice,
+        gst: currentItem.gst,
         baseAmount: quantity * unitPrice,
       };
     });
 
     const rawSubtotal = rawItems.reduce((sum, i) => sum + i.baseAmount, 0);
-    const gstOnSubtotal = rawSubtotal * (gstPercent / 100);
-    const totalBeforeDiscount = rawSubtotal + gstOnSubtotal;
+    const rawGstTotal = rawItems.reduce(
+      (sum, i) => sum + i.baseAmount * (Number(i.gst) / 100),
+      0
+    );
+    const totalBeforeDiscount = rawSubtotal + rawGstTotal;
 
     const effectiveDiscountPercent =
       totalBeforeDiscount <= 0
@@ -1366,7 +1325,7 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
         : Math.min(discountValue, 100);
 
     const calculatedItems = rawItems.map((item) => {
-      const itemGst = parseFloat((item.baseAmount * (gstPercent / 100)).toFixed(2));
+      const itemGst = parseFloat((item.baseAmount * (item.gst / 100)).toFixed(2));
       const itemTotalBeforeDiscount = item.baseAmount + itemGst;
       const itemDiscount = parseFloat((itemTotalBeforeDiscount * (effectiveDiscountPercent / 100)).toFixed(2));
       const total = parseFloat((itemTotalBeforeDiscount - itemDiscount).toFixed(2));
@@ -1376,17 +1335,17 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        gst: gstPercent,
+        gst: item.gst,
         discount: effectiveDiscountPercent,
         total,
       };
     });
 
     const subtotal = parseFloat(rawSubtotal.toFixed(2));
-    const gstAmount = parseFloat(gstOnSubtotal.toFixed(2));
+    const gstAmount = parseFloat(rawGstTotal.toFixed(2));
     const discountAmount = parseFloat(
       calculatedItems.reduce((sum, item, i) => {
-        const itemTotalBeforeDiscount = rawItems[i].baseAmount + (rawItems[i].baseAmount * gstPercent) / 100;
+        const itemTotalBeforeDiscount = rawItems[i].baseAmount + (rawItems[i].baseAmount * rawItems[i].gst) / 100;
         return sum + itemTotalBeforeDiscount * (item.discount / 100);
       }, 0).toFixed(2)
     );
@@ -1451,54 +1410,28 @@ router.post("/sales-quotations/:id/send-approved-edited", verifySalesToken, asyn
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
 
     const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
-    const itemRowsHtml = calculatedItems.map((item, i) => `
-      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${item.total.toFixed(2)}</td>
-      </tr>
-    `).join("");
+
+    const emailHtml = buildQuotationEmailHtml({
+      heading: "We've Updated Your Quotation",
+      quotationNumber: quotation.quotationNumber,
+      customer: quotation.customer,
+      items: calculatedItems,
+      subtotal,
+      discountAmount,
+      gstAmount,
+      grandTotal,
+      viewQuotationUrl,
+      ctaLabel: "View Quotation",
+      salesRepForEmail,
+    });
 
     try {
       if (quotation.customer?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Updated Quotation #${quotation.quotationNumber} — AADONA Communication`,
-          html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">We've Updated Your Quotation</h2>
-              <p style="color:#374151;font-size:14px">Quotation <strong>#${quotation.quotationNumber}</strong> — updated pricing below.</p>
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
-                <thead>
-                  <tr style="background:#166534">
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:left">Product</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px">Qty</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Unit Price</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">GST</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Discount</th>
-                    <th style="padding:10px 12px;border:1px solid #166534;color:#fff;font-size:13px;text-align:right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>${itemRowsHtml}</tbody>
-              </table>
-              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">Grand Total: ₹${grandTotal.toFixed(2)}</p>
-              <div style="text-align:center;margin-top:20px">
-                <a href="${viewQuotationUrl}" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
-                  View Quotation
-                </a>
-              </div>
-              <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #16a34a">
-                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
-                <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
-                ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
-                ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
-              </div>
-            </div>
-          `,
+          subject: `Updated Quotation #${quotation.quotationNumber} — AADONA`,
+          html: emailHtml,
         });
       }
     } catch (mailErr) {
@@ -1554,13 +1487,15 @@ router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) =
     });
     await quotation.save();
 
-    // ── Notify Partner only — no link, no request to respond ──
+    // ── Notify Partner only — no link, no request to respond. Not part of the
+    //    full quotation template (unchanged, per spec — only the 6 listed
+    //    routes were converted). ──
     try {
       const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
 
       if (quotation.customer?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
           subject: `Quotation Withdrawn — #${quotation.quotationNumber}`,
           html: `
@@ -1636,14 +1571,14 @@ router.post("/sales-quotations/:id/close", verifySalesToken, async (req, res) =>
     quotation.reminderAfterDays = null;
     await quotation.save();
 
-    // ── Courtesy email to Partner ──
+    // ── Courtesy email to Partner (unchanged, per spec) ──
     try {
       const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
       if (quotation.customer?.email) {
         await transporter.sendMail({
-          from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
+          from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Quotation Closed – AADONA Communication`,
+          subject: `Quotation Closed – AADONA`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f9fafb">
               <h2 style="color:#374151">Quotation Closed</h2>
