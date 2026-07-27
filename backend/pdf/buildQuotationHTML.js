@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const letterheadBase64 = fs.readFileSync(
-  path.resolve(__dirname, "../assets/bgpdf.png")
+  path.resolve(__dirname, "../assets/AADONALetterHeadFormatpage1.png")
 ).toString("base64");
 
 const buildQuotationHTML = async (quotation, opts = {}) => {
