@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, memo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { getFirebaseAuth } from "../../../firebase";
 import {
   Search,
@@ -27,15 +27,9 @@ const bucketOf = (status) => {
 const amountOf = (q) => Number(q.negotiatedAmount ?? q.grandTotal ?? 0);
 
 const BUCKET_COLORS = {
-  accepted: "#16a34a", // green-600
-  pending: "#f59e0b", // amber-500
-  rejected: "#dc2626", // red-600
-};
-
-const BUCKET_LABELS = {
-  accepted: "Accepted",
-  pending: "Pending",
-  rejected: "Rejected",
+  accepted: "#16a34a",
+  pending: "#f59e0b",
+  rejected: "#dc2626",
 };
 
 const BUCKET_STYLES = {
@@ -70,7 +64,6 @@ const InsightsMotionStyles = () => (
     }
     .insights-fade-in { animation: insightsFadeIn 0.35s ease both; }
     .insights-fade-in-delay-1 { animation: insightsFadeIn 0.35s ease 0.03s both; }
-    .insights-fade-in-delay-2 { animation: insightsFadeIn 0.35s ease 0.06s both; }
   `}</style>
 );
 
@@ -87,7 +80,7 @@ const PieChart = memo(function PieChart({
 
   const arcs = useMemo(() => {
     if (total <= 0) return [];
-    let cumulativeAngle = -90; // start at 12 o'clock
+    let cumulativeAngle = -90;
     return segments
       .filter((s) => s.value > 0)
       .map((s) => {
@@ -105,7 +98,6 @@ const PieChart = memo(function PieChart({
         const [x2, y2] = toXY(endAngle);
         const largeArc = angle > 180 ? 1 : 0;
 
-        // Full circle edge case (only one non-zero segment)
         if (angle >= 359.99) {
           return {
             ...s,
@@ -153,10 +145,6 @@ const PieChart = memo(function PieChart({
     </div>
   );
 });
-
-// ────────────────────────────────────────────────────────────────
-// Small reusable presentational pieces
-// ────────────────────────────────────────────────────────────────
 
 const StatusBadge = memo(function StatusBadge({ status }) {
   const bucket = bucketOf(status);
@@ -243,13 +231,10 @@ function PillSearchInput({ value, onChange, placeholder, ariaLabel }) {
   );
 }
 
-// ────────────────────────────────────────────────────────────────
-// Skeleton loaders
-// ────────────────────────────────────────────────────────────────
-
 function InsightsSkeleton() {
   return (
-    <div className="space-y-6 lg:space-y-8 animate-pulse">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 lg:space-y-8 animate-pulse">
+      <div className="h-5 w-24 bg-gray-200 rounded" />
       <div className="bg-white rounded-3xl border border-green-100 p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] gap-8 items-center">
           <div className="space-y-2">
@@ -280,13 +265,13 @@ function InsightsSkeleton() {
   );
 }
 
-// ────────────────────────────────────────────────────────────────
-// Main component
-// ────────────────────────────────────────────────────────────────
-
 export default function Insights() {
   const { uid } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const isApprovedOnly = searchParams.get("filter") === "approved";
+
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -329,13 +314,17 @@ export default function Insights() {
     loadQuotations();
   }, [loadQuotations]);
 
-  // ── Overall totals across all partners ──
+  const scopedQuotations = useMemo(() => {
+    if (!isApprovedOnly) return quotations;
+    return quotations.filter((q) => bucketOf(q.status) === "accepted");
+  }, [quotations, isApprovedOnly]);
+
   const overall = useMemo(() => {
     const totals = { accepted: 0, pending: 0, rejected: 0 };
     const counts = { accepted: 0, pending: 0, rejected: 0 };
     let grandTotal = 0;
 
-    quotations.forEach((q) => {
+    scopedQuotations.forEach((q) => {
       const bucket = bucketOf(q.status);
       const amt = amountOf(q);
       totals[bucket] += amt;
@@ -344,13 +333,12 @@ export default function Insights() {
     });
 
     return { totals, counts, grandTotal };
-  }, [quotations]);
+  }, [scopedQuotations]);
 
-  // ── Group quotations by partner (customer), ordered by request volume ──
   const partners = useMemo(() => {
     const map = new Map();
 
-    quotations.forEach((q) => {
+    scopedQuotations.forEach((q) => {
       const customer = q.customer;
       const id = customer?._id || "unknown";
       if (!map.has(id)) {
@@ -376,7 +364,7 @@ export default function Insights() {
     return Array.from(map.values()).sort(
       (a, b) => b.quotations.length - a.quotations.length
     );
-  }, [quotations]);
+  }, [scopedQuotations]);
 
   const filteredPartners = useMemo(() => {
     if (!search.trim()) return partners;
@@ -411,7 +399,7 @@ export default function Insights() {
       ? sortedQuotations.filter((q) => {
           const created = q.createdAt ? new Date(q.createdAt) : null;
           const localeDate = created ? created.toLocaleDateString().toLowerCase() : "";
-          const isoDate = created ? created.toISOString().slice(0, 10) : ""; // e.g. 2026-07-20
+          const isoDate = created ? created.toISOString().slice(0, 10) : "";
           return (
             q.endCustomer?.endCustomerName?.toLowerCase().includes(dq) ||
             q.endCustomer?.organizationName?.toLowerCase().includes(dq) ||
@@ -427,6 +415,10 @@ export default function Insights() {
   const handleSelectPartner = useCallback((id) => setSelectedPartnerId(id), []);
   const handleBackToList = useCallback(() => setSelectedPartnerId(null), []);
 
+  const handleClearFunnelFilter = useCallback(() => {
+    navigate(`/admin/sales/${uid}/insights`, { replace: true });
+  }, [navigate, uid]);
+
   if (loading) {
     return (
       <>
@@ -438,43 +430,81 @@ export default function Insights() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3.5 rounded-2xl text-sm insights-fade-in">
-        {error}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3.5 rounded-2xl text-sm insights-fade-in">
+          {error}
+        </div>
       </div>
     );
   }
 
-  const overallSegments = [
-    { key: "accepted", value: overall.totals.accepted, color: BUCKET_COLORS.accepted },
-    { key: "pending", value: overall.totals.pending, color: BUCKET_COLORS.pending },
-    { key: "rejected", value: overall.totals.rejected, color: BUCKET_COLORS.rejected },
-  ];
+  const overallSegments = isApprovedOnly
+    ? [{ key: "accepted", value: overall.totals.accepted, color: BUCKET_COLORS.accepted }]
+    : [
+        { key: "accepted", value: overall.totals.accepted, color: BUCKET_COLORS.accepted },
+        { key: "pending", value: overall.totals.pending, color: BUCKET_COLORS.pending },
+        { key: "rejected", value: overall.totals.rejected, color: BUCKET_COLORS.rejected },
+      ];
 
   return (
-    <div className="space-y-6 lg:space-y-8">
+    // ════════ Page container — gives the whole page consistent side padding
+    //          so nothing (especially the back button) sits flush against the corner ════════
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 lg:space-y-8">
       <InsightsMotionStyles />
 
-      {/* ════════ Page-level back — real browser navigation, not a hardcoded route ════════ */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:text-green-800 hover:underline w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 rounded transition"
-      >
-        <ChevronLeft size={16} /> Back
-      </button>
+      {/* ════════ Header row — back button, page title, and approved-filter badge all
+                  live together on one clean, vertically-centered line ════════ */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+            className="flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-white border border-green-100 text-green-700 hover:bg-green-50 hover:border-green-200 shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-green-800 truncate">
+              {isApprovedOnly ? "Approved Quotations" : "Quotation Insights"}
+            </h1>
+            <p className="text-xs text-gray-500 truncate">
+              {isApprovedOnly
+                ? "Only accepted quotations are shown below"
+                : "All quotations across every partner"}
+            </p>
+          </div>
+        </div>
 
-      {/* ════════ Overview card — title/subtitle, metrics, donut ════════ */}
-      <div className="bg-white rounded-3xl shadow-sm border border-green-100 p-6 lg:p-8 insights-fade-in">
+        {isApprovedOnly && (
+          <button
+            onClick={handleClearFunnelFilter}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 px-3 py-1.5 rounded-full transition shrink-0"
+          >
+            <CheckCircle2 size={13} />
+            Approved only · Tap to view all
+          </button>
+        )}
+      </div>
+
+      {/* ════════ Overview card ════════ */}
+      <div className="bg-white rounded-3xl shadow-sm border border-green-100 p-5 sm:p-6 lg:p-8 insights-fade-in">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto] gap-6 lg:gap-8 items-center">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-green-800 mb-1.5 tracking-tight">
-              All Partners — Quotation Overview
+            <h2 className="text-base sm:text-lg font-bold text-green-800 mb-1">
+              {isApprovedOnly ? "Approved Total" : "Overview"}
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Combined value of every quotation you&apos;ve sent, across all partners.
+              {isApprovedOnly
+                ? "Combined value of only the accepted quotations, across all partners."
+                : "Combined value of every quotation sent, across all partners."}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
+          <div
+            className={`grid gap-3 lg:gap-4 ${
+              isApprovedOnly ? "grid-cols-2 max-w-sm" : "grid-cols-2 sm:grid-cols-4"
+            }`}
+          >
             <MetricCard
               icon={CheckCircle2}
               label="Accepted"
@@ -482,23 +512,27 @@ export default function Insights() {
               amount={overall.totals.accepted}
               tone="accepted"
             />
-            <MetricCard
-              icon={Clock}
-              label="Pending"
-              count={overall.counts.pending}
-              amount={overall.totals.pending}
-              tone="pending"
-            />
-            <MetricCard
-              icon={XCircle}
-              label="Rejected"
-              count={overall.counts.rejected}
-              amount={overall.totals.rejected}
-              tone="rejected"
-            />
+            {!isApprovedOnly && (
+              <>
+                <MetricCard
+                  icon={Clock}
+                  label="Pending"
+                  count={overall.counts.pending}
+                  amount={overall.totals.pending}
+                  tone="pending"
+                />
+                <MetricCard
+                  icon={XCircle}
+                  label="Rejected"
+                  count={overall.counts.rejected}
+                  amount={overall.totals.rejected}
+                  tone="rejected"
+                />
+              </>
+            )}
             <MetricCard
               icon={Wallet}
-              label="Total Value"
+              label={isApprovedOnly ? "Approved Total" : "Total Value"}
               amount={overall.grandTotal}
               tone="total"
             />
@@ -509,8 +543,8 @@ export default function Insights() {
               segments={overallSegments}
               size={180}
               className="w-36 h-36 sm:w-44 sm:h-44"
-              centerLabel="Total Quotations"
-              centerValue={quotations.length}
+              centerLabel={isApprovedOnly ? "Approved" : "Total Quotations"}
+              centerValue={scopedQuotations.length}
             />
           </div>
         </div>
@@ -518,11 +552,10 @@ export default function Insights() {
 
       {/* ════════ Partners — master list + detail panel ════════ */}
       <div className="flex flex-col lg:flex-row gap-6 lg:items-start">
-        {/* ── Master: partner list ── */}
         <div
           className={`${
             selectedPartnerId ? "hidden lg:flex" : "flex"
-          } flex-col w-full lg:w-[380px] shrink-0 bg-white rounded-3xl shadow-sm border border-green-100 overflow-hidden insights-fade-in`}
+          } flex-col w-full lg:w-[360px] shrink-0 bg-white rounded-3xl shadow-sm border border-green-100 overflow-hidden insights-fade-in`}
         >
           <div className="p-5 pb-4 border-b border-green-50">
             <div className="flex items-center gap-2 mb-4">
@@ -544,15 +577,17 @@ export default function Insights() {
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto lg:max-h-[calc(100vh-260px)] divide-y divide-green-50">
+          <div className="flex-1 overflow-y-auto lg:max-h-[calc(100vh-320px)] divide-y divide-green-50">
             {filteredPartners.length === 0 ? (
               <EmptyState
                 icon={partners.length === 0 ? Inbox : Search}
                 heading={partners.length === 0 ? "No quotations yet" : "No matches found"}
                 description={
                   partners.length === 0
-                    ? "Quotations you send will show up here, grouped by partner."
-                    : `Nothing matches "${search}". Try a different search term.`
+                    ? isApprovedOnly
+                      ? "No approved quotations yet for this rep."
+                      : "Quotations sent will show up here, grouped by partner."
+                    : `Nothing matches "${search}".`
                 }
               />
             ) : (
@@ -579,12 +614,16 @@ export default function Insights() {
                         <span className="font-semibold" style={{ color: BUCKET_COLORS.accepted }}>
                           {p.counts.accepted} accepted
                         </span>
-                        <span className="font-semibold" style={{ color: BUCKET_COLORS.pending }}>
-                          {p.counts.pending} pending
-                        </span>
-                        <span className="font-semibold" style={{ color: BUCKET_COLORS.rejected }}>
-                          {p.counts.rejected} rejected
-                        </span>
+                        {!isApprovedOnly && (
+                          <>
+                            <span className="font-semibold" style={{ color: BUCKET_COLORS.pending }}>
+                              {p.counts.pending} pending
+                            </span>
+                            <span className="font-semibold" style={{ color: BUCKET_COLORS.rejected }}>
+                              {p.counts.rejected} rejected
+                            </span>
+                          </>
+                        )}
                       </div>
                       <p className="text-sm font-bold text-gray-800 mt-1.5">
                         ₹{p.grandTotal.toFixed(2)}
@@ -603,7 +642,6 @@ export default function Insights() {
           </div>
         </div>
 
-        {/* ── Detail: selected partner ── */}
         <div
           className={`${
             selectedPartnerId ? "flex" : "hidden lg:flex"
@@ -675,7 +713,11 @@ export default function Insights() {
                       {selectedPartner.customer?.email}
                     </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 max-w-lg">
+                    <div
+                      className={`grid gap-3 mt-5 max-w-lg ${
+                        isApprovedOnly ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"
+                      }`}
+                    >
                       <MetricCard
                         icon={CheckCircle2}
                         label="Accepted"
@@ -683,23 +725,27 @@ export default function Insights() {
                         amount={selectedPartner.totals.accepted}
                         tone="accepted"
                       />
-                      <MetricCard
-                        icon={Clock}
-                        label="Pending"
-                        count={selectedPartner.counts.pending}
-                        amount={selectedPartner.totals.pending}
-                        tone="pending"
-                      />
-                      <MetricCard
-                        icon={XCircle}
-                        label="Rejected"
-                        count={selectedPartner.counts.rejected}
-                        amount={selectedPartner.totals.rejected}
-                        tone="rejected"
-                      />
+                      {!isApprovedOnly && (
+                        <>
+                          <MetricCard
+                            icon={Clock}
+                            label="Pending"
+                            count={selectedPartner.counts.pending}
+                            amount={selectedPartner.totals.pending}
+                            tone="pending"
+                          />
+                          <MetricCard
+                            icon={XCircle}
+                            label="Rejected"
+                            count={selectedPartner.counts.rejected}
+                            amount={selectedPartner.totals.rejected}
+                            tone="rejected"
+                          />
+                        </>
+                      )}
                       <MetricCard
                         icon={Wallet}
-                        label="Total Value"
+                        label={isApprovedOnly ? "Approved Total" : "Total Value"}
                         amount={selectedPartner.grandTotal}
                         tone="total"
                       />
@@ -707,11 +753,33 @@ export default function Insights() {
                   </div>
 
                   <PieChart
-                    segments={[
-                      { key: "accepted", value: selectedPartner.totals.accepted, color: BUCKET_COLORS.accepted },
-                      { key: "pending", value: selectedPartner.totals.pending, color: BUCKET_COLORS.pending },
-                      { key: "rejected", value: selectedPartner.totals.rejected, color: BUCKET_COLORS.rejected },
-                    ]}
+                    segments={
+                      isApprovedOnly
+                        ? [
+                            {
+                              key: "accepted",
+                              value: selectedPartner.totals.accepted,
+                              color: BUCKET_COLORS.accepted,
+                            },
+                          ]
+                        : [
+                            {
+                              key: "accepted",
+                              value: selectedPartner.totals.accepted,
+                              color: BUCKET_COLORS.accepted,
+                            },
+                            {
+                              key: "pending",
+                              value: selectedPartner.totals.pending,
+                              color: BUCKET_COLORS.pending,
+                            },
+                            {
+                              key: "rejected",
+                              value: selectedPartner.totals.rejected,
+                              color: BUCKET_COLORS.rejected,
+                            },
+                          ]
+                    }
                     size={160}
                     className="w-36 h-36 sm:w-40 sm:h-40 mx-auto"
                     centerLabel="Quotations"
@@ -723,7 +791,8 @@ export default function Insights() {
               <div className="bg-white rounded-3xl shadow-sm border border-green-100 overflow-hidden insights-fade-in-delay-1">
                 <div className="px-6 pt-5 pb-4 border-b border-green-50">
                   <h3 className="text-sm font-bold text-green-800 mb-3">
-                    Quotations with {selectedPartner.customer?.personalName || "this partner"}
+                    {isApprovedOnly ? "Approved quotations with " : "Quotations with "}
+                    {selectedPartner.customer?.personalName || "this partner"}
                   </h3>
                   <div className="max-w-sm">
                     <PillSearchInput
@@ -741,13 +810,14 @@ export default function Insights() {
                     heading="No quotations found"
                     description={
                       detailSearch
-                        ? `Nothing matches "${detailSearch}". Try a different search term.`
+                        ? `Nothing matches "${detailSearch}".`
+                        : isApprovedOnly
+                        ? "This partner doesn't have any approved quotations yet."
                         : "This partner doesn't have any quotations yet."
                     }
                   />
                 ) : (
                   <>
-                    {/* ── Mobile: stacked cards ── */}
                     <div className="space-y-3 p-4 sm:hidden">
                       {partnerDetail.filteredQuotations.map((q) => (
                         <div
@@ -781,7 +851,6 @@ export default function Insights() {
                       ))}
                     </div>
 
-                    {/* ── sm and up: table layout ── */}
                     <div className="hidden sm:block overflow-auto max-h-[520px]">
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 z-10">

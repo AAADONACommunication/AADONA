@@ -18,6 +18,8 @@ import {
   Handshake,
   BarChart3,
   LayoutGrid,
+  Globe,
+  TrendingUp,
 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
@@ -34,6 +36,7 @@ import BlogAutomation from "./tabs/BlogAutomation";
 import ManageSales from "./tabs/ManageSales";
 import ManageQuotationRequests from "./tabs/ManageQuotationRequests";
 import ManagePendingNegotiations from "./tabs/ManagePendingNegotiations";
+import SalesAnalytics from "./tabs/SalesAnalytics"
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
@@ -54,19 +57,28 @@ export const inputStyle =
   "w-full border border-green-300 rounded-xl px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white";
 
 // ── Tab registry — single source of truth for the dashboard tiles + the
-// in-tab switcher dropdown, so both stay in sync automatically. ──
+// in-tab switcher dropdown, so both stay in sync automatically.
+// Each tab now carries a `group` — "website" or "sales" — which drives
+// which of the two stacked dashboard sections it renders under. ──
 const TABS = [
-  { id: "products", label: "Products", icon: Package, desc: "Manage catalog & specs" },
-  { id: "categories", label: "Categories", icon: FolderTree, desc: "Organize product taxonomy" },
-  { id: "blogs", label: "Blogs", icon: PenLine, desc: "Write & publish articles" },
-  { id: "automation", label: "Automation", icon: Zap, desc: "Auto blog generation" },
-  { id: "inbox", label: "Inbox", icon: InboxIcon, desc: "Customer inquiries" },
-  { id: "newsletter", label: "Newsletter", icon: Mail, desc: "Broadcast to subscribers" },
-  { id: "history", label: "History", icon: ClipboardList, desc: "Audit log of changes" },
-  { id: "sales", label: "Sales Reps", icon: Users, desc: "Manage sales team" },
-  { id: "quotation-requests", label: "Quotation Requests", icon: FileText, desc: "Price incoming requests" },
-  { id: "pending-negotiations", label: "Pending Negotiations", icon: Handshake, desc: "Approve, reject or revise" },
-  { id: "insights", label: "Insights", icon: BarChart3, desc: "Traffic & analytics" },
+  { id: "products", label: "Products", icon: Package, desc: "Manage catalog & specs", group: "website" },
+  { id: "categories", label: "Categories", icon: FolderTree, desc: "Organize product taxonomy", group: "website" },
+  { id: "blogs", label: "Blogs", icon: PenLine, desc: "Write & publish articles", group: "website" },
+  { id: "automation", label: "Automation", icon: Zap, desc: "Auto blog generation", group: "website" },
+  { id: "inbox", label: "Inbox", icon: InboxIcon, desc: "Customer inquiries", group: "website" },
+  { id: "newsletter", label: "Newsletter", icon: Mail, desc: "Broadcast to subscribers", group: "website" },
+  { id: "history", label: "History", icon: ClipboardList, desc: "Audit log of changes", group: "website" },
+  { id: "insights", label: "Insights", icon: BarChart3, desc: "Traffic & analytics", group: "website" },
+
+  { id: "sales", label: "Sales Reps", icon: Users, desc: "Manage sales team", group: "sales" },
+  { id: "quotation-requests", label: "Quotation Requests", icon: FileText, desc: "Price incoming requests", group: "sales" },
+  { id: "pending-negotiations", label: "Pending Negotiations", icon: Handshake, desc: "Approve, reject or revise", group: "sales" },
+  { id: "funnel-report", label: "Funnel Report", icon: TrendingUp, desc: "Sales funnel conversion stats", group: "sales" },
+];
+
+const SECTIONS = [
+  { key: "website", label: "Website", icon: Globe },
+  { key: "sales", label: "Sales Management", icon: Handshake },
 ];
 
 export default function AdminPanel() {
@@ -260,36 +272,46 @@ export default function AdminPanel() {
           )}
 
           {/* ════════════════════════════════════════
-              DASHBOARD LAUNCHER — shown when no tab is selected
+              DASHBOARD LAUNCHER — shown when no tab is selected.
+              Now split into two stacked sections: Website, then
+              Sales Management — one below the other.
           ════════════════════════════════════════ */}
           {activeTab === null && (
-            <div>
-              <div className="flex items-center gap-2 mb-6 text-green-700">
-                <LayoutGrid size={20} />
-                <p className="text-sm font-semibold uppercase tracking-wide">
-                  Choose a section to get started
-                </p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {TABS.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
-                    >
-                      <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                        <Icon size={20} />
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-800 leading-tight">{tab.label}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{tab.desc}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="space-y-10">
+              {SECTIONS.map((section) => {
+                const SectionIcon = section.icon;
+                const sectionTabs = TABS.filter((t) => t.group === section.key);
+                return (
+                  <div key={section.key}>
+                    <div className="flex items-center gap-2 mb-6 text-green-700">
+                      <SectionIcon size={20} />
+                      <p className="text-sm font-semibold uppercase tracking-wide">
+                        {section.label}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {sectionTabs.map((tab) => {
+                        const Icon = tab.icon;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                          >
+                            <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                              <Icon size={20} />
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-800 leading-tight">{tab.label}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">{tab.desc}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -314,10 +336,14 @@ export default function AdminPanel() {
                     onChange={(e) => setActiveTab(e.target.value)}
                     className="text-sm border border-green-200 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium focus:border-green-400 outline-none"
                   >
-                    {TABS.map((tab) => (
-                      <option key={tab.id} value={tab.id}>
-                        {tab.label}
-                      </option>
+                    {SECTIONS.map((section) => (
+                      <optgroup key={section.key} label={section.label}>
+                        {TABS.filter((t) => t.group === section.key).map((tab) => (
+                          <option key={tab.id} value={tab.id}>
+                            {tab.label}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>
@@ -364,6 +390,8 @@ export default function AdminPanel() {
 
               {activeTab === "history" && <History />}
 
+              {activeTab === "insights" && <Insights />}
+
               {activeTab === "sales" && <ManageSales />}
 
               {activeTab === "quotation-requests" && (
@@ -374,7 +402,9 @@ export default function AdminPanel() {
                 <ManagePendingNegotiations />
               )}
 
-              {activeTab === "insights" && <Insights />}
+              {activeTab === "funnel-report" && (
+                <SalesAnalytics/>
+              )}
             </>
           )}
 
