@@ -571,6 +571,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 <th className="px-3 py-2 rounded-tl-lg">Product</th>
                 <th className="px-3 py-2">Qty</th>
                 <th className="px-3 py-2">Admin Price (₹)</th>
+                <th className="px-3 py-2">GST</th>
                 <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
               </tr>
             </thead>
@@ -579,9 +580,14 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 <tr key={i} className="border-b border-gray-200">
                   <td className="px-3 py-2 text-gray-700">{item.name}</td>
                   <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
-                  <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                  <td className="px-3 py-2 font-semibold text-gray-800">
-                    ₹{(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}
+                  <td>₹{Number(item.unitPrice).toFixed(2)}</td>
+                  <td>{item.gst}%</td>
+                  <td>
+                    ₹{(
+                    (Number(item.quantity)*Number(item.unitPrice))+
+                    ((Number(item.quantity)*Number(item.unitPrice))*
+                    ((Number(item.gst)||0)/100))
+                    ).toFixed(2)}
                   </td>
                 </tr>
               ))}
@@ -695,12 +701,12 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           </h2>
           <p className="text-sm text-gray-500 mb-4">
             {salesQuotation?.status === "admin_rejected_to_sales"
-              ? "Admin rejected the customer's requested price. Your last customer quotation is restored below. Edit margin %, GST, or discount and resend it."
+              ? "Admin rejected the customer's requested price. Your last customer quotation is restored below. Edit margin % or discount and resend it."
               : salesQuotation?.status === "admin_revised" &&
                 salesQuotation?.pricingRevisionType === "discount_applied"
               ? "Admin approved the customer's requested pricing through discount adjustment. Review it, make any allowed edits, and send it to the customer."
               : salesQuotation?.status === "admin_revised"
-              ? "Review the revised pricing, adjust GST or discount if needed, and send it to the customer."
+              ? "Review the revised pricing, adjust discount if needed, and send it to the customer."
               : "Set your margin % over the admin price. Only this version is sent to the customer — the admin quotation above is never shown to them."}
           </p>
 
@@ -752,7 +758,11 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                     </td>
                     <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
                     <td className="px-3 py-2 font-semibold text-gray-700">
-                      ₹{((Number(item.quantity) || 0) * (Number(item.price) || 0)).toFixed(2)}
+                      ₹{(
+                        ((Number(item.quantity) || 0) * (Number(item.price) || 0)) +
+                        (((Number(item.quantity) || 0) * (Number(item.price) || 0)) *
+                          ((Number(item.gst) || 0) / 100))
+                      ).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -831,7 +841,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 </div>
               )}
               <div className="flex justify-between text-gray-600">
-                <span>GST ({gstRate}%)</span>
+                <span>GST</span>
                 <span>₹{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">

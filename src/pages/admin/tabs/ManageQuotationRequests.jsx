@@ -123,10 +123,16 @@ export default function ManageQuotationRequests() {
     );
   };
 
-  const total = priceItems.reduce(
-    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.price) || 0),
-    0
-  );
+  const total = priceItems.reduce((sum, item) => {
+    const base =
+      (Number(item.quantity) || 0) *
+      (Number(item.price) || 0);
+
+    const gst =
+      base * ((Number(item.gst) || 0) / 100);
+
+    return sum + base + gst;
+  }, 0);
 
   const handleSubmitPricing = async (e) => {
     e.preventDefault();
@@ -384,7 +390,10 @@ export default function ManageQuotationRequests() {
                         />
                       </td>
                       <td className="px-3 py-2 font-semibold text-gray-700">
-                        ₹{((Number(item.quantity) || 0) * (Number(item.price) || 0)).toFixed(2)}
+                        ₹{(
+                          ((Number(item.quantity) || 0) * (Number(item.price) || 0)) *
+                          (1 + (Number(item.gst) || 0) / 100)
+                        ).toFixed(2)}
                       </td>
                     </tr>
                   ))}

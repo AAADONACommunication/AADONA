@@ -274,7 +274,6 @@ function ItemsTable({ items, compact = false }) {
             <th className={`${cellPad} font-semibold`}>Qty</th>
             <th className={`${cellPad} font-semibold`}>Unit Price (₹)</th>
             <th className={`${cellPad} font-semibold`}>GST</th>
-            <th className={`${cellPad} font-semibold`}>Discount</th>
             <th className={`${cellPad} font-semibold`}>Total (₹)</th>
           </tr>
         </thead>
@@ -289,7 +288,6 @@ function ItemsTable({ items, compact = false }) {
               <td className={`${cellPad} text-gray-700`}>{item.quantity}</td>
               <td className={`${cellPad} text-gray-700`}>₹{Number(item.unitPrice || 0).toFixed(2)}</td>
               <td className={`${cellPad} text-gray-700`}>{Number(item.gst || 0)}%</td>
-              <td className={`${cellPad} text-gray-700`}>{Number(item.discount || 0)}%</td>
               <td className={`${cellPad} font-semibold text-gray-800`}>₹{Number(item.total || 0).toFixed(2)}</td>
             </tr>
           ))}
@@ -314,7 +312,6 @@ function ItemsCards({ items }) {
             <span>Qty: <span className="text-gray-700 font-medium">{item.quantity}</span></span>
             <span>Price: <span className="text-gray-700 font-medium">₹{Number(item.unitPrice || 0).toFixed(2)}</span></span>
             <span>GST: <span className="text-gray-700 font-medium">{Number(item.gst || 0)}%</span></span>
-            <span>Disc: <span className="text-gray-700 font-medium">{Number(item.discount || 0)}%</span></span>
           </div>
         </div>
       ))}
@@ -795,7 +792,7 @@ export default function CustomerQuotation() {
           </div>
         </div>
 
-        {/* ── Products ── */}
+        {/* ── Products (+ Totals) ── */}
         <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-6 sm:p-7">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
@@ -814,7 +811,6 @@ export default function CustomerQuotation() {
                   <th className="px-3 py-2.5 font-semibold">Qty</th>
                   <th className="px-3 py-2.5 font-semibold">Unit Price (₹)</th>
                   <th className="px-3 py-2.5 font-semibold">GST</th>
-                  <th className="px-3 py-2.5 font-semibold">Discount</th>
                   <th className="px-3 py-2.5 font-semibold">Total (₹)</th>
                 </tr>
               </thead>
@@ -829,7 +825,6 @@ export default function CustomerQuotation() {
                     <td className="px-3 py-2.5 text-gray-700">{item.quantity}</td>
                     <td className="px-3 py-2.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
                     <td className="px-3 py-2.5 text-gray-700">{item.gst}%</td>
-                    <td className="px-3 py-2.5 text-gray-700">{item.discount || 0}%</td>
                     <td className="px-3 py-2.5 font-semibold text-gray-800">
                       ₹{Number(item.total).toFixed(2)}
                     </td>
@@ -841,21 +836,44 @@ export default function CustomerQuotation() {
 
           {/* Mobile: cards, not a table */}
           <ItemsCards items={quotation.items} />
-        </div>
 
-        {/* ── Summary → 4 stat cards ── */}
-        <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-6 sm:p-7">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
-              <BarChart3 size={16} />
+          {/* ── Totals (merged from the old standalone Summary card) ── */}
+          <div className="mt-6 pt-5 border-t border-green-100">
+            <div className="max-w-md ml-auto">
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium">
+                    ₹{Number(quotation.subtotal || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-gray-600">GST</span>
+                  <span className="font-medium">
+                    ₹{Number(quotation.gstAmount || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                {Number(quotation.discountAmount || 0) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Discount</span>
+                    <span className="font-medium text-red-600">
+                      - ₹{Number(quotation.discountAmount || 0).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                <hr className="my-3" />
+
+                <div className="flex justify-between text-2xl font-bold text-green-700">
+                  <span>Grand Total</span>
+                  <span>
+                    ₹{Number(quotation.grandTotal || 0).toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">Summary</h2>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <StatCard icon={FileText} label="Subtotal" value={quotation.subtotal} tone="default" />
-            <StatCard icon={Percent} label="GST Amount" value={quotation.gstAmount} tone="blue" />
-            <StatCard icon={Tags} label="Discount" value={quotation.discountAmount} tone="amber" />
-            <StatCard icon={Wallet} label="Grand Total" value={quotation.grandTotal} highlight />
           </div>
         </div>
 
@@ -933,21 +951,6 @@ export default function CustomerQuotation() {
 
                       {entry.message && (
                         <p className="text-xs text-gray-600 mt-2 whitespace-pre-line">{entry.message}</p>
-                      )}
-
-                      {!isCustomer && entry.items?.length > 0 && (
-                        <details className="mt-3 group">
-                          <summary className="flex items-center gap-1.5 cursor-pointer select-none text-xs font-semibold text-green-700 hover:text-green-800 list-none">
-                            <ChevronDown
-                              size={13}
-                              className="transition-transform group-open:rotate-180"
-                            />
-                            View {entry.items.length} product{entry.items.length !== 1 ? "s" : ""}
-                          </summary>
-                          <div className="mt-2">
-                            <ItemsTable items={entry.items} compact />
-                          </div>
-                        </details>
                       )}
                     </div>
                   </div>
