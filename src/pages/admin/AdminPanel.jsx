@@ -36,7 +36,7 @@ import BlogAutomation from "./tabs/BlogAutomation";
 import ManageSales from "./tabs/ManageSales";
 import ManageQuotationRequests from "./tabs/ManageQuotationRequests";
 import ManagePendingNegotiations from "./tabs/ManagePendingNegotiations";
-import SalesAnalytics from "./tabs/SalesAnalytics"
+import FunnelReport from "./tabs/FunnelReport"
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
@@ -403,7 +403,7 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "funnel-report" && (
-                <SalesAnalytics/>
+                <FunnelReport/>
               )}
             </>
           )}
