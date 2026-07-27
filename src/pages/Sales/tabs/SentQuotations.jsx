@@ -107,6 +107,25 @@ const resolveMoneyFields = (rawItems, provided = {}) => {
   };
 };
 
+// Renders a "Discount (x%)" row only when the discount amount is actually > 0.
+// Percentage is derived from discountAmount / subtotal since individual items
+// can mix percent and flat discount types, so this gives the true effective %.
+const DiscountRow = ({ subtotal, discountAmount, className = "flex justify-between text-gray-600" }) => {
+  const amt = Number(discountAmount || 0);
+  if (amt <= 0) return null;
+  const sub = Number(subtotal || 0);
+  const pct = sub > 0 ? (amt / sub) * 100 : null;
+  return (
+    <div className={className}>
+      <span>
+        Discount
+        {pct != null && <> ({pct.toFixed(2)}%)</>}
+      </span>
+      <span>− ₹{amt.toFixed(2)}</span>
+    </div>
+  );
+};
+
 // ── Normalizes both legacy and new event types into a display bucket ──
 const TYPE_META = {
   sales_sent:            { bucket: "seller",   sellerKind: "original", label: "Sales Quotation Sent" },
@@ -763,7 +782,6 @@ export default function SentQuotations() {
                                 <th>Qty</th>
                                 <th>Price</th>
                                 <th>GST</th>
-                                <th>Discount</th>
                                 <th>Total</th>
                               </tr>
                             </thead>
@@ -775,7 +793,6 @@ export default function SentQuotations() {
                                   <td>{item.quantity}</td>
                                   <td>₹{Number(item.unitPrice).toFixed(2)}</td>
                                   <td>{Number(item.gst).toFixed(2)}%</td>
-                                  <td>{Number(item.discount).toFixed(2)}%</td>
                                   <td>₹{Number(item.total).toFixed(2)}</td>
                                 </tr>
                               ))}
@@ -789,10 +806,11 @@ export default function SentQuotations() {
                             <span>₹{Number(entry.subtotal).toFixed(2)}</span>
                           </div>
 
-                          <div className="flex justify-between">
-                            <span>Discount</span>
-                            <span>− ₹{Number(entry.discountAmount).toFixed(2)}</span>
-                          </div>
+                          <DiscountRow
+                            subtotal={entry.subtotal}
+                            discountAmount={entry.discountAmount}
+                            className="flex justify-between"
+                          />
 
                           <div className="flex justify-between">
                             <span>GST</span>
@@ -862,9 +880,6 @@ export default function SentQuotations() {
                                     Unit Price
                                   </th>
                                   <th className="px-2 py-1.5">GST</th>
-                                  <th className="px-2 py-1.5">
-                                    Discount
-                                  </th>
                                   <th className="px-2 py-1.5 rounded-tr-md">
                                     Total
                                   </th>
@@ -891,10 +906,6 @@ export default function SentQuotations() {
 
                                     <td className="px-2 py-1.5 text-gray-700">
                                       {Number(item.gst || 0).toFixed(2)}%
-                                    </td>
-
-                                    <td className="px-2 py-1.5 text-gray-700">
-                                      {Number(item.discount || 0).toFixed(2)}%
                                     </td>
 
                                     <td className="px-2 py-1.5 font-semibold text-gray-800">
@@ -928,14 +939,10 @@ export default function SentQuotations() {
                               </div>
                             )}
 
-                            {entry.discountAmount != null && (
-                              <div className="flex justify-between text-gray-600">
-                                <span>Discount</span>
-                                <span>
-                                  − ₹{Number(entry.discountAmount).toFixed(2)}
-                                </span>
-                              </div>
-                            )}
+                            <DiscountRow
+                              subtotal={entry.subtotal}
+                              discountAmount={entry.discountAmount}
+                            />
 
                             <div
                               className={`flex justify-between font-bold border-t pt-1 ${
@@ -992,7 +999,6 @@ export default function SentQuotations() {
                 <th className="px-3 py-2">Qty</th>
                 <th className="px-3 py-2">Unit Price (₹)</th>
                 <th className="px-3 py-2">GST</th>
-                <th className="px-3 py-2">Discount</th>
                 <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
               </tr>
             </thead>
@@ -1004,7 +1010,6 @@ export default function SentQuotations() {
                   <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
                   <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
                   <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
-                  <td className="px-3 py-2 text-gray-700">{item.discount}%</td>
                   <td className="px-3 py-2 font-semibold text-gray-800">
                     ₹{Number(item.total).toFixed(2)}
                   </td>
@@ -1021,10 +1026,10 @@ export default function SentQuotations() {
               <span>Subtotal</span>
               <span>₹{Number(selected.subtotal || 0).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Discount</span>
-              <span>− ₹{Number(selected.discountAmount || 0).toFixed(2)}</span>
-            </div>
+            <DiscountRow
+              subtotal={selected.subtotal}
+              discountAmount={selected.discountAmount}
+            />
             <div className="flex justify-between text-gray-600">
               <span>GST</span>
               <span>₹{Number(selected.gstAmount || 0).toFixed(2)}</span>

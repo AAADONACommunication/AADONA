@@ -5,10 +5,10 @@ import { safeJson, inputStyle } from "../SalesPanel";
 
 const CUSTOMERS_API = `${import.meta.env.VITE_API_URL}/customers`;
 
-const PARTNER_TYPES = ["Partner", "SI", "Reseller", "Distributor"];
+const PARTNER_TYPES = ["SI", "Reseller", "Distributor", "End Customer", "Consultant"];
 
 const emptyForm = {
-  partnerType: "Partner",
+  partnerType: "",
   companyName: "",
   contactNumber: "",
   email: "",
@@ -28,7 +28,6 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Scroll to top whenever this tab opens (mounts)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
@@ -50,7 +49,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
 
   const startEdit = (customer) => {
     setForm({
-      partnerType: customer.partnerType || "Partner",
+      partnerType: customer.partnerType || "",
       companyName: customer.companyName || "",
       contactNumber: customer.contactNumber || "",
       email: customer.email || "",
@@ -80,8 +79,14 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
     setError("");
     setSuccessMsg("");
 
-    if (!form.personalName.trim() || !form.email.trim() || !form.contactNumber.trim()) {
-      setError("Name, contact number, and email are required.");
+    if (
+      !form.personalName.trim() ||
+      !form.email.trim() ||
+      !form.contactNumber.trim() ||
+      !form.companyName.trim() ||
+      !form.city.trim()
+    ) {
+      setError("Name, contact number, email, company name, and city are required.");
       return;
     }
 
@@ -171,7 +176,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
         <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Partner / SI / Reseller / Distributor *
+              Partner *
             </label>
             <select
               value={form.partnerType}
@@ -179,6 +184,9 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
               className={inputStyle}
               required
             >
+              <option value="" disabled hidden>
+                Select Partner
+              </option>
               {PARTNER_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -189,13 +197,14 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Company Name
+              Company Name *
             </label>
             <input
               type="text"
               value={form.companyName}
               onChange={(e) => handleChange("companyName", e.target.value)}
               className={inputStyle}
+              required
             />
           </div>
 
@@ -240,13 +249,14 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              City
+              City *
             </label>
             <input
               type="text"
               value={form.city}
               onChange={(e) => handleChange("city", e.target.value)}
               className={inputStyle}
+              required
             />
           </div>
 

@@ -26,6 +26,45 @@ const INDUSTRY_OPTIONS = [
   "Other",
 ];
 
+const INDIA_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+];
+
 const emptyEndCustomer = {
   endCustomerName: "",
   organizationName: "",
@@ -82,6 +121,9 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
   const [endCustomersLoading, setEndCustomersLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // ── State autocomplete (India states) ──
+  const [showStateSuggestions, setShowStateSuggestions] = useState(false);
+
   // ── Partner analytics/history (real backend data — no regex on notes) ──
   const [analytics, setAnalytics] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -108,6 +150,13 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
     const q = form.endCustomerName.toLowerCase();
     return endCustomers.filter((ec) => ec.endCustomerName?.toLowerCase().includes(q));
   }, [endCustomers, form.endCustomerName]);
+
+  // Autocomplete: India states matching what's typed so far
+  const stateSuggestions = useMemo(() => {
+    if (!form.state.trim()) return [];
+    const q = form.state.toLowerCase();
+    return INDIA_STATES.filter((s) => s.toLowerCase().includes(q));
+  }, [form.state]);
 
   // Whenever a partner gets selected, pull their saved end customers (for the
   // autocomplete) and their real analytics/history from the backend.
@@ -166,6 +215,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (field === "endCustomerName") setShowSuggestions(true);
+    if (field === "state") setShowStateSuggestions(true);
   };
 
   // Clicking a saved end customer auto-fills every field — this is the
@@ -186,6 +236,11 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
     setShowSuggestions(false);
   };
 
+  const applyStateSuggestion = (state) => {
+    setForm((prev) => ({ ...prev, state }));
+    setShowStateSuggestions(false);
+  };
+
   const resetAll = () => {
     setCustomerId("");
     setCustomerSearch("");
@@ -195,11 +250,15 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
     setAnalytics(null);
     setHistoryError("");
     setShowSuggestions(false);
+    setShowStateSuggestions(false);
   };
 
   const validateForm = () => {
     if (!form.endCustomerName.trim()) return "End customer name is required.";
     if (!form.organizationName.trim()) return "Organization/Company name is required.";
+    if (!form.city.trim()) return "City is required.";
+    if (!form.state.trim()) return "State is required.";
+    if (!form.contactPerson.trim()) return "Customer contact person is required.";
     if (!form.mobileNumber.trim()) return "Mobile number is required.";
     if (!form.emailId.trim()) return "Email ID is required.";
     if (!form.industryVertical) return "Please select an industry/vertical.";
@@ -402,7 +461,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="relative">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">End Customer Name</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">End Customer Name *</label>
               <input
                 value={form.endCustomerName}
                 onChange={(e) => updateField("endCustomerName", e.target.value)}
@@ -410,6 +469,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 autoComplete="off"
                 className={inputStyle}
+                required
               />
               {showSuggestions && nameSuggestions.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-green-200 rounded-xl shadow-lg divide-y">
@@ -433,12 +493,13 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Organization/Company Name
+                Organization/Company Name *
               </label>
               <input
                 value={form.organizationName}
                 onChange={(e) => updateField("organizationName", e.target.value)}
                 className={inputStyle}
+                required
               />
             </div>
 
@@ -452,30 +513,51 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">City *</label>
               <input
                 value={form.city}
                 onChange={(e) => updateField("city", e.target.value)}
                 className={inputStyle}
+                required
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">State</label>
+            <div className="relative">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">State *</label>
               <input
                 value={form.state}
                 onChange={(e) => updateField("state", e.target.value)}
+                onFocus={() => setShowStateSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowStateSuggestions(false), 150)}
+                autoComplete="off"
                 className={inputStyle}
+                required
               />
+              {showStateSuggestions && stateSuggestions.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-green-200 rounded-xl shadow-lg divide-y">
+                  {stateSuggestions.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyStateSuggestion(s)}
+                      className="w-full text-left px-4 py-2.5 hover:bg-green-50 transition text-sm text-gray-800"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Customer Contact Person
+                Customer Contact Person *
               </label>
               <input
                 value={form.contactPerson}
                 onChange={(e) => updateField("contactPerson", e.target.value)}
                 className={inputStyle}
+                required
               />
             </div>
             <div>
@@ -488,30 +570,33 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mobile Number</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mobile Number *</label>
               <input
                 type="tel"
                 value={form.mobileNumber}
                 onChange={(e) => updateField("mobileNumber", e.target.value)}
                 className={inputStyle}
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email ID</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email ID *</label>
               <input
                 type="email"
                 value={form.emailId}
                 onChange={(e) => updateField("emailId", e.target.value)}
                 className={inputStyle}
+                required
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Industry/Vertical</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Industry/Vertical *</label>
               <select
                 value={form.industryVertical}
                 onChange={(e) => updateField("industryVertical", e.target.value)}
                 className={inputStyle}
+                required
               >
                 <option value="">Select industry/vertical</option>
                 {INDUSTRY_OPTIONS.map((opt) => (

@@ -684,50 +684,52 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                               <th className="px-2 py-2">Qty</th>
                               <th className="px-2 py-2">Price</th>
                               <th className="px-2 py-2">GST</th>
-                              <th className="px-2 py-2">Discount</th>
                               <th className="px-2 py-2">Total</th>
                             </tr>
                           </thead>
-                          <tbody>
-                            {(entry.items || []).map((item, idx) => (
-                              <tr key={idx} className="border-t border-gray-100">
-                                <td className="px-2 py-2 text-gray-800">{item?.name || "—"}</td>
-                                <td className="px-2 py-2 text-gray-700">{item?.quantity ?? 0}</td>
-                                <td className="px-2 py-2 text-gray-700">
-                                  ₹{Number(item?.unitPrice || 0).toFixed(2)}
-                                </td>
-                                <td className="px-2 py-2 text-gray-700">{Number(item?.gst || 0)}%</td>
-                                <td className="px-2 py-2 text-gray-700">
-                                  {Number(item?.discount || 0).toFixed(2)}
-                                  {item?.discountType === "flat" ? " ₹" : "%"}
-                                </td>
-                                <td className="px-2 py-2 font-semibold text-gray-800">
-                                  ₹{Number(item?.total || 0).toFixed(2)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
+                         <tbody>
+                           {(entry.items || []).map((item, idx) => (
+                             <tr key={idx} className="border-t border-gray-100">
+                               <td className="px-2 py-2 text-gray-800">{item?.name || "—"}</td>
+                               <td className="px-2 py-2 text-gray-700">{item?.quantity ?? 0}</td>
+                               <td className="px-2 py-2 text-gray-700">
+                                 ₹{Number(item?.unitPrice || 0).toFixed(2)}
+                               </td>
+                               <td className="px-2 py-2 text-gray-700">{Number(item?.gst || 0)}%</td>
+                               <td className="px-2 py-2 font-semibold text-gray-800">
+                                 ₹{Number(item?.total || 0).toFixed(2)}
+                               </td>
+                             </tr>
+                           ))}
+                         </tbody>
                         </table>
                       </div>
 
                       <div className="mt-3 space-y-1 text-sm max-w-xs ml-auto bg-white/60 rounded-lg p-3 border border-gray-100">
-                        <div className="flex justify-between text-gray-600">
-                          <span>Subtotal</span>
-                          <span>₹{Number(entry.subtotal || 0).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-gray-600">
-                          <span>Discount</span>
-                          <span>− ₹{Number(entry.discountAmount || 0).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-gray-600">
-                          <span>GST</span>
-                          <span>₹{Number(entry.gstAmount || 0).toFixed(2)}</span>
-                        </div>
-                        <div className={`flex justify-between border-t pt-1.5 mt-1 font-bold ${style.text}`}>
-                          <span>Grand Total</span>
-                          <span>₹{Number(entry.total || 0).toFixed(2)}</span>
-                        </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span>₹{Number(entry.subtotal || 0).toFixed(2)}</span>
                       </div>
+                      {Number(entry.discountAmount || 0) > 0 && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>
+                            Discount
+                            {Number(entry.subtotal) > 0 && (
+                              <> ({((Number(entry.discountAmount) / Number(entry.subtotal)) * 100).toFixed(2)}%)</>
+                            )}
+                          </span>
+                          <span>− ₹{Number(entry.discountAmount).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-gray-600">
+                        <span>GST</span>
+                        <span>₹{Number(entry.gstAmount || 0).toFixed(2)}</span>
+                      </div>
+                      <div className={`flex justify-between border-t pt-1.5 mt-1 font-bold ${style.text}`}>
+                        <span>Grand Total</span>
+                        <span>₹{Number(entry.total || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
 
                       {entry.message && (
                         <p className="mt-3 text-sm text-gray-700 whitespace-pre-line bg-white/60 rounded-lg p-2 border border-gray-100">

@@ -11,6 +11,10 @@ const statusStyles = {
   sent: "bg-green-100 text-green-700",
 };
 
+// This line is always sent to the customer along with the quotation,
+// regardless of what the sales person adds in the notes box.
+const DEFAULT_NOTES = "Freight as per actuals";
+
 export default function IncomingQuotations({ incomingQuotations, reloadIncomingQuotations }) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
@@ -181,6 +185,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     0
   );
 
+  // Combines the always-on default note with whatever the sales person typed.
+  const buildNotes = () => [DEFAULT_NOTES, notes.trim()].filter(Boolean).join(" | ");
+
   const buildSalesPayload = () => ({
     sourceQuotation: selected?._id,
     customer: selected?.customer?._id,
@@ -198,7 +205,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     tax,
     total,
     reminderAfterDays: reminderDays ? Number(reminderDays) : undefined,
-    notes,
+    notes: buildNotes(),
   });
 
   const handleSendToCustomer = async (e) => {
@@ -272,6 +279,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   value: Number(discountValue) || 0,
                 }
               : undefined,
+            notes: buildNotes(),
           }),
         }
       );
@@ -319,6 +327,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               type: "percent",
               value: 0,
             },
+        notes: buildNotes(),
       };
 
       const res = await fetch(
@@ -625,14 +634,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           </p>
 
           <div className="overflow-x-auto -mx-1 px-1">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="bg-green-700 text-white text-left">
                   <th className="px-3 py-2 rounded-tl-lg">Product</th>
                   <th className="px-3 py-2">Qty</th>
                   <th className="px-3 py-2">Price (₹)</th>
                   <th className="px-3 py-2">GST</th>
-                  <th className="px-3 py-2">Discount</th>
                   <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
                 </tr>
               </thead>
@@ -643,7 +651,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                     <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
                     <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
                     <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
-                    <td className="px-3 py-2 text-gray-700">{item.discount}%</td>
                     <td className="px-3 py-2 font-semibold text-gray-700">₹{Number(item.total).toFixed(2)}</td>
                   </tr>
                 ))}
@@ -852,7 +859,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
           <div className="mt-4">
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Notes / Terms (shown to customer)
+              Additional Notes / Terms ("{DEFAULT_NOTES}" is always included)
             </label>
             <textarea
               rows={3}

@@ -268,13 +268,13 @@ export default function CreateQuotation({
         body: JSON.stringify(buildPayload()),
       });
       await safeJson(res);
-      if (!res.ok) throw new Error("Failed to send requirement to admin");
+      if (!res.ok) throw new Error("Failed to submit request to admin");
 
-      setSuccessMsg("Requirement sent to admin. You'll see their quotation under \"Admin Quotation\" once it's ready.");
+      setSuccessMsg("Request submitted to admin. You'll see their quotation under \"Admin Quotation\" once it's ready.");
       resetForm();
     } catch (err) {
-      console.error("Send requirement error:", err);
-      showError(err.message || "Failed to send requirement to admin");
+      console.error("Submit request error:", err);
+      showError(err.message || "Failed to submit request to admin");
     } finally {
       setSubmitting(false);
     }
@@ -771,7 +771,7 @@ export default function CreateQuotation({
           disabled={submitting}
           className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <Send size={16} /> {submitting ? "Sending..." : "Send Requirement to Admin"}
+          <Send size={16} /> {submitting ? "Submitting..." : "Submit Request to Admin"}
         </button>
       </div>
     </div>
