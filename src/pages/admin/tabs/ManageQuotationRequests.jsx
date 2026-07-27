@@ -87,6 +87,7 @@ export default function ManageQuotationRequests() {
           description: item.description || "",
           quantity: item.quantity,
           price: "",
+          gst: "",
         }))
       );
 
@@ -137,6 +138,10 @@ export default function ManageQuotationRequests() {
         setError(`Please enter a valid price for "${item.name}".`);
         return;
       }
+      if (item.gst === "" || Number(item.gst) < 0 || Number(item.gst) > 100) {
+        setError(`Please enter a valid GST % for "${item.name}".`);
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -155,6 +160,7 @@ export default function ManageQuotationRequests() {
             description: item.description,
             quantity: Number(item.quantity),
             unitPrice: Number(item.price),
+            gst: Number(item.gst),
           })),
           notes,
         }),
@@ -338,6 +344,7 @@ export default function ManageQuotationRequests() {
                     <th className="px-3 py-2 rounded-tl-lg">Product</th>
                     <th className="px-3 py-2">Qty</th>
                     <th className="px-3 py-2">Price (₹)</th>
+                    <th className="px-3 py-2">GST (%)</th>
                     <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
                   </tr>
                 </thead>
@@ -359,6 +366,19 @@ export default function ManageQuotationRequests() {
                           value={item.price}
                           onChange={(e) => updatePriceItem(index, "price", e.target.value)}
                           placeholder="0.00"
+                          required
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                        />
+                      </td>
+                      <td className="px-3 py-2 w-24">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={item.gst}
+                          onChange={(e) => updatePriceItem(index, "gst", e.target.value)}
+                          placeholder="18"
                           required
                           className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
                         />
@@ -589,6 +609,9 @@ export default function ManageQuotationRequests() {
                                   </th>
                                   <th className="px-3 py-2">
                                     Unit Price
+                                  </th>
+                                  <th className="px-3 py-2">
+                                    GST (%)
                                   </th>
                                   <th className="px-3 py-2 rounded-tr-lg">
                                     Total

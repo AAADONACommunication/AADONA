@@ -20,7 +20,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
   const [selected, setSelected] = useState(null);
 
   const [items, setItems] = useState([]);
-  const [gstRate, setGstRate] = useState(18);
   const [discountEnabled, setDiscountEnabled] = useState(false);
   const [discountType, setDiscountType] = useState("percent");
   const [discountValue, setDiscountValue] = useState("");
@@ -93,6 +92,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             description: item.description || "",
             quantity: item.quantity,
             adminPrice,
+            gst: adminItem?.gst ?? item.gst ?? 0,
             marginPercent: isEditableReturn ? String(marginPercent) : "",
             price: isEditableReturn ? currentPrice : adminPrice,
           };
@@ -100,13 +100,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       );
 
       if (isEditableReturn) {
-        const preservedGstRate =
-          salesQuotation?.items?.length > 0
-            ? Number(salesQuotation.items[0].gst || 0)
-            : 18;
-
-        setGstRate(preservedGstRate);
-
         const preservedDiscountPercent =
           salesQuotation?.items?.length > 0
             ? Number(salesQuotation.items[0].discount || 0)
@@ -132,7 +125,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
         setNotes(salesQuotation?.notes || "");
       } else {
-        setGstRate(18);
         setDiscountEnabled(false);
         setDiscountType("percent");
         setDiscountValue("");
@@ -168,7 +160,11 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.price) || 0),
     0
   );
-  const tax = subtotal * (Number(gstRate) / 100);
+  const tax = items.reduce(
+    (sum, item) =>
+      sum + (Number(item.quantity) || 0) * (Number(item.price) || 0) * (Number(item.gst) / 100),
+    0
+  );
 
   const totalBeforeDiscount = subtotal + tax;
 
@@ -198,7 +194,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       unitPrice: Number(item.price),
     })),
     subtotal,
-    gstRate: Number(gstRate),
     discount: discountEnabled
       ? { type: discountType, value: Number(discountValue) || 0, amount: discountAmount }
       : undefined,
@@ -272,7 +267,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               quantity: Number(item.quantity),
               unitPrice: Number(item.price),
             })),
-            gstRate: Number(gstRate),
             discount: discountEnabled
               ? {
                   type: discountType,
@@ -317,7 +311,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         items: items.map((item) => ({
           unitPrice: Number(item.price),
         })),
-        gstRate: Number(gstRate),
         discount: discountEnabled
           ? {
               type: discountType,
@@ -718,6 +711,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   <th className="px-3 py-2 rounded-tl-lg">Product</th>
                   <th className="px-3 py-2">Qty</th>
                   <th className="px-3 py-2">Your Price (₹)</th>
+                  <th className="px-3 py-2">GST</th>
                   <th className="px-3 py-2 rounded-tr-lg">Total (₹)</th>
                 </tr>
               </thead>
@@ -756,6 +750,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                         Admin: ₹{Number(item.adminPrice).toFixed(2)}
                       </div>
                     </td>
+                    <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
                     <td className="px-3 py-2 font-semibold text-gray-700">
                       ₹{((Number(item.quantity) || 0) * (Number(item.price) || 0)).toFixed(2)}
                     </td>
@@ -766,17 +761,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           </div>
 
           <div className="grid sm:grid-cols-3 gap-4 mt-5 pt-5 border-t border-green-100">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">GST Rate</label>
-              <select
-                value={gstRate}
-                onChange={(e) => setGstRate(e.target.value)}
-                className="border border-green-300 rounded-lg px-3 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none bg-white w-full"
-              >
-                <option value={12}>12%</option>
-                <option value={18}>18%</option>
-              </select>
-            </div>
 
             <div>
               <div className="flex items-center gap-2 mb-1.5">

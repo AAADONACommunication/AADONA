@@ -108,6 +108,7 @@ export default function ManagePendingNegotiations() {
         description: item.description || "",
         quantity: item.quantity,
         unitPrice: String(item.unitPrice ?? ""),
+        gst: item.gst,
       }))
     );
 
@@ -612,6 +613,7 @@ export default function ManagePendingNegotiations() {
                   <tr className="bg-amber-500 text-white text-left">
                     <th className="px-3 py-2 rounded-tl-lg">Product</th>
                     <th className="px-3 py-2">Qty</th>
+                    <th className="px-3 py-2">GST</th>
                     <th className="px-3 py-2">Current Price (₹)</th>
                     <th className="px-3 py-2 rounded-tr-lg">New Price (₹)</th>
                   </tr>
@@ -628,6 +630,7 @@ export default function ManagePendingNegotiations() {
                           )}
                         </td>
                         <td className="px-3 py-2 w-20 text-gray-700">{item.quantity}</td>
+                        <td className="px-3 py-2 w-16 text-gray-500">{item.gst}%</td>
                         <td className="px-3 py-2 w-28 text-gray-500">
                           ₹{Number(currentPrice || 0).toFixed(2)}
                         </td>

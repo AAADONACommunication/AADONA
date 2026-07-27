@@ -338,11 +338,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         description: item.description || "",
         quantity: item.quantity,
         unitPrice: item.unitPrice,
+        gst: item.gst,
       }))
     );
-    const originalGst = quotation.items?.[0]?.gst;
     const originalDiscount = quotation.items?.[0]?.discount || 0;
-    setCounterGstRate(originalGst ?? 18);
     setCounterDiscountEnabled(originalDiscount > 0);
     setCounterDiscountType("percent");
     setCounterDiscountValue(originalDiscount > 0 ? String(originalDiscount) : "");
@@ -362,7 +361,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
     0
   );
-  const counterGstAmt = counterRawSubtotal * (Number(counterGstRate) / 100);
+  const counterGstAmt = counterItems.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0) * (Number(item.gst) / 100),
+    0
+  );
   const counterTotalWithGst = counterRawSubtotal + counterGstAmt;
   const counterDiscountAmount =
     !counterDiscountEnabled || !counterDiscountValue
@@ -392,7 +394,6 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         headers,
         body: JSON.stringify({
           items: counterItems.map((item) => ({ unitPrice: Number(item.unitPrice) })),
-          gstRate: Number(counterGstRate),
           discount: counterDiscountEnabled
             ? { type: counterDiscountType, value: Number(counterDiscountValue) || 0 }
             : undefined,
@@ -418,10 +419,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         name: item.name,
         description: item.description || "",
         quantity: item.quantity,
-        unitPrice: item.unitPrice, // pre-filled with admin's revised price as a floor reference
+        unitPrice: item.unitPrice,
+        gst: item.gst,
       }))
     );
-    setResendGstRate(18);
     setResendDiscountEnabled(false);
     setResendDiscountType("percent");
     setResendDiscountValue("");
@@ -447,7 +448,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
       ? resendRawSubtotal * (Number(resendDiscountValue) / 100)
       : Number(resendDiscountValue);
   const resendTaxable = Math.max(resendRawSubtotal - resendDiscountAmount, 0);
-  const resendGstAmt = resendTaxable * (Number(resendGstRate) / 100);
+  const resendGstAmt = resendItems.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0) * (Number(item.gst) / 100),
+    0
+  );
   const resendGrandTotal = resendTaxable + resendGstAmt;
 
   const handleSubmitResend = async (e) => {
@@ -473,7 +477,6 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         headers,
         body: JSON.stringify({
           items: resendItems.map((item) => ({ unitPrice: Number(item.unitPrice) })),
-          gstRate: Number(resendGstRate),
           discount: resendDiscountEnabled
             ? { type: resendDiscountType, value: Number(resendDiscountValue) || 0 }
             : undefined,
@@ -521,10 +524,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
         name: item.name,
         description: item.description || "",
         quantity: item.quantity,
-        unitPrice: item.unitPrice, // admin-approved floor
+        unitPrice: item.unitPrice,
+        gst: item.gst,
       }))
     );
-    setEditApprovedGstRate(quotation.items?.[0]?.gst ?? 18);
     const currentDiscount = quotation.items?.[0]?.discount || 0;
     setEditApprovedDiscountEnabled(currentDiscount > 0);
     setEditApprovedDiscountType("percent");
@@ -543,7 +546,10 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
   0
 );
-const editApprovedGstAmt = editApprovedRawSubtotal * (Number(editApprovedGstRate) / 100);
+const editApprovedGstAmt = editApprovedItems.reduce(
+  (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0) * (Number(item.gst) / 100),
+  0
+);
 const editApprovedTotalBeforeDiscount = editApprovedRawSubtotal + editApprovedGstAmt;
 const editApprovedDiscountAmount =
   !editApprovedDiscountEnabled || !editApprovedDiscountValue
@@ -576,7 +582,6 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
         headers,
         body: JSON.stringify({
           items: editApprovedItems.map((item) => ({ unitPrice: Number(item.unitPrice) })),
-          gstRate: Number(editApprovedGstRate),
           discount: editApprovedDiscountEnabled
             ? { type: editApprovedDiscountType, value: Number(editApprovedDiscountValue) || 0 }
             : undefined,
@@ -1099,6 +1104,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                       <tr className="bg-amber-500 text-white text-left">
                         <th className="px-3 py-2 rounded-tl-lg">Product</th>
                         <th className="px-3 py-2">Qty</th>
+                        <th className="px-3 py-2">GST</th>
                         <th className="px-3 py-2 rounded-tr-lg">Your Price (₹)</th>
                       </tr>
                     </thead>
@@ -1109,6 +1115,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                             {item.name}
                           </td>
                           <td className="px-3 py-2 w-20 text-gray-600">{item.quantity}</td>
+                          <td className="px-3 py-2 w-16 text-gray-600">{item.gst}%</td>
                           <td className="px-3 py-2 w-32">
                             <input
                               type="number"
@@ -1127,19 +1134,6 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    GST Rate
-                  </label>
-                  <select
-                    value={counterGstRate}
-                    onChange={(e) => setCounterGstRate(e.target.value)}
-                    className="border border-amber-200 rounded-lg px-3 py-2.5 text-sm focus:border-amber-400 outline-none bg-white w-full"
-                  >
-                    <option value={12}>12%</option>
-                    <option value={18}>18%</option>
-                  </select>
-                </div>
 
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
