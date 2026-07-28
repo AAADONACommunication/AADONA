@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getFirebaseAuth } from "../../../firebase";
 import {
-  Trash2,
   Send,
   Users,
   Filter,
@@ -143,32 +142,24 @@ export default function ManageSales() {
     }
   };
 
-  const handleDelete = async (uid, name) => {
-    if (!window.confirm(`Delete sales rep "${name}"? This cannot be undone.`)) return;
-    try {
-      const token = await getToken();
-      const res = await fetch(`${SALES_API}/${uid}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to delete");
-      setSalesReps((prev) => prev.filter((s) => s.uid !== uid));
-      setTotals((prev) => {
-        const next = { ...prev };
-        delete next[uid];
-        return next;
-      });
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
   const totalColumnLabel = view === "funnel" ? "Approved Total (₹)" : "Total Quoted (₹)";
 
   const handleRowClick = (uid) => {
     const suffix = view === "funnel" ? "?filter=approved" : "";
     navigate(`/admin/sales/${uid}/insights${suffix}`);
   };
+
+  // ── Sum of all reps' amount (based on current view) ──
+  const overallTotal = useMemo(() => {
+    return salesReps.reduce((sum, rep) => {
+      const t = totals[rep.uid];
+      if (!t || t.error) return sum;
+      const value = view === "funnel" ? t.approved : t.grand;
+      return sum + (value ?? 0);
+    }, 0);
+  }, [salesReps, totals, view]);
+
+  const anyStillLoading = salesReps.some((rep) => totals[rep.uid]?.loading);
 
   return (
     <div className="space-y-8">
@@ -224,7 +215,6 @@ export default function ManageSales() {
                   <th className="px-4 py-3 text-gray-600 font-semibold">Name</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Email</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">{totalColumnLabel}</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -248,24 +238,26 @@ export default function ManageSales() {
                           `₹${(value ?? 0).toFixed(2)}`
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(rep.uid, rep.name);
-                            }}
-                            title="Delete"
-                            className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
                     </tr>
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-green-200 bg-green-50">
+                  <td className="px-4 py-3 font-bold text-gray-800" colSpan={2}>
+                    Total ({salesReps.length} {salesReps.length === 1 ? "rep" : "reps"})
+                  </td>
+                  <td className="px-4 py-3 font-bold text-green-800">
+                    {anyStillLoading ? (
+                      <span className="text-gray-400 italic text-xs font-normal">
+                        Calculating...
+                      </span>
+                    ) : (
+                      `₹${overallTotal.toFixed(2)}`
+                    )}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}

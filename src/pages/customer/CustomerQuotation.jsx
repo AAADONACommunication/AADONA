@@ -92,37 +92,13 @@ const safeJson = async (res) => {
 const buildTimeline = (q) => {
   const timeline = [];
 
-  // This snapshot tracks the quotation's current/live totals rather than a
-  // frozen record of the very first quotation sent — its amount and
-  // timestamp both move as the record is updated. So instead of treating it
-  // as "what came first", it's shown as the final/current state and always
-  // pinned to the bottom of the trail.
-  const original = q.originalSnapshot;
-
-  const finalEntry = {
-    kind: "sales",
-    label: "Final Quotation",
-    amount:
-      original?.grandTotal != null
-        ? original.grandTotal
-        : q.grandTotal,
-    items:
-      original?.items?.length
-        ? original.items
-        : q.items || [],
-    at:
-      original?.sentAt ||
-      q.createdAt ||
-      q.sentAt,
-  };
-
   // Completed / archived history
   (q.negotiationHistory || []).forEach((h) => {
     // Partner offer
     if (h.expectedBudget != null) {
       timeline.push({
         kind: "customer",
-        label: "Your Offer",
+        label: "Your Negotiation Request",
         amount: h.expectedBudget,
         message: h.customerMessage,
         at: h.customerRespondedAt || h.recordedAt,
@@ -133,7 +109,7 @@ const buildTimeline = (q) => {
     if (h.counterOfferAmount != null) {
       timeline.push({
         kind: "sales",
-        label: "Sales Counter Offer",
+        label: "Sales Negotiated Offer",
         amount: h.counterOfferAmount,
         items: h.counterOfferItems || [],
         message: h.counterOfferMessage,
@@ -158,7 +134,7 @@ const buildTimeline = (q) => {
   if (q.expectedBudget != null) {
     timeline.push({
       kind: "customer",
-      label: "Your Offer",
+      label: "Your Negotiation Request",
       amount: q.expectedBudget,
       message: q.customerMessage,
       at: q.customerRespondedAt,
@@ -169,7 +145,7 @@ const buildTimeline = (q) => {
   if (q.counterOfferAmount != null) {
     timeline.push({
       kind: "sales",
-      label: "Sales Counter Offer",
+      label: "Sales Negotiated Offer",
       amount: q.counterOfferAmount,
       items: q.counterOfferItems || [],
       message: q.counterOfferMessage,
@@ -193,14 +169,42 @@ const buildTimeline = (q) => {
     .sort((a, b) => new Date(a.at) - new Date(b.at));
 
   // The very first thing to happen in the trail is always Sales reaching out —
-  // it isn't a "counter" to anything, so relabel it rather than calling it a
-  // counter offer.
-  if (deduped.length && deduped[0].kind === "sales" && deduped[0].label === "Sales Counter Offer") {
+  // it isn't a negotiated offer against anything, so relabel it rather than
+  // calling it a negotiated offer.
+  if (deduped.length && deduped[0].kind === "sales" && deduped[0].label === "Sales Negotiated Offer") {
     deduped[0] = { ...deduped[0], label: "Sales Offer" };
   }
 
+  // The "Final Quotation" is the most recent quotation Sales actually sent —
+  // this can be a "Revised Quotation" OR an accepted "Sales Negotiated Offer"
+  // (both carry a real item list), whichever happened last. If Sales never
+  // sent a revision or a negotiated offer with items, the current top-level
+  // quotation fields are the only (and therefore latest) quotation sent.
+  const salesQuotationEntries = deduped.filter((e) => e.kind === "sales" && e.items?.length);
+  const latestQuotationEntry = salesQuotationEntries[salesQuotationEntries.length - 1];
+
+  const finalEntry = latestQuotationEntry
+    ? {
+        kind: "sales",
+        label: "Final Quotation",
+        amount: latestQuotationEntry.amount,
+        items: latestQuotationEntry.items,
+        at: latestQuotationEntry.at,
+      }
+    : {
+        kind: "sales",
+        label: "Final Quotation",
+        amount: q.grandTotal,
+        items: q.items || [],
+        at: q.createdAt || q.sentAt,
+      };
+
+  // Drop the entry that's now shown as "Final Quotation" so it isn't
+  // duplicated earlier in the trail.
+  const trail = latestQuotationEntry ? deduped.filter((e) => e !== latestQuotationEntry) : deduped;
+
   // Final/current state always trails the real negotiation trail.
-  return [...deduped, finalEntry];
+  return [...trail, finalEntry];
 };
 
 // ────────────────────────────────────────────────────────────────
@@ -343,6 +347,7 @@ export default function CustomerQuotation() {
   const [reason, setReason] = useState("");
   const [expectedBudget, setExpectedBudget] = useState("");
   const [notes, setNotes] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const hasFetched = useRef(false);
 
@@ -690,33 +695,6 @@ export default function CustomerQuotation() {
               </div>
               <StatusPill status={effectiveStatus} size="lg" />
             </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 backdrop-blur-sm bg-white/10 border border-white/10 rounded-2xl p-4 sm:p-5">
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold text-green-100 uppercase tracking-wide mb-1">
-                  Grand Total
-                </p>
-                <p className="text-white font-extrabold text-lg truncate">
-                  ₹{Number(quotation.grandTotal || 0).toFixed(2)}
-                </p>
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold text-green-100 uppercase tracking-wide mb-1">
-                  Partner
-                </p>
-                <p className="text-white font-semibold text-sm truncate">
-                  {quotation.customer?.personalName || "—"}
-                </p>
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold text-green-100 uppercase tracking-wide mb-1">
-                  Sales Representative
-                </p>
-                <p className="text-white font-semibold text-sm truncate">
-                  {quotation.salesRep?.name || "—"}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -764,20 +742,17 @@ export default function CustomerQuotation() {
                 Sales Representative
               </h2>
             </div>
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 shrink-0 rounded-full bg-gradient-to-br from-green-600 to-green-800 text-white flex items-center justify-center font-bold text-base">
-                {(quotation.salesRep?.name || "?").trim().charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0 space-y-1">
-                <p className="font-semibold text-gray-800 text-sm truncate">
-                  {quotation.salesRep?.name || "—"}
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
+                <User size={14} className="text-gray-400 shrink-0" />
+                <span className="truncate">{quotation.salesRep?.name || "—"}</span>
+              </p>
+              {quotation.salesRep?.designation && (
+                <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
+                  <Briefcase size={14} className="text-gray-400 shrink-0" />
+                  <span className="truncate">{quotation.salesRep.designation}</span>
                 </p>
-                {quotation.salesRep?.designation && (
-                  <p className="text-xs text-gray-500 truncate">{quotation.salesRep.designation}</p>
-                )}
-              </div>
-            </div>
-            <div className="mt-4 space-y-2 text-sm border-t border-gray-50 pt-4">
+              )}
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
                 <Mail size={14} className="text-gray-400 shrink-0" />
                 <span className="truncate">{quotation.salesRep?.email || "—"}</span>
@@ -879,84 +854,100 @@ export default function CustomerQuotation() {
 
         {/* ── Notes ── */}
         {quotation.notes && (
-          <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-6">
-            <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em] mb-2">Notes</h2>
-            <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{quotation.notes}</p>
+          <div className="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle size={16} className="text-red-600" />
+              <h2 className="text-[11px] font-bold text-red-700 uppercase tracking-[0.12em]">Notes</h2>
+            </div>
+            <p className="text-sm text-red-700 font-medium whitespace-pre-wrap leading-relaxed">{quotation.notes}</p>
           </div>
         )}
 
         {/* ── Complete History: Partner ↔ Sales only ── */}
         {timeline.length > 1 && (
           <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-6 sm:p-7">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
-                <HistoryIcon size={16} />
+            <button
+              type="button"
+              onClick={() => setHistoryOpen((prev) => !prev)}
+              aria-expanded={historyOpen}
+              className="w-full flex items-center justify-between gap-2 focus:outline-none"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+                  <HistoryIcon size={16} />
+                </div>
+                <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">
+                  Quotation History
+                </h2>
               </div>
-              <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">
-                Quotation History
-              </h2>
-            </div>
+              <ChevronDown
+                size={18}
+                className={`text-green-600 transition-transform duration-200 ${historyOpen ? "rotate-180" : ""}`}
+              />
+            </button>
 
-            <div className="relative pl-6">
-              <div className="absolute left-[7px] top-1.5 bottom-1.5 w-px bg-green-100" />
+            {historyOpen && (
+              <div className="relative pl-6 mt-6">
+                <div className="absolute left-[7px] top-1.5 bottom-1.5 w-px bg-green-100" />
 
-              {timeline.map((entry, i) => {
-                const isCustomer = entry.kind === "customer";
+                {timeline.map((entry, i) => {
+                  const isCustomer = entry.kind === "customer";
 
-                return (
-                  <div key={`${entry.kind}-${entry.at}-${i}`} className="relative pb-6 last:pb-0">
-                    <div
-                      className={`absolute -left-6 top-1 w-3.5 h-3.5 rounded-full ring-4 ring-white ${
-                        isCustomer ? "bg-blue-500" : "bg-green-600"
-                      }`}
-                    />
+                  return (
+                    <div key={`${entry.kind}-${entry.at}-${i}`} className="relative pb-6 last:pb-0">
+                      <div
+                        className={`absolute -left-6 top-1 w-3.5 h-3.5 rounded-full ring-4 ring-white ${
+                          isCustomer ? "bg-blue-500" : "bg-green-600"
+                        }`}
+                      />
 
-                    <div
-                      className={`rounded-xl border-l-4 border p-4 ${
-                        isCustomer
-                          ? "bg-blue-50 border-blue-100 border-l-blue-500"
-                          : "bg-green-50 border-green-100 border-l-green-600"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          {isCustomer ? (
-                            <User size={13} className="text-blue-600" />
-                          ) : (
-                            <Briefcase size={13} className="text-green-700" />
-                          )}
-                          <p
-                            className={`text-[11px] font-bold uppercase tracking-wide ${
-                              isCustomer ? "text-blue-700" : "text-green-700"
-                            }`}
-                          >
-                            {entry.label}
-                          </p>
-                        </div>
-
-                        {entry.at && (
-                          <p className="text-[10px] text-gray-400 shrink-0">
-                            {new Date(entry.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
-                          </p>
-                        )}
-                      </div>
-
-                      <p
-                        className={`text-lg font-extrabold mt-1.5 ${
-                          isCustomer ? "text-blue-800" : "text-green-800"
+                      <div
+                        className={`rounded-xl border-l-4 border p-4 ${
+                          isCustomer
+                            ? "bg-blue-50 border-blue-100 border-l-blue-500"
+                            : "bg-green-50 border-green-100 border-l-green-600"
                         }`}
                       >
-                        ₹{Number(entry.amount || 0).toFixed(2)}
-                      </p>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            {isCustomer ? (
+                              <User size={13} className="text-blue-600" />
+                            ) : (
+                              <Briefcase size={13} className="text-green-700" />
+                            )}
+                            <p
+                              className={`text-[11px] font-bold uppercase tracking-wide ${
+                                isCustomer ? "text-blue-700" : "text-green-700"
+                              }`}
+                            >
+                              {entry.label}
+                            </p>
+                          </div>
 
-                      {entry.message && (
-                        <p className="text-xs text-gray-600 mt-2 whitespace-pre-line">{entry.message}</p>
-                      )}
+                          {entry.at && (
+                            <p className="text-[10px] text-gray-400 shrink-0">
+                              {new Date(entry.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                            </p>
+                          )}
+                        </div>
+
+                        <p
+                          className={`text-lg font-extrabold mt-1.5 ${
+                            isCustomer ? "text-blue-800" : "text-green-800"
+                          }`}
+                        >
+                          ₹{Number(entry.amount || 0).toFixed(2)}
+                        </p>
+
+                        {entry.message && (
+                          <p className="text-xs text-gray-600 mt-2 whitespace-pre-line">{entry.message}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -979,13 +970,13 @@ export default function CustomerQuotation() {
                   </p>
                 </div>
                 <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
-                  <p className="text-blue-500 font-semibold uppercase text-[11px] mb-1">Partner Offer</p>
+                  <p className="text-blue-500 font-semibold uppercase text-[11px] mb-1">Partner Negotiation Request</p>
                   <p className="text-blue-800 font-bold text-lg">
                     ₹{Number(quotation.expectedBudget || 0).toFixed(2)}
                   </p>
                 </div>
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-amber-600 font-semibold uppercase text-[11px] mb-1">Sales Counter Offer</p>
+                  <p className="text-amber-600 font-semibold uppercase text-[11px] mb-1">Sales Negotiated Offer</p>
                   <p className="text-amber-700 font-extrabold text-xl">
                     ₹{Number(quotation.counterOfferAmount || 0).toFixed(2)}
                   </p>
@@ -1001,11 +992,60 @@ export default function CustomerQuotation() {
                 <ItemsCards items={quotation.counterOfferItems} />
               )}
 
+              {(quotation.counterOfferItems || []).length > 0 && (() => {
+                const counterItems = quotation.counterOfferItems || [];
+                const counterSubtotal = counterItems.reduce(
+                  (sum, item) => sum + Number(item.unitPrice || 0) * Number(item.quantity || 0),
+                  0
+                );
+                const counterGstAmount = counterItems.reduce(
+                  (sum, item) =>
+                    sum + (Number(item.unitPrice || 0) * Number(item.quantity || 0) * Number(item.gst || 0)) / 100,
+                  0
+                );
+                const counterGrandTotal = Number(quotation.counterOfferAmount || 0);
+                // Any gap between the itemised subtotal+GST and the actual counter
+                // offer amount is the discount — shown as its own line here rather
+                // than being folded silently into each item's price.
+                const counterDiscount = Math.max(0, counterSubtotal + counterGstAmount - counterGrandTotal);
+
+                return (
+                  <div className="mt-5 pt-5 border-t border-amber-100">
+                    <div className="max-w-md ml-auto">
+                      <div className="space-y-2.5 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Subtotal</span>
+                          <span className="font-medium text-gray-800">₹{counterSubtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">GST</span>
+                          <span className="font-medium text-gray-800">₹{counterGstAmount.toFixed(2)}</span>
+                        </div>
+                        {counterDiscount > 0.004 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Discount</span>
+                            <span className="font-medium text-red-600">- ₹{counterDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <hr className="my-2.5 border-amber-100" />
+                        <div className="flex justify-between text-xl font-bold text-amber-700">
+                          <span>Grand Total</span>
+                          <span>₹{counterGrandTotal.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {quotation.counterOfferMessage && (
-                <p className="text-sm text-gray-700 whitespace-pre-wrap border-t border-amber-100 pt-3 mb-2 mt-2">
-                  <span className="font-semibold">Message: </span>
-                  {quotation.counterOfferMessage}
-                </p>
+                <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mt-4">
+                  <AlertTriangle size={16} className="text-red-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700 whitespace-pre-wrap font-medium">
+                    <span className="font-bold">Message: </span>
+                    {quotation.counterOfferMessage}
+                  </p>
+                </div>
               )}
 
               <div className="flex flex-col sm:flex-row gap-3 mt-5">
