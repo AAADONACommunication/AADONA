@@ -174,20 +174,26 @@ const buildTimeline = (q) => {
     });
   });
 
-  // ── 3. Original sales quotation snapshot (unchanged from before) ──
-  const originalRaw = q.originalSnapshot?.items?.length ? q.originalSnapshot.items : q.items || [];
-  timeline.push({
-    kind: "seller",
-    sellerKind: "original",
-    label: "Original Quotation Sent",
-    ...resolveMoneyFields(originalRaw, {
-      subtotal: q.originalSnapshot?.subtotal ?? q.subtotal,
-      discountAmount: q.originalSnapshot?.discountAmount ?? q.discountAmount,
-      gstAmount: q.originalSnapshot?.gstAmount ?? q.gstAmount,
-      total: q.originalSnapshot?.grandTotal ?? q.grandTotal,
-    }),
-    at: q.originalSnapshot?.sentAt || q.sentAt || q.createdAt,
-  });
+  // ── 3. Original sales quotation snapshot — but skip if negotiationHistory
+  const hasSalesSentInHistory = (q.negotiationHistory || []).some(
+    (h) => h.type === "sales_sent"
+  );
+
+  if (!hasSalesSentInHistory) {
+    const originalRaw = q.originalSnapshot?.items?.length ? q.originalSnapshot.items : q.items || [];
+    timeline.push({
+      kind: "seller",
+      sellerKind: "original",
+      label: "Original Quotation Sent",
+      ...resolveMoneyFields(originalRaw, {
+        subtotal: q.originalSnapshot?.subtotal ?? q.subtotal,
+        discountAmount: q.originalSnapshot?.discountAmount ?? q.discountAmount,
+        gstAmount: q.originalSnapshot?.gstAmount ?? q.gstAmount,
+        total: q.originalSnapshot?.grandTotal ?? q.grandTotal,
+      }),
+      at: q.originalSnapshot?.sentAt || q.sentAt || q.createdAt,
+    });
+  }
 
   // ── 4. negotiationHistory — every event, old and new types alike ──
   (q.negotiationHistory || []).forEach((h) => {
@@ -246,7 +252,24 @@ const buildTimeline = (q) => {
     }
   });
 
-  return timeline.filter((x) => x.at).sort((a, b) => new Date(a.at) - new Date(b.at));
+  const sorted = timeline.filter((x) => x.at).sort((a, b) => new Date(a.at) - new Date(b.at));
+
+  // ── Dedupe back-to-back "admin" cards that carry identical figures ──
+  // (e.g. "Admin Revised Pricing" immediately followed by "Admin Approved Pricing"
+  // with the exact same subtotal/GST/discount/total/message — same underlying
+  // pricing action logged twice.)
+  return sorted.filter((entry, idx) => {
+    if (idx === 0) return true;
+    const prev = sorted[idx - 1];
+    const sameFigures =
+      Number(entry.total || 0) === Number(prev.total || 0) &&
+      Number(entry.subtotal || 0) === Number(prev.subtotal || 0) &&
+      Number(entry.gstAmount || 0) === Number(prev.gstAmount || 0) &&
+      Number(entry.discountAmount || 0) === Number(prev.discountAmount || 0) &&
+      (entry.message || "") === (prev.message || "");
+    const bothAdminBucket = entry.kind === "admin" && prev.kind === "admin";
+    return !(bothAdminBucket && sameFigures);
+  });
 };
 
 export default function SentQuotations() {
@@ -288,6 +311,21 @@ export default function SentQuotations() {
       setLoading(false);
     }
   };
+
+  const stats = useMemo(() => {
+    const total = quotations.length;
+    const accepted = quotations.filter((q) => q.status === "accepted").length;
+    const inNegotiation = quotations.filter((q) =>
+      ["negotiation_requested", "counter_offered"].includes(q.status)
+    ).length;
+    const pendingResponse = quotations.filter((q) =>
+      ["sent", "viewed"].includes(q.status)
+    ).length;
+    const closedOrRejected = quotations.filter((q) =>
+      ["closed", "rejected"].includes(q.status)
+    ).length;
+    return { total, accepted, inNegotiation, pendingResponse, closedOrRejected };
+  }, [quotations]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

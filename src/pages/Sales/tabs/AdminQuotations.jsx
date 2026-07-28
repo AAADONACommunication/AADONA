@@ -13,7 +13,16 @@ const statusStyles = {
 
 // This line is always sent to the customer along with the quotation,
 // regardless of what the sales person adds in the notes box.
+
 const DEFAULT_NOTES = "Freight as per actuals";
+
+const calcAdminItemTotal = (item) => {
+  const qty = Number(item?.quantity) || 0;
+  const price = Number(item?.unitPrice) || 0;
+  const gst = Number(item?.gst ?? 0);
+  const base = qty * price;
+  return base + base * (gst / 100);
+};
 
 export default function IncomingQuotations({ incomingQuotations, reloadIncomingQuotations }) {
   const [search, setSearch] = useState("");
@@ -33,6 +42,19 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
+
+  const stats = useMemo(() => {
+    const total = incomingQuotations.length;
+    const notYetSent = incomingQuotations.filter((q) => {
+      const s = q.salesQuotation?.status;
+      return !s || s === "admin_revised" || s === "admin_rejected_to_sales";
+    }).length;
+    const sentToCustomer = total - notYetSent;
+    const accepted = incomingQuotations.filter(
+      (q) => q.salesQuotation?.status === "accepted"
+    ).length;
+    return { total, notYetSent, sentToCustomer, accepted };
+  }, [incomingQuotations]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return incomingQuotations;
@@ -564,6 +586,101 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           )}
         </div>
 
+        {/* ── Admin's internal revision history — created + every revision ── */}
+        {(selected.revisionHistory?.length || 0) > 0 && (
+          <div className="border-t border-gray-200 pt-4 mb-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">
+              Admin Pricing History
+            </p>
+            <div className="space-y-3">
+              {/* First entry: original creation */}
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm font-bold text-blue-800">Admin Quotation Created</p>
+                  <span className="text-xs text-gray-500">
+                    {selected.createdAt
+                      ? new Date(selected.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+                      : "—"}
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-blue-100 text-blue-800 text-left">
+                        <th className="px-2 py-1.5">Product</th>
+                        <th className="px-2 py-1.5">Qty</th>
+                        <th className="px-2 py-1.5">Unit Price</th>
+                        <th className="px-2 py-1.5">GST</th>
+                        <th className="px-2 py-1.5">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* First revision's "before" state is the original items;
+                          if no revisions exist this branch won't render (guarded above) */}
+                      {(selected.revisionHistory[0]?.previousItems || selected.items || []).map((item, idx) => (
+                        <tr key={idx} className="border-t border-blue-100">
+                          <td className="px-2 py-1.5 text-gray-800">{item.name}</td>
+                          <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
+                          <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice || 0).toFixed(2)}</td>
+                          <td className="px-2 py-1.5 text-gray-700">{Number(item.gst ?? 0)}%</td>
+                          <td className="px-2 py-1.5 font-semibold text-gray-800">
+                            ₹{calcAdminItemTotal(item).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Each subsequent revision */}
+              {selected.revisionHistory.map((rev, i) => (
+                <div key={i} className="rounded-xl border border-purple-200 bg-purple-50 p-3.5">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm font-bold text-purple-800">Admin Quotation Revised</p>
+                    <span className="text-xs text-gray-500">
+                      {rev.revisedAt
+                        ? new Date(rev.revisedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+                        : "—"}
+                    </span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-purple-100 text-purple-800 text-left">
+                          <th className="px-2 py-1.5">Product</th>
+                          <th className="px-2 py-1.5">Qty</th>
+                          <th className="px-2 py-1.5">Unit Price</th>
+                          <th className="px-2 py-1.5">GST</th>
+                          <th className="px-2 py-1.5">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(rev.items || []).map((item, idx) => (
+                          <tr key={idx} className="border-t border-purple-100">
+                            <td className="px-2 py-1.5 text-gray-800">{item.name}</td>
+                            <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
+                            <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice || 0).toFixed(2)}</td>
+                            <td className="px-2 py-1.5 text-gray-700">{Number(item.gst ?? 0)}%</td>
+                            <td className="px-2 py-1.5 font-semibold text-gray-800">
+                              ₹{calcAdminItemTotal(item).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {rev.remarks && (
+                    <p className="text-xs text-gray-600 mt-2">
+                      <span className="font-semibold">Remarks:</span> {rev.remarks}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto -mx-1 px-1">
           <table className="w-full min-w-[520px] text-sm">
             <thead>
@@ -644,12 +761,15 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 </tr>
               </thead>
               <tbody>
-                {(salesQuotation.items || []).map((item, i) => (
+                {(salesQuotation.originalSnapshot?.items?.length
+                  ? salesQuotation.originalSnapshot.items
+                  : salesQuotation.items || []
+                ).map((item, i) => (
                   <tr key={i} className="border-b border-green-100">
                     <td className="px-3 py-2 text-gray-800 font-medium">{item.name}</td>
                     <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
                     <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
-                    <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
+                    <td className="px-3 py-2 text-gray-700">{Number(item.gst ?? 0)}%</td>
                     <td className="px-3 py-2 font-semibold text-gray-700">₹{Number(item.total).toFixed(2)}</td>
                   </tr>
                 ))}
@@ -661,21 +781,21 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             <div className="w-full sm:w-72 space-y-1 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>₹{Number(salesQuotation.subtotal).toFixed(2)}</span>
+                <span>₹{Number(salesQuotation.originalSnapshot?.subtotal ?? salesQuotation.subtotal).toFixed(2)}</span>
               </div>
-              {Number(salesQuotation.discountAmount) > 0 && (
+              {Number(salesQuotation.originalSnapshot?.discountAmount ?? salesQuotation.discountAmount) > 0 && (
                 <div className="flex justify-between text-gray-600">
                   <span>Discount</span>
-                  <span>− ₹{Number(salesQuotation.discountAmount).toFixed(2)}</span>
+                  <span>− ₹{Number(salesQuotation.originalSnapshot?.discountAmount ?? salesQuotation.discountAmount).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-600">
                 <span>GST</span>
-                <span>₹{Number(salesQuotation.gstAmount).toFixed(2)}</span>
+                <span>₹{Number(salesQuotation.originalSnapshot?.gstAmount ?? salesQuotation.gstAmount).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
                 <span>Grand Total</span>
-                <span>₹{Number(salesQuotation.grandTotal).toFixed(2)}</span>
+                <span>₹{Number(salesQuotation.originalSnapshot?.grandTotal ?? salesQuotation.grandTotal).toFixed(2)}</span>
               </div>
             </div>
           </div>

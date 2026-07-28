@@ -184,12 +184,18 @@ function buildQuotationEmailHtml({
                       ₹${Number(subtotal).toFixed(2)}
                     </td>
                   </tr>
+                  ${
+                    Number(discountAmount) > 0
+                      ? `
                   <tr>
                     <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Discount</td>
                     <td style="text-align:right;padding:4px 0;color:#dc2626;font-size:13px">
                       − ₹${Number(discountAmount).toFixed(2)}
                     </td>
                   </tr>
+                  `
+                      : ""
+                  }
                   <tr>
                     <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">GST</td>
                     <td style="text-align:right;padding:4px 0;color:#111827;font-size:13px">
