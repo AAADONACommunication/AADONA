@@ -4,6 +4,7 @@ import { Search, ChevronLeft, Plus, Trash2, Inbox, CheckCircle2 } from "lucide-r
 import { safeJson, inputStyle } from "../AdminPanel";
 
 const REQUESTS_API = `${import.meta.env.VITE_API_URL}/admin/quotation-requests`;
+const REQUIRED_NOTE = "Keep the Negotiation Buffer as per the customer";
 
 const statusStyles = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -49,7 +50,7 @@ export default function ManageQuotationRequests() {
   };
 
   // Load on first render and whenever the status filter changes
-  useEffect(() => {    
+  useEffect(() => {
     loadRequests("pending");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -91,7 +92,8 @@ export default function ManageQuotationRequests() {
         }))
       );
 
-      setNotes("");
+      // Default note always prefilled — admin can add more below it
+      setNotes(REQUIRED_NOTE);
       return;
     }
 
@@ -150,6 +152,13 @@ export default function ManageQuotationRequests() {
       }
     }
 
+    // Guarantee the negotiation-buffer note is always included,
+    // even if the admin edited or removed it from the textarea.
+    let finalNotes = notes.trim();
+    if (!finalNotes.includes(REQUIRED_NOTE)) {
+      finalNotes = finalNotes ? `${REQUIRED_NOTE}\n${finalNotes}` : REQUIRED_NOTE;
+    }
+
     setSubmitting(true);
     try {
       const token = await getToken();
@@ -168,7 +177,7 @@ export default function ManageQuotationRequests() {
             unitPrice: Number(item.price),
             gst: Number(item.gst),
           })),
-          notes,
+          notes: finalNotes,
         }),
       });
       const data = await safeJson(res);
@@ -343,7 +352,8 @@ export default function ManageQuotationRequests() {
               sales rep, who will then add their own markup before sending it to the customer.
             </p>
 
-            <div className="overflow-x-auto">
+            {/* Desktop / tablet table */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-green-700 text-white text-left">
@@ -401,6 +411,64 @@ export default function ManageQuotationRequests() {
               </table>
             </div>
 
+            {/* Mobile card layout */}
+            <div className="sm:hidden space-y-3">
+              {priceItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="border border-green-200 rounded-xl p-3 bg-green-50/30"
+                >
+                  <p className="font-medium text-gray-800">{item.name}</p>
+                  {item.description && (
+                    <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
+
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Price (₹)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e) => updatePriceItem(index, "price", e.target.value)}
+                        placeholder="0.00"
+                        required
+                        className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:border-green-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        GST (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={item.gst}
+                        onChange={(e) => updatePriceItem(index, "gst", e.target.value)}
+                        placeholder="18"
+                        required
+                        className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:border-green-500 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-right text-sm font-semibold text-green-700 mt-2">
+                    Total: ₹
+                    {(
+                      ((Number(item.quantity) || 0) * (Number(item.price) || 0)) *
+                      (1 + (Number(item.gst) || 0) / 100)
+                    ).toFixed(2)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <div className="flex justify-end mt-4">
               <div className="text-base font-bold text-green-800">
                 Total: ₹{total.toFixed(2)}
@@ -409,7 +477,7 @@ export default function ManageQuotationRequests() {
 
             <div className="mt-4">
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Notes for Sales Rep (optional)
+                Notes for Sales Rep
               </label>
               <textarea
                 rows={3}
@@ -418,6 +486,9 @@ export default function ManageQuotationRequests() {
                 placeholder="Payment terms, lead time, stock availability, etc."
                 className={inputStyle}
               />
+              <p className="text-xs text-gray-400 mt-1">
+                "{REQUIRED_NOTE}" will always be included, even if removed here.
+              </p>
             </div>
 
             <div className="flex justify-end mt-6">
