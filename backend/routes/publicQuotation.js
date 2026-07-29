@@ -415,12 +415,11 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
         console.error("Negotiation email failed:", mailErr.message);
       }
     } else {
-      const difference = adminGrandTotal - expected;
       // ── Below admin's minimum approved price — needs admin sign-off ──
       quotation.status = "awaiting_admin_approval";
       await quotation.save();
 
-      const difference = adminSubtotal - expected;
+      const difference = adminGrandTotal - expected;
 
       const approvalHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">

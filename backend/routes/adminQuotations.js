@@ -86,14 +86,17 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
     const calculatedItems = items.map((item) => {
       const quantity = Number(item.quantity);
       const unitPrice = Number(item.unitPrice);
+      const gst = Number(item.gst);
+
       const total = parseFloat((quantity * unitPrice).toFixed(2));
-      const gstAmount = parseFloat((total * (gst / 100)).toFixed(2));
+      const gstAmount = parseFloat((total * gst / 100).toFixed(2));
+
       return {
         name: item.name.trim(),
         description: item.description || "",
         quantity,
         unitPrice,
-        gst: Number(item.gst),
+        gst,
         total,
         gstAmount,
       };
