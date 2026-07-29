@@ -50,6 +50,15 @@ export default function CreateQuotation({
       rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
+  const showSuccess = (message) => {
+  setSuccessMsg(message);
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    document.documentElement.scrollTo?.({ top: 0, left: 0, behavior: "smooth" });
+    document.body.scrollTo?.({ top: 0, left: 0, behavior: "smooth" });
+    rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+};
 
   // ── End customer — always a real endCustomerId from the backend, never
   // rebuilt from notes. Either it arrives via prefill (Project Locking →
@@ -218,6 +227,7 @@ export default function CreateQuotation({
     setEndCustomerOptions([]);
     setItems([]);
     setNotes("");
+     closePicker(); 
   };
 
   const validateForm = () => {
@@ -270,7 +280,7 @@ export default function CreateQuotation({
       await safeJson(res);
       if (!res.ok) throw new Error("Failed to submit request to admin");
 
-      setSuccessMsg("Request submitted to admin. You'll see their quotation under \"Admin Quotation\" once it's ready.");
+      showSuccess("Request submitted to admin. You'll see their quotation under \"Admin Quotation\" once it's ready.");
       resetForm();
     } catch (err) {
       console.error("Submit request error:", err);
