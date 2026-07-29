@@ -39,6 +39,13 @@ const AdminQuotationSchema = new mongoose.Schema(
     remarks: { type: String, default: "" },
     validTill: { type: Date },
 
+    validityDays: {
+      type: Number,
+      enum: [7, 15, 30, 45, 60, 90],
+      default: 30,
+    },
+    validUntil: { type: Date },
+
     // ── Revision history — snapshot of pricing BEFORE each admin revision ──
     revisionHistory: {
       type: [

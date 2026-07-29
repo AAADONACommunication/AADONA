@@ -65,6 +65,9 @@ const toPublicQuotation = (quotation, salesRep) => {
     negotiatedAt: quotation.negotiatedAt,
     negotiationHistory: quotation.negotiationHistory || [],
     validTill: quotation.sourceQuotation?.validTill || null,
+    validityDays: quotation.validityDays || null,
+    validUntil: quotation.validUntil || null,
+    isExpired: quotation.validUntil ? new Date() > new Date(quotation.validUntil) : false,
     salesRep: salesRep
       ? { name: salesRep.name, email: salesRep.email, phone: salesRep.phone }
       : null,
@@ -125,6 +128,10 @@ router.get("/quotation/:publicToken/pdf", async (req, res) => {
       return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
 
+    if (quotation.validUntil && new Date() > new Date(quotation.validUntil)) {
+      return res.status(400).json({ message: "This quotation has expired. Please contact your sales representative for a fresh quotation." });
+    }
+
     const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
 
     const finalAmount = Number(quotation.grandTotal);
@@ -166,6 +173,10 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
     }
     if (quotation.status === "closed") {
       return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
+    }
+
+    if (quotation.validUntil && new Date() > new Date(quotation.validUntil)) {
+      return res.status(400).json({ message: "This quotation has expired. Please contact your sales representative for a fresh quotation." });
     }
 
     quotation.status = "accepted";
@@ -306,6 +317,11 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
     if (quotation.status === "closed") {
       return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
+
+    if (quotation.validUntil && new Date() > new Date(quotation.validUntil)) {
+      return res.status(400).json({ message: "This quotation has expired. Please contact your sales representative for a fresh quotation." });
+    }
+
     if (["accepted", "rejected"].includes(quotation.status)) {
       return res.status(400).json({ message: `Quotation already ${quotation.status}, cannot negotiate` });
     }
@@ -454,6 +470,11 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
     if (quotation.status === "closed") {
       return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
     }
+    
+    if (quotation.validUntil && new Date() > new Date(quotation.validUntil)) {
+      return res.status(400).json({ message: "This quotation has expired. Please contact your sales representative for a fresh quotation." });
+    }
+
     if (quotation.status !== "counter_offered") {
       return res.status(400).json({
         message: `Cannot accept counter offer from status "${quotation.status}"`,
@@ -464,10 +485,25 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
       return res.status(400).json({ message: "No valid counter offer found to accept" });
     }
 
+    if (quotation.counterOfferAmount == null || !Number.isFinite(Number(quotation.counterOfferAmount))) {
+      return res.status(400).json({ message: "No valid counter offer found to accept" });
+    }
+
+    quotation.items = quotation.counterOfferItems;
+    quotation.subtotal = quotation.counterOfferSubtotal;
+    quotation.discountAmount = quotation.counterOfferDiscountAmount;
+    quotation.gstAmount = quotation.counterOfferGstAmount;
+    quotation.grandTotal = quotation.counterOfferAmount;
+
     quotation.negotiatedAmount = quotation.counterOfferAmount;
     quotation.negotiatedAt = new Date();
     quotation.status = "accepted";
     quotation.acceptedAt = new Date();
+    quotation.items = quotation.counterOfferItems;
+    quotation.subtotal = quotation.counterOfferSubtotal;
+    quotation.discountAmount = quotation.counterOfferDiscountAmount;
+    quotation.gstAmount = quotation.counterOfferGstAmount;
+    quotation.grandTotal = quotation.counterOfferAmount;
     quotation.negotiationHistory.push({
       type: "partner_accepted",
       actor: "partner",
@@ -511,7 +547,6 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-          <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.discount}%</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${Number(item.total).toFixed(2)}</td>
         </tr>
       `).join("");
@@ -524,12 +559,16 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
               <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
               <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
               <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
-              <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Discount</th>
               <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
             </tr>
           </thead>
           <tbody>${itemRowsHtml}</tbody>
         </table>
+        ${
+          Number(quotation.discountAmount) > 0
+            ? `<p style="color:#dc2626;font-size:13px;text-align:right;margin:8px 0 0">Discount: − ₹${Number(quotation.discountAmount).toFixed(2)}</p>`
+            : ""
+        }
         <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
           Grand Total: ₹${Number(quotation.grandTotal).toFixed(2)}
         </p>
@@ -631,6 +670,10 @@ router.post("/quotation/:publicToken/reject", async (req, res) => {
     }
     if (quotation.status === "closed") {
       return res.status(400).json({ message: "Quotation has been closed by the Sales Team." });
+    }
+
+    if (quotation.validUntil && new Date() > new Date(quotation.validUntil)) {
+      return res.status(400).json({ message: "This quotation has expired. Please contact your sales representative for a fresh quotation." });
     }
 
     const rejectedAt = new Date();

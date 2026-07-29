@@ -577,10 +577,19 @@ export default function SentQuotations() {
         <div className="flex items-center justify-between flex-wrap gap-2.5 sm:gap-3 mb-4">
           <div className="flex items-center gap-2 min-w-0">
             <Lock size={16} className="text-gray-400 shrink-0" />
-            <h2 className="text-base sm:text-lg font-bold text-green-800 truncate">
-              {selected.quotationNumber}{" "}
-              <span className="text-xs sm:text-sm font-normal text-gray-500">— read only</span>
-            </h2>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-green-800 truncate">
+                {selected.quotationNumber}{" "}
+                <span className="text-xs sm:text-sm font-normal text-gray-500">— read only</span>
+              </h2>
+              {(selected.validUntil || selected.sourceQuotation?.validUntil) && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Valid Until:{" "}
+                  {new Date(selected.validUntil || selected.sourceQuotation?.validUntil).toLocaleDateString("en-IN")}
+                  {selected.validityDays ? ` (${selected.validityDays} days)` : ""}
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span

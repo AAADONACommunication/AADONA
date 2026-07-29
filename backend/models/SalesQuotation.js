@@ -39,6 +39,9 @@ const SalesQuotationSchema = new mongoose.Schema(
         total: { type: Number, required: true, min: 0 },
       },
     ],
+    validityDays: { type: Number, enum: [7, 15, 30, 45, 60, 90], default: null },
+    validUntil: { type: Date, default: null },
+
     subtotal: { type: Number, required: true, min: 0},
     discountAmount: { type: Number, default: 0, min: 0 },
     gstAmount: { type: Number, default: 0, min:0 },

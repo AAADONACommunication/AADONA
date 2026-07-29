@@ -455,6 +455,8 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       sentAt: initialSentAt,
       reminderAfterDays: reminderAfterDaysValue,
       reminderAt,
+      validityDays: adminQuotation.validityDays || null,
+      validUntil: adminQuotation.validUntil || null,
       negotiationHistory: [
         {
           type: "sales_sent",
@@ -689,7 +691,11 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
             <tbody>${internalItemRowsHtml}</tbody>
           </table>
           <p style="color:#374151;font-size:14px"><strong>Subtotal:</strong> ₹${Number(quotation.subtotal).toFixed(2)}</p>
-          <p style="color:#374151;font-size:14px"><strong>Discount:</strong> − ₹${Number(quotation.discountAmount).toFixed(2)}</p>
+          ${
+            Number(quotation.discountAmount) > 0
+              ? `<p style="color:#374151;font-size:14px"><strong>Discount:</strong> − ₹${Number(quotation.discountAmount).toFixed(2)}</p>`
+              : ""
+          }
           <p style="color:#374151;font-size:14px"><strong>GST:</strong> ₹${Number(quotation.gstAmount).toFixed(2)}</p>
           <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
             Grand Total (Accepted Amount): ₹${Number(quotation.negotiatedAmount).toFixed(2)}
@@ -914,7 +920,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const { items, discount } = req.body;
+    const { items, discount, notes } = req.body;
 
     const quotation = await SalesQuotation.findById(id)
       .populate("customer").populate("endCustomer")
@@ -1054,6 +1060,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       revisionEntry.revisedSalesGstAmount = gstAmount;
       revisionEntry.revisedSalesGrandTotal = grandTotal;
       revisionEntry.revisedSalesSentAt = new Date();
+      revisionEntry.revisedSalesNotes = notes?.trim() || "";
     }
 
     // ── Preserve rejected partner negotiation before clearing fields ──
@@ -1081,6 +1088,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
         revisedSalesGstAmount: gstAmount,
         revisedSalesGrandTotal: grandTotal,
         revisedSalesSentAt: new Date(),
+        revisedSalesNotes: notes?.trim() || "",
 
         recordedAt: new Date(),
       });
@@ -1099,6 +1107,9 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     quotation.customerMessage = "";
     quotation.customerRespondedAt = null;
     quotation.adminApprovedAmount = adminQuotation.subtotal;
+    if (notes !== undefined) {
+      quotation.notes = notes?.trim() || "";
+    }
     await quotation.save();
 
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
@@ -1261,8 +1272,7 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
-
-    const { items, discount } = req.body;
+const { items, discount, notes } = req.body;
 
     const quotation = await SalesQuotation.findById(id).populate("customer").populate("endCustomer");
     if (!quotation) {
@@ -1383,6 +1393,7 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
       revisionEntry.revisedSalesGstAmount = gstAmount;
       revisionEntry.revisedSalesGrandTotal = grandTotal;
       revisionEntry.revisedSalesSentAt = new Date();
+      revisionEntry.revisedSalesNotes = notes?.trim() || "";
     }
 
     quotation.items = calculatedItems;
@@ -1396,6 +1407,9 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
     quotation.expectedBudget = null;
     quotation.customerMessage = "";
     quotation.customerRespondedAt = null;
+    if (notes !== undefined) {
+      quotation.notes = notes?.trim() || "";
+    }
     quotation.negotiationHistory.push({
         type: "sales_revised",
         actor: "sales",
@@ -1408,6 +1422,7 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
         revisedSalesGstAmount: gstAmount,
         revisedSalesGrandTotal: grandTotal,
         revisedSalesSentAt: new Date(),
+        revisedSalesNotes: notes?.trim() || "",
 
         recordedAt: new Date(),
     });

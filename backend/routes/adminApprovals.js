@@ -298,7 +298,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
       return res.status(400).json({ message: "Invalid quotation ID" });
     }
 
-    const { items, remarks } = req.body;
+    const { items, remarks, extendValidityDays } = req.body;
 
     const quotation = await SalesQuotation.findById(id)
       .populate("customer")
@@ -356,6 +356,18 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     if (remarks !== undefined) {
       adminQuotation.remarks = remarks.trim();
     }
+
+    // ── Optional: admin explicitly chose to extend validity ──
+    const ALLOWED_VALIDITY = [7, 15, 30, 45, 60, 90];
+    if (extendValidityDays && ALLOWED_VALIDITY.includes(Number(extendValidityDays))) {
+      const newValidityDays = Number(extendValidityDays);
+      const newValidUntil = new Date(Date.now() + newValidityDays * 24 * 60 * 60 * 1000);
+      adminQuotation.validityDays = newValidityDays;
+      adminQuotation.validUntil = newValidUntil;
+      quotation.validityDays = newValidityDays;
+      quotation.validUntil = newValidUntil;
+    }
+
     await adminQuotation.save();
 
     quotation.negotiationHistory.push({

@@ -22,6 +22,7 @@ export default function ManageQuotationRequests() {
   // ── Pricing form state ──
   const [priceItems, setPriceItems] = useState([]);
   const [notes, setNotes] = useState("");
+  const [validityDays, setValidityDays] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -92,8 +93,8 @@ export default function ManageQuotationRequests() {
         }))
       );
 
-      // Default note always prefilled — admin can add more below it
       setNotes(REQUIRED_NOTE);
+      setValidityDays("");
       return;
     }
 
@@ -152,6 +153,11 @@ export default function ManageQuotationRequests() {
       }
     }
 
+    if (!validityDays) {
+      setError("Please select a validity period for this quotation.");
+      return;
+    }
+
     // Guarantee the negotiation-buffer note is always included,
     // even if the admin edited or removed it from the textarea.
     let finalNotes = notes.trim();
@@ -178,6 +184,7 @@ export default function ManageQuotationRequests() {
             gst: Number(item.gst),
           })),
           notes: finalNotes,
+          validityDays: Number(validityDays),
         }),
       });
       const data = await safeJson(res);
@@ -473,6 +480,29 @@ export default function ManageQuotationRequests() {
               <div className="text-base font-bold text-green-800">
                 Total: ₹{total.toFixed(2)}
               </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                Quotation Validity <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={validityDays}
+                onChange={(e) => setValidityDays(e.target.value)}
+                required
+                className={inputStyle}
+              >
+                <option value="">Select validity period...</option>
+                <option value="7">7 Days</option>
+                <option value="15">15 Days</option>
+                <option value="30">30 Days</option>
+                <option value="45">45 Days</option>
+                <option value="60">60 Days</option>
+                <option value="90">90 Days</option>
+              </select>
+              <p className="text-xs text-gray-400 mt-1">
+                Valid Until date will be calculated automatically from today.
+              </p>
             </div>
 
             <div className="mt-4">

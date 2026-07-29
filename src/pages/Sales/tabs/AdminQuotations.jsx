@@ -499,12 +499,20 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       <div className="bg-gray-50 rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Lock size={16} className="text-gray-500" />
-          <h2 className="text-lg font-bold text-gray-700">
-            Quotation from Admin{" "}
-            <span className="text-sm font-normal text-gray-500">
-              ({selected.quotationNumber || selected._id?.slice(-6).toUpperCase()}) — read only
-            </span>
-          </h2>
+          <div>
+            <h2 className="text-lg font-bold text-gray-700">
+              Quotation from Admin{" "}
+              <span className="text-sm font-normal text-gray-500">
+                ({selected.quotationNumber || selected._id?.slice(-6).toUpperCase()}) — read only
+              </span>
+            </h2>
+            {selected.validUntil && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                Valid Until: {new Date(selected.validUntil).toLocaleDateString("en-IN")}
+                {selected.validityDays ? ` (${selected.validityDays} days)` : ""}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3 mb-4 text-sm">
@@ -718,9 +726,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           </div>
         </div>
 
-        {selected.notes && (
+        {selected.remarks && (
           <p className="text-sm text-gray-600 mt-3 border-t border-gray-200 pt-3">
-            <span className="font-semibold">Admin notes:</span> {selected.notes}
+            <span className="font-semibold">Admin notes:</span> {selected.remarks}
           </p>
         )}
       </div>

@@ -23,6 +23,7 @@ export default function ManagePendingNegotiations() {
   const [reviseMode, setReviseMode] = useState(false);
   const [reviseItems, setReviseItems] = useState([]);
   const [reviseRemarks, setReviseRemarks] = useState("");
+  const [extendValidityDays, setExtendValidityDays] = useState(""); // optional — blank = keep current validity
 
   const getToken = async () => {
     const auth = await getFirebaseAuth();
@@ -113,6 +114,7 @@ export default function ManagePendingNegotiations() {
     );
 
     setReviseRemarks(q.sourceQuotation?.remarks || "");
+    setExtendValidityDays("");
   };
 
   const backToList = () => {
@@ -202,6 +204,7 @@ export default function ManagePendingNegotiations() {
         body: JSON.stringify({
           items: reviseItems.map((item) => ({ unitPrice: Number(item.unitPrice) })),
           remarks: reviseRemarks,
+          ...(extendValidityDays ? { extendValidityDays: Number(extendValidityDays) } : {}),
         }),
       });
       const data = await safeJson(res);
@@ -670,6 +673,36 @@ export default function ManagePendingNegotiations() {
                 placeholder="Reason for revision, updated terms, etc."
                 className={inputStyle}
               />
+            </div>
+
+            <div className="mt-4 border-t border-amber-100 pt-4">
+              <p className="text-xs text-gray-500 mb-1.5">
+                Current Valid Until:{" "}
+                <span className="font-semibold text-gray-700">
+                  {selected.sourceQuotation?.validUntil
+                    ? new Date(selected.sourceQuotation.validUntil).toLocaleDateString("en-IN")
+                    : "—"}
+                </span>
+              </p>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                Extend Validity (optional)
+              </label>
+              <select
+                value={extendValidityDays}
+                onChange={(e) => setExtendValidityDays(e.target.value)}
+                className={inputStyle}
+              >
+                <option value="">Keep current validity</option>
+                <option value="7">Extend by 7 Days (from today)</option>
+                <option value="15">Extend by 15 Days (from today)</option>
+                <option value="30">Extend by 30 Days (from today)</option>
+                <option value="45">Extend by 45 Days (from today)</option>
+                <option value="60">Extend by 60 Days (from today)</option>
+                <option value="90">Extend by 90 Days (from today)</option>
+              </select>
+              <p className="text-xs text-gray-400 mt-1">
+                Leave blank to keep the original validity period unchanged.
+              </p>
             </div>
 
             <div className="flex justify-end mt-6">

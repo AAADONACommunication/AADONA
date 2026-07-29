@@ -15,7 +15,12 @@ const EndCustomer = require("../models/EndCustomer");
 router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { items, notes } = req.body;
+    const { items, notes, validityDays } = req.body;
+
+    const ALLOWED_VALIDITY = [7, 15, 30, 45, 60, 90];
+    const validityDaysValue = ALLOWED_VALIDITY.includes(Number(validityDays))
+      ? Number(validityDays)
+      : 30;
 
     // 1. Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -97,8 +102,9 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
     );
 
-    // 8. Valid till — 30 days from now
-    const validTill = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    // 8. Valid till — admin-selected validity period
+    const approvedAt = new Date();
+    const validTill = new Date(approvedAt.getTime() + validityDaysValue * 24 * 60 * 60 * 1000);
 
     // 9. Create AdminQuotation
     const adminQuotation = await AdminQuotation.create({
@@ -110,6 +116,8 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       subtotal,
       remarks: notes?.trim() || "",
       validTill,
+      validityDays: validityDaysValue,
+      validUntil: validTill,
       status: "sent",
     });
 

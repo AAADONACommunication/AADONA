@@ -120,12 +120,19 @@ const buildTimeline = (q) => {
 
   // ── 1. Admin quotation created (from sourceQuotation, if populated) ──
   if (q.sourceQuotation?.createdAt) {
+    const firstRevision = q.sourceQuotation?.revisionHistory?.[0];
+    const originalAdminItems = firstRevision?.previousItems?.length
+      ? firstRevision.previousItems
+      : q.sourceQuotation.items || [];
+    const originalAdminSubtotal = firstRevision?.previousItems?.length
+      ? undefined // let resolveMoneyFields compute it fresh from previousItems
+      : q.sourceQuotation.subtotal;
+
     timeline.push({
       kind: "admin",
       label: "Admin Quotation Created",
-      ...resolveMoneyFields(q.sourceQuotation.items || [], {
-        subtotal: q.sourceQuotation.subtotal,
-      }),
+      ...resolveMoneyFields(originalAdminItems, { subtotal: originalAdminSubtotal }),
+      message: q.sourceQuotation?.remarks && !firstRevision ? q.sourceQuotation.remarks : undefined,
       at: q.sourceQuotation.createdAt,
     });
   }
@@ -229,8 +236,8 @@ const buildTimeline = (q) => {
       Number(entry.gstAmount || 0) === Number(prev.gstAmount || 0) &&
       Number(entry.discountAmount || 0) === Number(prev.discountAmount || 0) &&
       (entry.message || "") === (prev.message || "");
-    const bothAdminBucket = entry.kind === "admin" && prev.kind === "admin";
-    return !(bothAdminBucket && sameFigures);
+    const closeInTime = Math.abs(new Date(entry.at) - new Date(prev.at)) < 60000;
+    return !(sameFigures && closeInTime);
   });
 };
 
@@ -997,10 +1004,11 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               <span className="font-semibold">End Customer:</span>{" "}
               {viewing.endCustomer?.endCustomerName || "—"}
             </p>
-            {viewing.validTill && (
+            {(viewing.validUntil || viewing.validTill) && (
               <p className="text-sm text-gray-600 mb-3">
                 <span className="font-semibold">Valid Until:</span>{" "}
-                {new Date(viewing.validTill).toLocaleDateString()}
+                {new Date(viewing.validUntil || viewing.validTill).toLocaleDateString("en-IN")}
+                {viewing.validityDays ? ` (${viewing.validityDays} days)` : ""}
               </p>
             )}
 
@@ -1035,7 +1043,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               renderNegotiationSection(viewing)
             )}
 
-            {viewing.status !== "accepted" && viewing.status !== "rejected" && (
+            {!["accepted", "rejected", "closed"].includes(viewing.status) && (
               <div className="mb-4">
                 <button
                   onClick={() => { setRejectError(""); setRejectModalOpen(viewing); }}

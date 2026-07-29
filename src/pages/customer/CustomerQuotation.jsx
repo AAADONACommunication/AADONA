@@ -86,9 +86,41 @@ const safeJson = async (res) => {
   }
 };
 
-// Build a clean partner ↔ sales-rep timeline. Admin-only revision rounds
-// (where a partner offer was never actually made) are intentionally skipped —
-// the partner only ever sees their own requests and the sales team's replies.
+const calcItemTotal = (item) => {
+  if (item?.total != null && !Number.isNaN(Number(item.total))) return Number(item.total);
+  const qty = Number(item?.quantity) || 0;
+  const price = Number(item?.unitPrice) || 0;
+  const gstPct = Number(item?.gst) || 0;
+  const discountVal = Number(item?.discount) || 0;
+  const discountType = item?.discountType || "percent";
+  const base = qty * price;
+  const discountAmt = discountType === "flat" ? discountVal : base * (discountVal / 100);
+  const taxable = Math.max(base - discountAmt, 0);
+  const gstAmt = taxable * (gstPct / 100);
+  return taxable + gstAmt;
+};
+
+const computeTotalsFromItems = (items = []) => {
+  const subtotal = items.reduce(
+    (sum, it) => sum + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0),
+    0
+  );
+  const discountAmount = items.reduce((sum, it) => {
+    const base = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+    const dVal = Number(it.discount) || 0;
+    return sum + (it.discountType === "flat" ? dVal : base * (dVal / 100));
+  }, 0);
+  const gstAmount = items.reduce((sum, it) => {
+    const base = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0);
+    const dVal = Number(it.discount) || 0;
+    const dAmt = it.discountType === "flat" ? dVal : base * (dVal / 100);
+    const itemTaxable = Math.max(base - dAmt, 0);
+    return sum + itemTaxable * ((Number(it.gst) || 0) / 100);
+  }, 0);
+  const taxable = Math.max(subtotal - discountAmount, 0);
+  return { subtotal, discountAmount, gstAmount, grandTotal: taxable + gstAmount };
+};
+
 const buildTimeline = (q) => {
   const timeline = [];
 
@@ -107,24 +139,27 @@ const buildTimeline = (q) => {
 
     // Sales counter offer
     if (h.counterOfferAmount != null) {
+      const items = h.counterOfferItems || [];
       timeline.push({
         kind: "sales",
         label: "Sales Negotiated Offer",
         amount: h.counterOfferAmount,
-        items: h.counterOfferItems || [],
+        items,
+        ...computeTotalsFromItems(items),
         message: h.counterOfferMessage,
         at: h.counterOfferAt || h.recordedAt,
       });
     }
 
-    // Revised quotation sent by Sales
-    // Admin revision itself is intentionally NOT shown.
+    // Revised quotation sent by Sales — Admin revision itself intentionally NOT shown.
     if (h.revisedSalesItems?.length) {
       timeline.push({
         kind: "sales",
         label: "Revised Quotation",
         amount: h.revisedSalesGrandTotal,
         items: h.revisedSalesItems,
+        ...computeTotalsFromItems(h.revisedSalesItems),
+        message: h.revisedSalesNotes || undefined,
         at: h.revisedSalesSentAt || h.recordedAt,
       });
     }
@@ -143,20 +178,19 @@ const buildTimeline = (q) => {
 
   // Current sales counter
   if (q.counterOfferAmount != null) {
+    const items = q.counterOfferItems || [];
     timeline.push({
       kind: "sales",
       label: "Sales Negotiated Offer",
       amount: q.counterOfferAmount,
-      items: q.counterOfferItems || [],
+      items,
+      ...computeTotalsFromItems(items),
       message: q.counterOfferMessage,
       at: q.counterOfferAt,
     });
   }
 
-  // Dedupe: the backend can log the same negotiation round more than once
-  // (e.g. a retry writes an identical history entry). Two entries are the
-  // same event if they share kind + label + amount + timestamp, so collapse
-  // those down to one before rendering.
+  // Dedupe: same negotiation round can get logged twice by the backend.
   const seen = new Set();
   const deduped = timeline
     .filter((entry) => entry.at)
@@ -165,46 +199,44 @@ const buildTimeline = (q) => {
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    })
-    .sort((a, b) => new Date(a.at) - new Date(b.at));
+    });
 
-  // The very first thing to happen in the trail is always Sales reaching out —
-  // it isn't a negotiated offer against anything, so relabel it rather than
-  // calling it a negotiated offer.
-  if (deduped.length && deduped[0].kind === "sales" && deduped[0].label === "Sales Negotiated Offer") {
-    deduped[0] = { ...deduped[0], label: "Sales Offer" };
+  // The very first thing to happen is always Sales reaching out — relabel it.
+  if (deduped.length) {
+    const chronological = [...deduped].sort((a, b) => new Date(a.at) - new Date(b.at));
+    const first = chronological[0];
+    if (first.kind === "sales" && first.label === "Sales Negotiated Offer") {
+      const idx = deduped.indexOf(first);
+      deduped[idx] = { ...first, label: "Sales Offer" };
+    }
   }
 
-  // The "Final Quotation" is the most recent quotation Sales actually sent —
-  // this can be a "Revised Quotation" OR an accepted "Sales Negotiated Offer"
-  // (both carry a real item list), whichever happened last. If Sales never
-  // sent a revision or a negotiated offer with items, the current top-level
-  // quotation fields are the only (and therefore latest) quotation sent.
-  const salesQuotationEntries = deduped.filter((e) => e.kind === "sales" && e.items?.length);
+  // Latest quotation Sales actually sent (revision OR negotiated offer with items).
+  const salesQuotationEntries = deduped
+    .filter((e) => e.kind === "sales" && e.items?.length)
+    .sort((a, b) => new Date(a.at) - new Date(b.at));
   const latestQuotationEntry = salesQuotationEntries[salesQuotationEntries.length - 1];
 
+  const isAccepted = q.status === "accepted";
+
   const finalEntry = latestQuotationEntry
-    ? {
-        kind: "sales",
-        label: "Final Quotation",
-        amount: latestQuotationEntry.amount,
-        items: latestQuotationEntry.items,
-        at: latestQuotationEntry.at,
-      }
+    ? { ...latestQuotationEntry, label: "Latest Quotation" }
     : {
         kind: "sales",
-        label: "Final Quotation",
+        label: "Latest Quotation",
         amount: q.grandTotal,
         items: q.items || [],
+        ...computeTotalsFromItems(q.items || []),
         at: q.createdAt || q.sentAt,
       };
 
-  // Drop the entry that's now shown as "Final Quotation" so it isn't
-  // duplicated earlier in the trail.
+  // Drop it from the trail so it isn't duplicated.
   const trail = latestQuotationEntry ? deduped.filter((e) => e !== latestQuotationEntry) : deduped;
+  const trailSorted = [...trail].sort((a, b) => new Date(b.at) - new Date(a.at)); // newest first
 
-  // Final/current state always trails the real negotiation trail.
-  return [...trail, finalEntry];
+  // Once accepted, "Latest Quotation" is redundant — the dedicated
+  // "Final Accepted Terms" card below already shows it. Otherwise, pin it on top.
+  return isAccepted ? trailSorted : [finalEntry, ...trailSorted];
 };
 
 // ────────────────────────────────────────────────────────────────
@@ -552,6 +584,13 @@ export default function CustomerQuotation() {
   const finalAmount = Number(quotation.grandTotal || 0);
 
   const finalItems = quotation.items;
+
+  const getDisplayStatus = (status) => {
+    if (status === "viewed") return "sent";
+    if (status === "counter_offered") return null;
+    return status;
+  };
+
   // ════════════════════════════════════════
   // SUCCESS SCREENS (immediately after action, this session only)
   // ════════════════════════════════════════
@@ -692,8 +731,15 @@ export default function CustomerQuotation() {
                 <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white">
                   #{quotation.quotationNumber}
                 </p>
+                {quotation.validUntil && (
+                  <p className="text-xs sm:text-sm text-green-100 font-medium mt-1.5">
+                    Valid Until: {new Date(quotation.validUntil).toLocaleDateString("en-IN")}
+                  </p>
+                )}
               </div>
-              <StatusPill status={effectiveStatus} size="lg" />
+              {getDisplayStatus(effectiveStatus) && (
+                <StatusPill status={getDisplayStatus(effectiveStatus)} size="lg" />
+              )}
             </div>
           </div>
         </div>
@@ -931,13 +977,36 @@ export default function CustomerQuotation() {
                           )}
                         </div>
 
-                        <p
-                          className={`text-lg font-extrabold mt-1.5 ${
-                            isCustomer ? "text-blue-800" : "text-green-800"
-                          }`}
-                        >
-                          ₹{Number(entry.amount || 0).toFixed(2)}
-                        </p>
+                        {isCustomer ? (
+                          <p className="text-lg font-extrabold mt-1.5 text-blue-800">
+                            ₹{Number(entry.amount || 0).toFixed(2)}
+                          </p>
+                        ) : (
+                          <div className="mt-2 space-y-1 text-sm">
+                            {entry.subtotal != null && (
+                              <div className="flex justify-between text-gray-600">
+                                <span>Subtotal</span>
+                                <span>₹{Number(entry.subtotal).toFixed(2)}</span>
+                              </div>
+                            )}
+                            {entry.gstAmount != null && (
+                              <div className="flex justify-between text-gray-600">
+                                <span>GST</span>
+                                <span>₹{Number(entry.gstAmount).toFixed(2)}</span>
+                              </div>
+                            )}
+                            {Number(entry.discountAmount || 0) > 0 && (
+                              <div className="flex justify-between text-gray-600">
+                                <span>Discount</span>
+                                <span>− ₹{Number(entry.discountAmount).toFixed(2)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between font-extrabold text-green-800 border-t border-green-200 pt-1 mt-1">
+                              <span>Total</span>
+                              <span>₹{Number(entry.amount || 0).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
 
                         {entry.message && (
                           <p className="text-xs text-gray-600 mt-2 whitespace-pre-line">{entry.message}</p>
@@ -1115,12 +1184,12 @@ export default function CustomerQuotation() {
           !showCounterOfferView &&
           !isAccepted &&
           quotation.status !== "rejected" &&
-          statusBadge[quotation.status] && (
+          getDisplayStatus(quotation.status) && (
             <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-8 text-center">
               <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
                 <ShieldCheck className="text-green-600" size={26} />
               </div>
-              <StatusPill status={quotation.status} size="lg" />
+              <StatusPill status={getDisplayStatus(quotation.status)} size="lg" />
             </div>
           )}
 
