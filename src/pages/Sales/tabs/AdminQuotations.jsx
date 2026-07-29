@@ -507,7 +507,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               </span>
             </h2>
             {selected.validUntil && (
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-s text-red-500 mt-0.5">
                 Valid Until: {new Date(selected.validUntil).toLocaleDateString("en-IN")}
                 {selected.validityDays ? ` (${selected.validityDays} days)` : ""}
               </p>
@@ -727,8 +727,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         </div>
 
         {selected.remarks && (
-          <p className="text-sm text-gray-600 mt-3 border-t border-gray-200 pt-3">
-            <span className="font-semibold">Admin notes:</span> {selected.remarks}
+          <p className="text-s text-red-400 mt-3 border-t border-gray-200 pt-3">
+            <span className="font-semibold text-gray-600">Admin notes:</span> {selected.remarks}
           </p>
         )}
       </div>

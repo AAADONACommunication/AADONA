@@ -191,6 +191,8 @@ export default function ManageQuotationRequests() {
       if (!res.ok) throw new Error(data?.message || "Failed to send quotation");
 
       setSuccessMsg("Quotation priced and sent to sales rep ✅");
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+
       // Remove this request from the pending list (or refresh if showing all)
       setRequests((prev) => prev.filter((r) => r._id !== selected._id));
       setTimeout(() => backToList(), 1200);
