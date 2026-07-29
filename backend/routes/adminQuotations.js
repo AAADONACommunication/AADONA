@@ -276,7 +276,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                     <p style="margin:0;font-size:12px;color:#854d0e">
                       Note: This is an internal pricing document for sales use only. Do not share this email with the partner. 
                       Do NOT share this email with the partner. 
-                      You may add your own markup, GST, and discount before sending the final quotation to the partner.
+                      You may add your own markup and discount before sending the final quotation to the partner.
                     </p>
                   </div>
                 </td>
