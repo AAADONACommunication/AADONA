@@ -558,6 +558,8 @@ export default function ManageQuotationRequests() {
                       : {
                           items: aq.items || [],
                           subtotal: aq.subtotal,
+                          gstAmount: aq.gstAmount,
+                          grandTotal: aq.grandTotal,
                           remarks: aq.remarks,
                           sentAt: aq.createdAt,
                         };
@@ -593,6 +595,9 @@ export default function ManageQuotationRequests() {
                               <th className="px-3 py-2">
                                 Unit Price
                               </th>
+                              <th className="px-3 py-2">
+                                GST (%)
+                              </th>
                               <th className="px-3 py-2 rounded-tr-lg">
                                 Total
                               </th>
@@ -624,6 +629,8 @@ export default function ManageQuotationRequests() {
                                 <td className="px-3 py-2 text-gray-700">
                                   ₹{Number(item.unitPrice || 0).toFixed(2)}
                                 </td>
+
+                                <td className="px-3 py-2 text-gray-700">{item.gst ?? 0}%</td>
 
                                 <td className="px-3 py-2 font-semibold text-gray-800">
                                   ₹{Number(item.total || 0).toFixed(2)}
@@ -674,6 +681,8 @@ export default function ManageQuotationRequests() {
                     revisedVersions.push({
                       items: history[i].items || [],
                       subtotal: history[i].subtotal,
+                      gstAmount: history[i].gstAmount,
+                      grandTotal: history[i].grandTotal,
                       remarks: history[i].remarks,
                       revisedAt: history[i].revisedAt,
                       revisionNumber: i,
@@ -684,6 +693,8 @@ export default function ManageQuotationRequests() {
                   revisedVersions.push({
                     items: aq.items || [],
                     subtotal: aq.subtotal,
+                    gstAmount: aq.gstAmount,
+                    grandTotal: aq.grandTotal,
                     remarks: aq.remarks,
                     revisedAt: aq.updatedAt,
                     revisionNumber: history.length,
@@ -761,17 +772,15 @@ export default function ManageQuotationRequests() {
                                       </td>
 
                                       <td className="px-3 py-2 text-gray-700">
-                                        ₹
-                                        {Number(
-                                          item.unitPrice || 0
-                                        ).toFixed(2)}
+                                        ₹{Number(item.unitPrice || 0).toFixed(2)}
+                                      </td>
+
+                                      <td className="px-3 py-2 text-gray-700">
+                                        {Number(item.gst || 0).toFixed(2)}%
                                       </td>
 
                                       <td className="px-3 py-2 font-semibold text-gray-800">
-                                        ₹
-                                        {Number(
-                                          item.total || 0
-                                        ).toFixed(2)}
+                                        ₹{Number(item.total || 0).toFixed(2)}
                                       </td>
                                     </tr>
                                   )

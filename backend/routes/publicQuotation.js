@@ -378,11 +378,15 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
     });
 
     const adminSubtotal = Number(quotation.sourceQuotation?.subtotal || 0);
-    quotation.adminApprovedAmount = adminSubtotal;
+    const adminGstAmount = Number(quotation.sourceQuotation?.gstAmount || 0);
+    const adminGrandTotal = Number(
+      quotation.sourceQuotation?.grandTotal || (adminSubtotal + adminGstAmount)
+    );
+    quotation.adminApprovedAmount = adminGrandTotal;
 
     const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
 
-    if (expected >= adminSubtotal) {
+    if (expected >= adminGrandTotal) {
       // ── Within sales rep's authority ──
       quotation.status = "negotiation_requested";
       await quotation.save();
@@ -411,6 +415,7 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
         console.error("Negotiation email failed:", mailErr.message);
       }
     } else {
+      const difference = adminGrandTotal - expected;
       // ── Below admin's minimum approved price — needs admin sign-off ──
       quotation.status = "awaiting_admin_approval";
       await quotation.save();

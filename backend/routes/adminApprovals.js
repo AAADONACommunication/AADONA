@@ -337,12 +337,16 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     adminQuotation.revisionHistory.push({
       items: adminQuotation.items,
       subtotal: adminQuotation.subtotal,
+      gstAmount: adminQuotation.gstAmount,
+      grandTotal: adminQuotation.grandTotal,
       remarks: adminQuotation.remarks,
       revisedAt: new Date(),
     });
 
     adminQuotation.items = revisedItems;
     adminQuotation.subtotal = revisedSubtotal;
+    adminQuotation.gstAmount = gstTotal;
+    adminQuotation.grandTotal = revisedGrandTotalWithGst; 
     if (remarks !== undefined) {
       adminQuotation.remarks = remarks.trim();
     }

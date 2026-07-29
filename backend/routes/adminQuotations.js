@@ -87,6 +87,8 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       const quantity = Number(item.quantity);
       const unitPrice = Number(item.unitPrice);
       const total = parseFloat((quantity * unitPrice).toFixed(2));
+      const total = parseFloat((quantity * unitPrice).toFixed(2));
+      const gstAmount = parseFloat((total * (gst / 100)).toFixed(2));
       return {
         name: item.name.trim(),
         description: item.description || "",
@@ -94,13 +96,18 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
         unitPrice,
         gst: Number(item.gst),
         total,
+        gstAmount,
       };
     });
 
-    // 7. Calculate subtotal
+    // 7. Calculate subtotal + GST + grand total
     const subtotal = parseFloat(
       calculatedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
     );
+    const gstAmount = parseFloat(
+      calculatedItems.reduce((sum, item) => sum + item.gstAmount, 0).toFixed(2)
+    );
+    const grandTotal = parseFloat((subtotal + gstAmount).toFixed(2));
 
     // 8. Valid till — admin-selected validity period
     const approvedAt = new Date();
@@ -114,6 +121,8 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       endCustomer: endCustomer ? endCustomer._id : null,
       items: calculatedItems,
       subtotal,
+      gstAmount,
+      grandTotal,   
       remarks: notes?.trim() || "",
       validTill,
       validityDays: validityDaysValue,
@@ -245,12 +254,16 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                 <td style="padding:16px 32px 0">
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                      <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">
-                        Subtotal
-                      </td>
-                      <td style="text-align:right;padding:4px 0 4px 24px;color:#166534;font-weight:800;font-size:16px;width:120px">
-                        ₹${subtotal.toFixed(2)}
-                      </td>
+                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">Subtotal</td>
+                      <td style="text-align:right;padding:4px 0;color:#111827;font-size:13px;width:120px">₹${subtotal.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:right;padding:4px 0;color:#6b7280;font-size:13px">GST</td>
+                      <td style="text-align:right;padding:4px 0;color:#111827;font-size:13px">₹${gstAmount.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">Grand Total</td>
+                      <td style="text-align:right;padding:4px 0 4px 24px;color:#166534;font-weight:800;font-size:16px">₹${grandTotal.toFixed(2)}</td>
                     </tr>
                   </table>
                 </td>
