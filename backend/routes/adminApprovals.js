@@ -137,9 +137,9 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
       };
     });
 
-    // Snapshot before overwrite (audit trail)
+    // Ek hi audit entry — Approve As-Is seedha finalize karta hai, ye "revision" nahi hai
     quotation.negotiationHistory.push({
-      type: "admin_revision",
+      type: "admin_approved",
       actor: "admin",
       eventAt: new Date(),
       expectedBudget: quotation.expectedBudget,
@@ -154,21 +154,6 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
         discount: i.discount,
         total: i.total,
       })),
-      adminRevisedSubtotal: subtotal,
-      adminRevisedDiscountAmount: parseFloat(newDiscount.toFixed(2)),
-      adminRevisedGstAmount: newGst,
-      revisedGrandTotal: newGrandTotal,
-      revisedAt: new Date(),
-      recordedAt: new Date(),
-    });
-
-    quotation.negotiationHistory.push({
-      type: "admin_approved",
-      actor: "admin",
-      eventAt: new Date(),
-      expectedBudget: quotation.expectedBudget,
-      customerMessage: quotation.customerMessage,
-      customerRespondedAt: quotation.customerRespondedAt,
       adminRevisedSubtotal: subtotal,
       adminRevisedDiscountAmount: parseFloat(newDiscount.toFixed(2)),
       adminRevisedGstAmount: newGst,
@@ -343,6 +328,11 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
       revisedItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)
     );
 
+    const gstTotal = parseFloat(
+      revisedItems.reduce((sum, i) => sum + (i.quantity * i.unitPrice * (i.gst / 100)), 0).toFixed(2)
+    );
+    const revisedGrandTotalWithGst = parseFloat((revisedSubtotal + gstTotal).toFixed(2));
+
     adminQuotation.revisionHistory = adminQuotation.revisionHistory || [];
     adminQuotation.revisionHistory.push({
       items: adminQuotation.items,
@@ -357,14 +347,14 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
       adminQuotation.remarks = remarks.trim();
     }
 
-    // ── Optional: admin explicitly chose to extend validity ──
     const ALLOWED_VALIDITY = [7, 15, 30, 45, 60, 90];
     if (extendValidityDays && ALLOWED_VALIDITY.includes(Number(extendValidityDays))) {
-      const newValidityDays = Number(extendValidityDays);
-      const newValidUntil = new Date(Date.now() + newValidityDays * 24 * 60 * 60 * 1000);
-      adminQuotation.validityDays = newValidityDays;
+      const daysToAdd = Number(extendValidityDays);
+      const baseDate = adminQuotation.validUntil || adminQuotation.validTill || new Date();
+      const newValidUntil = new Date(baseDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+
       adminQuotation.validUntil = newValidUntil;
-      quotation.validityDays = newValidityDays;
+      adminQuotation.validTill = newValidUntil;
       quotation.validUntil = newValidUntil;
     }
 
@@ -390,10 +380,8 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
 
       adminRevisedSubtotal: revisedSubtotal,
       adminRevisedDiscountAmount: 0,
-      adminRevisedGstAmount: parseFloat(
-        revisedItems.reduce((sum, i) => sum + (i.quantity * i.unitPrice * (i.gst / 100)), 0).toFixed(2)
-      ),
-      revisedGrandTotal: revisedSubtotal,
+      adminRevisedGstAmount: gstTotal,
+      revisedGrandTotal: revisedGrandTotalWithGst,
       revisedAt: new Date(),
       recordedAt: new Date(),
     });
@@ -407,14 +395,19 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     try {
       const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
       if (salesRep?.email) {
-        const itemRowsHtml = revisedItems.map((item, i) => `
-          <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
-            <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${item.total.toFixed(2)}</td>
-          </tr>
-        `).join("");
+        const itemRowsHtml = revisedItems.map((item, i) => {
+          const itemGstAmt = parseFloat((item.quantity * item.unitPrice * (item.gst / 100)).toFixed(2));
+          const itemTotalWithGst = parseFloat((item.total + itemGstAmt).toFixed(2));
+          return `
+            <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+              <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
+              <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
+              <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
+              <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
+              <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${itemTotalWithGst.toFixed(2)}</td>
+            </tr>
+          `;
+        }).join("");
 
         await transporter.sendMail({
           from: `"AADONA Admin" <${process.env.EMAIL_USER}>`,
@@ -433,12 +426,15 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
                     <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
                     <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
                     <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">New Price</th>
+                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
                     <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
                   </tr>
                 </thead>
                 <tbody>${itemRowsHtml}</tbody>
               </table>
-              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">New Subtotal: ₹${revisedSubtotal.toFixed(2)}</p>
+              <p style="color:#374151;font-size:14px;text-align:right;margin:4px 0">Subtotal: ₹${revisedSubtotal.toFixed(2)}</p>
+              <p style="color:#374151;font-size:14px;text-align:right;margin:4px 0">GST: ₹${gstTotal.toFixed(2)}</p>
+              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">New Grand Total: ₹${revisedGrandTotalWithGst.toFixed(2)}</p>
               ${adminQuotation.remarks ? `<p style="color:#374151;font-size:14px"><strong>Admin Notes:</strong> ${adminQuotation.remarks}</p>` : ""}
               <p style="color:#374151;font-size:14px">Please log in to the Sales Portal, apply your discount, and resend the revised quotation to the customer.</p>
             </div>
@@ -452,6 +448,52 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     return res.json(quotation);
   } catch (err) {
     console.error("Revise quotation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /admin/sales-quotations/:id/extend-validity ──
+// Standalone: sirf validity extend karta hai, pricing/items ko touch nahi karta
+router.post("/admin/sales-quotations/:id/extend-validity", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation ID" });
+    }
+
+    const { extendByDays } = req.body;
+    const ALLOWED_VALIDITY = [7, 15, 30, 45, 60, 90];
+    if (!extendByDays || !ALLOWED_VALIDITY.includes(Number(extendByDays))) {
+      return res.status(400).json({ message: "extendByDays must be one of 7, 15, 30, 45, 60, 90" });
+    }
+
+    const quotation = await SalesQuotation.findById(id).populate("sourceQuotation");
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    const adminQuotation = await AdminQuotation.findById(
+      quotation.sourceQuotation?._id || quotation.sourceQuotation
+    );
+    if (!adminQuotation) {
+      return res.status(404).json({ message: "Source admin quotation not found" });
+    }
+
+    const daysToAdd = Number(extendByDays);
+    // purani validity se hi ADD karo — overwrite nahi
+    const baseDate = adminQuotation.validUntil || adminQuotation.validTill || quotation.validUntil || new Date();
+    const newValidUntil = new Date(new Date(baseDate).getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+
+    adminQuotation.validUntil = newValidUntil;
+    adminQuotation.validTill = newValidUntil;
+    await adminQuotation.save();
+
+    quotation.validUntil = newValidUntil;
+    await quotation.save();
+
+    return res.json({ message: "Validity extended successfully", validUntil: newValidUntil });
+  } catch (err) {
+    console.error("Extend validity error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 });

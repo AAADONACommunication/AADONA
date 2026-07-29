@@ -250,6 +250,14 @@ export default function ManageQuotationRequests() {
               <span className="font-semibold">Requested On:</span>{" "}
               {selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : "—"}
             </p>
+            {selected.status === "quoted" && selected.adminQuotation?.validUntil && (
+              <p className="text-gray-700">
+                <span className="font-semibold">Valid Till:</span>{" "}
+                <span className="text-green-700 font-semibold">
+                  {new Date(selected.adminQuotation.validUntil).toLocaleDateString("en-IN")}
+                </span>
+              </p>
+            )}
           </div>
 
           {/* ── Partner Details ── */}

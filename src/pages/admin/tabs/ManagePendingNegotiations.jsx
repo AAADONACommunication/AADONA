@@ -23,7 +23,9 @@ export default function ManagePendingNegotiations() {
   const [reviseMode, setReviseMode] = useState(false);
   const [reviseItems, setReviseItems] = useState([]);
   const [reviseRemarks, setReviseRemarks] = useState("");
-  const [extendValidityDays, setExtendValidityDays] = useState(""); // optional — blank = keep current validity
+  const [extendValidityDays, setExtendValidityDays] = useState("");
+  const [standaloneExtendDays, setStandaloneExtendDays] = useState("");
+  const [extending, setExtending] = useState(false);
 
   const getToken = async () => {
     const auth = await getFirebaseAuth();
@@ -170,6 +172,38 @@ export default function ManagePendingNegotiations() {
     }
   };
 
+  const handleExtendValidity = async () => {
+    if (!standaloneExtendDays) {
+      setActionError("Please select how many days to extend.");
+      return;
+    }
+    setExtending(true);
+    setActionError("");
+    try {
+      const token = await getToken();
+      const res = await fetch(`${ACTION_API}/${selected._id}/extend-validity`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ extendByDays: Number(standaloneExtendDays) }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.message || "Failed to extend validity");
+
+      setSuccessMsg(`Validity extended ✅ — new Valid Till: ${new Date(data.validUntil).toLocaleDateString("en-IN")}`);
+      setStandaloneExtendDays("");
+      await loadPending();
+      setSelected((prev) => prev ? { ...prev, validUntil: data.validUntil } : prev);
+    } catch (err) {
+      console.error("Extend validity error:", err);
+      setActionError(err.message || "Failed to extend validity");
+    } finally {
+      setExtending(false);
+    }
+  };
+
   const updateReviseItem = (index, field, value) => {
     setReviseItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
@@ -204,7 +238,6 @@ export default function ManagePendingNegotiations() {
         body: JSON.stringify({
           items: reviseItems.map((item) => ({ unitPrice: Number(item.unitPrice) })),
           remarks: reviseRemarks,
-          ...(extendValidityDays ? { extendValidityDays: Number(extendValidityDays) } : {}),
         }),
       });
       const data = await safeJson(res);
@@ -374,6 +407,47 @@ export default function ManagePendingNegotiations() {
               <span className="font-semibold">Customer Message:</span> {selected.customerMessage}
             </p>
           )}
+        </div>
+
+        {/* ── Standalone Validity Extension — independent of pricing revision ── */}
+        <div className="bg-white rounded-2xl shadow-sm border border-blue-200 p-6">
+          <h3 className="text-base font-bold text-gray-800 mb-1">Quotation Validity</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Current Valid Till:{" "}
+            <span className="font-semibold text-gray-700">
+              {selected.validUntil
+                ? new Date(selected.validUntil).toLocaleDateString("en-IN")
+                : selected.sourceQuotation?.validUntil
+                ? new Date(selected.sourceQuotation.validUntil).toLocaleDateString("en-IN")
+                : "—"}
+            </span>
+          </p>
+          <div className="flex flex-wrap gap-3 items-center">
+            <select
+              value={standaloneExtendDays}
+              onChange={(e) => setStandaloneExtendDays(e.target.value)}
+              className={inputStyle + " max-w-[220px]"}
+            >
+              <option value="">Select days to extend...</option>
+              <option value="7">Extend by 7 Days</option>
+              <option value="15">Extend by 15 Days</option>
+              <option value="30">Extend by 30 Days</option>
+              <option value="45">Extend by 45 Days</option>
+              <option value="60">Extend by 60 Days</option>
+              <option value="90">Extend by 90 Days</option>
+            </select>
+            <button
+              type="button"
+              onClick={handleExtendValidity}
+              disabled={extending || !standaloneExtendDays}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-60"
+            >
+              {extending ? "Extending..." : "Extend Validity"}
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            This adds to the current validity date — it does not overwrite it, and works independently of pricing decisions.
+          </p>
         </div>
 
         {/* ── Admin Pricing History ── */}

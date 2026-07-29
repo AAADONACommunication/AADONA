@@ -230,14 +230,15 @@ const buildTimeline = (q) => {
   return sorted.filter((entry, idx) => {
     if (idx === 0) return true;
     const prev = sorted[idx - 1];
+    const bothAdminBucket = entry.kind === "admin" && prev.kind === "admin";
+    if (!bothAdminBucket) return true; // sirf consecutive admin-bucket entries hi dedupe karo
     const sameFigures =
       Number(entry.total || 0) === Number(prev.total || 0) &&
       Number(entry.subtotal || 0) === Number(prev.subtotal || 0) &&
       Number(entry.gstAmount || 0) === Number(prev.gstAmount || 0) &&
       Number(entry.discountAmount || 0) === Number(prev.discountAmount || 0) &&
       (entry.message || "") === (prev.message || "");
-    const closeInTime = Math.abs(new Date(entry.at) - new Date(prev.at)) < 60000;
-    return !(sameFigures && closeInTime);
+    return !sameFigures;
   });
 };
 
