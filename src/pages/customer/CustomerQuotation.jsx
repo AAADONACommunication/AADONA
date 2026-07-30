@@ -77,6 +77,28 @@ const statusBadge = {
   },
 };
 
+// Defensive display-level fix: whatever the backend has actually saved in
+// `notes` (even if it already contains duplicated segments from earlier
+// negotiation/resend/revision cycles), this makes sure the customer never
+// sees the same segment repeated. Splits on "|", trims each part, and keeps
+// only the first occurrence of each unique (case-insensitive) segment. This
+// does not touch the database — it only cleans what's shown on screen here.
+const dedupeNotes = (raw) => {
+  if (!raw) return raw;
+  const seen = new Set();
+  return raw
+    .split("|")
+    .map((part) => part.trim())
+    .filter((part) => {
+      if (!part) return false;
+      const key = part.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join(" | ");
+};
+
 const safeJson = async (res) => {
   const text = await res.text();
   try {
@@ -905,7 +927,9 @@ export default function CustomerQuotation() {
               <AlertTriangle size={16} className="text-red-600" />
               <h2 className="text-[11px] font-bold text-red-700 uppercase tracking-[0.12em]">Notes</h2>
             </div>
-            <p className="text-sm text-red-700 font-medium whitespace-pre-wrap leading-relaxed">{quotation.notes}</p>
+            <p className="text-sm text-red-700 font-medium whitespace-pre-wrap leading-relaxed">
+              {dedupeNotes(quotation.notes)}
+            </p>
           </div>
         )}
 

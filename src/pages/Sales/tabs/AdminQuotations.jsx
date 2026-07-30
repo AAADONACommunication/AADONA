@@ -16,6 +16,23 @@ const statusStyles = {
 
 const DEFAULT_NOTES = "Freight as per actuals";
 
+// Strips every occurrence of the always-on default note from a notes
+// string, wherever it appears (start, middle, or duplicated multiple
+// times from older buggy saves). Splits on "|", drops any segment that
+// exactly matches DEFAULT_NOTES, and rejoins what's left. This way the
+// state always holds only the sales person's actual extra text, so
+// buildNotes() can safely prepend the default exactly once, no matter
+// how many negotiation/revision cycles the quotation has been through
+// or how much duplicate junk is already sitting in old records.
+const stripDefaultNotes = (raw) => {
+  if (!raw) return "";
+  return raw
+    .split("|")
+    .map((part) => part.trim())
+    .filter((part) => part && part.toLowerCase() !== DEFAULT_NOTES.toLowerCase())
+    .join(" | ");
+};
+
 const calcAdminItemTotal = (item) => {
   const qty = Number(item?.quantity) || 0;
   const price = Number(item?.unitPrice) || 0;
@@ -145,7 +162,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             : ""
         );
 
-        setNotes(salesQuotation?.notes || "");
+        // Strip the always-on default note before loading into state so it
+        // doesn't get prepended again by buildNotes() on the next send.
+        setNotes(stripDefaultNotes(salesQuotation?.notes));
       } else {
         setDiscountEnabled(false);
         setDiscountType("percent");
@@ -204,6 +223,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
   );
 
   // Combines the always-on default note with whatever the sales person typed.
+  // `notes` state is always kept clean (stripped) of the default prefix, so
+  // this only ever prepends it once, no matter how many times the quotation
+  // cycles through revise/reject/resend.
   const buildNotes = () => [DEFAULT_NOTES, notes.trim()].filter(Boolean).join(" | ");
 
   const buildSalesPayload = () => ({
