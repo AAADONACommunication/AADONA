@@ -126,16 +126,17 @@ export default function ManageQuotationRequests() {
     );
   };
 
-  const total = priceItems.reduce((sum, item) => {
-    const base =
-      (Number(item.quantity) || 0) *
-      (Number(item.price) || 0);
-
-    const gst =
-      base * ((Number(item.gst) || 0) / 100);
-
-    return sum + base + gst;
+  // Broken out so both the itemised table and the summary block below
+  // stay in sync and always show Subtotal / GST / Total separately.
+  const subtotal = priceItems.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.price) || 0),
+    0
+  );
+  const gstAmount = priceItems.reduce((sum, item) => {
+    const base = (Number(item.quantity) || 0) * (Number(item.price) || 0);
+    return sum + base * ((Number(item.gst) || 0) / 100);
   }, 0);
+  const total = subtotal + gstAmount;
 
   const handleSubmitPricing = async (e) => {
     e.preventDefault();
@@ -487,8 +488,19 @@ export default function ManageQuotationRequests() {
             </div>
 
             <div className="flex justify-end mt-4">
-              <div className="text-base font-bold text-green-800">
-                Total: ₹{total.toFixed(2)}
+              <div className="w-full sm:w-72 space-y-1 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>GST</span>
+                  <span>₹{gstAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
+                  <span>Total</span>
+                  <span>₹{total.toFixed(2)}</span>
+                </div>
               </div>
             </div>
 
@@ -644,9 +656,19 @@ export default function ManageQuotationRequests() {
                       </div>
 
                       <div className="flex justify-end mt-4">
-                        <div className="text-base font-bold text-green-800">
-                          Subtotal: ₹
-                          {Number(original.subtotal || 0).toFixed(2)}
+                        <div className="w-full sm:w-72 space-y-1 text-sm">
+                          <div className="flex justify-between text-gray-600">
+                            <span>Subtotal</span>
+                            <span>₹{Number(original.subtotal || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-gray-600">
+                            <span>GST</span>
+                            <span>₹{Number(original.gstAmount || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
+                            <span>Total</span>
+                            <span>₹{Number(original.grandTotal || 0).toFixed(2)}</span>
+                          </div>
                         </div>
                       </div>
 
@@ -792,9 +814,19 @@ export default function ManageQuotationRequests() {
                           </div>
 
                           <div className="flex justify-end mt-4">
-                            <div className="text-base font-bold text-amber-700">
-                              Subtotal: ₹
-                              {Number(revision.subtotal || 0).toFixed(2)}
+                            <div className="w-full sm:w-72 space-y-1 text-sm">
+                              <div className="flex justify-between text-gray-600">
+                                <span>Subtotal</span>
+                                <span>₹{Number(revision.subtotal || 0).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-gray-600">
+                                <span>GST</span>
+                                <span>₹{Number(revision.gstAmount || 0).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-base font-bold text-amber-700 border-t border-amber-200 pt-1.5 mt-1.5">
+                                <span>Total</span>
+                                <span>₹{Number(revision.grandTotal || 0).toFixed(2)}</span>
+                              </div>
                             </div>
                           </div>
 
