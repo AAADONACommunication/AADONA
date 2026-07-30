@@ -41,160 +41,6 @@ const calcAdminItemTotal = (item) => {
   return base + base * (gst / 100);
 };
 
-// ── Partner-side negotiation timeline (sales_sent → admin revise/reject/approve → sales resend) ──
-// meta per negotiationHistory `type`. `trustTotal: true` = stored item.total is already
-// GST(+discount)-inclusive, safe to use as-is. `trustTotal: false` = stored total is
-// base-only (bug in the /revise route's item math) — recompute fresh instead.
-const NEGOTIATION_META = {
-  sales_sent: {
-    label: "Sent to Partner", cardClass: "border-green-200 bg-green-50",
-    labelClass: "text-green-800", theadClass: "bg-green-100 text-green-800",
-    table: true, itemsKey: "counterOfferItems", subtotalKey: "counterOfferSubtotal",
-    discountKey: "counterOfferDiscountAmount", gstKey: "counterOfferGstAmount",
-    totalKey: "counterOfferAmount", dateKey: "eventAt", trustTotal: true,
-  },
-  admin_revision: {
-    label: "Admin Revised Pricing", cardClass: "border-purple-200 bg-purple-50",
-    labelClass: "text-purple-800", theadClass: "bg-purple-100 text-purple-800",
-    table: true, itemsKey: "adminRevisedItems", subtotalKey: "adminRevisedSubtotal",
-    discountKey: "adminRevisedDiscountAmount", gstKey: "adminRevisedGstAmount",
-    totalKey: "revisedGrandTotal", dateKey: "revisedAt", trustTotal: false,
-  },
-  admin_approved: {
-    label: "Admin Approved Pricing (Discount Applied)", cardClass: "border-amber-200 bg-amber-50",
-    labelClass: "text-amber-800", theadClass: "bg-amber-100 text-amber-800",
-    table: true, itemsKey: "adminRevisedItems", subtotalKey: "adminRevisedSubtotal",
-    discountKey: "adminRevisedDiscountAmount", gstKey: "adminRevisedGstAmount",
-    totalKey: "revisedGrandTotal", dateKey: "revisedAt", trustTotal: true,
-  },
-  admin_rejected: {
-    label: "Admin Rejected Partner's Offer", cardClass: "border-red-200 bg-red-50",
-    labelClass: "text-red-800", table: false, dateKey: "eventAt",
-  },
-  sales_revised: {
-    label: "Resent to Partner (Revised)", cardClass: "border-green-200 bg-green-50",
-    labelClass: "text-green-800", theadClass: "bg-green-100 text-green-800",
-    table: true, itemsKey: "revisedSalesItems", subtotalKey: "revisedSalesSubtotal",
-    discountKey: "revisedSalesDiscountAmount", gstKey: "revisedSalesGstAmount",
-    totalKey: "revisedSalesGrandTotal", dateKey: "revisedSalesSentAt", trustTotal: true,
-  },
-  sales_counter_offer: {
-    label: "Counter-Offer Sent to Partner", cardClass: "border-blue-200 bg-blue-50",
-    labelClass: "text-blue-800", theadClass: "bg-blue-100 text-blue-800",
-    table: true, itemsKey: "counterOfferItems", subtotalKey: "counterOfferSubtotal",
-    discountKey: "counterOfferDiscountAmount", gstKey: "counterOfferGstAmount",
-    totalKey: "counterOfferAmount", dateKey: "eventAt", trustTotal: true,
-  },
-  sales_accepted: {
-    label: "Accepted Partner's Offer", cardClass: "border-green-200 bg-green-50",
-    labelClass: "text-green-800", table: false, dateKey: "eventAt",
-  },
-  rejected: {
-    label: "Quotation Rejected", cardClass: "border-red-200 bg-red-50",
-    labelClass: "text-red-800", table: false, dateKey: "eventAt",
-  },
-  sales_closed: {
-    label: "Quotation Closed", cardClass: "border-gray-200 bg-gray-50",
-    labelClass: "text-gray-700", table: false, dateKey: "eventAt",
-  },
-};
-
-const resolveNegotiationItemTotal = (item, trustTotal) => {
-  if (trustTotal && item?.total != null && !Number.isNaN(Number(item.total))) {
-    return Number(item.total);
-  }
-  const qty = Number(item?.quantity) || 0;
-  const price = Number(item?.unitPrice) || 0;
-  const gst = Number(item?.gst ?? 0);
-  const base = qty * price;
-  return base + base * (gst / 100);
-};
-
-const buildNegotiationTimeline = (salesQuotation) => {
-  const history = salesQuotation?.negotiationHistory || [];
-  const entries = [];
-
-  history.forEach((h, idx) => {
-    const meta = NEGOTIATION_META[h.type];
-
-    if (!meta) {
-      // Unknown/future type — still surface it instead of silently dropping it.
-      entries.push({
-        key: `${idx}-unknown`,
-        label: h.type ? h.type.replace(/_/g, " ") : "Update",
-        cardClass: "border-gray-200 bg-gray-50",
-        labelClass: "text-gray-700",
-        table: false,
-        at: h.eventAt || h.recordedAt,
-        expectedBudget: h.expectedBudget,
-        customerMessage: h.customerMessage,
-      });
-      return;
-    }
-
-    if (!meta.table) {
-      entries.push({
-        key: `${idx}-main`,
-        label: meta.label,
-        cardClass: meta.cardClass,
-        labelClass: meta.labelClass,
-        table: false,
-        at: h[meta.dateKey] || h.eventAt,
-        expectedBudget: h.expectedBudget,
-        customerMessage: h.customerMessage,
-      });
-      return;
-    }
-
-    entries.push({
-      key: `${idx}-main`,
-      label: meta.label,
-      cardClass: meta.cardClass,
-      labelClass: meta.labelClass,
-      theadClass: meta.theadClass,
-      table: true,
-      items: (h[meta.itemsKey] || []).map((item) => ({
-        ...item,
-        total: resolveNegotiationItemTotal(item, meta.trustTotal),
-      })),
-      subtotal: h[meta.subtotalKey],
-      discountAmount: h[meta.discountKey],
-      gstAmount: h[meta.gstKey],
-      grandTotal: h[meta.totalKey],
-      at: h[meta.dateKey] || h.eventAt,
-    });
-
-    // "item_price_revised" resends (/resend-revised on an admin_revision entry) merge the
-    // sales-resend fields INTO this same entry instead of pushing a new one. Surface it as
-    // its own card so "Admin Revised → Sales Resent" still show as two separate sequence steps.
-    // (admin_approved's resend is a genuinely separate pushed entry already — skip here to
-    // avoid rendering it twice.)
-    if (h.type === "admin_revision" && h.revisedSalesSentAt) {
-      entries.push({
-        key: `${idx}-resend`,
-        label: "Resent to Partner (Revised)",
-        cardClass: "border-green-200 bg-green-50",
-        labelClass: "text-green-800",
-        theadClass: "bg-green-100 text-green-800",
-        table: true,
-        items: (h.revisedSalesItems || []).map((item) => ({
-          ...item,
-          total: resolveNegotiationItemTotal(item, true),
-        })),
-        subtotal: h.revisedSalesSubtotal,
-        discountAmount: h.revisedSalesDiscountAmount,
-        gstAmount: h.revisedSalesGstAmount,
-        grandTotal: h.revisedSalesGrandTotal,
-        at: h.revisedSalesSentAt,
-      });
-    }
-  });
-
-  return entries
-    .filter((entry) => entry.at)
-    .sort((a, b) => new Date(a.at) - new Date(b.at));
-};
-
 export default function IncomingQuotations({ incomingQuotations, reloadIncomingQuotations }) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
@@ -273,17 +119,12 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           const adminPrice = Number(adminItem?.unitPrice ?? item.unitPrice ?? 0);
           const currentPrice = Number(item.unitPrice ?? item.price ?? 0);
 
-          // Only restore the sales person's own previous margin when the admin REJECTED
-          // (their old sales-priced quotation is being re-edited, price unchanged).
-          // On admin_revised (revise OR discount-approve), the price itself just changed —
-          // `currentPrice` here IS the new admin price, so back-calculating margin against
-          // it would always show a false "0%". Start blank so sales sets a fresh margin.
+          // When restoring a previously edited quotation, back-calculate the
+          // margin % that produced the stored price. Otherwise start blank.
           const marginPercent =
-            isAdminRejectedToSales && adminPrice > 0
+            isEditableReturn && adminPrice > 0
               ? parseFloat((((currentPrice - adminPrice) / adminPrice) * 100).toFixed(2))
               : "";
-
-          const startingPrice = isAdminRejectedToSales ? currentPrice : adminPrice;
 
           return {
             name: item.name,
@@ -291,8 +132,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             quantity: item.quantity,
             adminPrice,
             gst: adminItem?.gst ?? item.gst ?? 0,
-            marginPercent: isAdminRejectedToSales ? String(marginPercent) : "",
-            price: startingPrice,
+            marginPercent: isEditableReturn ? String(marginPercent) : "",
+            price: isEditableReturn ? currentPrice : adminPrice,
           };
         })
       );
@@ -799,6 +640,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                       : "—"}
                   </span>
                 </div>
+                // NEW
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
@@ -972,95 +814,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             </div>
           </div>
         </div>
+
         {selected.remarks && (
           <p className="text-s text-red-400 mt-3 border-t border-gray-200 pt-3">
             <span className="font-semibold text-gray-600">Admin notes:</span> {selected.remarks}
           </p>
         )}
       </div>
-
-      {/* ── Sequence: Sent to Partner → Admin Revise/Reject/Approve → Sales Resent ── */}
-      {salesQuotation && (salesQuotation.negotiationHistory?.length || 0) > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
-          <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">
-            Partner Quotation & Revision History
-          </p>
-          <div className="space-y-3">
-            {buildNegotiationTimeline(salesQuotation).map((entry) => (
-              <div key={entry.key} className={`rounded-xl border p-3.5 ${entry.cardClass}`}>
-                <div className="flex justify-between items-center mb-2">
-                  <p className={`text-sm font-bold ${entry.labelClass}`}>{entry.label}</p>
-                  <span className="text-xs text-gray-500">
-                    {entry.at
-                      ? new Date(entry.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-                      : "—"}
-                  </span>
-                </div>
-
-                {entry.table ? (
-                  <>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className={`${entry.theadClass} text-left`}>
-                            <th className="px-2 py-1.5">Product</th>
-                            <th className="px-2 py-1.5">Qty</th>
-                            <th className="px-2 py-1.5">Unit Price</th>
-                            <th className="px-2 py-1.5">GST</th>
-                            <th className="px-2 py-1.5">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {entry.items.map((item, idx) => (
-                            <tr key={idx} className="border-t border-gray-100">
-                              <td className="px-2 py-1.5 text-gray-800">{item.name}</td>
-                              <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
-                              <td className="px-2 py-1.5 text-gray-700">
-                                ₹{Number(item.unitPrice || 0).toFixed(2)}
-                              </td>
-                              <td className="px-2 py-1.5 text-gray-700">{Number(item.gst ?? 0)}%</td>
-                              <td className="px-2 py-1.5 font-semibold text-gray-800">
-                                ₹{Number(item.total || 0).toFixed(2)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="flex justify-end mt-2">
-                      <div className="text-xs text-gray-600 space-y-0.5 text-right">
-                        <p>Subtotal: ₹{Number(entry.subtotal || 0).toFixed(2)}</p>
-                        {Number(entry.discountAmount) > 0 && (
-                          <p>Discount: − ₹{Number(entry.discountAmount).toFixed(2)}</p>
-                        )}
-                        <p>GST: ₹{Number(entry.gstAmount || 0).toFixed(2)}</p>
-                        <p className="font-bold text-sm">
-                          Grand Total: ₹{Number(entry.grandTotal || 0).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-xs text-gray-600 space-y-0.5">
-                    {entry.expectedBudget != null && (
-                      <p>
-                        <span className="font-semibold">Partner Requested:</span> ₹
-                        {Number(entry.expectedBudget).toFixed(2)}
-                      </p>
-                    )}
-                    {entry.customerMessage && (
-                      <p>
-                        <span className="font-semibold">Partner Message:</span>{" "}
-                        {entry.customerMessage}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* ── Sales Person's Quotation ── */}
       {salesQuotation &&
