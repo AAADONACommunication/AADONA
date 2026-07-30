@@ -152,27 +152,45 @@ const buildTimeline = (q) => {
   const timeline = [];
 
   // ── 1. Admin quotation created (from sourceQuotation, if populated) ──
+  const stripTotal = (items = []) => items.map(({ total, ...rest }) => rest);
+  const adminHistory = q.sourceQuotation?.revisionHistory || [];
+
   if (q.sourceQuotation?.createdAt) {
+    const originalItems = adminHistory[0]?.items?.length
+      ? adminHistory[0].items
+      : q.sourceQuotation.items || [];
+    const originalSubtotal = adminHistory[0]?.items?.length
+      ? adminHistory[0].subtotal
+      : q.sourceQuotation.subtotal;
+
     timeline.push({
       kind: "admin",
       label: "Admin Quotation Created",
-      ...resolveMoneyFields(q.sourceQuotation.items || [], {
-        subtotal: q.sourceQuotation.subtotal,
-      }),
+      ...resolveMoneyFields(stripTotal(originalItems), { subtotal: originalSubtotal }),
       at: q.sourceQuotation.createdAt,
     });
   }
 
-  // ── 2. Admin's own internal revisions (AdminQuotation.revisionHistory) ──
-  (q.sourceQuotation?.revisionHistory || []).forEach((rev) => {
+  for (let i = 1; i < adminHistory.length; i++) {
+    const rev = adminHistory[i];
     timeline.push({
       kind: "admin",
-      label: "Admin Quotation Revised (Internal)",
-      ...resolveMoneyFields(rev.items || [], { subtotal: rev.subtotal }),
+      label: `Admin Quotation Revised (Internal) #${i}`,
+      ...resolveMoneyFields(stripTotal(rev.items || []), { subtotal: rev.subtotal }),
       message: rev.remarks,
       at: rev.revisedAt,
     });
-  });
+  }
+
+  if (adminHistory.length > 0) {
+    timeline.push({
+      kind: "admin",
+      label: `Admin Quotation Revised (Internal) #${adminHistory.length}`,
+      ...resolveMoneyFields(stripTotal(q.sourceQuotation.items || []), { subtotal: q.sourceQuotation.subtotal }),
+      message: q.sourceQuotation.remarks,
+      at: q.sourceQuotation.updatedAt,
+    });
+  }
 
   // ── 3. Original sales quotation snapshot — but skip if negotiationHistory
   const hasSalesSentInHistory = (q.negotiationHistory || []).some(

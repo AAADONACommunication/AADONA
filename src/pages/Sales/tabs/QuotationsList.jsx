@@ -118,35 +118,53 @@ const metaFor = (type) => TYPE_META[type] || { bucket: "seller", label: type?.re
 const buildTimeline = (q) => {
   const timeline = [];
 
-  // ── 1. Admin quotation created (from sourceQuotation, if populated) ──
+  // Admin item `total` is always stored WITHOUT GST — stripping it forces
+  // calcItemTotal to recompute base+GST fresh instead of trusting the stale value.
+  const stripTotal = (items = []) => items.map(({ total, ...rest }) => rest);
+
+  const adminHistory = q.sourceQuotation?.revisionHistory || [];
+
   if (q.sourceQuotation?.createdAt) {
-    const firstRevision = q.sourceQuotation?.revisionHistory?.[0];
-    const originalAdminItems = firstRevision?.previousItems?.length
-      ? firstRevision.previousItems
+    // True original = revisionHistory[0] (snapshot BEFORE the first revision).
+    // If no revision ever happened, current items ARE the original.
+    const originalItems = adminHistory[0]?.items?.length
+      ? adminHistory[0].items
       : q.sourceQuotation.items || [];
-    const originalAdminSubtotal = firstRevision?.previousItems?.length
-      ? undefined // let resolveMoneyFields compute it fresh from previousItems
+    const originalSubtotal = adminHistory[0]?.items?.length
+      ? adminHistory[0].subtotal
       : q.sourceQuotation.subtotal;
 
     timeline.push({
       kind: "admin",
       label: "Admin Quotation Created",
-      ...resolveMoneyFields(originalAdminItems, { subtotal: originalAdminSubtotal }),
-      message: q.sourceQuotation?.remarks && !firstRevision ? q.sourceQuotation.remarks : undefined,
+      ...resolveMoneyFields(stripTotal(originalItems), { subtotal: originalSubtotal }),
+      message: q.sourceQuotation?.remarks && adminHistory.length === 0 ? q.sourceQuotation.remarks : undefined,
       at: q.sourceQuotation.createdAt,
     });
   }
 
-  // ── 2. Admin's own internal revisions (AdminQuotation.revisionHistory) ──
-  (q.sourceQuotation?.revisionHistory || []).forEach((rev) => {
+  // ── 2. Intermediate revisions — skip index 0 (already shown above as "Created") ──
+  for (let i = 1; i < adminHistory.length; i++) {
+    const rev = adminHistory[i];
     timeline.push({
       kind: "admin",
-      label: "Admin Quotation Revised (Internal)",
-      ...resolveMoneyFields(rev.items || [], { subtotal: rev.subtotal }),
+      label: `Admin Quotation Revised (Internal) #${i}`,
+      ...resolveMoneyFields(stripTotal(rev.items || []), { subtotal: rev.subtotal }),
       message: rev.remarks,
       at: rev.revisedAt,
     });
-  });
+  }
+
+  // ── 2.5. Current AdminQuotation state = latest revision (was missing entirely before) ──
+  if (adminHistory.length > 0) {
+    timeline.push({
+      kind: "admin",
+      label: `Admin Quotation Revised (Internal) #${adminHistory.length}`,
+      ...resolveMoneyFields(stripTotal(q.sourceQuotation.items || []), { subtotal: q.sourceQuotation.subtotal }),
+      message: q.sourceQuotation.remarks,
+      at: q.sourceQuotation.updatedAt,
+    });
+  }
 
   // ── 3. Original sales quotation snapshot — but skip if negotiationHistory
   const hasSalesSentInHistory = (q.negotiationHistory || []).some(
@@ -184,11 +202,15 @@ const buildTimeline = (q) => {
         actor: h.actor,
         at,
       });
+   // NEW
     } else if (meta.bucket === "seller" || meta.bucket === "admin") {
+      // adminRevisedItems come from AdminQuotation — their `total` is base-only (no GST).
+      // counterOfferItems / revisedSalesItems are SalesQuotation-side and already GST-inclusive.
+      // Strip `total` ONLY for the admin-sourced array so calcItemTotal recomputes it fresh.
       const items = h.counterOfferItems?.length
         ? h.counterOfferItems
         : h.adminRevisedItems?.length
-        ? h.adminRevisedItems
+        ? h.adminRevisedItems.map(({ total, ...rest }) => rest)
         : h.revisedSalesItems || [];
       timeline.push({
         kind: meta.bucket,

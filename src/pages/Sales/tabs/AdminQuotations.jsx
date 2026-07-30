@@ -468,11 +468,11 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                         </td>
                         <td className="px-4 py-3 font-semibold text-gray-700">
                           ₹{(
-                              q.total ??
-                              (q.items || []).reduce(
-                                (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
-                                0
-                              )
+                              q.grandTotal ??
+                              (q.items || []).reduce((sum, item) => {
+                                const base = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
+                                return sum + base + base * ((Number(item.gst) || 0) / 100);
+                              }, 0)
                             ).toFixed(2)}
                         </td>
                         <td className="px-4 py-3">
@@ -640,6 +640,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                       : "—"}
                   </span>
                 </div>
+                // NEW
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
@@ -652,9 +653,10 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                       </tr>
                     </thead>
                     <tbody>
-                      {/* First revision's "before" state is the original items;
-                          if no revisions exist this branch won't render (guarded above) */}
-                      {(selected.revisionHistory[0]?.previousItems || selected.items || []).map((item, idx) => (
+                      {(selected.revisionHistory[0]?.items?.length
+                        ? selected.revisionHistory[0].items
+                        : selected.items || []
+                      ).map((item, idx) => (
                         <tr key={idx} className="border-t border-blue-100">
                           <td className="px-2 py-1.5 text-gray-800">{item.name}</td>
                           <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
@@ -670,11 +672,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 </div>
               </div>
 
-              {/* Each subsequent revision */}
-              {selected.revisionHistory.map((rev, i) => (
+              {/* Each subsequent revision — skip index 0, it's already shown above as "Created" */}
+              {selected.revisionHistory.slice(1).map((rev, i) => (
                 <div key={i} className="rounded-xl border border-purple-200 bg-purple-50 p-3.5">
                   <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm font-bold text-purple-800">Admin Quotation Revised</p>
+                    <p className="text-sm font-bold text-purple-800">
+                      Admin Quotation Revised #{i + 1}
+                    </p>
                     <span className="text-xs text-gray-500">
                       {rev.revisedAt
                         ? new Date(rev.revisedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
@@ -714,6 +718,51 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   )}
                 </div>
               ))}
+
+              {/* Current/latest admin quotation state — always the final entry when revisions exist */}
+              <div className="rounded-xl border border-green-200 bg-green-50 p-3.5">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm font-bold text-green-800">
+                    Admin Quotation Revised #{selected.revisionHistory.length} (Current)
+                  </p>
+                  <span className="text-xs text-gray-500">
+                    {selected.updatedAt
+                      ? new Date(selected.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+                      : "—"}
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-green-100 text-green-800 text-left">
+                        <th className="px-2 py-1.5">Product</th>
+                        <th className="px-2 py-1.5">Qty</th>
+                        <th className="px-2 py-1.5">Unit Price</th>
+                        <th className="px-2 py-1.5">GST</th>
+                        <th className="px-2 py-1.5">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(selected.items || []).map((item, idx) => (
+                        <tr key={idx} className="border-t border-green-100">
+                          <td className="px-2 py-1.5 text-gray-800">{item.name}</td>
+                          <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
+                          <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice || 0).toFixed(2)}</td>
+                          <td className="px-2 py-1.5 text-gray-700">{Number(item.gst ?? 0)}%</td>
+                          <td className="px-2 py-1.5 font-semibold text-gray-800">
+                            ₹{calcAdminItemTotal(item).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {selected.remarks && (
+                  <p className="text-xs text-gray-600 mt-2">
+                    <span className="font-semibold">Remarks:</span> {selected.remarks}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}

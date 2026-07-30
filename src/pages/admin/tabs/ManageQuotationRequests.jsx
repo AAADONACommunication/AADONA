@@ -647,7 +647,7 @@ export default function ManageQuotationRequests() {
                                 <td className="px-3 py-2 text-gray-700">{item.gst ?? 0}%</td>
 
                                 <td className="px-3 py-2 font-semibold text-gray-800">
-                                  ₹{Number(item.total || 0).toFixed(2)}
+                                  ₹{(Number(item.total || 0) + Number(item.total || 0) * (Number(item.gst || 0) / 100)).toFixed(2)}
                                 </td>
                               </tr>
                             ))}
@@ -803,9 +803,9 @@ export default function ManageQuotationRequests() {
                                         {Number(item.gst || 0).toFixed(2)}%
                                       </td>
 
-                                      <td className="px-3 py-2 font-semibold text-gray-800">
-                                        ₹{Number(item.total || 0).toFixed(2)}
-                                      </td>
+                                    <td className="px-3 py-2 font-semibold text-gray-800">
+                                      ₹{(Number(item.total || 0) + Number(item.total || 0) * (Number(item.gst || 0) / 100)).toFixed(2)}
+                                    </td>
                                     </tr>
                                   )
                                 )}

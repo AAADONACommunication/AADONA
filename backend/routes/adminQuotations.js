@@ -139,7 +139,11 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
     // 11. Build email HTML — only for Sales Rep, no GST
     const requestNumber = quotationRequest.requestNumber;
 
-    const itemRowsHtml = calculatedItems.map((item, i) => `
+    // GST-inclusive display
+    const itemRowsHtml = calculatedItems.map((item, i) => {
+      const itemTotalWithGst = parseFloat((item.total + item.gstAmount).toFixed(2));
+
+      return `
       <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
         <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">
           ${item.name}
@@ -156,10 +160,11 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
         %</td>
 
         <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">
-          ₹${item.total.toFixed(2)}
+          ₹${itemTotalWithGst.toFixed(2)}
         </td>
       </tr>
-    `).join("");
+    `;
+    }).join("");
 
     const emailHtml = `
       <!DOCTYPE html>

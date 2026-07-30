@@ -459,6 +459,7 @@ export default function ManagePendingNegotiations() {
 
           if (history.length === 0) return null;
 
+          // NEW
           const versions = [];
 
           // Original quotation = state before first revision
@@ -466,6 +467,8 @@ export default function ManagePendingNegotiations() {
             label: "Original Admin Quotation",
             items: history[0]?.items || [],
             subtotal: history[0]?.subtotal,
+            gstAmount: history[0]?.gstAmount,
+            grandTotal: history[0]?.grandTotal,
             remarks: history[0]?.remarks,
             at: aq.createdAt,
           });
@@ -476,6 +479,8 @@ export default function ManagePendingNegotiations() {
               label: `Revised Admin Quotation #${i}`,
               items: history[i]?.items || [],
               subtotal: history[i]?.subtotal,
+              gstAmount: history[i]?.gstAmount,
+              grandTotal: history[i]?.grandTotal,
               remarks: history[i]?.remarks,
               at: history[i]?.revisedAt,
             });
@@ -486,6 +491,8 @@ export default function ManagePendingNegotiations() {
             label: `Revised Admin Quotation #${history.length}`,
             items: aq.items || [],
             subtotal: aq.subtotal,
+            gstAmount: aq.gstAmount,
+            grandTotal: aq.grandTotal,
             remarks: aq.remarks,
             at: aq.updatedAt,
           });
@@ -521,49 +528,69 @@ export default function ManagePendingNegotiations() {
                             <th className="px-3 py-2">Product</th>
                             <th className="px-3 py-2">Qty</th>
                             <th className="px-3 py-2">Unit Price</th>
+                            <th className="px-3 py-2">GST (%)</th>
                             <th className="px-3 py-2">Total</th>
                           </tr>
                         </thead>
 
                         <tbody>
-                          {(version.items || []).map((item, itemIndex) => (
-                            <tr
-                              key={itemIndex}
-                              className="border-t border-amber-100"
-                            >
-                              <td className="px-3 py-2">
-                                <p className="font-medium text-gray-800">
-                                  {item.name || "—"}
-                                </p>
+                          {(version.items || []).map((item, itemIndex) => {
+                            const itemTotalWithGst =
+                              Number(item.total || 0) +
+                              Number(item.total || 0) * (Number(item.gst || 0) / 100);
 
-                                {item.description && (
-                                  <p className="text-xs text-gray-500">
-                                    {item.description}
+                            return (
+                              <tr
+                                key={itemIndex}
+                                className="border-t border-amber-100"
+                              >
+                                <td className="px-3 py-2">
+                                  <p className="font-medium text-gray-800">
+                                    {item.name || "—"}
                                   </p>
-                                )}
-                              </td>
 
-                              <td className="px-3 py-2">
-                                {item.quantity || 0}
-                              </td>
+                                  {item.description && (
+                                    <p className="text-xs text-gray-500">
+                                      {item.description}
+                                    </p>
+                                  )}
+                                </td>
 
-                              <td className="px-3 py-2">
-                                ₹{Number(item.unitPrice || 0).toFixed(2)}
-                              </td>
+                                <td className="px-3 py-2">
+                                  {item.quantity || 0}
+                                </td>
 
-                              <td className="px-3 py-2 font-semibold">
-                                ₹{Number(item.total || 0).toFixed(2)}
-                              </td>
-                            </tr>
-                          ))}
+                                <td className="px-3 py-2">
+                                  ₹{Number(item.unitPrice || 0).toFixed(2)}
+                                </td>
+
+                                <td className="px-3 py-2">
+                                  {Number(item.gst || 0).toFixed(2)}%
+                                </td>
+
+                                <td className="px-3 py-2 font-semibold">
+                                  ₹{itemTotalWithGst.toFixed(2)}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
 
+                    // NEW
                     <div className="flex justify-end mt-3">
-                      <p className="font-bold text-amber-700">
-                        Subtotal: ₹{Number(version.subtotal || 0).toFixed(2)}
-                      </p>
+                      <div className="text-sm space-y-1 text-right">
+                        <p className="text-gray-600">
+                          Subtotal: ₹{Number(version.subtotal || 0).toFixed(2)}
+                        </p>
+                        <p className="text-gray-600">
+                          GST: ₹{Number(version.gstAmount || 0).toFixed(2)}
+                        </p>
+                        <p className="font-bold text-amber-700">
+                          Grand Total: ₹{Number(version.grandTotal || 0).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
 
                     {version.remarks && (
