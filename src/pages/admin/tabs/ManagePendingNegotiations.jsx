@@ -23,7 +23,6 @@ export default function ManagePendingNegotiations() {
   const [reviseMode, setReviseMode] = useState(false);
   const [reviseItems, setReviseItems] = useState([]);
   const [reviseRemarks, setReviseRemarks] = useState("");
-  const [extendValidityDays, setExtendValidityDays] = useState("");
   const [standaloneExtendDays, setStandaloneExtendDays] = useState("");
   const [extending, setExtending] = useState(false);
 
@@ -116,7 +115,6 @@ export default function ManagePendingNegotiations() {
     );
 
     setReviseRemarks(q.sourceQuotation?.remarks || "");
-    setExtendValidityDays("");
   };
 
   const backToList = () => {
@@ -210,10 +208,17 @@ export default function ManagePendingNegotiations() {
     );
   };
 
-  const reviseTotal = reviseItems.reduce(
+  const reviseSubtotal = reviseItems.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
     0
   );
+  const reviseGst = reviseItems.reduce(
+    (sum, item) =>
+      sum +
+      (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0) * (Number(item.gst || 0) / 100),
+    0
+  );
+  const reviseGrandTotal = reviseSubtotal + reviseGst;
 
   const handleSubmitRevise = async (e) => {
     e.preventDefault();
@@ -459,7 +464,6 @@ export default function ManagePendingNegotiations() {
 
           if (history.length === 0) return null;
 
-          // NEW
           const versions = [];
 
           // Original quotation = state before first revision
@@ -578,7 +582,6 @@ export default function ManagePendingNegotiations() {
                       </table>
                     </div>
 
-                    // NEW
                     <div className="flex justify-end mt-3">
                       <div className="text-sm space-y-1 text-right">
                         <p className="text-gray-600">
@@ -758,8 +761,12 @@ export default function ManagePendingNegotiations() {
             </div>
 
             <div className="flex justify-end mt-4">
-              <div className="text-base font-bold text-amber-700">
-                New Subtotal: ₹{reviseTotal.toFixed(2)}
+              <div className="text-sm text-right space-y-1">
+                <p className="text-gray-600">Subtotal: ₹{reviseSubtotal.toFixed(2)}</p>
+                <p className="text-gray-600">GST: ₹{reviseGst.toFixed(2)}</p>
+                <p className="text-base font-bold text-amber-700">
+                  New Grand Total: ₹{reviseGrandTotal.toFixed(2)}
+                </p>
               </div>
             </div>
 
@@ -774,36 +781,6 @@ export default function ManagePendingNegotiations() {
                 placeholder="Reason for revision, updated terms, etc."
                 className={inputStyle}
               />
-            </div>
-
-            <div className="mt-4 border-t border-amber-100 pt-4">
-              <p className="text-xs text-gray-500 mb-1.5">
-                Current Valid Until:{" "}
-                <span className="font-semibold text-gray-700">
-                  {selected.sourceQuotation?.validUntil
-                    ? new Date(selected.sourceQuotation.validUntil).toLocaleDateString("en-IN")
-                    : "—"}
-                </span>
-              </p>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Extend Validity (optional)
-              </label>
-              <select
-                value={extendValidityDays}
-                onChange={(e) => setExtendValidityDays(e.target.value)}
-                className={inputStyle}
-              >
-                <option value="">Keep current validity</option>
-                <option value="7">Extend by 7 Days (from today)</option>
-                <option value="15">Extend by 15 Days (from today)</option>
-                <option value="30">Extend by 30 Days (from today)</option>
-                <option value="45">Extend by 45 Days (from today)</option>
-                <option value="60">Extend by 60 Days (from today)</option>
-                <option value="90">Extend by 90 Days (from today)</option>
-              </select>
-              <p className="text-xs text-gray-400 mt-1">
-                Leave blank to keep the original validity period unchanged.
-              </p>
             </div>
 
             <div className="flex justify-end mt-6">

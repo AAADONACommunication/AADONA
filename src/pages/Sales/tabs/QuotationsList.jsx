@@ -202,7 +202,6 @@ const buildTimeline = (q) => {
         actor: h.actor,
         at,
       });
-   // NEW
     } else if (meta.bucket === "seller" || meta.bucket === "admin") {
       // adminRevisedItems come from AdminQuotation — their `total` is base-only (no GST).
       // counterOfferItems / revisedSalesItems are SalesQuotation-side and already GST-inclusive.

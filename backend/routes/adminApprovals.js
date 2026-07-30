@@ -392,7 +392,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
 
     quotation.status = "admin_revised";
     quotation.adminApprovedAt = new Date();
-    quotation.adminApprovedAmount = revisedSubtotal;
+    quotation.adminApprovedAmount = revisedGrandTotalWithGst;
     quotation.pricingRevisionType = "item_price_revised";
     await quotation.save();
 

@@ -1106,7 +1106,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     quotation.expectedBudget = null;
     quotation.customerMessage = "";
     quotation.customerRespondedAt = null;
-    quotation.adminApprovedAmount = adminQuotation.subtotal;
+    quotation.adminApprovedAmount = adminQuotation.grandTotal;
     if (notes !== undefined) {
       quotation.notes = notes?.trim() || "";
     }
