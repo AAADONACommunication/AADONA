@@ -221,6 +221,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
     0
   );
+  const adminGstAmount = (selected?.items || []).reduce(
+    (sum, item) =>
+      sum +
+      (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0) * ((Number(item.gst) || 0) / 100),
+    0
+  );
+  const adminGrandTotal = adminSubtotal + adminGstAmount;
 
   // Combines the always-on default note with whatever the sales person typed.
   // `notes` state is always kept clean (stripped) of the default prefix, so
@@ -743,8 +750,19 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         </div>
 
         <div className="flex justify-end mt-4">
-          <div className="text-sm font-bold text-gray-700">
-            Admin Total: ₹{Number(selected.total ?? adminSubtotal).toFixed(2)}
+          <div className="w-full sm:w-72 space-y-1 text-sm">
+            <div className="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span>₹{adminSubtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>GST</span>
+              <span>₹{adminGstAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-base font-bold text-green-700 border-t border-gray-300 pt-1.5 mt-1.5">
+              <span>Total</span>
+              <span>₹{Number(selected.total ?? adminGrandTotal).toFixed(2)}</span>
+            </div>
           </div>
         </div>
 
