@@ -232,14 +232,34 @@ function buildQuotationEmailHtml({
             ${
               viewQuotationUrl
                 ? `
-            <!-- View Quotation Button -->
+            <!-- Action Buttons -->
             <tr>
               <td style="padding:28px 32px 0;text-align:center">
-                <a href="${viewQuotationUrl}"
-                  style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;
-                  font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px">
-                  ${ctaLabel}
-                </a>
+                <table cellpadding="0" cellspacing="0" style="margin:0 auto">
+                  <tr>
+                    <td style="padding:0 6px">
+                      <a href="${viewQuotationUrl}"
+                        style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;
+                        font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px">
+                        Accept Offer
+                      </a>
+                    </td>
+                    <td style="padding:0 6px">
+                      <a href="${viewQuotationUrl}"
+                        style="display:inline-block;background:#f59e0b;color:#ffffff;text-decoration:none;
+                        font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px">
+                        Negotiate
+                      </a>
+                    </td>
+                    <td style="padding:0 6px">
+                      <a href="${viewQuotationUrl}"
+                        style="display:inline-block;background:#dc2626;color:#ffffff;text-decoration:none;
+                        font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px">
+                        Do Not Proceed
+                      </a>
+                    </td>
+                  </tr>
+                </table>
                 <p style="color:#9ca3af;font-size:11px;margin:12px 0 0">
                   You can review the full details and respond directly from this page.
                 </p>
