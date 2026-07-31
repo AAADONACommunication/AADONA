@@ -261,7 +261,7 @@ export default function SalesSignup() {
 
                 <div>
                   <label className="block text-sm font-semibold text-green-900 mb-1.5">
-                    Phone (optional)
+                    Phone *
                   </label>
                   <input
                     type="tel"
