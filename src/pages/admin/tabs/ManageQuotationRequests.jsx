@@ -324,10 +324,6 @@ export default function ManageQuotationRequests() {
                   <span className="font-semibold">State:</span> {selected.endCustomer.state || "—"}
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">Contact Person:</span>{" "}
-                  {selected.endCustomer.contactPerson || "—"}
-                </p>
-                <p className="text-gray-700">
                   <span className="font-semibold">Designation:</span>{" "}
                   {selected.endCustomer.designation || "—"}
                 </p>

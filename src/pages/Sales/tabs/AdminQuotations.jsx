@@ -538,7 +538,6 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             {selected.validUntil && (
               <p className="text-s text-red-500 mt-0.5">
                 Valid Until: {new Date(selected.validUntil).toLocaleDateString("en-IN")}
-                {selected.validityDays ? ` (${selected.validityDays} days)` : ""}
               </p>
             )}
           </div>
