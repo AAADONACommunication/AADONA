@@ -20,7 +20,7 @@ const buildReminderEmailHtml = (quotation) => {
 
             <tr>
               <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
-                <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800">AADONA Communication</h1>
+                <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800">AADONA</h1>
                 <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Friendly Reminder</p>
               </td>
             </tr>
