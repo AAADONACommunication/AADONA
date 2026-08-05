@@ -205,6 +205,35 @@ export default function ManageQuotationRequests() {
     }
   };
 
+  const handleDeleteRequest = async (requestId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete this pending quotation request?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = await getToken();
+
+      const res = await fetch(`${REQUESTS_API}/${requestId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to delete request");
+      }
+
+      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+    } catch (err) {
+      alert(err.message || "Failed to delete request");
+    }
+  };
+
   // ════════════════════════════════════════
   // DETAIL / PRICING VIEW
   // ════════════════════════════════════════
@@ -947,8 +976,33 @@ export default function ManageQuotationRequests() {
                         {r.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-green-700 font-semibold">
-                      {r.status === "pending" ? "Price it →" : "View →"}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-3">
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openRequest(r);
+                          }}
+                          className="text-green-700 font-semibold hover:underline"
+                        >
+                          {r.status === "pending" ? "Price it →" : "View →"}
+                        </button>
+
+                        {r.status === "pending" && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRequest(r._id);
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                            title="Delete Request"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+
+                      </div>
                     </td>
                   </tr>
                 ))}

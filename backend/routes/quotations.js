@@ -302,4 +302,55 @@ router.get(
   }
 );
 
+/* =========================================================
+   ADMIN — Delete Pending Quotation Request
+========================================================= */
+router.delete(
+  "/admin/quotation-requests/:id",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const request = await QuotationRequest.findById(req.params.id);
+
+      if (!request) {
+        return res.status(404).json({
+          message: "Quotation request not found",
+        });
+      }
+
+      // Sirf pending requests delete hongi
+      if (request.status !== "pending") {
+        return res.status(400).json({
+          message: "Only pending quotation requests can be deleted.",
+        });
+      }
+
+      // Safety check: agar AdminQuotation ban chuki hai to delete mat hone do
+      const adminQuotation = await AdminQuotation.findOne({
+        quotationRequest: request._id,
+      });
+
+      if (adminQuotation) {
+        return res.status(400).json({
+          message:
+            "This request has already been processed and cannot be deleted.",
+        });
+      }
+
+      await request.deleteOne();
+
+      return res.json({
+        success: true,
+        message: "Quotation request deleted successfully.",
+      });
+    } catch (err) {
+      console.error("Delete quotation request error:", err.message);
+
+      return res.status(500).json({
+        error: err.message,
+      });
+    }
+  }
+);
+
 module.exports = router;
