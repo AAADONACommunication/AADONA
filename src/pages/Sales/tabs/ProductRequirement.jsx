@@ -481,9 +481,14 @@ export default function CreateQuotation({
               onClick={() => (pickerOpen ? closePicker() : setPickerOpen(true))}
               className="flex items-center justify-center gap-1.5 bg-white border border-green-300 text-green-700 px-3 py-2 rounded-lg hover:bg-green-50 transition text-sm font-semibold flex-1 sm:flex-none"
             >
-              <Package size={16} /> {pickerOpen ? "Close" : "Select Product"}
+              <Package size={16} /> {pickerOpen ? "Close" : "Add from category"}
             </button>
-           
+            <button
+              onClick={addManualItem}
+              className="flex items-center justify-center gap-1.5 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold flex-1 sm:flex-none"
+            >
+              <Plus size={16} /> Add custom item
+            </button>
           </div>
         </div>
 
@@ -649,7 +654,7 @@ export default function CreateQuotation({
 
         {items.length === 0 ? (
           <p className="text-sm text-gray-500 py-6 text-center">
-            No products added yet. Use "Select Product" above.
+            No products added yet. Use "Add from category" or "Add custom item" above.
           </p>
         ) : (
           <>
