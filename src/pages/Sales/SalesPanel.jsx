@@ -28,6 +28,7 @@ import ProjectLocking from "./tabs/ProjectLocking";
 import Insights from "./tabs/Insights";
 
 const PRODUCTS_API = `${import.meta.env.VITE_API_URL}/products`;
+const SALES_ONLY_PRODUCTS_API = `${import.meta.env.VITE_API_URL}/sales-only-products`;
 const CATEGORIES_API = `${import.meta.env.VITE_API_URL}/categories`;
 const CUSTOMERS_API = `${import.meta.env.VITE_API_URL}/customers`;
 const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
@@ -98,6 +99,7 @@ export default function SalesPanel() {
 
   // ── Shared Data ──
   const [products, setProducts] = useState([]);
+  const [salesOnlyProducts, setSalesOnlyProducts] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [quotations, setQuotations] = useState([]);
@@ -112,6 +114,20 @@ export default function SalesPanel() {
     } catch (error) {
       console.error("Fetch Error:", error);
       alert(error.message || "Failed to load products");
+    }
+  };
+
+  const loadSalesOnlyProducts = async () => {
+    try {
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch(SALES_ONLY_PRODUCTS_API, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await safeJson(res);
+      setSalesOnlyProducts(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Sales-only products fetch error:", error);
     }
   };
 
@@ -192,6 +208,7 @@ export default function SalesPanel() {
           setRepName(verifyData?.salesRep?.name || "");
           await Promise.all([
             loadProducts(),
+            loadSalesOnlyProducts(),
             loadCategories(),
             loadCustomers(),
             loadQuotations(),
@@ -426,6 +443,7 @@ export default function SalesPanel() {
               {activeTab === "create" && (
                 <CreateQuotation
                   products={products}
+                  salesOnlyProducts={salesOnlyProducts}
                   customers={customers}
                   allCategories={allCategories}
                   reloadCustomers={loadCustomers}

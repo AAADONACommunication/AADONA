@@ -16,6 +16,7 @@ const emptyManualItem = {
 
 export default function CreateQuotation({
   products,
+  salesOnlyProducts,
   customers,
   allCategories,
   reloadCustomers,
@@ -167,12 +168,16 @@ export default function CreateQuotation({
     resetPickerFilters();
   };
 
-  // Search bar matches by name across ALL products regardless of category filters
+  // Search bar matches by name across ALL products regardless of category
+  // filters — website products AND active Sales-Only Products together.
   const searchResults = useMemo(() => {
     if (!productSearch.trim()) return [];
     const q = productSearch.toLowerCase();
-    return products.filter((p) => p.name?.toLowerCase().includes(q));
-  }, [products, productSearch]);
+    return [
+      ...products.filter((p) => p.name?.toLowerCase().includes(q)),
+      ...salesOnlyAsProducts.filter((p) => p.name?.toLowerCase().includes(q)),
+    ];
+  }, [products, salesOnlyAsProducts, productSearch]);
 
   // Category-browsed products (only once a leaf — category, or subcategory if it has any — is picked)
   const subCategoryOptions = pickerType && pickerCategory ? getSubCategories(pickerType, pickerCategory) : [];
@@ -187,6 +192,17 @@ export default function CreateQuotation({
     });
   }, [products, pickerType, pickerCategory, pickerSubCategory, subCategoryOptions.length]);
 
+  const salesOnlyAsProducts = useMemo(
+    () =>
+      (salesOnlyProducts || []).map((p) => ({
+        _id: p._id,
+        name: p.modelName,
+        description: p.description || "",
+        isSalesOnly: true,
+      })),
+    [salesOnlyProducts]
+  );
+
   // ── Line item handlers (no price — sales only specifies what & how much) ──
   const addProduct = (product) => {
     if (!product) return;
@@ -196,6 +212,7 @@ export default function CreateQuotation({
         ...prev,
         {
           isManual: false,
+          isSalesOnly: !!product.isSalesOnly,
           productId: product._id,
           name: product.name,
           description: product.description || "",
@@ -245,7 +262,8 @@ export default function CreateQuotation({
     customer: customerId,
     endCustomer: endCustomerId,
     items: items.map((item) => ({
-      product: item.productId || undefined,
+      product: !item.isSalesOnly ? item.productId || undefined : undefined,
+      salesOnlyProduct: item.isSalesOnly ? item.productId || undefined : undefined,
       name: item.name,
       description: item.description,
       quantity: Number(item.quantity),
@@ -529,8 +547,16 @@ export default function CreateQuotation({
                         <div className="min-w-0">
                           <p className="font-medium text-gray-800 truncate">{p.name}</p>
                           <p className="text-xs text-gray-500 truncate">
-                            {p.category}
-                            {p.subCategory ? ` › ${p.subCategory}` : ""}
+                            {p.isSalesOnly ? (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
+                                Sales Only
+                              </span>
+                            ) : (
+                              <>
+                                {p.category}
+                                {p.subCategory ? ` › ${p.subCategory}` : ""}
+                              </>
+                            )}
                           </p>
                         </div>
                         {added && (
@@ -543,6 +569,43 @@ export default function CreateQuotation({
               </div>
             ) : (
               <>
+                {salesOnlyAsProducts.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">
+                      Sales-Only Products
+                    </label>
+                    <div className="max-h-40 overflow-y-auto border border-amber-200 rounded-lg bg-amber-50/40 divide-y divide-amber-100">
+                      {salesOnlyAsProducts.map((p) => {
+                        const added = items.some((item) => item.productId === p._id);
+                        return (
+                          <button
+                            key={p._id}
+                            onClick={() => addProduct(p)}
+                            disabled={added}
+                            className={`w-full text-left px-4 py-2.5 flex items-center justify-between gap-3 transition ${
+                              added ? "bg-amber-100/60 cursor-default" : "hover:bg-amber-100/60"
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-800 truncate">{p.name}</p>
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-semibold">
+                                Sales Only
+                              </span>
+                            </div>
+                            {added ? (
+                              <span className="text-xs font-semibold text-green-600 whitespace-nowrap">
+                                Added
+                              </span>
+                            ) : (
+                              <Plus size={14} className="text-amber-600 shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Type / Category / Sub-category — three dropdowns, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
@@ -674,6 +737,11 @@ export default function CreateQuotation({
                       ) : (
                         <p className="font-medium text-gray-800 text-sm break-words">
                           {item.name}
+                          {item.isSalesOnly && (
+                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-semibold align-middle">
+                              Sales Only
+                            </span>
+                          )}
                         </p>
                       )}
                     </div>
@@ -725,7 +793,14 @@ export default function CreateQuotation({
                             className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
                           />
                         ) : (
-                          <p className="font-medium text-gray-800">{item.name}</p>
+                          <p className="font-medium text-gray-800">
+                            {item.name}
+                            {item.isSalesOnly && (
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-semibold align-middle">
+                                Sales Only
+                              </span>
+                            )}
+                          </p>
                         )}
                       </td>
                       <td className="px-3 py-2 w-28">

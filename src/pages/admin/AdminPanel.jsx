@@ -20,6 +20,7 @@ import {
   LayoutGrid,
   Globe,
   TrendingUp,
+  Tag,
 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
@@ -37,6 +38,7 @@ import ManageSales from "./tabs/ManageSales";
 import ManageQuotationRequests from "./tabs/ManageQuotationRequests";
 import ManagePendingNegotiations from "./tabs/ManagePendingNegotiations";
 import FunnelReport from "./tabs/FunnelReport"
+import SalesOnlyProducts from "./tabs/SalesOnlyProducts";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
@@ -74,6 +76,7 @@ const TABS = [
   { id: "quotation-requests", label: "Quotation Requests", icon: FileText, desc: "Price incoming requests", group: "sales" },
   { id: "pending-negotiations", label: "Pending Negotiations", icon: Handshake, desc: "Approve, reject or revise", group: "sales" },
   { id: "funnel-report", label: "Funnel Report", icon: TrendingUp, desc: "Sales funnel conversion stats", group: "sales" },
+  { id: "sales-only-products", label: "Sales-Only Products", icon: Tag, desc: "Internal-only items for Sales", group: "sales" },
 ];
 
 const SECTIONS = [
@@ -402,9 +405,14 @@ export default function AdminPanel() {
                 <ManagePendingNegotiations />
               )}
 
+              {activeTab === "sales-only-products" && (
+                <SalesOnlyProducts />
+              )}
+
               {activeTab === "funnel-report" && (
                 <FunnelReport/>
               )}
+
             </>
           )}
 

@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const QuotationRequestItemSchema = new mongoose.Schema(
   {
     product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", default: null },
+    salesOnlyProduct: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SalesOnlyProduct",
+      default: null,
+    },
     name: { type: String, required: true },
     description: { type: String, default: "" },
     quantity: { type: Number, required: true, min: 1 },

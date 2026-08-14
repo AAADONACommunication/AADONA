@@ -23,6 +23,7 @@ const projectLockRoutes = require("./routes/projectLock");
 const startQuotationReminderCron = require("./cron/quotationReminders");
 const publicQuotationRoutes = require("./routes/publicQuotation");
 const adminApprovalRoutes = require("./routes/adminApprovals");
+const salesOnlyProductsRoutes = require("./routes/salesOnlyProducts");
 
 const { getBrowser, closeBrowser } = require("./helpers/browserPool");
 
@@ -241,6 +242,7 @@ app.use("/api", projectLockRoutes);
 app.use("/api/public", publicQuotationRoutes);
 app.use("/api", adminApprovalRoutes);
 app.use("/api/admin/sales", adminSalesRoutes);
+app.use("/api", salesOnlyProductsRoutes);
 
 // SEO / Security headers for all responses
 app.use((req, res, next) => {
