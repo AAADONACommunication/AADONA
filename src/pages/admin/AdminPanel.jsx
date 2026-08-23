@@ -101,6 +101,35 @@ export default function AdminPanel() {
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [showAdminList, setShowAdminList] = useState(false);
 
+  // ── Pending counters for dashboard badges ──
+  const [pendingCounts, setPendingCounts] = useState({
+    "quotation-requests": 0,
+    "pending-negotiations": 0,
+  });
+
+  const loadPendingCounts = async () => {
+    try {
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [quotationRes, negotiationRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/admin/quotation-requests/count`, { headers }),
+        fetch(`${import.meta.env.VITE_API_URL}/admin/sales-quotations/pending-approval/count`, { headers }),
+      ]);
+
+      const quotationData = await safeJson(quotationRes);
+      const negotiationData = await safeJson(negotiationRes);
+
+      setPendingCounts({
+        "quotation-requests": quotationData?.count || 0,
+        "pending-negotiations": negotiationData?.count || 0,
+      });
+    } catch (err) {
+      console.error("Load pending counts error:", err);
+    }
+  };
+
   // ── Shared Fetch Helpers ──
   const loadProducts = async () => {
     try {
@@ -179,6 +208,7 @@ export default function AdminPanel() {
           loadProducts();
           loadBlogs();
           loadCategories();
+          loadPendingCounts();
         } else {
           navigate("/ram-ctrl-505");
         }
@@ -206,6 +236,14 @@ export default function AdminPanel() {
       events.forEach((e) => window.removeEventListener(e, resetTimer));
     };
   }, [navigate]);
+
+  // Refresh badge counts every time the dashboard launcher is shown again
+  useEffect(() => {
+    if (activeTab === null && !loading) {
+      loadPendingCounts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   if (loading)
   return (
@@ -295,12 +333,18 @@ export default function AdminPanel() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       {sectionTabs.map((tab) => {
                         const Icon = tab.icon;
+                        const count = pendingCounts[tab.id] || 0;
                         return (
                           <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className="group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                            className="relative group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
                           >
+                            {count > 0 && (
+                              <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold shadow-md">
+                                {count > 99 ? "99+" : count}
+                              </span>
+                            )}
                             <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
                               <Icon size={20} />
                             </div>

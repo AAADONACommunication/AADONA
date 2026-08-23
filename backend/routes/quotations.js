@@ -248,6 +248,18 @@ router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
 });
 
 /* =========================================================
+   ADMIN — Count of pending quotation requests (for dashboard badge)
+========================================================= */
+router.get("/admin/quotation-requests/count", verifyToken, async (req, res) => {
+  try {
+    const count = await QuotationRequest.countDocuments({ status: "pending" });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================================================
    ADMIN — Get single request detail
 ========================================================= */
 router.get(

@@ -53,6 +53,23 @@ router.get(
   }
 );
 
+// ── GET /admin/sales-quotations/pending-approval/count ──
+router.get(
+  "/admin/sales-quotations/pending-approval/count",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const count = await SalesQuotation.countDocuments({
+        status: "awaiting_admin_approval",
+      });
+      return res.json({ count });
+    } catch (err) {
+      console.error("Get pending negotiations count error:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
 // ── POST /admin/sales-quotations/:id/approve ──
 router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res) => {
   try {
