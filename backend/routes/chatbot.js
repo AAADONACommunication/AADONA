@@ -71,7 +71,7 @@ const buildProductUrl = (p) => {
   return `${BASE_URL}/${cat}/${p.slug}`;
 };
 
-// ─── Spec-Based Product Matching (File2 engine - better) ─────────────────
+// ─── Spec-Based Product Matching (File2 engine — better) ─────────────────
 const specMatchProducts = (userMessage, products) => {
   const msg = userMessage.toLowerCase();
   const isGemQuery = /\bgem\b|government\s*e\s*marketplace/i.test(msg);
@@ -266,6 +266,18 @@ const specMatchProducts = (userMessage, products) => {
     .map(s => s.p);
 };
 
+// ─── Switch-type clarification check ──────────────────────────────────────
+// If the user is clearly asking about switches (mentions "switch" or a
+// port count) but hasn't said which TYPE, showing 6-8 mixed models
+// (unmanaged + managed + industrial all together) just confuses them —
+// they don't know which model belongs to which type. Ask once instead.
+const needsSwitchTypeClarification = (userMessage) => {
+  const msg = userMessage.toLowerCase();
+  const mentionsSwitch = /\bswitch(es)?\b/i.test(msg) || /(\d+)\s*[-\s]*port/i.test(msg);
+  const hasType = /\bunmanaged\b|\bmanaged\b|\bwebsmart\b|\bsmart\s*switch\b|\bindustrial\b|\bl2\b|layer.?2|\bl3\b|layer.?3/i.test(msg);
+  return mentionsSwitch && !hasType;
+};
+
 // ─── Smart DB Search using Gemini ────────────────────────────────────────
 const findProductsByQuery = async (userMessage, products, apiKey, categoryHint = null) => {
   try {
@@ -351,7 +363,7 @@ const buildProductInfoText = (product) => {
 // ─── Build Spec Match Response Text ───────────────────────────────────────
 const buildSpecMatchText = (matchedProducts) => {
   if (!matchedProducts.length) {
-    return `Please share your application and network size - our technical team will suggest the right product.`;
+    return `Please share your application and network size — our technical team will suggest the right product.`;
   }
   if (matchedProducts.length === 1) {
     const p = matchedProducts[0];
@@ -368,12 +380,29 @@ const buildSpecMatchText = (matchedProducts) => {
 
 // ─── Intent Definitions ────────────────────────────────────────────────────
 const STRUCTURED_INTENTS = [
+  // ── Pricing — ALWAYS a fixed response, checked first. Prices are never
+  // discussed over chat (depends on qty/config/project), so instead of
+  // letting the LLM keep suggesting models when price is asked, we hand
+  // off to sales immediately. ──
+  {
+    id: 'price_query',
+    regex: /\b(price|pricing|prices|priced|cost|costs|costing|quote|quotation|mrp)\b|\brate\b\s*(kya|batao|please|hai)?|kitn(a|e)\b.{0,20}\b(price|cost|paisa|rupee|rs\.?|daam|keemat|kimat|padega|padegi)\b|\bkeemat\b|\bkimat\b|\bdaam\b/i,
+    respond: () => ({
+      text: `Pricing depends on quantity, configuration, and project requirements, so it can't be shared over chat.\n\nPlease email **sales@aadona.com** (or **contact@aadona.com**) with your requirement — a sales associate will get in touch with you directly.`,
+      actionButtons: [
+        { label: 'Contact Us', url: `${BASE_URL}/contactUs` }
+      ],
+      escalate: true,
+      escalateType: 'sales'
+    })
+  },
+
   // ── Support / Technical Config Intents ──
   {
     id: 'ap_config',
     regex: /access.?point.*config|ap.*config|wireless.*config|config.*access.?point|config.*ap|ssid.*setup|vlan.*wireless|configure.*wireless/i,
     respond: () => ({
-      text: `Yes, AADONA provides complete configuration support for wireless access points - including SSID creation, VLAN setup, security configuration (WPA2/WPA3), and controller integration.\n\nOur technical team will assist you directly.`,
+      text: `Yes, AADONA provides complete configuration support for wireless access points — including SSID creation, VLAN setup, security configuration (WPA2/WPA3), and controller integration.\n\nOur technical team will assist you directly.`,
       actionButtons: [
         { label: 'Product Support', url: `${BASE_URL}/productSupport` },
         { label: 'Contact Us', url: `${BASE_URL}/contactUs` }
@@ -386,7 +415,7 @@ const STRUCTURED_INTENTS = [
     id: 'switch_config',
     regex: /switch.*config|config.*switch|vlan.*switch|l3.*switch|qos.*config|acl.*config|poe.*config|routing.*config|managed.*switch.*setup/i,
     respond: () => ({
-      text: `Yes, we provide full configuration support for AADONA switches - VLAN setup, L3 routing, QoS, ACL, PoE settings, and complete network optimization.\n\nOur technical team will assist you directly.`,
+      text: `Yes, we provide full configuration support for AADONA switches — VLAN setup, L3 routing, QoS, ACL, PoE settings, and complete network optimization.\n\nOur technical team will assist you directly.`,
       actionButtons: [
         { label: 'Product Support', url: `${BASE_URL}/productSupport` },
         { label: 'Contact Us', url: `${BASE_URL}/contactUs` }
@@ -399,7 +428,7 @@ const STRUCTURED_INTENTS = [
     id: 'nas_config',
     regex: /nas.*config|config.*nas|raid.*config|truenas|storage.*pool|nas.*setup|nas.*support|network.*attached.*storage.*config/i,
     respond: () => ({
-      text: `Yes, complete NAS setup support is provided - including RAID configuration, storage pooling (TrueNAS-based), user access management, and backup/replication setup.\n\nOur technical team will assist you directly.`,
+      text: `Yes, complete NAS setup support is provided — including RAID configuration, storage pooling (TrueNAS-based), user access management, and backup/replication setup.\n\nOur technical team will assist you directly.`,
       actionButtons: [
         { label: 'Product Support', url: `${BASE_URL}/productSupport` },
         { label: 'Contact Us', url: `${BASE_URL}/contactUs` }
@@ -412,7 +441,7 @@ const STRUCTURED_INTENTS = [
     id: 'cctv_config',
     regex: /cctv.*config|camera.*config|nvr.*setup|dvr.*setup|surveillance.*config|camera.*integration|cctv.*support/i,
     respond: () => ({
-      text: `Yes, AADONA provides CCTV system configuration support - camera integration, NVR/DVR setup, storage configuration, and remote monitoring setup.\n\nOur technical team will assist you directly.`,
+      text: `Yes, AADONA provides CCTV system configuration support — camera integration, NVR/DVR setup, storage configuration, and remote monitoring setup.\n\nOur technical team will assist you directly.`,
       actionButtons: [
         { label: 'Product Support', url: `${BASE_URL}/productSupport` },
         { label: 'Contact Us', url: `${BASE_URL}/contactUs` }
@@ -644,7 +673,7 @@ const isProductSuggestionQuery = (msg) => {
 
 // ─── System Prompt ─────────────────────────────────────────────────────────
 const buildSystemPrompt = (userName, userPhone, userCity) => `
-You are AADONA Assistant - AI-powered chatbot for AADONA Communication Pvt Ltd (Indian networking brand, founded 2018, HQ: Hyderabad).
+You are AADONA Assistant — AI-powered chatbot for AADONA Communication Pvt Ltd (Indian networking brand, founded 2018, HQ: Hyderabad).
 
 LANGUAGE RULES (CRITICAL):
 - Detect language from user's LAST message ONLY.
@@ -666,7 +695,7 @@ CONTENT RULES:
 
 RESPONSE LENGTH (CRITICAL):
 - Maximum 2-3 sentences per reply. Never exceed this.
-- Product cards handle details - you only need to introduce/confirm.
+- Product cards handle details — you only need to introduce/confirm.
 
 PRODUCTS: Wireless APs, Surveillance (Cameras/NVR/DVR), Network Switches (Managed/PoE/Rack), Servers & Workstations, NAS, Industrial Switches, Passive (Cat6/6A/7, Fiber, Patch Panels), Media Converters, Wireless Controllers.
 
@@ -690,7 +719,7 @@ router.post('/chat/register', async (req, res) => {
     await transporter.sendMail({
       from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
       to: process.env.COMPANY_EMAIL,
-      subject: `New Chatbot User - ${name}`,
+      subject: `New Chatbot User — ${name}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:28px;border:1px solid #d1fae5;border-radius:12px">
           <h2 style="color:#065f46;margin-bottom:4px">New Chatbot Registration</h2>
@@ -747,7 +776,7 @@ router.post('/chat/summary', async (req, res) => {
       await transporter.sendMail({
         from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
         to: process.env.COMPANY_EMAIL,
-        subject: `User Resumed Chat - ${name} (+91 ${phone})`,
+        subject: `User Resumed Chat — ${name} (+91 ${phone})`,
         html: `
           <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;border:1px solid #fef08a;border-radius:12px">
             <div style="background:#fefce8;padding:16px 20px;border-radius:8px;margin-bottom:20px;border-left:4px solid #f59e0b">
@@ -768,7 +797,7 @@ router.post('/chat/summary', async (req, res) => {
     await transporter.sendMail({
       from: `"AADONA Chatbot" <${process.env.EMAIL_USER}>`,
       to: process.env.COMPANY_EMAIL,
-      subject: `Chat Summary - ${name} (+91 ${phone})${req.body.trigger === 'close' ? ' (Tab Closed)' : ' (10 min Inactivity)'}`,
+      subject: `Chat Summary — ${name} (+91 ${phone})${req.body.trigger === 'close' ? ' (Tab Closed)' : ' (10 min Inactivity)'}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;padding:28px;border:1px solid #d1fae5;border-radius:12px">
           <h2 style="color:#065f46;margin-bottom:4px">Chat Summary (${req.body.trigger === 'close' ? 'Tab Closed' : '10 min Inactivity'})</h2>
@@ -921,6 +950,22 @@ router.post('/chat', chatLimiter, async (req, res) => {
 
     // ── 2. SPEC-BASED PRODUCT SUGGESTION ─────────────────────────────────
     if (isSpecQuery(lastUserMessage) || isProductSuggestionQuery(lastUserMessage)) {
+
+      // Switch query with no type (managed/unmanaged/industrial) → ask
+      // first, instead of showing every switch type mixed together.
+      if (needsSwitchTypeClarification(lastUserMessage)) {
+        const clarifyText = `To show the right switches, please confirm the type you need:\n\n• **Unmanaged** — plug-and-play, no configuration\n• **Managed / Web-Smart** — VLAN, monitoring, advanced config\n• **Industrial** — rugged, harsh-environment rated\n\nShare the type along with your port/PoE requirement and we'll show matching models.`;
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders();
+
+        res.write(`data: ${JSON.stringify({ token: clarifyText })}\n\n`);
+        res.write(`data: ${JSON.stringify({ done: true, productCards: null, actionButtons: null, escalate: null })}\n\n`);
+        return res.end();
+      }
+
       const specMatched = specMatchProducts(lastUserMessage, products);
       const safeProducts = isGemQuery
       ? products.filter(p => !(p.category || '').toLowerCase().includes('surveillance'))
@@ -965,7 +1010,7 @@ router.post('/chat', chatLimiter, async (req, res) => {
       }
 
       if (isProductSuggestionQuery(lastUserMessage)) {
-        const suggestText = `To suggest the most suitable AADONA product for your requirement, our technical team needs a few more details:\n\n• **Application** - CCTV / Office / Data Center / Wi-Fi\n• **Number of users/devices**\n• **Network size** - Small / Medium / Large\n• **Compliance** - GeM / MII / ISO (if applicable)\n\nOur team will propose an optimized solution.`;
+        const suggestText = `To suggest the most suitable AADONA product for your requirement, our technical team needs a few more details:\n\n• **Application** — CCTV / Office / Data Center / Wi-Fi\n• **Number of users/devices**\n• **Network size** — Small / Medium / Large\n• **Compliance** — GeM / MII / ISO (if applicable)\n\nOur team will propose an optimized solution.`;
 
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
