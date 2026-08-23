@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
+import { Heart, Link2, Check, Loader2 } from "lucide-react";
 import bg from "../assets/bg.jpg";
 import blogbanner from "../assets/BlogBanner.avif";
 
@@ -156,7 +157,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
           <div className="flex items-center gap-3 text-xs text-gray-400">
             <span>{post.views || 0} views</span>
             <span className="flex items-center gap-1 text-red-400 font-medium">
-              ❤️ {post.likes || 0}
+              <Heart className="w-3.5 h-3.5 fill-current" aria-hidden="true" /> {post.likes || 0}
             </span>
 
             {/* Share button */}
@@ -169,8 +170,14 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
                 color: shareCopied ? "#059669" : shareLoading ? "#9ca3af" : "#6b7280",
               }}
             >
-              <span style={{ fontSize: "14px" }}>
-                {shareLoading ? "⏳" : shareCopied ? "✅" : "🔗"}
+              <span style={{ fontSize: "14px" }} className="flex items-center">
+                {shareLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                ) : shareCopied ? (
+                  <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                ) : (
+                  <Link2 className="w-3.5 h-3.5" aria-hidden="true" />
+                )}
               </span>
               <span className="text-xs font-semibold">
                 {shareLoading ? "Sharing..." : shareCopied ? "Copied!" : "Share"}

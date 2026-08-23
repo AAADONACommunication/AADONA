@@ -192,7 +192,7 @@ const buildTimeline = (q) => {
     });
   }
 
-  // ── 3. Original sales quotation snapshot — but skip if negotiationHistory
+  // ── 3. Original sales quotation snapshot - but skip if negotiationHistory
   const hasSalesSentInHistory = (q.negotiationHistory || []).some(
     (h) => h.type === "sales_sent"
   );
@@ -213,7 +213,7 @@ const buildTimeline = (q) => {
     });
   }
 
-  // ── 4. negotiationHistory — every event, old and new types alike ──
+  // ── 4. negotiationHistory - every event, old and new types alike ──
   (q.negotiationHistory || []).forEach((h) => {
     const meta = metaFor(h.type);
     const at = h.eventAt || h.recordedAt || h.revisedAt || h.counterOfferAt || h.revisedSalesSentAt || h.customerRespondedAt;
@@ -274,7 +274,7 @@ const buildTimeline = (q) => {
 
   // ── Dedupe back-to-back "admin" cards that carry identical figures ──
   // (e.g. "Admin Revised Pricing" immediately followed by "Admin Approved Pricing"
-  // with the exact same subtotal/GST/discount/total/message — same underlying
+  // with the exact same subtotal/GST/discount/total/message - same underlying
   // pricing action logged twice.)
   return sorted.filter((entry, idx) => {
     if (idx === 0) return true;
@@ -477,19 +477,19 @@ export default function SentQuotations() {
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs text-gray-600 mb-3">
                     <p className="truncate">
                       <span className="text-gray-400">Partner: </span>
-                      {item.customer?.personalName || "—"}
+                      {item.customer?.personalName || "-"}
                     </p>
                     <p className="truncate">
                       <span className="text-gray-400">Company: </span>
-                      {item.customer?.companyName || "—"}
+                      {item.customer?.companyName || "-"}
                     </p>
                     <p className="truncate">
                       <span className="text-gray-400">End customer: </span>
-                      {item.endCustomer?.endCustomerName || "—"}
+                      {item.endCustomer?.endCustomerName || "-"}
                     </p>
                     <p className="truncate">
                       <span className="text-gray-400">Sent: </span>
-                      {item.sentAt ? new Date(item.sentAt).toLocaleDateString() : "—"}
+                      {item.sentAt ? new Date(item.sentAt).toLocaleDateString() : "-"}
                     </p>
                   </div>
 
@@ -536,16 +536,16 @@ export default function SentQuotations() {
                           {item.quotationNumber}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
-                          {item.customer?.personalName || "—"}
+                          {item.customer?.personalName || "-"}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
-                          {item.customer?.companyName || "—"}
+                          {item.customer?.companyName || "-"}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
-                          {item.endCustomer?.endCustomerName || "—"}
+                          {item.endCustomer?.endCustomerName || "-"}
                         </td>
                         <td className="px-4 py-3 text-gray-600">
-                          {item.sentAt ? new Date(item.sentAt).toLocaleDateString() : "—"}
+                          {item.sentAt ? new Date(item.sentAt).toLocaleDateString() : "-"}
                         </td>
                         <td className="px-4 py-3 font-semibold text-gray-700">
                           ₹{Number(item.grandTotal || 0).toFixed(2)}
@@ -598,7 +598,7 @@ export default function SentQuotations() {
             <div className="min-w-0">
               <h2 className="text-base sm:text-lg font-bold text-green-800 truncate">
                 {selected.quotationNumber}{" "}
-                <span className="text-xs sm:text-sm font-normal text-gray-500">— read only</span>
+                <span className="text-xs sm:text-sm font-normal text-gray-500">- read only</span>
               </h2>
               {(selected.validUntil || selected.sourceQuotation?.validUntil) && (
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -633,11 +633,11 @@ export default function SentQuotations() {
             <p className="font-bold text-red-700">Quotation Rejected</p>
             <p className="text-gray-700">
               <span className="font-semibold">Rejected By:</span>{" "}
-              {selected.rejectedBy === "partner" ? "Partner" : selected.rejectedBy === "sales" ? "Sales" : "—"}
+              {selected.rejectedBy === "partner" ? "Partner" : selected.rejectedBy === "sales" ? "Sales" : "-"}
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Rejected Date:</span>{" "}
-              {selected.rejectedAt ? new Date(selected.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
+              {selected.rejectedAt ? new Date(selected.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "-"}
             </p>
             {selected.rejectReason && (
               <p className="text-gray-700">
@@ -657,7 +657,7 @@ export default function SentQuotations() {
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Closed At:</span>{" "}
-              {selected.closedAt ? new Date(selected.closedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
+              {selected.closedAt ? new Date(selected.closedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "-"}
             </p>
             {selected.closeReason && (
               <p className="text-gray-700">
@@ -671,30 +671,30 @@ export default function SentQuotations() {
         <div className="grid sm:grid-cols-2 gap-2.5 sm:gap-3 mb-4 sm:mb-5 text-sm bg-gray-50 rounded-xl p-3.5 sm:p-4">
           <p className="text-gray-700">
             <span className="font-semibold">Partner:</span>{" "}
-            {selected.customer?.personalName || "—"}
+            {selected.customer?.personalName || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Company:</span>{" "}
-            {selected.customer?.companyName || "—"}
+            {selected.customer?.companyName || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Partner Type:</span>{" "}
-            {selected.customer?.partnerType || "—"}
+            {selected.customer?.partnerType || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">GST:</span>{" "}
-            {selected.customer?.gstNumber || "—"}
+            {selected.customer?.gstNumber || "-"}
           </p>
           <p className="text-gray-700 break-words">
-            <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
+            <span className="font-semibold">Email:</span> {selected.customer?.email || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Contact:</span>{" "}
-            {selected.customer?.contactNumber || "—"}
+            {selected.customer?.contactNumber || "-"}
           </p>
           <p className="text-gray-700 sm:col-span-2">
             <span className="font-semibold">Address:</span>{" "}
-            {selected.customer?.address || "—"}
+            {selected.customer?.address || "-"}
           </p>
         </div>
 
@@ -706,35 +706,35 @@ export default function SentQuotations() {
             <>
               <p className="text-gray-700">
                 <span className="font-semibold">Name:</span>{" "}
-                {selected.endCustomer.endCustomerName || "—"}
+                {selected.endCustomer.endCustomerName || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Organization:</span>{" "}
-                {selected.endCustomer.organizationName || "—"}
+                {selected.endCustomer.organizationName || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Contact Person:</span>{" "}
-                {selected.endCustomer.contactPerson || "—"}
+                {selected.endCustomer.contactPerson || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Designation:</span>{" "}
-                {selected.endCustomer.designation || "—"}
+                {selected.endCustomer.designation || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Mobile:</span>{" "}
-                {selected.endCustomer.mobileNumber || "—"}
+                {selected.endCustomer.mobileNumber || "-"}
               </p>
               <p className="text-gray-700 break-words">
                 <span className="font-semibold">Email:</span>{" "}
-                {selected.endCustomer.emailId || "—"}
+                {selected.endCustomer.emailId || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Industry:</span>{" "}
-                {selected.endCustomer.industryVertical || "—"}
+                {selected.endCustomer.industryVertical || "-"}
               </p>
               <p className="text-gray-700 sm:col-span-2">
                 <span className="font-semibold">Address:</span>{" "}
-                {selected.endCustomer.customerAddress || "—"}
+                {selected.endCustomer.customerAddress || "-"}
               </p>
             </>
           ) : (
@@ -1071,7 +1071,7 @@ export default function SentQuotations() {
               {(selected.items || []).map((item, i) => (
                 <tr key={i} className="border-b border-green-100">
                   <td className="px-3 py-2 text-gray-800 font-medium">{item.name}</td>
-                  <td className="px-3 py-2 text-gray-600">{item.description || "—"}</td>
+                  <td className="px-3 py-2 text-gray-600">{item.description || "-"}</td>
                   <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
                   <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
                   <td className="px-3 py-2 text-gray-700">{item.gst}%</td>
@@ -1131,7 +1131,7 @@ export default function SentQuotations() {
           <div>
             <p className="font-semibold text-gray-700 mb-1">Accepted On</p>
             <p className="text-gray-600">
-              {selected.acceptedAt ? new Date(selected.acceptedAt).toLocaleString() : "—"}
+              {selected.acceptedAt ? new Date(selected.acceptedAt).toLocaleString() : "-"}
             </p>
           </div>
         </div>

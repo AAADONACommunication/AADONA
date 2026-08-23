@@ -224,7 +224,6 @@ export default function SearchBar() {
       deleting.current = false;
     }
 
-    // ✅ Fix 1: Mobile keyboard hatne ke baad viewport reset
     setTimeout(() => {
       window.scrollTo({ top: window.scrollY, behavior: "instant" });
     }, 300);
@@ -308,7 +307,6 @@ export default function SearchBar() {
           </svg>
 
           <div className="flex-1 relative h-full flex items-center min-w-0">
-            {/* ✅ Fix 2: text-[16px] - iOS auto-zoom band karta hai (16px se kam hone par zoom hota hai) */}
             <input
               type="text"
               value={value}

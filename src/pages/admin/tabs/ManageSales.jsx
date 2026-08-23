@@ -63,7 +63,7 @@ export default function ManageSales() {
       });
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data.message || "Failed to send invite");
-      setSuccessMsg(`Invite sent to ${inviteEmail} ✅`);
+      setSuccessMsg(`Invite sent to ${inviteEmail}`);
       setInviteEmail("");
     } catch (err) {
       setError(err.message);

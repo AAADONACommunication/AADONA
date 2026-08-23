@@ -180,7 +180,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
   const loadDrafts = async () => {
     setDraftsLoading(true);
     try {
-      const auth = await getFirebaseAuth(); // ✅
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${BLOG_API}/drafts`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -213,7 +213,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
   const deleteBlog = async (id, isDraft = false) => {
     if (!window.confirm("Delete this blog?")) return;
     try {
-      const auth = await getFirebaseAuth(); // ✅
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       await fetch(`${BLOG_API}/${id}`, {
         method: "DELETE",

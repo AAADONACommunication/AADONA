@@ -113,7 +113,7 @@ const run = async () => {
     failedDownloadsCount;
 
   console.log("\n===========================================");
-  console.log(totalIssues === 0 ? "✅ All checks passed." : `⚠️  ${totalIssues} issue(s) found - review above.`);
+  console.log(totalIssues === 0 ? "All checks passed." : `  ${totalIssues} issue(s) found - review above.`);
 
   await mongoose.disconnect();
   process.exit(totalIssues === 0 ? 0 : 1);

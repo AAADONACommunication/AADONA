@@ -182,7 +182,6 @@ const BlogDetail = () => {
     }
   };
 
-  // ✅ FIXED: Removed Layer 1 (file sharing) - WhatsApp crawls OG tags from URL automatically
   const handleShare = async () => {
     if (shareLoading) return;
     setShareLoading(true);

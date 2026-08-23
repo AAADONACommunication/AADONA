@@ -181,11 +181,11 @@ export default function SalesOnlyProducts() {
                 {salesOnlyProducts.map((p) => (
                   <tr key={p._id} className="border-t border-green-50 hover:bg-green-50/50">
                     <td className="px-4 py-3 font-medium text-gray-800">{p.modelName}</td>
-                    <td className="px-4 py-3 text-gray-600">{p.description || "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{p.description || "-"}</td>
                     <td className="px-4 py-3 text-gray-600">{p.createdByName}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{p.createdByEmail}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
-                      {p.createdAt ? new Date(p.createdAt).toLocaleString() : "—"}
+                      {p.createdAt ? new Date(p.createdAt).toLocaleString() : "-"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end">

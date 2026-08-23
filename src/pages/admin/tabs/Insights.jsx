@@ -68,7 +68,7 @@ export default function Insights() {
     setLoading(true);
     setError(null);
     try {
-      const auth = await getFirebaseAuth(); // ✅
+      const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${API_BASE}/analytics/summary?range=${r}`, {
         headers: { Authorization: `Bearer ${token}` },

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import { X, UploadCloud, Send } from "lucide-react";
+import { X, UploadCloud, Send, CheckCircle2 } from "lucide-react";
 import bg from "../../assets/bg.jpg";
 import warrantybanner from '../../assets/WarrantyBanner.avif'
 
@@ -149,8 +149,9 @@ const WarrantyCheckButton = () => {
           >
             {/* Success Message */}
             {submitted && (
-              <div className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg">
-                ✅ Warranty check submitted successfully! Our team will get back to you soon.
+              <div className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg flex items-center justify-center gap-3">
+                <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" aria-hidden="true" />
+                <span>Warranty check submitted successfully! Our team will get back to you soon.</span>
               </div>
             )}
 

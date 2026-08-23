@@ -29,7 +29,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
     setShowInboxFormData(false);
     if (inq.status === "new") {
       try {
-        const auth = await getFirebaseAuth(); // ✅
+        const auth = await getFirebaseAuth();
         const token = await auth.currentUser?.getIdToken();
         await fetch(`${INQUIRY_API}/${inq._id}/read`, {
           method: "PUT",

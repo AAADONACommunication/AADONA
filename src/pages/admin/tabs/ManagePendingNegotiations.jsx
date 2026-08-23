@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getFirebaseAuth } from "../../../firebase";
-import { ChevronLeft, Search, CheckCircle2, XCircle, PencilLine } from "lucide-react";
+import { ChevronLeft, Search, CheckCircle2, XCircle, PencilLine, FileClock } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
 
 const PENDING_API = `${import.meta.env.VITE_API_URL}/admin/sales-quotations/pending-approval`;
@@ -148,7 +148,7 @@ export default function ManagePendingNegotiations() {
       });
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.message || "Failed to approve");
-      setSuccessMsg("Approved ✅ - sales rep has been notified.");
+      setSuccessMsg("Approved ✅ — sales rep has been notified.");
       await loadPending();
       setTimeout(() => backToList(), 1200);
     } catch (err) {
@@ -171,7 +171,7 @@ export default function ManagePendingNegotiations() {
       });
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.message || "Failed to reject");
-      setSuccessMsg("Rejected - sales rep has been notified.");
+      setSuccessMsg("Rejected — sales rep has been notified.");
       await loadPending();
       setTimeout(() => backToList(), 1200);
     } catch (err) {
@@ -202,7 +202,7 @@ export default function ManagePendingNegotiations() {
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.message || "Failed to extend validity");
 
-      setSuccessMsg(`Validity extended ✅ - new Valid Till: ${new Date(data.validUntil).toLocaleDateString("en-IN")}`);
+      setSuccessMsg(`Validity extended ✅ — new Valid Till: ${new Date(data.validUntil).toLocaleDateString("en-IN")}`);
       setStandaloneExtendDays("");
       await loadPending();
       setSelected((prev) => prev ? { ...prev, validUntil: data.validUntil } : prev);
@@ -220,7 +220,7 @@ export default function ManagePendingNegotiations() {
     );
   };
 
-  // ── Autosave draft - debounced PUT to the server so it's shared across
+  // ── Autosave draft — debounced PUT to the server so it's shared across
   // any admin / any device. Only fires while the revise form is actually
   // open; the API is untouched until "Send Revised Pricing" is clicked. ──
   useEffect(() => {
@@ -339,8 +339,9 @@ export default function ManagePendingNegotiations() {
           </div>
         )}
         {draftRestored && !successMsg && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm">
-            A saved revision draft was found for this negotiation - nothing has been sent yet, click Revise to keep editing.
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+            <FileClock size={16} className="shrink-0" />
+            A saved revision draft was found for this negotiation — nothing has been sent yet, click Revise to keep editing.
           </div>
         )}
 
@@ -357,30 +358,30 @@ export default function ManagePendingNegotiations() {
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               <p className="text-gray-700">
                 <span className="font-semibold">Partner Name:</span>{" "}
-                {selected.customer?.personalName || "-"}
+                {selected.customer?.personalName || "—"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Company:</span>{" "}
-                {selected.customer?.companyName || "-"}
+                {selected.customer?.companyName || "—"}
               </p>
               <p className="text-gray-700">
-                <span className="font-semibold">Email:</span> {selected.customer?.email || "-"}
+                <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Contact:</span>{" "}
-                {selected.customer?.contactNumber || "-"}
+                {selected.customer?.contactNumber || "—"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Partner Type:</span>{" "}
-                {selected.customer?.partnerType || "-"}
+                {selected.customer?.partnerType || "—"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">GST:</span>{" "}
-                {selected.customer?.gstNumber || "-"}
+                {selected.customer?.gstNumber || "—"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Address:</span>{" "}
-                {selected.customer?.address || "-"}
+                {selected.customer?.address || "—"}
               </p>
             </div>
           </div>
@@ -393,36 +394,36 @@ export default function ManagePendingNegotiations() {
               <div className="grid sm:grid-cols-2 gap-3 text-sm">
                 <p className="text-gray-700">
                   <span className="font-semibold">End Customer Name:</span>{" "}
-                  {selected.endCustomer.endCustomerName || "-"}
+                  {selected.endCustomer.endCustomerName || "—"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Organization:</span>{" "}
-                  {selected.endCustomer.organizationName || "-"}
+                  {selected.endCustomer.organizationName || "—"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">City / State:</span>{" "}
-                  {[selected.endCustomer.city, selected.endCustomer.state].filter(Boolean).join(", ") || "-"}
+                  {[selected.endCustomer.city, selected.endCustomer.state].filter(Boolean).join(", ") || "—"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Contact Person:</span>{" "}
-                  {selected.endCustomer.contactPerson || "-"}
+                  {selected.endCustomer.contactPerson || "—"}
                   {selected.endCustomer.designation ? ` (${selected.endCustomer.designation})` : ""}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Mobile:</span>{" "}
-                  {selected.endCustomer.mobileNumber || "-"}
+                  {selected.endCustomer.mobileNumber || "—"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Email:</span>{" "}
-                  {selected.endCustomer.emailId || "-"}
+                  {selected.endCustomer.emailId || "—"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Industry:</span>{" "}
-                  {selected.endCustomer.industryVertical || "-"}
+                  {selected.endCustomer.industryVertical || "—"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Address:</span>{" "}
-                  {selected.endCustomer.customerAddress || "-"}
+                  {selected.endCustomer.customerAddress || "—"}
                 </p>
               </div>
             ) : (
@@ -457,7 +458,7 @@ export default function ManagePendingNegotiations() {
           )}
         </div>
 
-        {/* ── Standalone Validity Extension - independent of pricing revision ── */}
+        {/* ── Standalone Validity Extension — independent of pricing revision ── */}
         <div className="bg-white rounded-2xl shadow-sm border border-blue-200 p-6">
           <h3 className="text-base font-bold text-gray-800 mb-1">Quotation Validity</h3>
           <p className="text-xs text-gray-500 mb-3">
@@ -467,7 +468,7 @@ export default function ManagePendingNegotiations() {
                 ? new Date(selected.validUntil).toLocaleDateString("en-IN")
                 : selected.sourceQuotation?.validUntil
                 ? new Date(selected.sourceQuotation.validUntil).toLocaleDateString("en-IN")
-                : "-"}
+                : "—"}
             </span>
           </p>
           <div className="flex flex-wrap gap-3 items-center">
@@ -494,7 +495,7 @@ export default function ManagePendingNegotiations() {
             </button>
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            This adds to the current validity date - it does not overwrite it, and works independently of pricing decisions.
+            This adds to the current validity date — it does not overwrite it, and works independently of pricing decisions.
           </p>
         </div>
 
@@ -593,7 +594,7 @@ export default function ManagePendingNegotiations() {
                               >
                                 <td className="px-3 py-2">
                                   <p className="font-medium text-gray-800">
-                                    {item.name || "-"}
+                                    {item.name || "—"}
                                   </p>
 
                                   {item.description && (
@@ -702,7 +703,7 @@ export default function ManagePendingNegotiations() {
           </div>
         )}
 
-        {/* ── Actions - only while pending ── */}
+        {/* ── Actions — only while pending ── */}
         {isPending && (
           <>
             {!reviseMode ? (
@@ -927,10 +928,10 @@ export default function ManagePendingNegotiations() {
                   >
                     <td className="px-4 py-3 font-medium text-gray-800">{q.quotationNumber}</td>
                     <td className="px-4 py-3 text-gray-600">
-                      {q.customer?.personalName || "-"}
+                      {q.customer?.personalName || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {q.endCustomer?.endCustomerName || "-"}
+                      {q.endCustomer?.endCustomerName || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
                       ₹{Number(q.sourceQuotation?.subtotal || 0).toFixed(2)}
@@ -939,7 +940,7 @@ export default function ManagePendingNegotiations() {
                       ₹{Number(q.expectedBudget || 0).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {q.customerRespondedAt ? new Date(q.customerRespondedAt).toLocaleDateString() : "-"}
+                      {q.customerRespondedAt ? new Date(q.customerRespondedAt).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-4 py-3 text-right text-green-700 font-semibold">
                       Review →
