@@ -70,6 +70,32 @@ router.get(
   }
 );
 
+/* =========================================================
+   ADMIN — Save/update the shared in-progress revise-pricing draft.
+   Any admin opening this negotiation afterwards sees the same values.
+   This NEVER sends anything — purely a saved state.
+========================================================= */
+router.put("/admin/sales-quotations/:id/draft", verifyToken, async (req, res) => {
+  try {
+    const { reviseItems, reviseRemarks } = req.body;
+
+    const quotation = await SalesQuotation.findById(req.params.id);
+    if (!quotation) return res.status(404).json({ message: "Negotiation not found" });
+
+    quotation.adminReviseDraft = {
+      reviseItems: Array.isArray(reviseItems) ? reviseItems : [],
+      reviseRemarks: reviseRemarks || "",
+      savedAt: new Date(),
+    };
+    await quotation.save();
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Save negotiation draft error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /admin/sales-quotations/:id/approve ──
 router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res) => {
   try {
@@ -187,6 +213,7 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
     quotation.adminApprovedAt = new Date();
     quotation.adminApprovedAmount = newGrandTotal;
     quotation.pricingRevisionType = "discount_applied";
+    quotation.adminReviseDraft = null; // resolved — clear the in-progress draft
 
     await quotation.save();
 
@@ -256,6 +283,8 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
 
         recordedAt: rejectedAt,
     });
+
+    quotation.adminReviseDraft = null; // resolved — clear the in-progress draft
 
     await quotation.save();
 
@@ -411,6 +440,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     quotation.adminApprovedAt = new Date();
     quotation.adminApprovedAmount = revisedGrandTotalWithGst;
     quotation.pricingRevisionType = "item_price_revised";
+    quotation.adminReviseDraft = null; // resolved — clear the in-progress draft
     await quotation.save();
 
     try {

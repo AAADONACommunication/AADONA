@@ -134,6 +134,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
 
     // 10. Update QuotationRequest status
     quotationRequest.status = "quoted";
+    quotationRequest.adminDraft = null; // clear the in-progress draft — it's been sent now
     await quotationRequest.save();
 
     // 11. Build email HTML — only for Sales Rep, no GST

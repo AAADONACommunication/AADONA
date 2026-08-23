@@ -26,6 +26,7 @@ export default function ManageQuotationRequests() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [draftRestored, setDraftRestored] = useState(false);
 
   const getToken = async () => {
     const auth = await getFirebaseAuth();
@@ -79,9 +80,21 @@ export default function ManageQuotationRequests() {
     setSelected(request);
     setError("");
     setSuccessMsg("");
+    setDraftRestored(false);
 
-    // Fresh pending request --> blank pricing form
+    // Fresh pending request --> blank pricing form, unless a draft was
+    // saved earlier (by any admin, on any device) for this exact request.
     if (request.status === "pending") {
+      const draft = request.adminDraft;
+
+      if (draft) {
+        setPriceItems(draft.priceItems || []);
+        setNotes(draft.notes ?? REQUIRED_NOTE);
+        setValidityDays(draft.validityDays ?? "");
+        setDraftRestored(true);
+        return;
+      }
+
       setPriceItems(
         (request.items || []).map((item) => ({
           product: item.product || null,
@@ -125,6 +138,39 @@ export default function ManageQuotationRequests() {
       prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
     );
   };
+
+  // ── Autosave draft — debounced PUT to the server so the draft is
+  // shared across any admin / any device. Only ever saves; the actual
+  // API-visible status stays "pending" until "Send Quotation" is clicked. ──
+  useEffect(() => {
+    if (!selected || selected.status !== "pending") return;
+
+    // Don't save the initial blank state before the admin has typed anything.
+    const hasContent =
+      priceItems.some((item) => item.price !== "" || item.gst !== "") ||
+      notes.trim() !== REQUIRED_NOTE ||
+      validityDays !== "";
+    if (!hasContent) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const token = await getToken();
+        await fetch(`${REQUESTS_API}/${selected._id}/draft`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ priceItems, notes, validityDays }),
+        });
+      } catch (err) {
+        console.error("Autosave draft error:", err);
+      }
+    }, 800); // small debounce so we don't fire a request on every keystroke
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceItems, notes, validityDays, selected]);
 
   // Broken out so both the itemised table and the summary block below
   // stay in sync and always show Subtotal / GST / Total separately.
@@ -255,6 +301,11 @@ export default function ManageQuotationRequests() {
         {successMsg && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
             <CheckCircle2 size={16} /> {successMsg}
+          </div>
+        )}
+        {draftRestored && !successMsg && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm">
+            📝 A saved draft was found for this request — nothing has been sent yet, keep editing and hit Send Quotation when ready.
           </div>
         )}
 

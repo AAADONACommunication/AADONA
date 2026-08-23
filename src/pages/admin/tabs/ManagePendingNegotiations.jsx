@@ -25,6 +25,7 @@ export default function ManagePendingNegotiations() {
   const [reviseRemarks, setReviseRemarks] = useState("");
   const [standaloneExtendDays, setStandaloneExtendDays] = useState("");
   const [extending, setExtending] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
 
   const getToken = async () => {
     const auth = await getFirebaseAuth();
@@ -103,6 +104,17 @@ export default function ManagePendingNegotiations() {
     setActionError("");
     setSuccessMsg("");
     setReviseMode(false);
+    setDraftRestored(false);
+
+    const isStillPending = q.status === "awaiting_admin_approval";
+    const draft = isStillPending ? q.adminReviseDraft : null;
+
+    if (draft) {
+      setReviseItems(draft.reviseItems || []);
+      setReviseRemarks(draft.reviseRemarks ?? "");
+      setDraftRestored(true);
+      return;
+    }
 
     setReviseItems(
       (q.sourceQuotation?.items || []).map((item) => ({
@@ -208,6 +220,32 @@ export default function ManagePendingNegotiations() {
     );
   };
 
+  // ── Autosave draft — debounced PUT to the server so it's shared across
+  // any admin / any device. Only fires while the revise form is actually
+  // open; the API is untouched until "Send Revised Pricing" is clicked. ──
+  useEffect(() => {
+    if (!selected || selected.status !== "awaiting_admin_approval" || !reviseMode) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const token = await getToken();
+        await fetch(`${ACTION_API}/${selected._id}/draft`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reviseItems, reviseRemarks }),
+        });
+      } catch (err) {
+        console.error("Autosave draft error:", err);
+      }
+    }, 800); // small debounce so we don't fire a request on every keystroke
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviseItems, reviseRemarks, reviseMode, selected]);
+
   const reviseSubtotal = reviseItems.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
     0
@@ -298,6 +336,11 @@ export default function ManagePendingNegotiations() {
         {successMsg && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
             <CheckCircle2 size={16} /> {successMsg}
+          </div>
+        )}
+        {draftRestored && !successMsg && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm">
+            📝 A saved revision draft was found for this negotiation — nothing has been sent yet, click Revise to keep editing.
           </div>
         )}
 

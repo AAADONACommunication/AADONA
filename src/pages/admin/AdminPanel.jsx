@@ -217,8 +217,22 @@ export default function AdminPanel() {
     return () => unsubscribe?.();
   }, [navigate]);
 
-  // ── Auto Logout on Inactivity (5 min) ──
+  // ── Auto Logout on Inactivity ──
+  // Longer timeout on tabs where admins spend time entering data
+  // (pricing, blog writing, product specs) so they don't get logged
+  // out mid-calculation. Everywhere else stays at the tighter 5 min.
+  const LONG_TIMEOUT_TABS = [
+    "products",
+    "blogs",
+    "quotation-requests",
+    "pending-negotiations",
+  ];
+
   useEffect(() => {
+    const timeoutDuration = LONG_TIMEOUT_TABS.includes(activeTab)
+      ? 30 * 60 * 1000
+      : 5 * 60 * 1000;
+
     let timer;
     const resetTimer = () => {
       clearTimeout(timer);
@@ -226,7 +240,7 @@ export default function AdminPanel() {
         const auth = await getFirebaseAuth();
         await signOut(auth);
         navigate("/ram-ctrl-505");
-      }, 5 * 60 * 1000);
+      }, timeoutDuration);
     };
     const events = ["mousemove", "mousedown", "keypress", "scroll", "touchstart", "click"];
     events.forEach((e) => window.addEventListener(e, resetTimer));
@@ -235,7 +249,7 @@ export default function AdminPanel() {
       clearTimeout(timer);
       events.forEach((e) => window.removeEventListener(e, resetTimer));
     };
-  }, [navigate]);
+  }, [navigate, activeTab]);
 
   // Refresh badge counts every time the dashboard launcher is shown again
   useEffect(() => {
@@ -338,10 +352,10 @@ export default function AdminPanel() {
                           <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className="relative group flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                            className="group relative flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
                           >
                             {count > 0 && (
-                              <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold shadow-md">
+                              <span className="absolute top-5 right-5 text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                                 {count > 99 ? "99+" : count}
                               </span>
                             )}

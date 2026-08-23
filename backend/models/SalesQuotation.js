@@ -279,6 +279,12 @@ const SalesQuotationSchema = new mongoose.Schema(
       grandTotal: { type: Number, default: null },
       sentAt: { type: Date, default: null },
     },
+    // ── Shared autosave draft for the admin's "Revise Pricing" form —
+    // visible to ANY admin, cleared once actually sent/approved/rejected. ──
+    adminReviseDraft: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
   },
   { timestamps: true }
 );

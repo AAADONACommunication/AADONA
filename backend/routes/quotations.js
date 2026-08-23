@@ -260,6 +260,33 @@ router.get("/admin/quotation-requests/count", verifyToken, async (req, res) => {
 });
 
 /* =========================================================
+   ADMIN — Save/update the shared in-progress pricing draft.
+   Any admin opening this request afterwards sees the same values.
+   This NEVER sends anything — purely a saved state.
+========================================================= */
+router.put("/admin/quotation-requests/:id/draft", verifyToken, async (req, res) => {
+  try {
+    const { priceItems, notes, validityDays } = req.body;
+
+    const request = await QuotationRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+
+    request.adminDraft = {
+      priceItems: Array.isArray(priceItems) ? priceItems : [],
+      notes: notes || "",
+      validityDays: validityDays || "",
+      savedAt: new Date(),
+    };
+    await request.save();
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Save quotation draft error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================================================
    ADMIN — Get single request detail
 ========================================================= */
 router.get(
