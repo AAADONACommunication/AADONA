@@ -166,10 +166,10 @@ const AppContent = () => {
           <Route path="/:categoryName" element={<CategoryProductsPage />} />
           <Route path="/:categoryName/:slug" element={<ProductDetailPage />} />
 
-          {/* ✅ 404 PAGE */}
+          {/* 404 PAGE */}
           <Route path="/404" element={<NotFound />} />
 
-          {/* ✅ CATCH ALL */}
+          {/* CATCH ALL */}
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </Suspense>

@@ -53,7 +53,7 @@ boxShadow: "0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px rgba(34,197,94,0.15)",
           background: "#ffffff",
           marginBottom: "2rem",
           overflow: "hidden",
-          // boxShadow: "0 12px 35px rgba(0,0,0,0.08)", // ✅ clean shadow
+          // boxShadow: "0 12px 35px rgba(0,0,0,0.08)",
         }}>
           
           {/* Top bar */}

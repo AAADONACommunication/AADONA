@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { Link2, Check, Loader2, CheckCircle2 } from "lucide-react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import bg from '../assets/bg.jpg'
@@ -363,8 +364,14 @@ const BlogDetail = () => {
                 disabled={shareLoading}
                 className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <span className="text-lg leading-none" style={{ fontSize: "18px" }}>
-                  {shareLoading ? "⏳" : shareCopied ? "✅" : "🔗"}
+                <span className="text-lg leading-none flex items-center">
+                  {shareLoading ? (
+                    <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                  ) : shareCopied ? (
+                    <Check className="w-[18px] h-[18px]" />
+                  ) : (
+                    <Link2 className="w-[18px] h-[18px]" />
+                  )}
                 </span>
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base">
                   {shareLoading ? "Sharing..." : shareCopied ? "Copied!" : "Share"}
@@ -452,7 +459,7 @@ const BlogDetail = () => {
               </button>
               {liked && (
                 <p className="text-sm text-emerald-600 font-semibold flex items-center gap-2">
-                  <span>✓</span> Thank you for your appreciation!
+                  <Check className="w-4 h-4" /> Thank you for your appreciation!
                 </p>
               )}
             </div>
@@ -502,7 +509,7 @@ const BlogDetail = () => {
 
               {commentSuccess && (
                 <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-6 py-4 rounded-xl text-sm flex items-center gap-3 shadow-sm">
-                  <span className="text-lg">✅</span>
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
                   <span className="font-semibold">Comment posted successfully!</span>
                 </div>
               )}

@@ -24,7 +24,7 @@ const deleteFromVPS = async (url) => {
   if (!url || typeof url !== "string") return;
 
   if (url.includes("firebasestorage.googleapis.com") || url.includes("firebasestorage.app")) {
-    console.log("Skipping delete — still a Firebase URL (not migrated yet):", url);
+    console.log("Skipping delete - still a Firebase URL (not migrated yet):", url);
     return;
   }
 

@@ -4,16 +4,13 @@ import CheckCircle from '../assets/checkcircle.png';
 
 const ProductCard = ({ product }) => {
   
-  // ✅ 1. Naya Helper: Jo category name ko URL friendly banayega
   const nameToSlug = (name) =>
     name ? name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "") : "category";
 
-  // ✅ 2. Naya URL Structure: /category-name/product-slug
   const detailUrl = `/${nameToSlug(product.category)}/${product.slug}`;
 
   return (
     <div 
-      // ✅ 3. Click handle karne ke liye (Naye Tab mein khulega)
       onClick={() => window.open(detailUrl, "_blank", "noopener,noreferrer")}
       className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group 
                     transform transition duration-300 ease-in-out 

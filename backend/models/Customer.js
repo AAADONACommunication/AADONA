@@ -16,7 +16,7 @@ const CustomerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound index — sales rep ke customers fast fetch hoon
+// Compound index - sales rep ke customers fast fetch hoon
 CustomerSchema.index({ salesRepUid: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Customer", CustomerSchema);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet-async";
+import { CheckCircle2 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg";
@@ -221,9 +222,10 @@ export default function ProjectLocking() {
               <div
                 role="alert"
                 aria-live="polite"
-                className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6"
+                className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6 flex items-center justify-center gap-3"
               >
-                ✅ Project application submitted successfully! Our team will contact you soon.
+                <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" aria-hidden="true" />
+                <span>Project application submitted successfully! Our team will contact you soon.</span>
               </div>
             )}
 
