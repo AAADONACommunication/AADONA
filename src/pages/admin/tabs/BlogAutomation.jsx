@@ -144,13 +144,13 @@ export default function BlogAutomation() {
       `}</style>
 
       <div className="auto">
-        <h1 className="auto-title">Blog Automation — AADONA Admin</h1>
+        <h1 className="auto-title">Blog Automation - AADONA Admin</h1>
 
         <div className="auto-card">
           <div className="auto-inner">
             <h2 className="auto-heading">Generate Blog Now</h2>
             <p className="auto-desc">
-              Enter a topic — AI will generate a complete blog and save it as draft.
+              Enter a topic - AI will generate a complete blog and save it as draft.
             </p>
 
             <input
@@ -256,7 +256,7 @@ export default function BlogAutomation() {
             {schedStatus && <p className="sched-status">{schedStatus}</p>}
 
             <div className="auto-info">
-              📅 Current: Every <b>{DAYS[schedDay]}</b> at <b>{String(schedHour).padStart(2,"0")}:{String(schedMinute).padStart(2,"0")} IST</b> — <b>{blogCount} blog(s)</b>
+              📅 Current: Every <b>{DAYS[schedDay]}</b> at <b>{String(schedHour).padStart(2,"0")}:{String(schedMinute).padStart(2,"0")} IST</b> - <b>{blogCount} blog(s)</b>
             </div>
           </div>
         </div>

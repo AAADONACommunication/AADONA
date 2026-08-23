@@ -94,7 +94,7 @@ const MissionVision = () => {
         <meta property="og:title" content="Mission & Vision | AADONA – IT Networking Solutions India" />
         <meta
           property="og:description"
-          content="Discover AADONA's mission, vision, and core values — driving excellence in IT networking solutions across India."
+          content="Discover AADONA's mission, vision, and core values - driving excellence in IT networking solutions across India."
         />
         <meta property="og:url" content="https://www.aadona.com/mission-vision" /> {/* ← update */}
         <meta property="og:site_name" content="AADONA" />
@@ -104,7 +104,7 @@ const MissionVision = () => {
         <meta name="twitter:title" content="Mission & Vision | AADONA" />
         <meta
           name="twitter:description"
-          content="AADONA's mission, vision and core values — integrity, innovation, and customer commitment in IT networking."
+          content="AADONA's mission, vision and core values - integrity, innovation, and customer commitment in IT networking."
         />
 
         {/* JSON-LD Structured Data */}

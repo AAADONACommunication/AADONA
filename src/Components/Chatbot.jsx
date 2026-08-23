@@ -547,7 +547,7 @@ export default function Chatbot() {
     } else {
       const greeting = {
         role: 'bot',
-        content: `Hello **${name}**, welcome to **AADONA** — India's leading networking solutions brand.\n\nI can assist you with products, technical configuration, GeM/MII queries, support, and partnership programs. What would you like to know?`,
+        content: `Hello **${name}**, welcome to **AADONA** - India's leading networking solutions brand.\n\nI can assist you with products, technical configuration, GeM/MII queries, support, and partnership programs. What would you like to know?`,
         time: getTime()
       };
       setMessages([greeting]);
@@ -789,7 +789,7 @@ export default function Chatbot() {
         .aadona-qr-btn:hover { background:#10b981 !important; color:#fff !important; border-color:#10b981 !important; }
       `}</style>
 
-      {/* ─── FIXED: Mobile me portal-style — sibling div, not child ─── */}
+      {/* ─── FIXED: Mobile me portal-style - sibling div, not child ─── */}
       {isOpen && isMobile && (
         <div
           className="aadona-window"
@@ -805,7 +805,7 @@ export default function Chatbot() {
             overflow: 'hidden',
           }}
         >
-          {/* Close button — mobile me top-right corner of window */}
+          {/* Close button - mobile me top-right corner of window */}
           <button
             className="aadona-close-btn"
             onClick={() => setIsOpen(false)}

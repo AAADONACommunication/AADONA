@@ -1,5 +1,5 @@
 /**
- * ONE-TIME — Convert every existing PNG/JPG/GIF/BMP/TIFF file under uploads/
+ * ONE-TIME - Convert every existing PNG/JPG/GIF/BMP/TIFF file under uploads/
  * to WebP, then rewrite the matching MongoDB URLs to point at the new files.
  *
  * Run on the VPS, from the backend/ directory:
@@ -8,7 +8,7 @@
  * Two phases:
  *   1. Walk uploads/ (skipping the backup dir), convert each convertible
  *      image to .webp, MOVE the original into
- *      uploads/_pre-webp-backup/<same relative path> (not deleted — safe
+ *      uploads/_pre-webp-backup/<same relative path> (not deleted - safe
  *      rollback), and record oldURL -> newURL.
  *   2. Rewrite every matching field in products / categories / blogs /
  *      inquiries from the old URL to the new .webp URL.
@@ -18,7 +18,7 @@
  * still match an old URL.
  *
  * PDFs (datasheets, some assemblyDiagram / attachmentUrl values) are never
- * touched — only file extensions in CONVERTIBLE_EXTS are processed.
+ * touched - only file extensions in CONVERTIBLE_EXTS are processed.
  */
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 const fs = require("fs/promises");
@@ -64,7 +64,7 @@ const walkAndConvert = async (dir) => {
       );
       continue;
     } catch {
-      // doesn't exist yet — proceed with conversion
+      // doesn't exist yet - proceed with conversion
     }
 
     try {
@@ -167,7 +167,7 @@ const updateMongo = async () => {
 
 const run = async () => {
   if (!process.env.MONGO_URL) {
-    console.error("MONGO_URL not set in .env — aborting.");
+    console.error("MONGO_URL not set in .env - aborting.");
     process.exit(1);
   }
 

@@ -60,7 +60,7 @@ const TABS = [
   { id: "sent", label: "History", icon: HistoryIcon, desc: "Quotations sent to customers" },
 ];
 
-// Time-of-day greeting — now used as the banner's smaller subtitle line,
+// Time-of-day greeting - now used as the banner's smaller subtitle line,
 // while the main headline always reads "Hello, {name}".
 const greeting = () => {
   const h = new Date().getHours();
@@ -257,14 +257,14 @@ export default function SalesPanel() {
 
   const activeTabMeta = TABS.find((t) => t.id === activeTab);
 
-  // ── Live numbers — still used for tile badges below ──
+  // ── Live numbers - still used for tile badges below ──
   const needsAttention = quotations.filter((q) =>
     ["negotiation_requested", "counter_offered", "admin_revised"].includes(q.status)
   ).length;
 
   // ── Per-tab badge counts / dynamic subtitles for the dashboard tiles ──
   // Keeping this as a lookup (instead of hardcoding each tile) is what keeps
-  // every tile rendered through the exact same markup below — same size,
+  // every tile rendered through the exact same markup below - same size,
   // same spacing, same hover treatment, no favourites.
   const tileMeta = {
     customers: { subtitle: `${customers.length} in your list · manage details & history`, badge: null },
@@ -326,7 +326,7 @@ export default function SalesPanel() {
           </div>
 
           {/* ════════════════════════════════════════
-              DASHBOARD — shown when no tab is selected
+              DASHBOARD - shown when no tab is selected
           ════════════════════════════════════════ */}
           {activeTab === null && (
             <div className="space-y-5 sm:space-y-6">
@@ -337,7 +337,7 @@ export default function SalesPanel() {
                   step up smoothly across breakpoints instead of jumping
                   straight from text-sm to text-2xl. */}
               <div className="relative overflow-hidden bg-gradient-to-r from-green-700 to-green-600 rounded-2xl shadow-sm p-4 sm:p-7">
-                {/* Decorative background accent — purely visual, clipped by overflow-hidden */}
+                {/* Decorative background accent - purely visual, clipped by overflow-hidden */}
                 <div className="pointer-events-none absolute -right-10 -top-10 w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white/10" />
                 <div className="pointer-events-none absolute -right-4 bottom-0 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white/5" />
 
@@ -358,7 +358,7 @@ export default function SalesPanel() {
                 </div>
               </div>
 
-              {/* ── Section tiles — every tab gets the exact same card, same size ──
+              {/* ── Section tiles - every tab gets the exact same card, same size ──
                   Single column on phones so each tile stays full-width and
                   thumb-friendly; grows to 2-up on small tablets and 4-up on
                   larger screens. */}
@@ -410,7 +410,7 @@ export default function SalesPanel() {
           )}
 
           {/* ════════════════════════════════════════
-              IN-TAB NAVIGATION — shown once a section is open
+              IN-TAB NAVIGATION - shown once a section is open
           ════════════════════════════════════════ */}
           {activeTab !== null && (
             <>

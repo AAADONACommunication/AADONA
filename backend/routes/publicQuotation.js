@@ -74,7 +74,7 @@ const toPublicQuotation = (quotation, salesRep) => {
   };
 };
 
-// ── GET /quotation/:publicToken ── (NO AUTH — customer facing)
+// ── GET /quotation/:publicToken ── (NO AUTH - customer facing)
 router.get("/quotation/:publicToken", async (req, res) => {
   try {
     const { publicToken } = req.params;
@@ -110,7 +110,7 @@ router.get("/quotation/:publicToken", async (req, res) => {
   }
 });
 
-// ── GET /quotation/:publicToken/pdf ── (NO AUTH — always-available download of current state)
+// ── GET /quotation/:publicToken/pdf ── (NO AUTH - always-available download of current state)
 router.get("/quotation/:publicToken/pdf", async (req, res) => {
   try {
     const { publicToken } = req.params;
@@ -192,7 +192,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
     });
     await quotation.save();
 
-    // Notify customer, sales rep, and admin — each gets their own labeled copy of the PDF
+    // Notify customer, sales rep, and admin - each gets their own labeled copy of the PDF
     try {
       const salesRep = await SalesRep.findOne({ uid: quotation.salesRepUid });
 
@@ -216,7 +216,7 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Quotation Confirmed — #${quotation.quotationNumber}`,
+          subject: `Quotation Confirmed - #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Your Quotation Is Confirmed </h2>
@@ -241,12 +241,12 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Quotation Accepted — #${quotation.quotationNumber}`,
+          subject: `Quotation Accepted - #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Quotation Accepted </h2>
-              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
               <p style="color:#374151;font-size:14px">
                 <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted
                 quotation <strong>#${quotation.quotationNumber}</strong> for
@@ -263,13 +263,13 @@ router.post("/quotation/:publicToken/accept", async (req, res) => {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: ADMIN_EMAIL,
-          subject: `Quotation Accepted — #${quotation.quotationNumber}`,
+          subject: `Quotation Accepted - #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Quotation Accepted </h2>
-              <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || "—"} ${salesRep?.phone ? `(${salesRep.phone})` : ""}</p>
-              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || "-"} ${salesRep?.phone ? `(${salesRep.phone})` : ""}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
               <p style="color:#374151;font-size:14px">
                 Quotation <strong>#${quotation.quotationNumber}</strong> has been confirmed by
                 <strong>${quotation.customer?.personalName || "the customer"}</strong> for
@@ -396,17 +396,17 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
           await transporter.sendMail({
             from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
             to: salesRep.email,
-            subject: `Negotiation Requested — #${quotation.quotationNumber}`,
+            subject: `Negotiation Requested - #${quotation.quotationNumber}`,
             html: `
               <div style="font-family:Arial,sans-serif;padding:24px;background:#fff7ed">
                 <h2 style="color:#c2410c">Customer Requested Negotiation</h2>
                 <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-                <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-                <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+                <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+                <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
                 <p style="color:#374151;font-size:14px"><strong>Current Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
                 <p style="color:#374151;font-size:14px"><strong>Customer Expected Total:</strong> ₹${expected.toFixed(2)}</p>
                 <p style="color:#374151;font-size:14px;white-space:pre-line"><strong>Message:</strong><br/>${combinedMessage}</p>
-                <p style="color:#374151;font-size:14px">This is within your pricing authority — no admin approval required. Please log in to the Sales Portal to respond.</p>
+                <p style="color:#374151;font-size:14px">This is within your pricing authority - no admin approval required. Please log in to the Sales Portal to respond.</p>
               </div>
             `,
           });
@@ -415,7 +415,7 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
         console.error("Negotiation email failed:", mailErr.message);
       }
     } else {
-      // ── Below admin's minimum approved price — needs admin sign-off ──
+      // ── Below admin's minimum approved price - needs admin sign-off ──
       quotation.status = "awaiting_admin_approval";
       await quotation.save();
 
@@ -426,10 +426,10 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
           <h2 style="color:#b91c1c">Admin Approval Required</h2>
           <table style="font-size:14px;color:#374151;border-collapse:collapse">
             <tr><td style="padding:4px 12px 4px 0"><strong>Quotation Number</strong></td><td>#${quotation.quotationNumber}</td></tr>
-            <tr><td style="padding:4px 12px 4px 0"><strong>Partner</strong></td><td>${quotation.customer?.personalName || "—"}</td></tr>
-            <tr><td style="padding:4px 12px 4px 0"><strong>End Customer</strong></td><td>${quotation.endCustomer?.endCustomerName || "—"}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0"><strong>Partner</strong></td><td>${quotation.customer?.personalName || "-"}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0"><strong>End Customer</strong></td><td>${quotation.endCustomer?.endCustomerName || "-"}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Sales Representative</strong></td><td>${salesRep?.name || quotation.salesRepUid}</td></tr>
-            <tr><td style="padding:4px 12px 4px 0"><strong>Sales Rep Contact</strong></td><td>${salesRep?.phone || "—"}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0"><strong>Sales Rep Contact</strong></td><td>${salesRep?.phone || "-"}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Admin Approved Amount</strong></td><td>₹${adminSubtotal.toFixed(2)}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Sales Quotation Amount</strong></td><td>₹${Number(quotation.grandTotal).toFixed(2)}</td></tr>
             <tr><td style="padding:4px 12px 4px 0"><strong>Customer Requested Amount</strong></td><td>₹${expected.toFixed(2)}</td></tr>
@@ -445,7 +445,7 @@ router.post("/quotation/:publicToken/negotiate", async (req, res) => {
           await transporter.sendMail({
             from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
             to: recipients.join(","),
-            subject: `Admin Approval Required — #${quotation.quotationNumber}`,
+            subject: `Admin Approval Required - #${quotation.quotationNumber}`,
             html: approvalHtml,
           });
         }
@@ -578,7 +578,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         </p>
       `;
 
-      // ── Partner-facing copy — no internal admin info, includes their sales contact ──
+      // ── Partner-facing copy - no internal admin info, includes their sales contact ──
       const partnerHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
           <h2 style="color:#166534">Counter Offer Accepted </h2>
@@ -596,13 +596,13 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         </div>
       `;
 
-      // ── Sales Rep / Admin copy — includes Partner, End Customer, Sales Rep identity ──
+      // ── Sales Rep / Admin copy - includes Partner, End Customer, Sales Rep identity ──
       const reportHtml = `
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
           <h2 style="color:#166534">Counter Offer Accepted </h2>
           <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid} ${salesRep?.phone ? `(${salesRep.phone})` : ""}</p>
-          <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-          <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+          <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+          <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
           <p style="color:#374151;font-size:14px">
             <strong>${quotation.customer?.personalName || "Customer"}</strong> has accepted the
             counter offer for quotation <strong>#${quotation.quotationNumber}</strong>.
@@ -615,7 +615,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Quotation Confirmed — #${quotation.quotationNumber}`,
+          subject: `Quotation Confirmed - #${quotation.quotationNumber}`,
           html: partnerHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">The final quotation is attached as a PDF for your records.</p></div>`,
           attachments: partnerAttachments,
         });
@@ -625,7 +625,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
+          subject: `Counter Offer Accepted - #${quotation.quotationNumber}`,
           html: reportHtml + `<div style="padding:0 24px 24px;font-family:Arial,sans-serif"><p style="color:#374151;font-size:14px">Final PDF attached. Please log in to the Sales Portal to proceed.</p></div>`,
           attachments: salesAttachments,
         });
@@ -635,7 +635,7 @@ router.post("/quotation/:publicToken/accept-counter", async (req, res) => {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: ADMIN_EMAIL,
-          subject: `Counter Offer Accepted — #${quotation.quotationNumber}`,
+          subject: `Counter Offer Accepted - #${quotation.quotationNumber}`,
           html: reportHtml,
           attachments: adminAttachments,
         });
@@ -708,12 +708,12 @@ router.post("/quotation/:publicToken/reject", async (req, res) => {
         await transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Quotation Rejected — #${quotation.quotationNumber}`,
+          subject: `Quotation Rejected - #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
               <h2 style="color:#b91c1c">Quotation Rejected by Partner</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
               ${quotation.rejectReason ? `<p style="color:#374151;font-size:14px"><strong>Reason:</strong> ${quotation.rejectReason}</p>` : ""}
               <p style="color:#374151;font-size:14px"><strong>Grand Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
               <p style="color:#374151;font-size:14px"><strong>Rejected At:</strong> ${quotation.rejectedAt.toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</p>

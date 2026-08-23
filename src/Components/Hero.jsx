@@ -79,14 +79,14 @@ const Hero = () => {
 
             {/* Paragraph */}
             <p className="text-sm sm:text-base md:text-lg text-white/75 leading-relaxed mb-6 sm:mb-8 max-w-[300px] sm:max-w-md md:max-w-lg">
-              <span className="text-white font-semibold">AADONA</span> — Transforming IT Solutions
+              <span className="text-white font-semibold">AADONA</span> - Transforming IT Solutions
               with Integrity, Innovation, and Customer-Centric Values – Join Our Journey Towards Excellence!
             </p>
 
             {/* Certificate Badges */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 md:gap-5">
 
-              {/* Badge 1 — Made in India */}
+              {/* Badge 1 - Made in India */}
               <div className="group flex items-center gap-3 w-[220px] sm:w-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-3 py-3 sm:px-5 sm:py-3 md:px-6 md:py-4 transition-all duration-300 hover:bg-white/18 hover:border-white/35">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden shrink-0 border-2 border-white/50 ring-1 ring-orange-400/40 transition-all duration-300 group-hover:ring-orange-400/80 group-hover:border-white/70">
                   <img
@@ -110,7 +110,7 @@ const Hero = () => {
               {/* Divider */}
               <div className="hidden sm:block h-12 md:h-16 w-px bg-white/20 flex-shrink-0" />
 
-              {/* Badge 2 — GeM */}
+              {/* Badge 2 - GeM */}
               <div className="group flex items-center gap-3 w-[220px] sm:w-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-3 py-3 sm:px-5 sm:py-3 md:px-6 md:py-4 transition-all duration-300 hover:bg-white/18 hover:border-white/35">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/50 ring-1 ring-orange-400/40 transition-all duration-300 group-hover:ring-orange-400/80 group-hover:border-white/70">
                   <img

@@ -197,7 +197,7 @@ export default function ManageSales() {
         <div className="flex items-center gap-2 px-6 py-4 border-b border-green-100 bg-green-700">
           <Users size={18} className="text-white" />
           <h2 className="text-lg font-bold text-white">
-            Sales Representatives — {view === "funnel" ? "Funnel Report" : "Insights"}
+            Sales Representatives - {view === "funnel" ? "Funnel Report" : "Insights"}
           </h2>
         </div>
 
@@ -233,7 +233,7 @@ export default function ManageSales() {
                         {t?.loading ? (
                           <span className="text-gray-400 italic text-xs">Loading...</span>
                         ) : t?.error ? (
-                          <span className="text-red-500 text-xs">—</span>
+                          <span className="text-red-500 text-xs">-</span>
                         ) : (
                           `₹${(value ?? 0).toFixed(2)}`
                         )}

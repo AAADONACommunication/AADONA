@@ -22,7 +22,7 @@ const CANONICAL_URL = "https://www.aadona.com/privacy-policy";   // ← update i
 const OG_IMAGE      = "https://www.aadona.com/images/og-banner.jpg";
 
 /* ─────────────────────────────────────────────
-   JSON-LD — WebPage schema (legal/policy page)
+   JSON-LD - WebPage schema (legal/policy page)
 ───────────────────────────────────────────── */
 const webPageSchema = {
   "@context": "https://schema.org",
@@ -143,8 +143,8 @@ const sections = [
     heading: "Data Security",
     content: (
       <p className="text-lg leading-relaxed text-gray-700">
-        We implement appropriate technical and organizational security measures — including
-        encryption, access controls, and regular audits — to protect your personal information
+        We implement appropriate technical and organizational security measures - including
+        encryption, access controls, and regular audits - to protect your personal information
         against unauthorized access, alteration, disclosure, or destruction. However, no method of
         transmission over the Internet or electronic storage is 100% secure.
       </p>
@@ -280,7 +280,7 @@ const PrivacyPolicy = () => {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             {/*
-              H1: descriptive keyword phrase — matches what users search.
+              H1: descriptive keyword phrase - matches what users search.
               Only ONE h1 per page.
             */}
             <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
@@ -290,7 +290,7 @@ const PrivacyPolicy = () => {
               How AADONA collects, uses, and protects your personal information.
             </p>
 
-            {/* Breadcrumb — visible + crawlable (matches JSON-LD BreadcrumbList above) */}
+            {/* Breadcrumb - visible + crawlable (matches JSON-LD BreadcrumbList above) */}
             
           </div>
         </section>
@@ -321,7 +321,7 @@ const PrivacyPolicy = () => {
             </article>
           ))}
 
-          {/* Contact Section — helps E-E-A-T (shows real accountable entity) */}
+          {/* Contact Section - helps E-E-A-T (shows real accountable entity) */}
           <article id="contact-us" className={liftCard} aria-labelledby="contact-heading">
             <h2
               id="contact-heading"

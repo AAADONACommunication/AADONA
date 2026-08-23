@@ -46,7 +46,7 @@ router.post("/invite", verifyToken, async (req, res) => {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // Generate a signup token (store however your existing signup flow expects —
+    // Generate a signup token (store however your existing signup flow expects -
     // e.g. in a separate SalesInvite model, or Firebase custom token)
     const token = crypto.randomBytes(24).toString("hex");
 

@@ -359,11 +359,11 @@ export default function BecomePartner() {
               {[
                 {
                   title: "Distributors",
-                  body: "We plan to work in an Exclusive Regional Distribution Model with an exclusive distributor in each region. We don't believe in dumping stocks — your risk will be kept low so that you can breathe easy with us. There are many more benefits working with us.",
+                  body: "We plan to work in an Exclusive Regional Distribution Model with an exclusive distributor in each region. We don't believe in dumping stocks - your risk will be kept low so that you can breathe easy with us. There are many more benefits working with us.",
                 },
                 {
                   title: "System Integrators",
-                  body: "We plan to work in an Exclusive Regional Distribution Model with an exclusive distributor in each region. We don't believe in dumping stocks — your risk will be kept low so that you can breathe easy with us. There are many more benefits working with us.",
+                  body: "We plan to work in an Exclusive Regional Distribution Model with an exclusive distributor in each region. We don't believe in dumping stocks - your risk will be kept low so that you can breathe easy with us. There are many more benefits working with us.",
                 },
                 {
                   title: "Solutions Consultant",

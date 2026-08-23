@@ -154,7 +154,7 @@ const StatusBadge = memo(function StatusBadge({ status }) {
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap ${style.badge}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-      {status ? status.replace(/_/g, " ") : "—"}
+      {status ? status.replace(/_/g, " ") : "-"}
     </span>
   );
 });
@@ -447,12 +447,12 @@ export default function Insights() {
       ];
 
   return (
-    // ════════ Page container — gives the whole page consistent side padding
+    // ════════ Page container - gives the whole page consistent side padding
     //          so nothing (especially the back button) sits flush against the corner ════════
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 lg:space-y-8">
       <InsightsMotionStyles />
 
-      {/* ════════ Header row — back button, page title, and approved-filter badge all
+      {/* ════════ Header row - back button, page title, and approved-filter badge all
                   live together on one clean, vertically-centered line ════════ */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
         <div className="flex items-center gap-3 min-w-0">
@@ -550,7 +550,7 @@ export default function Insights() {
         </div>
       </div>
 
-      {/* ════════ Partners — master list + detail panel ════════ */}
+      {/* ════════ Partners - master list + detail panel ════════ */}
       <div className="flex flex-col lg:flex-row gap-6 lg:items-start">
         <div
           className={`${
@@ -833,15 +833,15 @@ export default function Insights() {
                           <p className="text-xs text-gray-500 mb-2">
                             End Customer:{" "}
                             <span className="text-gray-700">
-                              {q.endCustomer?.endCustomerName || "—"}
+                              {q.endCustomer?.endCustomerName || "-"}
                               {q.endCustomer?.organizationName
-                                ? ` — ${q.endCustomer.organizationName}`
+                                ? ` - ${q.endCustomer.organizationName}`
                                 : ""}
                             </span>
                           </p>
                           <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-50">
                             <span>
-                              {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
+                              {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "-"}
                             </span>
                             <span className="font-bold text-gray-800 text-sm">
                               ₹{amountOf(q).toFixed(2)}
@@ -872,7 +872,7 @@ export default function Insights() {
                                 {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                               </td>
                               <td className="px-4 py-3 text-gray-700">
-                                {q.endCustomer?.endCustomerName || "—"}
+                                {q.endCustomer?.endCustomerName || "-"}
                                 {q.endCustomer?.organizationName && (
                                   <span className="block text-xs text-gray-400">
                                     {q.endCustomer.organizationName}
@@ -880,7 +880,7 @@ export default function Insights() {
                                 )}
                               </td>
                               <td className="px-4 py-3 text-gray-600">
-                                {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
+                                {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "-"}
                               </td>
                               <td className="px-4 py-3 font-semibold text-gray-700">
                                 ₹{amountOf(q).toFixed(2)}

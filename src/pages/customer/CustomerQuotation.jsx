@@ -33,7 +33,7 @@ import RejectQuotationModal from "../../Components/shared/RejectQuotationModal";
 const PUBLIC_API = `${import.meta.env.VITE_API_URL}/public/quotation`;
 
 // ────────────────────────────────────────────────────────────────
-// Status pill styling — same status keys/values as before, now with
+// Status pill styling - same status keys/values as before, now with
 // an icon + slightly refreshed palette per design spec.
 // ────────────────────────────────────────────────────────────────
 const statusBadge = {
@@ -82,7 +82,7 @@ const statusBadge = {
 // negotiation/resend/revision cycles), this makes sure the customer never
 // sees the same segment repeated. Splits on "|", trims each part, and keeps
 // only the first occurrence of each unique (case-insensitive) segment. This
-// does not touch the database — it only cleans what's shown on screen here.
+// does not touch the database - it only cleans what's shown on screen here.
 const dedupeNotes = (raw) => {
   if (!raw) return raw;
   const seen = new Set();
@@ -173,7 +173,7 @@ const buildTimeline = (q) => {
       });
     }
 
-    // Revised quotation sent by Sales — Admin revision itself intentionally NOT shown.
+    // Revised quotation sent by Sales - Admin revision itself intentionally NOT shown.
     if (h.revisedSalesItems?.length) {
       timeline.push({
         kind: "sales",
@@ -223,7 +223,7 @@ const buildTimeline = (q) => {
       return true;
     });
 
-  // The very first thing to happen is always Sales reaching out — relabel it.
+  // The very first thing to happen is always Sales reaching out - relabel it.
   if (deduped.length) {
     const chronological = [...deduped].sort((a, b) => new Date(a.at) - new Date(b.at));
     const first = chronological[0];
@@ -256,13 +256,13 @@ const buildTimeline = (q) => {
   const trail = latestQuotationEntry ? deduped.filter((e) => e !== latestQuotationEntry) : deduped;
   const trailSorted = [...trail].sort((a, b) => new Date(b.at) - new Date(a.at)); // newest first
 
-  // Once accepted, "Latest Quotation" is redundant — the dedicated
+  // Once accepted, "Latest Quotation" is redundant - the dedicated
   // "Final Accepted Terms" card below already shows it. Otherwise, pin it on top.
   return isAccepted ? trailSorted : [finalEntry, ...trailSorted];
 };
 
 // ────────────────────────────────────────────────────────────────
-// Small presentational helpers (pure UI — no business logic)
+// Small presentational helpers (pure UI - no business logic)
 // ────────────────────────────────────────────────────────────────
 
 function StatusPill({ status, size = "md" }) {
@@ -342,7 +342,7 @@ function ItemsTable({ items, compact = false }) {
               className={`border-b ${compact ? "border-green-100" : "border-green-50 odd:bg-green-50/40 hover:bg-green-50"} last:border-0 transition-colors`}
             >
               <td className={`${cellPad} text-gray-800 font-medium`}>{item.name}</td>
-              {!compact && <td className={`${cellPad} text-gray-500`}>{item.description || "—"}</td>}
+              {!compact && <td className={`${cellPad} text-gray-500`}>{item.description || "-"}</td>}
               <td className={`${cellPad} text-gray-700`}>{item.quantity}</td>
               <td className={`${cellPad} text-gray-700`}>₹{Number(item.unitPrice || 0).toFixed(2)}</td>
               <td className={`${cellPad} text-gray-700`}>{Number(item.gst || 0)}%</td>
@@ -682,8 +682,8 @@ export default function CustomerQuotation() {
         .insights-fade-in { animation: portalFadeIn 0.35s ease both; }
       `}</style>
 
-      {/* ── Top bar — logo only, no separate wordmark ── */}
-      {/* NOTE: backdrop-blur removed here — combined with `sticky` it was causing
+      {/* ── Top bar - logo only, no separate wordmark ── */}
+      {/* NOTE: backdrop-blur removed here - combined with `sticky` it was causing
           the whole bar to repaint/flicker on some mobile browsers. Solid bg-white
           avoids that GPU-compositing flicker entirely. */}
       <div className="sticky top-0 z-40 bg-white/95 border-b border-green-100 shadow-[0_1px_0_0_rgba(21,128,61,0.05)]">
@@ -720,7 +720,7 @@ export default function CustomerQuotation() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 space-y-6">
-        {/* ═══════════════ HERO — glass card, everything at a glance ═══════════════ */}
+        {/* ═══════════════ HERO - glass card, everything at a glance ═══════════════ */}
         <div className="relative overflow-hidden bg-gradient-to-br from-green-700 via-green-700 to-green-900 rounded-3xl shadow-lg shadow-green-900/10 p-6 sm:p-8 insights-fade-in">
           {/* Signature: a faint network/circuit trace, nodding to Aadona's
               networking-hardware identity instead of a generic decorative blob. */}
@@ -780,7 +780,7 @@ export default function CustomerQuotation() {
             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
                 <User size={14} className="text-gray-400 shrink-0" />
-                <span className="truncate">{quotation.customer?.personalName || "—"}</span>
+                <span className="truncate">{quotation.customer?.personalName || "-"}</span>
               </p>
               {quotation.customer?.companyName && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
@@ -790,7 +790,7 @@ export default function CustomerQuotation() {
               )}
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
                 <Mail size={14} className="text-gray-400 shrink-0" />
-                <span className="truncate">{quotation.customer?.email || "—"}</span>
+                <span className="truncate">{quotation.customer?.email || "-"}</span>
               </p>
               {quotation.customer?.contactNumber && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
@@ -813,7 +813,7 @@ export default function CustomerQuotation() {
             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
                 <User size={14} className="text-gray-400 shrink-0" />
-                <span className="truncate">{quotation.salesRep?.name || "—"}</span>
+                <span className="truncate">{quotation.salesRep?.name || "-"}</span>
               </p>
               {quotation.salesRep?.designation && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
@@ -823,7 +823,7 @@ export default function CustomerQuotation() {
               )}
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
                 <Mail size={14} className="text-gray-400 shrink-0" />
-                <span className="truncate">{quotation.salesRep?.email || "—"}</span>
+                <span className="truncate">{quotation.salesRep?.email || "-"}</span>
               </p>
               {quotation.salesRep?.phone && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
@@ -864,7 +864,7 @@ export default function CustomerQuotation() {
                     className="border-b border-green-50 last:border-0 odd:bg-green-50/40 hover:bg-green-50 transition-colors"
                   >
                     <td className="px-3 py-2.5 text-gray-800 font-medium">{item.name}</td>
-                    <td className="px-3 py-2.5 text-gray-500">{item.description || "—"}</td>
+                    <td className="px-3 py-2.5 text-gray-500">{item.description || "-"}</td>
                     <td className="px-3 py-2.5 text-gray-700">{item.quantity}</td>
                     <td className="px-3 py-2.5 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
                     <td className="px-3 py-2.5 text-gray-700">{item.gst}%</td>
@@ -1098,7 +1098,7 @@ export default function CustomerQuotation() {
                 );
                 const counterGrandTotal = Number(quotation.counterOfferAmount || 0);
                 // Any gap between the itemised subtotal+GST and the actual counter
-                // offer amount is the discount — shown as its own line here rather
+                // offer amount is the discount - shown as its own line here rather
                 // than being folded silently into each item's price.
                 const counterDiscount = Math.max(0, counterSubtotal + counterGstAmount - counterGrandTotal);
 
@@ -1186,13 +1186,13 @@ export default function CustomerQuotation() {
             <div className="max-w-xs mx-auto text-left text-sm space-y-1.5">
               <p className="text-gray-700">
                 <span className="font-semibold">Rejected By:</span>{" "}
-                {quotation.rejectedBy === "partner" ? "You" : quotation.rejectedBy === "sales" ? "Sales Team" : "—"}
+                {quotation.rejectedBy === "partner" ? "You" : quotation.rejectedBy === "sales" ? "Sales Team" : "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Rejected Date:</span>{" "}
                 {quotation.rejectedAt
                   ? new Date(quotation.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-                  : "—"}
+                  : "-"}
               </p>
               {quotation.rejectReason && (
                 <p className="text-gray-700">

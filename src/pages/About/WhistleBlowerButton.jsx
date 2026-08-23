@@ -135,7 +135,7 @@ const WhistleBlowerButton = () => {
             Whistle Blower
           </h1>
           <p className="mt-6 text-md text-white max-w-3xl mx-auto">
-            Report issues confidentially — provide details and upload evidence (optional).
+            Report issues confidentially - provide details and upload evidence (optional).
           </p>
         </div>
       </header>
@@ -317,7 +317,7 @@ const WhistleBlowerButton = () => {
                     <p className="text-sm mt-1 text-red-600">{fileError}</p>
                   )}
                   {!fileError && (
-                    <p className="text-sm mt-1 text-slate-500">Supported: PDF / JPG / PNG — max 15MB</p>
+                    <p className="text-sm mt-1 text-slate-500">Supported: PDF / JPG / PNG - max 15MB</p>
                   )}
                   {selectedFile && !fileError && (
                     <p className="text-sm mt-1 text-green-600">

@@ -17,7 +17,7 @@ const sanitizeString = (str) => {
     .trim();
 };
 
-// ─── Security: Safe slug — strips dangerous chars, limits length ───────────────
+// ─── Security: Safe slug - strips dangerous chars, limits length ───────────────
 const nameToSlug = (name) => {
   if (typeof name !== "string") return "";
   return name

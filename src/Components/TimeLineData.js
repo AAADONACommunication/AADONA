@@ -16,7 +16,7 @@ export const timelineData = [
     id: 2,
     year: '2019–2021',
     title: 'Mission in Motion',
-    description: 'Launched cost-efficient, homegrown IT solutions—switches, servers, NAS, IP cameras—and expanded across 12+ sectors including Smart Cities, Healthcare, Education, and Government. Reached 1,000+ customers and covered 90% of core networking needs for Indian businesses.',
+    description: 'Launched cost-efficient, homegrown IT solutions-switches, servers, NAS, IP cameras-and expanded across 12+ sectors including Smart Cities, Healthcare, Education, and Government. Reached 1,000+ customers and covered 90% of core networking needs for Indian businesses.',
     image: vision2
   },
   {

@@ -37,7 +37,7 @@ const convertField = (value) => {
 
 const run = async () => {
   if (!process.env.MONGO_URL) {
-    console.error("MONGO_URL not set in .env — aborting.");
+    console.error("MONGO_URL not set in .env - aborting.");
     process.exit(1);
   }
 
@@ -128,7 +128,7 @@ const run = async () => {
   console.log("Documents updated:", stats.updated);
   console.log("Documents skipped (no Firebase URL found):", stats.skipped);
   if (stats.unparsable.length) {
-    console.log("\nUnparsable Firebase URLs (left untouched — check manually):");
+    console.log("\nUnparsable Firebase URLs (left untouched - check manually):");
     stats.unparsable.forEach((u) => console.log(" -", u));
   }
 

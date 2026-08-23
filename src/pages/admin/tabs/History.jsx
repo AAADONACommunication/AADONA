@@ -394,7 +394,7 @@ export default function History() {
                   <div className="hs-log-body">
                     <div className="hs-log-tags">
                       <span className="hs-log-name">
-                        {ENTITY_ICONS[log.entity]} {log.entityName || "—"}
+                        {ENTITY_ICONS[log.entity]} {log.entityName || "-"}
                       </span>
                       <span className={`hs-tag ${s.bg} ${s.text}`}>{log.action}</span>
                       <span className="hs-tag" style={{ background: "#f3f4f6", color: "#6b7280" }}>{log.entity}</span>

@@ -45,7 +45,7 @@ router.post("/customers", verifySalesToken, async (req, res) => {
 // ── UPDATE CUSTOMER ──
 router.put("/customers/:id", verifySalesToken, async (req, res) => {
   try {
-    // salesRepUid check — doosre ka customer update na ho sake
+    // salesRepUid check - doosre ka customer update na ho sake
     const customer = await Customer.findOne({
       _id: req.params.id,
       salesRepUid: req.salesRep.uid,

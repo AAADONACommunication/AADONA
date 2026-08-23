@@ -255,7 +255,7 @@ const TechSquad = () => {
               Tech Squad
             </h1>
             <p className="mt-6 text-md text-white  max-w-3xl mx-auto">
-              On-site &amp; Remote Engineering Support across India — fast, reliable, professional.
+              On-site &amp; Remote Engineering Support across India - fast, reliable, professional.
             </p>
           </div>
         </header>
@@ -312,7 +312,7 @@ const TechSquad = () => {
             {/* ── Two-Column Layout ───────────────────────────────────────── */}
             <main className="grid lg:grid-cols-2 gap-8">
 
-              {/* Left Column — Info Sections */}
+              {/* Left Column - Info Sections */}
               <div className="space-y-8">
                 <Reveal>
                   <section className={liftSection} aria-labelledby="how-it-works-heading">
@@ -361,7 +361,7 @@ const TechSquad = () => {
                       Important Notes
                     </h2>
                     <ul className="list-disc pl-6 space-y-2 text-slate-700">
-                      <li>Paid service — charges vary by location.</li>
+                      <li>Paid service - charges vary by location.</li>
                       <li>Visit fee is non-refundable once engineer dispatched.</li>
                       <li>Parts replacement billed separately.</li>
                       <li>Cancellation after confirmation not refundable.</li>
@@ -371,7 +371,7 @@ const TechSquad = () => {
                 </Reveal>
               </div>
 
-              {/* Right Column — Request Form */}
+              {/* Right Column - Request Form */}
               <Reveal>
                 <section className={liftSection} aria-labelledby="request-form-heading">
                   <h2

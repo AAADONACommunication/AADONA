@@ -160,8 +160,8 @@ export default function ManageSales() {
                   <tr key={rep.uid} className="border-t border-green-50 hover:bg-green-50/50">
                     <td className="px-4 py-3 font-medium text-gray-800">{rep.name}</td>
                     <td className="px-4 py-3 text-gray-600">{rep.email}</td>
-                    <td className="px-4 py-3 text-gray-600">{rep.phone || "—"}</td>
-                    <td className="px-4 py-3 text-gray-600">{rep.region || "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{rep.phone || "-"}</td>
+                    <td className="px-4 py-3 text-gray-600">{rep.region || "-"}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                         rep.isActive

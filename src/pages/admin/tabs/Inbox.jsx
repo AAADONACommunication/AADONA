@@ -92,7 +92,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
   };
 
   const inboxFormatDate = (dateStr) => {
-    if (!dateStr) return "—";
+    if (!dateStr) return "-";
     const d = new Date(dateStr);
     const diff = Date.now() - d;
     const mins = Math.floor(diff / 60000);
@@ -106,7 +106,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
   };
 
   const inboxFormatDateFull = (dateStr) => {
-    if (!dateStr) return "—";
+    if (!dateStr) return "-";
     return new Date(dateStr).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }, {
       day: "numeric", month: "short", year: "numeric",
       hour: "2-digit", minute: "2-digit",
@@ -211,7 +211,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
       */}
       <div className="flex gap-5" style={{ minHeight: "0" }}>
 
-        {/* Left: Inquiry List — hidden on mobile when detail is open */}
+        {/* Left: Inquiry List - hidden on mobile when detail is open */}
         <div className={`
           flex flex-col bg-white rounded-2xl border border-green-100 shadow-sm overflow-hidden
           ${selectedInquiry
@@ -295,7 +295,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
             {/* Header */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-green-700 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                {/* Back button — only on mobile */}
+                {/* Back button - only on mobile */}
                 <button
                   onClick={() => setSelectedInquiry(null)}
                   className="lg:hidden p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition flex-shrink-0"
@@ -321,7 +321,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                   className="p-1.5 sm:p-2 bg-white/10 hover:bg-red-500 text-white rounded-xl transition">
                   <Trash2 size={14} />
                 </button>
-                {/* X button — only on desktop (mobile uses back arrow) */}
+                {/* X button - only on desktop (mobile uses back arrow) */}
                 <button onClick={() => setSelectedInquiry(null)}
                   className="hidden lg:flex p-1.5 sm:p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition">
                   <X size={14} />
@@ -336,7 +336,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
                 <div className="bg-gray-50 rounded-xl px-4 py-3">
                   <p className="text-gray-400 mb-1">Form Type</p>
-                  <p className="font-semibold text-gray-700">{selectedInquiry.formType || "—"}</p>
+                  <p className="font-semibold text-gray-700">{selectedInquiry.formType || "-"}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl px-4 py-3">
                   <p className="text-gray-400 mb-1">Received</p>
@@ -376,7 +376,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
                               .trim()}
                           </td>
                           <td className="py-2 text-gray-700 break-words align-top">
-                            {String(val || "—")}
+                            {String(val || "-")}
                           </td>
                         </tr>
                       ))}
@@ -472,7 +472,7 @@ export default function Inbox({ inquiries, setInquiries, loadInquiries }) {
               )}
             </div>
 
-            {/* Reply Box — pinned bottom */}
+            {/* Reply Box - pinned bottom */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-gray-50 flex-shrink-0">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                 Reply to {selectedInquiry.customerEmail}

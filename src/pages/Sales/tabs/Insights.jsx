@@ -30,7 +30,7 @@ const BUCKET_LABELS = {
   rejected: "Rejected",
 };
 
-// Amount used for a quotation's value — negotiated final price if settled,
+// Amount used for a quotation's value - negotiated final price if settled,
 // otherwise the (last) grand total.
 const amountOf = (q) => Number(q.negotiatedAmount ?? q.grandTotal ?? 0);
 
@@ -236,7 +236,7 @@ export default function Insights() {
     ];
 
     // Filter this partner's quotations by end customer name/organization, by
-    // amount (e.g. "1500" matches ₹1500.00), or by date — matches the
+    // amount (e.g. "1500" matches ₹1500.00), or by date - matches the
     // locale-formatted date (e.g. "7/20/2026") or ISO form (e.g. "2026-07-20"),
     // so partial matches like a year or month still work.
     const dq = detailSearch.trim().toLowerCase();
@@ -282,23 +282,23 @@ export default function Insights() {
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.accepted }} />
                   <span className="text-gray-700">
-                    Accepted — {p.counts.accepted} (₹{p.totals.accepted.toFixed(2)})
+                    Accepted - {p.counts.accepted} (₹{p.totals.accepted.toFixed(2)})
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.pending }} />
                   <span className="text-gray-700">
-                    Pending — {p.counts.pending} (₹{p.totals.pending.toFixed(2)})
+                    Pending - {p.counts.pending} (₹{p.totals.pending.toFixed(2)})
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.rejected }} />
                   <span className="text-gray-700">
-                    Rejected — {p.counts.rejected} (₹{p.totals.rejected.toFixed(2)})
+                    Rejected - {p.counts.rejected} (₹{p.totals.rejected.toFixed(2)})
                   </span>
                 </div>
                 <div className="pt-1.5 mt-1.5 border-t border-gray-100 font-bold text-gray-800">
-                  Total Quoted — ₹{p.grandTotal.toFixed(2)}
+                  Total Quoted - ₹{p.grandTotal.toFixed(2)}
                 </div>
               </div>
             </div>
@@ -347,18 +347,18 @@ export default function Insights() {
                         color: BUCKET_COLORS[bucketOf(q.status)],
                       }}
                     >
-                      {q.status ? q.status.replace(/_/g, " ") : "—"}
+                      {q.status ? q.status.replace(/_/g, " ") : "-"}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mb-1">
                     End Customer:{" "}
                     <span className="text-gray-700">
-                      {q.endCustomer?.endCustomerName || "—"}
-                      {q.endCustomer?.organizationName ? ` — ${q.endCustomer.organizationName}` : ""}
+                      {q.endCustomer?.endCustomerName || "-"}
+                      {q.endCustomer?.organizationName ? ` - ${q.endCustomer.organizationName}` : ""}
                     </span>
                   </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}</span>
+                    <span>{q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "-"}</span>
                     <span className="font-semibold text-gray-800">₹{amountOf(q).toFixed(2)}</span>
                   </div>
                 </div>
@@ -384,7 +384,7 @@ export default function Insights() {
                         {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                       </td>
                       <td className="px-4 py-3 text-gray-700">
-                        {q.endCustomer?.endCustomerName || "—"}
+                        {q.endCustomer?.endCustomerName || "-"}
                         {q.endCustomer?.organizationName && (
                           <span className="block text-xs text-gray-400">
                             {q.endCustomer.organizationName}
@@ -392,7 +392,7 @@ export default function Insights() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
+                        {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "-"}
                       </td>
                       <td className="px-4 py-3 font-semibold text-gray-700">
                         ₹{amountOf(q).toFixed(2)}
@@ -405,7 +405,7 @@ export default function Insights() {
                             color: BUCKET_COLORS[bucketOf(q.status)],
                           }}
                         >
-                          {q.status ? q.status.replace(/_/g, " ") : "—"}
+                          {q.status ? q.status.replace(/_/g, " ") : "-"}
                         </span>
                       </td>
                     </tr>
@@ -419,14 +419,14 @@ export default function Insights() {
   }
 
   // ════════════════════════════════════════
-  // OVERVIEW — pie chart + partner list
+  // OVERVIEW - pie chart + partner list
   // ════════════════════════════════════════
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
         <div className="flex flex-wrap items-center gap-6 justify-between">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-green-800 mb-1">All Partners — Quotation Overview</h2>
+            <h2 className="text-lg font-bold text-green-800 mb-1">All Partners - Quotation Overview</h2>
             <p className="text-sm text-gray-500">
               Combined value of every quotation you've sent, across all partners.
             </p>
@@ -435,23 +435,23 @@ export default function Insights() {
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.accepted }} />
                 <span className="text-gray-700">
-                  Accepted — {overall.counts.accepted} (₹{overall.totals.accepted.toFixed(2)})
+                  Accepted - {overall.counts.accepted} (₹{overall.totals.accepted.toFixed(2)})
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.pending }} />
                 <span className="text-gray-700">
-                  Pending — {overall.counts.pending} (₹{overall.totals.pending.toFixed(2)})
+                  Pending - {overall.counts.pending} (₹{overall.totals.pending.toFixed(2)})
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: BUCKET_COLORS.rejected }} />
                 <span className="text-gray-700">
-                  Rejected — {overall.counts.rejected} (₹{overall.totals.rejected.toFixed(2)})
+                  Rejected - {overall.counts.rejected} (₹{overall.totals.rejected.toFixed(2)})
                 </span>
               </div>
               <div className="pt-1.5 mt-1.5 border-t border-gray-100 font-bold text-gray-800">
-                Total Quoted — ₹{overall.grandTotal.toFixed(2)}
+                Total Quoted - ₹{overall.grandTotal.toFixed(2)}
               </div>
             </div>
           </div>
@@ -489,7 +489,7 @@ export default function Insights() {
                 onClick={() => setSelectedPartnerId(p.id)}
                 className="w-full text-left px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 hover:bg-green-50 transition"
               >
-                {/* Name + company/email — always visible, never gets squeezed out */}
+                {/* Name + company/email - always visible, never gets squeezed out */}
                 <div className="min-w-0 sm:flex-1">
                   <p className="font-semibold text-gray-800 break-words sm:truncate">
                     {p.customer?.personalName || "Unknown Partner"}
@@ -500,7 +500,7 @@ export default function Insights() {
                   </p>
                 </div>
 
-                {/* Stats — wrap onto their own line(s) on mobile, single row on sm+ */}
+                {/* Stats - wrap onto their own line(s) on mobile, single row on sm+ */}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:shrink-0 text-xs">
                   <span className="text-gray-500">
                     {p.quotations.length} quotation{p.quotations.length !== 1 ? "s" : ""}

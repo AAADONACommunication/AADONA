@@ -98,7 +98,7 @@ export default function CustomerPage() {
         <title>Our Customers | AADONA – Trusted by Government & Private Enterprises</title>
         <meta
           name="description"
-          content="AADONA serves leading Government and Private enterprises across India. Explore our trusted customer base — building trust and delivering excellence."
+          content="AADONA serves leading Government and Private enterprises across India. Explore our trusted customer base - building trust and delivering excellence."
         />
         <meta
           name="keywords"
@@ -113,7 +113,7 @@ export default function CustomerPage() {
         <meta property="og:title" content="Our Customers | AADONA – Trusted by Government & Private Enterprises" />
         <meta
           property="og:description"
-          content="Explore AADONA's trusted customer base — serving Government and Private enterprises across India with excellence."
+          content="Explore AADONA's trusted customer base - serving Government and Private enterprises across India with excellence."
         />
         <meta property="og:url" content="https://www.aadona.com/customers" /> {/* ← update */}
         <meta property="og:site_name" content="AADONA" />

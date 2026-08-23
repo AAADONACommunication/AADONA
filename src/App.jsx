@@ -111,7 +111,7 @@ const AppContent = () => {
           <Route path="/sales-portal-100" element={<SalesPanel />}/>
           <Route path="/sales-signup/:token" element={<SalesSignup />}/>
 
-          {/* ADMIN — SALES INSIGHTS */}
+          {/* ADMIN - SALES INSIGHTS */}
           <Route
             path="/admin/sales/:uid/insights"
             element={

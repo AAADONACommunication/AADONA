@@ -38,7 +38,7 @@ AUTO_BLOG_COUNT = 3
 
 
 class SafeStreamHandler(logging.StreamHandler):
-    """Windows-safe console handler — strips emojis if terminal can't encode them."""
+    """Windows-safe console handler - strips emojis if terminal can't encode them."""
     def emit(self, record):
         try:
             msg = self.format(record)
@@ -70,7 +70,7 @@ enterprises, SMBs, government bodies, and system integrators across India.
 BRAND PILLARS:
   - Made in India: Proudly designed and manufactured in India under the Atmanirbhar Bharat vision.
   - Enterprise-Grade Reliability: Products are built for 24x7 uptime in demanding Indian environments.
-  - End-to-End Infrastructure: From cabling to cloud-ready NAS — AADONA covers the full network stack.
+  - End-to-End Infrastructure: From cabling to cloud-ready NAS - AADONA covers the full network stack.
   - Channel-Friendly: Strong pan-India distributor and reseller network.
 
 PRODUCT PORTFOLIO:
@@ -90,7 +90,7 @@ PRODUCT PORTFOLIO:
     - Ideal vertical: Large campuses, hotels, hospitals, warehouses, smart offices.
 
   Helios Enterprise NAS:
-    - High-availability NAS for data-heavy workloads — backup, surveillance storage, media.
+    - High-availability NAS for data-heavy workloads - backup, surveillance storage, media.
     - Supports RAID 0/1/5/6/10; hot-swappable drives; dual redundant power supply.
     - 10GbE ready; iSCSI, NFS, SMB/CIFS, AFP protocols; AES-256 encryption at rest.
     - Scalable from 4-bay SMB units to 24-bay enterprise rackmount systems.
@@ -104,7 +104,7 @@ PRODUCT PORTFOLIO:
     - Ideal vertical: Data centres, greenfield office builds, structured cabling upgrades.
 
   AADONA IP Surveillance / CCTV Systems:
-    - Full HD to 4K IP cameras — dome, bullet, PTZ, fisheye variants.
+    - Full HD to 4K IP cameras - dome, bullet, PTZ, fisheye variants.
     - H.265+ compression; night vision up to 60 m IR range; IP66/IK10 weatherproofing.
     - PoE-powered (works natively with Diana PoE switches).
     - NVR solutions with up to 64-channel support and AI-based motion analytics.
@@ -125,20 +125,20 @@ TARGET AUDIENCE:
 
 BRAND VOICE:
   Authoritative, forward-thinking, trusted, proudly Indian.
-  Always position AADONA as THE solution — never generic.
+  Always position AADONA as THE solution - never generic.
   Highlight Made-in-India advantage where relevant.
-  Use concrete specs and real numbers — avoid vague claims.
+  Use concrete specs and real numbers - avoid vague claims.
 """
 
 # ==========================================
 # QUILL-SAFE HTML RULES
 # ==========================================
 QUILL_RULES = """
-CRITICAL HTML RULES — Quill editor will silently delete anything not on this list:
+CRITICAL HTML RULES - Quill editor will silently delete anything not on this list:
 ALLOWED tags: <p>, <br>, <strong>, <em>, <u>, <h2>, <h3>, <ul>, <ol>, <li>, <blockquote>, <a>
 FORBIDDEN (will be deleted and cause blank spaces):
   - <div> tags of any kind
-  - style="..." attributes on ANY tag — including <h2 style="">, <strong style="">, <p style="">
+  - style="..." attributes on ANY tag - including <h2 style="">, <strong style="">, <p style="">
   - <span> tags
   - Any custom tags
 
@@ -160,7 +160,7 @@ CONTENT_SERIES = [
 ]
 
 KEYWORD_INJECTION = f"""
-CONTENT KEYWORDS — naturally use these words somewhere in the blog body:
+CONTENT KEYWORDS - naturally use these words somewhere in the blog body:
 {", ".join(SEO_KEYWORDS)}
 Do NOT stuff them. Weave them in where they fit contextually.
 """
@@ -194,7 +194,7 @@ PRODUCT_SCENES = {
                 "and IoT sensors arranged around it, clean white background, vibrant tech-infographic style"
             ),
             (
-                "Flat vector diagram showing a PoE switch powering a smart building — "
+                "Flat vector diagram showing a PoE switch powering a smart building - "
                 "icons of cameras, phones, access points, and sensors branching out from "
                 "a central switch icon, connected by clean colored lines, minimal SaaS illustration style"
             ),
@@ -203,8 +203,8 @@ PRODUCT_SCENES = {
     "Apollo WiFi 7 Access Points": {
         "header": [
             (
-                "Diverse group of Indian professionals in a modern open-plan office — "
-                "one person on a video call, another on a laptop, a third walking with a tablet — "
+                "Diverse group of Indian professionals in a modern open-plan office - "
+                "one person on a video call, another on a laptop, a third walking with a tablet - "
                 "ceiling-mounted access point subtly visible above them, bright and airy atmosphere"
             ),
             (
@@ -287,7 +287,7 @@ PRODUCT_SCENES = {
                 "patch panels and server rooms at each level, blueprint illustration style"
             ),
             (
-                "Flat vector illustration of a Cat6 cable anatomy — outer jacket, foil shield, "
+                "Flat vector illustration of a Cat6 cable anatomy - outer jacket, foil shield, "
                 "twisted pairs color-coded, with callout labels for each layer, "
                 "clean white background, technical explainer style"
             ),
@@ -318,7 +318,7 @@ PRODUCT_SCENES = {
                 "NVR unit in corner, clean and graphic, security-infographic style"
             ),
             (
-                "Flat vector diagram showing a CCTV ecosystem — IP cameras connecting via "
+                "Flat vector diagram showing a CCTV ecosystem - IP cameras connecting via "
                 "PoE switch to an NVR, NVR connecting to a monitor and cloud storage, "
                 "clean flow diagram style, blue and orange palette"
             ),
@@ -349,7 +349,7 @@ PRODUCT_SCENES = {
                 "clean white background, technical-but-friendly infographic style"
             ),
             (
-                "Flat vector diagram of an edge computing setup — rack server at center "
+                "Flat vector diagram of an edge computing setup - rack server at center "
                 "connecting to local IoT devices, cloud, and end-user devices, "
                 "arrows showing data flow, minimal SaaS illustration style, navy and orange palette"
             ),
@@ -395,7 +395,7 @@ def clean_text(text: str) -> str:
 
 def strip_forbidden_html(html: str) -> str:
     """
-    Post-process safety net — removes anything Quill will silently drop anyway.
+    Post-process safety net - removes anything Quill will silently drop anyway.
     1. Unwrap <div ...>...</div> → keep inner content
     2. Strip style="..." from all tags
     3. Strip <span> tags (keep inner text)
@@ -434,7 +434,7 @@ def get_auth_token() -> str:
 # ==========================================
 def convert_to_webp(png_bytes: bytes, quality: int = 85) -> tuple[bytes, str]:
     if not WEBP_SUPPORTED:
-        log.warning("Pillow not installed — uploading as PNG.")
+        log.warning("Pillow not installed - uploading as PNG.")
         return png_bytes, "image/png"
     try:
         img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
@@ -445,7 +445,7 @@ def convert_to_webp(png_bytes: bytes, quality: int = 85) -> tuple[bytes, str]:
         log.info(f"WebP conversion: {len(png_bytes):,} PNG → {len(webp_bytes):,} WebP ({saving_pct}% smaller)")
         return webp_bytes, "image/webp"
     except Exception as e:
-        log.warning(f"WebP conversion failed: {e} — falling back to PNG.")
+        log.warning(f"WebP conversion failed: {e} - falling back to PNG.")
         return png_bytes, "image/png"
 
 
@@ -484,13 +484,13 @@ def generate_with_fallback(contents, config) -> any:
                 is_transient = any(code in err for code in ["503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED"])
                 if is_transient:
                     if attempt < len(delays):
-                        log.warning(f"{model_name} attempt {attempt} failed (transient) — waiting {delay}s...")
+                        log.warning(f"{model_name} attempt {attempt} failed (transient) - waiting {delay}s...")
                         time.sleep(delay)
                     else:
-                        log.warning(f"{model_name} exhausted all retries — trying next model...")
+                        log.warning(f"{model_name} exhausted all retries - trying next model...")
                         break
                 else:
-                    # Non-transient error (bad request, auth, etc.) — don't retry
+                    # Non-transient error (bad request, auth, etc.) - don't retry
                     log.error(f"{model_name} failed with non-transient error: {err}")
                     raise
 
@@ -520,18 +520,18 @@ def save_used_topic(idea: dict) -> None:
     })
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(topics, f, indent=2, ensure_ascii=False)
-    log.info(f"Topic history updated — {len(topics)} blogs logged.")
+    log.info(f"Topic history updated - {len(topics)} blogs logged.")
 
 
 # ==========================================
-# 5A. STAGE 1 — USER-DRIVEN IDEA ENGINE
+# 5A. STAGE 1 - USER-DRIVEN IDEA ENGINE
 # ==========================================
 def generate_blog_idea_from_topic(user_topic: str) -> dict:
     """Generate a blog idea based on a user-supplied topic/prompt."""
     log.info(f"Stage 1 (user-driven): Generating idea for topic: '{user_topic}'...")
 
     idea_prompt = f"""
-You are a senior content strategist for AADONA — a premium Indian networking brand.
+You are a senior content strategist for AADONA - a premium Indian networking brand.
 
 {AADONA_CONTEXT}
 
@@ -574,7 +574,7 @@ EXCERPT: <2-sentence excerpt that hooks the reader>
 
 
 # ==========================================
-# 5B. STAGE 1 — AUTO IDEA ENGINE (scheduled)
+# 5B. STAGE 1 - AUTO IDEA ENGINE (scheduled)
 # ==========================================
 def generate_blog_idea_auto(already_used_this_run: list[str] | None = None) -> dict:
     """
@@ -596,7 +596,7 @@ def generate_blog_idea_auto(already_used_this_run: list[str] | None = None) -> d
 
     if avoid_lines:
         avoid_block = (
-            "ALREADY PUBLISHED — DO NOT repeat these topics, products, or angles:\n"
+            "ALREADY PUBLISHED - DO NOT repeat these topics, products, or angles:\n"
             + "\n".join(avoid_lines)
             + "\n\nPick a COMPLETELY DIFFERENT product and trend angle from the above list.\n"
         )
@@ -604,28 +604,28 @@ def generate_blog_idea_auto(already_used_this_run: list[str] | None = None) -> d
         avoid_block = ""
 
     idea_prompt = f"""
-You are a senior content strategist for AADONA — a premium Indian networking brand.
+You are a senior content strategist for AADONA - a premium Indian networking brand.
 
 {AADONA_CONTEXT}
 
 {avoid_block}
-TASK — Think step by step:
+TASK - Think step by step:
 
-STEP 1 — Identify 5 genuinely trending topics in networking/IT infrastructure for 2026
+STEP 1 - Identify 5 genuinely trending topics in networking/IT infrastructure for 2026
          (think: AI-driven networks, SASE, WiFi 7 adoption, edge computing, green IT, smart buildings,
          structured cabling, NAS storage, PoE automation, zero trust, smart surveillance, etc.)
-         These must be real, specific trends — not generic buzzwords.
-         IMPORTANT: Spread across ALL AADONA products — do not default to WiFi every time.
+         These must be real, specific trends - not generic buzzwords.
+         IMPORTANT: Spread across ALL AADONA products - do not default to WiFi every time.
 
-STEP 2 — For each trend, map it to the AADONA product that solves it best.
+STEP 2 - For each trend, map it to the AADONA product that solves it best.
          Ensure the 5 ideas cover AT LEAST 3 different AADONA products.
 
-STEP 3 — Score each idea from 1–10 on:
+STEP 3 - Score each idea from 1–10 on:
          (a) Relevance to Indian enterprise buyers
-         (b) Novelty — has this angle been overdone?
+         (b) Novelty - has this angle been overdone?
          (c) SEO potential in 2026
 
-STEP 4 — Pick the WINNER (highest total score) and output ONLY this:
+STEP 4 - Pick the WINNER (highest total score) and output ONLY this:
 
 WINNER_TREND: <the trend>
 WINNER_PRODUCT: <the AADONA product>
@@ -635,7 +635,7 @@ EXCERPT: <2-sentence excerpt that hooks the reader>
 
 Output ONLY the 5 labelled lines above. No extra text.
 
-CONTENT_SERIES OPTIONS — prefer ideas that fit one of these formats:
+CONTENT_SERIES OPTIONS - prefer ideas that fit one of these formats:
 {chr(10).join(f"  - {s}" for s in CONTENT_SERIES)}
 """
 
@@ -663,7 +663,7 @@ CONTENT_SERIES OPTIONS — prefer ideas that fit one of these formats:
 
 
 # ==========================================
-# REBUILD FEATURES — Quill-safe output
+# REBUILD FEATURES - Quill-safe output
 # ==========================================
 def rebuild_features(html: str) -> str:
     """Parses <feature-data>[...]</feature-data> and replaces it with Quill-safe <h3> + <p> pairs."""
@@ -690,7 +690,7 @@ def rebuild_features(html: str) -> str:
             rows = json.loads(m.group(1).strip())
             return make_quill_safe_list(rows)
         except Exception as e:
-            log.warning(f"Feature JSON parse failed: {e} — using regex fallback.")
+            log.warning(f"Feature JSON parse failed: {e} - using regex fallback.")
             try:
                 pairs = re.findall(
                     r'"feature"\s*:\s*"([^"]+)".*?"benefit"\s*:\s*"([^"]+)"',
@@ -706,7 +706,7 @@ def rebuild_features(html: str) -> str:
 
 
 # ==========================================
-# 6. STAGE 2 — QUILL-SAFE BLOG BODY GENERATOR
+# 6. STAGE 2 - QUILL-SAFE BLOG BODY GENERATOR
 # ==========================================
 def validate_sections_raw(html: str) -> tuple[bool, list[str]]:
     sections = [s.strip() for s in html.split("---SECTION---") if s.strip()]
@@ -754,13 +754,13 @@ Unique Angle: {idea['WINNER_ANGLE']}
 {KEYWORD_INJECTION}
 
 ABSOLUTE CONTENT RULES:
-1. DO NOT include the blog title "{idea['BLOG_TITLE']}" anywhere — it is already on the page.
+1. DO NOT include the blog title "{idea['BLOG_TITLE']}" anywhere - it is already on the page.
 2. Every heading must be followed by at least 2 paragraphs of content.
-3. Keep paragraphs short — max 3-4 sentences each.
+3. Keep paragraphs short - max 3-4 sentences each.
 4. Output ALL 4 sections separated by exactly: ---SECTION---
-5. Section 3 MUST contain the <feature-data>[...]</feature-data> block — do not skip it.
+5. Section 3 MUST contain the <feature-data>[...]</feature-data> block - do not skip it.
 
-OUTPUT FORMAT — exactly 4 sections separated by ---SECTION---:
+OUTPUT FORMAT - exactly 4 sections separated by ---SECTION---:
 
 SECTION 1 (Introduction):
 Write 3 short <p> paragraphs starting with a strong hook. No heading.
@@ -776,7 +776,7 @@ Then 1 more <p> paragraph.
 
 ---SECTION---
 
-SECTION 3 (AADONA Solution — MOST IMPORTANT):
+SECTION 3 (AADONA Solution - MOST IMPORTANT):
 <h2>How {idea['WINNER_PRODUCT']} Solves This</h2>
 Write 1 intro <p> paragraph.
 Then output EXACTLY this structure with REAL features of {idea['WINNER_PRODUCT']}:
@@ -836,10 +836,10 @@ OUTPUT ONLY THE HTML. No markdown fences, no explanations.
 
     is_valid, sections, fixed = attempt_and_clean()
     if not is_valid:
-        log.warning("Retrying — attempt 2...")
+        log.warning("Retrying - attempt 2...")
         is_valid, sections, fixed = attempt_and_clean()
     if not is_valid:
-        log.warning("Retrying — attempt 3...")
+        log.warning("Retrying - attempt 3...")
         is_valid, sections, fixed = attempt_and_clean()
 
     if not is_valid:
@@ -882,7 +882,7 @@ def init_firebase():
 
 
 # ==========================================
-# 7. STAGE 3 — IMAGE GENERATION & UPLOAD
+# 7. STAGE 3 - IMAGE GENERATION & UPLOAD
 # ==========================================
 def upload_to_firebase(image_bytes: bytes, filename: str, content_type: str = "image/webp") -> str | None:
     try:
@@ -924,9 +924,9 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
         log.info("Stage 3a: Generating header image...")
         prompt = (
             f"DIGITAL ILLUSTRATION or EDITORIAL PHOTO, landscape 16:9. "
-            f"Style: warm, human, professional — could be flat illustration OR cinematic editorial. "
+            f"Style: warm, human, professional - could be flat illustration OR cinematic editorial. "
             f"Scene: {scene}. "
-            f"Mood: optimistic, modern, trustworthy — fits a premium Indian tech brand's website. "
+            f"Mood: optimistic, modern, trustworthy - fits a premium Indian tech brand's website. "
             f"Color palette: clean whites, warm neutrals, with one accent color (blue or orange). "
             f"Topic context: {idea['WINNER_TREND']} in Indian enterprise IT. "
             f"{IMAGE_NEGATIVE_PROMPT_HEADER}"
@@ -936,7 +936,7 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
         log.info("Stage 3b: Generating mid-blog image...")
         prompt = (
             f"FLAT VECTOR ILLUSTRATION or ISOMETRIC DIAGRAM, landscape 16:9. "
-            f"Style: clean tech infographic — like a SaaS website hero illustration. "
+            f"Style: clean tech infographic - like a SaaS website hero illustration. "
             f"Scene: {scene}. "
             f"Context: explaining {idea['WINNER_PRODUCT']} capabilities for {idea['WINNER_TREND']}. "
             f"Color palette: 3–4 colors max, professional blues/teals/oranges on white or light grey. "
@@ -945,7 +945,7 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
         )
         filename = f"blog_mid_{int(time.time())}.webp"
 
-    # Image generation uses its own dedicated model — no text fallback chain here
+    # Image generation uses its own dedicated model - no text fallback chain here
     try:
         delays = [15, 45, 90, 180]
         last_error = None
@@ -965,14 +965,14 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
                             return url
                         with open(filename, "wb") as f:
                             f.write(image_bytes)
-                        log.warning(f"Firebase upload failed — image saved locally as {filename}.")
+                        log.warning(f"Firebase upload failed - image saved locally as {filename}.")
                         return fallback
                 raise ValueError("No image part found in Gemini response.")
             except Exception as e:
                 err = str(e)
                 is_transient = any(code in err for code in ["503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED"])
                 if is_transient and attempt < len(delays):
-                    log.warning(f"Image gen attempt {attempt} failed — waiting {delay}s...")
+                    log.warning(f"Image gen attempt {attempt} failed - waiting {delay}s...")
                     time.sleep(delay)
                     last_error = e
                 else:
@@ -984,18 +984,18 @@ def generate_blog_image(idea: dict, image_type: str = "header") -> str:
 
 
 # ==========================================
-# 8. STAGE 4 — BUILD PAYLOAD & PUSH TO CMS
+# 8. STAGE 4 - BUILD PAYLOAD & PUSH TO CMS
 # ==========================================
 def publish_blog(idea: dict, body_html: str, header_image: str, mid_image: str) -> None:
     log.info("Stage 4: Publishing to CMS...")
 
     sections    = [s.strip() for s in body_html.split("---SECTION---") if s.strip()]
-    blog_blocks = [{"type": "image", "url": header_image, "caption": f"AADONA {idea['WINNER_PRODUCT']} — {idea['WINNER_TREND']}"}]
+    blog_blocks = [{"type": "image", "url": header_image, "caption": f"AADONA {idea['WINNER_PRODUCT']} - {idea['WINNER_TREND']}"}]
 
     for i, content in enumerate(sections):
         blog_blocks.append({"type": "text", "content": content})
         if i == 1:
-            blog_blocks.append({"type": "image", "url": mid_image, "caption": f"{idea['WINNER_TREND']} — Powered by AADONA"})
+            blog_blocks.append({"type": "image", "url": mid_image, "caption": f"{idea['WINNER_TREND']} - Powered by AADONA"})
 
     token = get_auth_token()
     now   = datetime.datetime.now()
@@ -1033,7 +1033,7 @@ def publish_blog(idea: dict, body_html: str, header_image: str, mid_image: str) 
 # 9. SINGLE BLOG PIPELINE
 # ==========================================
 def build_and_publish(idea: dict) -> None:
-    """Run the full pipeline for one idea dict — body → images → CMS → history."""
+    """Run the full pipeline for one idea dict - body → images → CMS → history."""
     body_html    = generate_blog_body(idea)
     header_image = generate_blog_image(idea, image_type="header")
     mid_image    = generate_blog_image(idea, image_type="mid")
@@ -1047,7 +1047,7 @@ def build_and_publish(idea: dict) -> None:
 # ==========================================
 def run_user_driven(user_topic: str) -> None:
     log.info("=" * 60)
-    log.info(f"AADONA Blog Generator — User topic: '{user_topic}'")
+    log.info(f"AADONA Blog Generator - User topic: '{user_topic}'")
     log.info("=" * 60)
     idea = generate_blog_idea_from_topic(user_topic)
     build_and_publish(idea)
@@ -1059,7 +1059,7 @@ def run_user_driven(user_topic: str) -> None:
 # ==========================================
 def run_auto_scheduled(count: int = AUTO_BLOG_COUNT) -> None:
     log.info("=" * 60)
-    log.info(f"AADONA Blog Automation — Scheduled run ({count} blogs)")
+    log.info(f"AADONA Blog Automation - Scheduled run ({count} blogs)")
     log.info("=" * 60)
 
     generated_titles: list[str] = []
@@ -1081,7 +1081,7 @@ def run_auto_scheduled(count: int = AUTO_BLOG_COUNT) -> None:
             except Exception as e2:
                 log.error(f"Blog {i} skipped after retry: {e2}")
 
-    log.info(f"Scheduled run complete — {len(generated_titles)}/{count} blogs published.")
+    log.info(f"Scheduled run complete - {len(generated_titles)}/{count} blogs published.")
 
 
 # ==========================================

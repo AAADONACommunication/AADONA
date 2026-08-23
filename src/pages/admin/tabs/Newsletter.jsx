@@ -700,7 +700,7 @@ export default function Newsletter() {
                 <input
                   type="text" value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="e.g. New Product Launch — AADONA WiFi 6E"
+                  placeholder="e.g. New Product Launch - AADONA WiFi 6E"
                   className="nl-input"
                 />
               </div>
@@ -719,7 +719,7 @@ export default function Newsletter() {
                   <button className="nl-upload" onClick={() => bannerRef.current.click()}>
                     <Image size={22} />
                     <span className="nl-upload-lbl">Click to upload banner image</span>
-                    <span className="nl-upload-hint">PNG, JPG, WEBP — max 15MB</span>
+                    <span className="nl-upload-hint">PNG, JPG, WEBP - max 15MB</span>
                   </button>
                 )}
                 <input ref={bannerRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleBannerChange} />

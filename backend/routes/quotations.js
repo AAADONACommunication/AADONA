@@ -12,7 +12,7 @@ const verifySalesToken = require("../middleware/verifySalesToken");
 const transporter = require("../mailer");
 
 /* =========================================================
-   HELPER — generate a unique, human-readable request number
+   HELPER - generate a unique, human-readable request number
 ========================================================= */
 const generateRequestNumber = async () => {
   const datePart = new Date()
@@ -33,8 +33,8 @@ const generateRequestNumber = async () => {
 };
 
 /* =========================================================
-   SALES REP — Send a product requirement to Admin
-   (no pricing yet — admin will price it in Phase 3B)
+   SALES REP - Send a product requirement to Admin
+   (no pricing yet - admin will price it in Phase 3B)
 ========================================================= */
 router.post("/quotation-requests", verifySalesToken, async (req, res) => {
   try {
@@ -95,7 +95,7 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
       notes: notes || "",
     });
 
-    // Email admin with the requirement (no prices — admin will price it)
+    // Email admin with the requirement (no prices - admin will price it)
     if (process.env.COMPANY_EMAIL) {
       const itemsRows = quotationRequest.items
         .map(
@@ -113,7 +113,7 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
         .sendMail({
           from: `"AADONA Sales Portal" <${process.env.EMAIL_USER}>`,
           to: process.env.COMPANY_EMAIL,
-          subject: `New Quotation Request — ${requestNumber}`,
+          subject: `New Quotation Request - ${requestNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
               <h2 style="color:#166534;margin-bottom:4px">New Quotation Request</h2>
@@ -122,10 +122,10 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
               <table border="0" cellpadding="6" cellspacing="0" style="width:100%;font-size:14px;margin-bottom:16px">
                 <tr><td style="color:#6b7280;width:140px"><b>Sales Rep</b></td><td>${salesRep?.name || "-"} (${salesRep?.email || "-"})</td></tr>
                 <tr><td style="color:#6b7280"><b>Sales Rep Contact</b></td><td>${salesRep?.phone || "-"}</td></tr>
-                <tr><td style="color:#6b7280"><b>Partner</b></td><td>${customerDoc.personalName}${customerDoc.companyName ? ` — ${customerDoc.companyName}` : ""}</td></tr>
+                <tr><td style="color:#6b7280"><b>Partner</b></td><td>${customerDoc.personalName}${customerDoc.companyName ? ` - ${customerDoc.companyName}` : ""}</td></tr>
                 <tr><td style="color:#6b7280"><b>Partner Email</b></td><td>${customerDoc.email}</td></tr>
                 <tr><td style="color:#6b7280"><b>Partner Contact</b></td><td>${customerDoc.contactNumber || "-"}</td></tr>
-                <tr><td style="color:#6b7280"><b>End Customer</b></td><td>${endCustomerDoc?.endCustomerName ? `${endCustomerDoc.endCustomerName}${endCustomerDoc.organizationName ? ` — ${endCustomerDoc.organizationName}` : ""}` : "-"}</td></tr>
+                <tr><td style="color:#6b7280"><b>End Customer</b></td><td>${endCustomerDoc?.endCustomerName ? `${endCustomerDoc.endCustomerName}${endCustomerDoc.organizationName ? ` - ${endCustomerDoc.organizationName}` : ""}` : "-"}</td></tr>
               </table>
 
               <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">
@@ -163,7 +163,7 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
 });
 
 /* =========================================================
-   SALES REP — Get own quotation requests (status tracking)
+   SALES REP - Get own quotation requests (status tracking)
 ========================================================= */
 router.get("/quotation-requests", verifySalesToken, async (req, res) => {
   try {
@@ -178,7 +178,7 @@ router.get("/quotation-requests", verifySalesToken, async (req, res) => {
 });
 
 /* =========================================================
-   ADMIN — Get all pending/quoted requests (across all sales reps)
+   ADMIN - Get all pending/quoted requests (across all sales reps)
 ========================================================= */
 router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
   try {
@@ -248,7 +248,7 @@ router.get("/admin/quotation-requests", verifyToken, async (req, res) => {
 });
 
 /* =========================================================
-   ADMIN — Count of pending quotation requests (for dashboard badge)
+   ADMIN - Count of pending quotation requests (for dashboard badge)
 ========================================================= */
 router.get("/admin/quotation-requests/count", verifyToken, async (req, res) => {
   try {
@@ -260,9 +260,9 @@ router.get("/admin/quotation-requests/count", verifyToken, async (req, res) => {
 });
 
 /* =========================================================
-   ADMIN — Save/update the shared in-progress pricing draft.
+   ADMIN - Save/update the shared in-progress pricing draft.
    Any admin opening this request afterwards sees the same values.
-   This NEVER sends anything — purely a saved state.
+   This NEVER sends anything - purely a saved state.
 ========================================================= */
 router.put("/admin/quotation-requests/:id/draft", verifyToken, async (req, res) => {
   try {
@@ -287,7 +287,7 @@ router.put("/admin/quotation-requests/:id/draft", verifyToken, async (req, res) 
 });
 
 /* =========================================================
-   ADMIN — Get single request detail
+   ADMIN - Get single request detail
 ========================================================= */
 router.get(
   "/admin/quotation-requests/:id",
@@ -342,7 +342,7 @@ router.get(
 );
 
 /* =========================================================
-   ADMIN — Delete Pending Quotation Request
+   ADMIN - Delete Pending Quotation Request
 ========================================================= */
 router.delete(
   "/admin/quotation-requests/:id",

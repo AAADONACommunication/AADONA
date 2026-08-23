@@ -45,7 +45,7 @@ const structuredData = {
   "@type": "AboutPage",
   name: "About AADONA – Going Beyond Vision",
   description:
-    "AADONA was founded in 2018 under the Start-up India Initiative. We are building India's premium networking technology brand — delivering smart, cost-efficient IT infrastructure solutions for SMBs and Enterprises.",
+    "AADONA was founded in 2018 under the Start-up India Initiative. We are building India's premium networking technology brand - delivering smart, cost-efficient IT infrastructure solutions for SMBs and Enterprises.",
   url: "https://www.aadona.com/about",
   publisher: {
     "@type": "Organization",
@@ -53,7 +53,7 @@ const structuredData = {
     url: "https://www.aadona.com",
     foundingDate: "2018",
     description:
-      "AADONA is India's emerging premier IT networking brand — ISO certified, GeM empanelled, and registered under Start-up India (DIPP).",
+      "AADONA is India's emerging premier IT networking brand - ISO certified, GeM empanelled, and registered under Start-up India (DIPP).",
   },
 };
 
@@ -129,7 +129,7 @@ const CategoryPill = ({ item }) => {
   );
 };
 
-/* -------- IMAGE 1: Core Strengths — recreated in code -------- */
+/* -------- IMAGE 1: Core Strengths - recreated in code -------- */
 const CoreStrengths = () => {
   const strengths = [
     {
@@ -228,7 +228,7 @@ bg: '#FEF3C7',
   );
 };
 
-/* -------- IMAGE 2: Proudly Indian / Globally Ambitious — recreated in code -------- */
+/* -------- IMAGE 2: Proudly Indian / Globally Ambitious - recreated in code -------- */
 const IdentityBanner = () => {
   const indian = [
     { icon: Award, label: 'Start-up India Recognized' },
@@ -326,7 +326,7 @@ const IdentityBanner = () => {
   );
 };
 
-/* -------- IMAGE 3: Journey Timeline — recreated in code -------- */
+/* -------- IMAGE 3: Journey Timeline - recreated in code -------- */
 const JourneyTimeline = () => {
   const milestones = [
     {
@@ -427,7 +427,7 @@ const JourneyTimeline = () => {
   );
 };
 
-/* -------- Recognised & Certified — merged into page flow -------- */
+/* -------- Recognised & Certified - merged into page flow -------- */
 const RecognisedCertified = () => {
   const certs = [
     { icon: Award, label: 'Start-up India', sub: 'Registered under DIPP, Govt. of India' },
@@ -473,7 +473,7 @@ const RecognisedCertified = () => {
   );
 };
 
-/* -------- What We Make — merged into page flow -------- */
+/* -------- What We Make - merged into page flow -------- */
 const WhatWeMake = () => {
   const active = [
     { label: 'Wireless', to: '/wireless', desc: 'Access points, routers & enterprise Wi-Fi solutions.', icon: Wifi },
@@ -545,7 +545,7 @@ const WhatWeMake = () => {
           What We <span className="text-green-700">Make</span>
         </h2>
         <p className="text-sm text-gray-500 mt-2">
-          Smart, scalable networking products built specifically for Indian businesses — from SMBs to large enterprises.
+          Smart, scalable networking products built specifically for Indian businesses - from SMBs to large enterprises.
         </p>
       </div>
 
@@ -596,7 +596,7 @@ const About = () => {
         <link rel="canonical" href="https://www.aadona.com/about" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="About AADONA | Going Beyond Vision" />
-        <meta property="og:description" content="Three engineers. One belief. AADONA — building India's own premium networking technology brand since 2018." />
+        <meta property="og:description" content="Three engineers. One belief. AADONA - building India's own premium networking technology brand since 2018." />
         <meta property="og:url" content="https://www.aadona.com/about" />
         <meta property="og:site_name" content="AADONA" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -641,7 +641,7 @@ const About = () => {
                 For decades, Indian businesses, government institutions, and enterprises have relied heavily on
                 multinational networking brands or low-cost imported alternatives to build their critical IT
                 infrastructure. While these solutions served a purpose, they left a significant gap in the
-                market — a trusted Indian brand capable of delivering world-class networking technology with
+                market - a trusted Indian brand capable of delivering world-class networking technology with
                 innovation, reliability, and long-term value.
               </p>
               <p className="text-lg leading-relaxed text-gray-700 mt-4 font-semibold text-green-700">
@@ -650,7 +650,7 @@ const About = () => {
             </article>
           </FadeCard>
 
-          {/* ── 2. Who We Are — founding story ── */}
+          {/* ── 2. Who We Are - founding story ── */}
           <FadeCard>
             <article className={liftCard}>
               <h2 className="text-xl font-bold text-green-800 mb-4">Who We Are</h2>
@@ -660,7 +660,7 @@ const About = () => {
                 technology entrepreneurs: <strong>India deserves a premium networking technology brand of its own.</strong>
               </p>
               <p className="text-lg leading-relaxed text-gray-700 mt-4">
-                What started as a vision soon evolved into a mission — to create a technology company that
+                What started as a vision soon evolved into a mission - to create a technology company that
                 would not only serve India's growing digital infrastructure needs but also represent the
                 country's innovation, engineering excellence, and entrepreneurial spirit on the global stage.
               </p>
@@ -698,7 +698,7 @@ const About = () => {
             </article>
           </FadeCard>
 
-          {/* ── Recognised & Certified — merged into page flow ── */}
+          {/* ── Recognised & Certified - merged into page flow ── */}
           <FadeCard>
             <RecognisedCertified />
           </FadeCard>
@@ -746,7 +746,7 @@ const About = () => {
               </p>
               <p className="text-lg leading-relaxed text-gray-700 mt-4">
                 Yet, we believe this is only the beginning. Inspired by the transformative movements of
-                Start-up India and Make in India, we are building more than a company — we are building a
+                Start-up India and Make in India, we are building more than a company - we are building a
                 technology movement. A movement that proves India can innovate, manufacture, and lead in
                 advanced networking technologies. A movement that creates opportunities, strengthens digital
                 infrastructure, and contributes to the nation's technological self-reliance.
@@ -759,7 +759,7 @@ const About = () => {
             <JourneyTimeline />
           </FadeCard>
 
-          {/* ── What We Make — merged into page flow ── */}
+          {/* ── What We Make - merged into page flow ── */}
           <FadeCard>
             <WhatWeMake />
           </FadeCard>
@@ -781,7 +781,7 @@ const About = () => {
                 growth, and proudly represent India's technological capabilities on the global stage.
               </p>
               <p className="text-lg leading-relaxed text-gray-700 mt-4">
-                This is the story of AADONA — a story driven by vision, built on innovation, and powered by
+                This is the story of AADONA - a story driven by vision, built on innovation, and powered by
                 the belief that the future of networking can be engineered in India, for India, and for the world.
               </p>
               {/* Closing brand statement */}
@@ -790,7 +790,7 @@ const About = () => {
                   "A story driven by vision, built on innovation, and powered by the belief that the future of
                   networking can be engineered in India, for India, and for the world."
                 </p>
-                <p className="text-xs text-green-200 mt-3 font-bold tracking-widest uppercase">— AADONA</p>
+                <p className="text-xs text-green-200 mt-3 font-bold tracking-widest uppercase">- AADONA</p>
               </div>
             </article>
           </FadeCard>

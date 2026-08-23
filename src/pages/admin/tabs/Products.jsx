@@ -285,7 +285,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
   const removeRelatedProduct = (productId) =>
     setForm({ ...form, relatedProducts: (form.relatedProducts || []).filter((id) => id !== productId) });
 
-  // ── Save Related Products (MERGE with existing — purane nahi hatenge) ──
+  // ── Save Related Products (MERGE with existing - purane nahi hatenge) ──
   const saveRelatedProducts = async () => {
     const relSubCats = getSubCategories(form.relatedType, form.relatedCategory);
     if (!form.relatedCategory) {
@@ -499,7 +499,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                     {form.imageFile
                       ? form.imageFile.name
                       : form.image
-                        ? "Image already uploaded — click to replace"
+                        ? "Image already uploaded - click to replace"
                         : "Click to upload product image"}
                   </span>
                 </div>
@@ -530,7 +530,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
             {/* Assembly Diagram Upload */}
 <div className="md:col-span-2">
   <label className="block text-sm font-bold text-green-800 mb-2">
-    Assembly Diagram <span className="text-xs text-gray-400 font-normal">(Optional — PDF or Image)</span>
+    Assembly Diagram <span className="text-xs text-gray-400 font-normal">(Optional - PDF or Image)</span>
   </label>
   <input type="file" id="assembly-diagram" className="hidden" accept=".pdf,image/*"
     onChange={(e) => setForm({ ...form, assemblyDiagramFile: e.target.files[0] })} />
@@ -546,7 +546,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
         {form.assemblyDiagramFile
           ? form.assemblyDiagramFile.name
           : form.assemblyDiagram
-            ? "Assembly diagram already uploaded — click to replace"
+            ? "Assembly diagram already uploaded - click to replace"
             : "Click to upload assembly diagram (PDF or image)"}
       </span>
     </div>
@@ -1157,7 +1157,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
             <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-5 py-4">
               <CheckCircle2 className="text-green-600 shrink-0" size={20} />
               <div>
-                <p className="text-sm font-bold text-green-800">Datasheet PDF — Auto Generated</p>
+                <p className="text-sm font-bold text-green-800">Datasheet PDF - Auto Generated</p>
                 <p className="text-xs text-gray-500 mt-0.5">PDF is automatically generated when you save the product.</p>
               </div>
             </div>
@@ -1471,7 +1471,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                   </td>
                   <td className="p-5 text-center">
                     <div className="flex justify-center gap-3">
-                      {/* ── Edit button — opens in new tab ── */}
+                      {/* ── Edit button - opens in new tab ── */}
                       <button onClick={() => openEditInNewTab(p)}
                         className="p-2.5 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition shadow-sm">
                         <Edit size={18} />

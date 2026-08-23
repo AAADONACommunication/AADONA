@@ -1,7 +1,7 @@
 /**
  * Footer.jsx
- * SEO Optimized  — semantic HTML, structured nav, aria labels, rel attributes on external links
- * Security Hardened — sanitized newsletter input, honeypot, rate-limit guard, safe external link attrs
+ * SEO Optimized  - semantic HTML, structured nav, aria labels, rel attributes on external links
+ * Security Hardened - sanitized newsletter input, honeypot, rate-limit guard, safe external link attrs
  */
 
 import { useState, useRef, useCallback } from 'react';
@@ -36,7 +36,7 @@ const checkRateLimit = () => {
   return true;
 };
 
-// ─── Nav data (single source of truth — good for SEO crawlability) ────────────
+// ─── Nav data (single source of truth - good for SEO crawlability) ────────────
 
 const QUICK_LINKS = [
   { to: '/about',          label: 'About Us'       },
@@ -132,7 +132,7 @@ const NewsletterForm = () => {
       aria-label="Newsletter subscription form"
       className="space-y-4"
     >
-      {/* Honeypot — hidden from real users */}
+      {/* Honeypot - hidden from real users */}
       <div aria-hidden="true" style={{ display: 'none' }}>
         <label htmlFor="footer_honey">Leave blank</label>
         <input
@@ -204,7 +204,7 @@ const Footer = () => (
     aria-label="Site footer"
     className="w-full mt-auto bg-gradient-to-br from-green-700 via-emerald-800 to-green-900 text-white py-20 relative overflow-hidden"
   >
-    {/* Decorative background glows — aria-hidden so screen readers skip */}
+    {/* Decorative background glows - aria-hidden so screen readers skip */}
     <div aria-hidden="true" className="absolute -top-24 -left-24 w-80 h-80 bg-green-400 opacity-10 rounded-full blur-3xl" />
     <div aria-hidden="true" className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500 opacity-10 rounded-full blur-3xl" />
 

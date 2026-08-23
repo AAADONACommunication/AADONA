@@ -32,7 +32,7 @@ const certifications = [
   { url: c14, name: "Startup India Recognition" },
 ];
 
-// FIX 1: Default fallback `cert = {}` — prevents "Cannot read name of undefined"
+// FIX 1: Default fallback `cert = {}` - prevents "Cannot read name of undefined"
 const CertCard = ({ cert = {}, index = 0, priority = false }) => {
   const cardRef = useRef(null);
 
@@ -82,7 +82,7 @@ const CertCard = ({ cert = {}, index = 0, priority = false }) => {
         src={certUrl}
         alt={`${certName} – AADONA`}
         loading= "lazy"
-        fetchPriority={priority ? "high" : "low"}   // FIX 2: camelCase — React 18+ correct prop
+        fetchPriority={priority ? "high" : "low"}   // FIX 2: camelCase - React 18+ correct prop
         decoding="async"
         draggable="false"
         className="w-full h-full object-contain"

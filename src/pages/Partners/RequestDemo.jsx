@@ -128,7 +128,7 @@ export default function RequestDemo() {
     e.preventDefault();
     setSubmitErr("");
 
-    // 🍯 Honeypot check — bots fill hidden field
+    // Honeypot check - bots fill hidden field
     if (formData._honeypot) return;
 
     // ⏱ Client-side rate limiting

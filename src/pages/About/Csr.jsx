@@ -125,7 +125,7 @@ const Csr = () => {
                   "Bharat Ke Veer" provides a platform for ordinary citizens to
                   contribute to the families of bravehearts who have sacrificed
                   their lives defending our borders. We urge you to join us in
-                  this noble cause — a small gesture of gratitude towards our
+                  this noble cause - a small gesture of gratitude towards our
                   Defence Forces.
                 </p>
               </article>

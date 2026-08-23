@@ -20,7 +20,7 @@ const sanitizePhone = (v) =>
 const sanitizeEmail = (v) =>
   v.replace(/[^a-zA-Z0-9@._+\-]/g, "").slice(0, 254);
 
-/** Only alphanumerics, hyphens, slashes, spaces — suitable for serial/invoice/auth codes */
+/** Only alphanumerics, hyphens, slashes, spaces - suitable for serial/invoice/auth codes */
 const sanitizeCode = (v) =>
   v.replace(/[^a-zA-Z0-9\-\/\s]/g, "").slice(0, 100);
 
@@ -34,7 +34,7 @@ const ALLOWED_MIME  = ["application/pdf", "image/jpeg", "image/jpg", "image/png"
 const ALLOWED_EXT   = /\.(pdf|jpe?g|png)$/i;
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
-/** Magic-byte verification — prevents disguised executables */
+/** Magic-byte verification - prevents disguised executables */
 const checkMagicBytes = (file) =>
   new Promise((resolve) => {
     const r = new FileReader();
@@ -377,7 +377,7 @@ const RequestDOA = () => {
           {/* ── Two-Column Layout ─────────────────────────────────────────── */}
           <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 grid lg:grid-cols-2 gap-8">
 
-            {/* Left — Policy Info */}
+            {/* Left - Policy Info */}
             <div className="space-y-8">
               <Reveal>
                 <section className={liftSection} aria-labelledby="doa-policy-heading">
@@ -417,7 +417,7 @@ const RequestDOA = () => {
               </Reveal>
             </div>
 
-            {/* Right — Request Form */}
+            {/* Right - Request Form */}
             <Reveal>
               <section className={liftSection} aria-labelledby="doa-form-heading">
                 <h2 id="doa-form-heading" className="text-2xl font-bold text-slate-900 mb-6">

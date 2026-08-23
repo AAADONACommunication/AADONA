@@ -144,7 +144,7 @@ export default function MediaCenter() {
         <title>Media Center | AADONA – Events, Photos & Product Gallery</title>
         <meta
           name="description"
-          content="Explore AADONA's Media Center — browse our latest events, product photos, and resources including Wireless Solutions, Network Switches, and Network Attached Storage."
+          content="Explore AADONA's Media Center - browse our latest events, product photos, and resources including Wireless Solutions, Network Switches, and Network Attached Storage."
         />
         <meta
           name="keywords"

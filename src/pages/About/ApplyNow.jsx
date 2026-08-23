@@ -133,7 +133,7 @@ const ApplyNow = () => {
             Careers
           </h1>
           <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
-            Join our growing team — fill in your details and attach your resume below.
+            Join our growing team - fill in your details and attach your resume below.
           </p>
         </div>
       </header>
@@ -259,7 +259,7 @@ const ApplyNow = () => {
                     />
                   </label>
                   <p className="text-xs text-gray-500 mt-1">
-                    Supported: PDF / DOC / DOCX — max 10MB
+                    Supported: PDF / DOC / DOCX - max 10MB
                   </p>
                 </div>
               </div>

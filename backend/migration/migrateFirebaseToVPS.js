@@ -8,7 +8,7 @@ const admin = require("../firebaseAdmin");
 
 const UPLOAD_ROOT = path.join(__dirname, "..", "uploads");
 const FAILED_LOG = path.join(__dirname, "failed-downloads.log");
-const CONCURRENCY = 5; // parallel downloads — safe default for a VPS's egress
+const CONCURRENCY = 5; // parallel downloads - safe default for a VPS's egress
 
 const bucket = admin.storage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
 
@@ -50,14 +50,14 @@ const downloadOne = async (gcsFile, index, total) => {
     console.log(`[${index}/${total}] OK: ${remoteName}`);
   } catch (err) {
     await fsp.rm(tmpPath, { force: true }).catch(() => {});
-    console.error(`[${index}/${total}] FAILED: ${remoteName} — ${err.message}`);
-    await appendFailedLog(`FAILED ${remoteName} — ${err.message}`);
+    console.error(`[${index}/${total}] FAILED: ${remoteName} - ${err.message}`);
+    await appendFailedLog(`FAILED ${remoteName} - ${err.message}`);
   }
 };
 
 const run = async () => {
   if (!process.env.FIREBASE_STORAGE_BUCKET) {
-    console.error("FIREBASE_STORAGE_BUCKET not set in .env — aborting.");
+    console.error("FIREBASE_STORAGE_BUCKET not set in .env - aborting.");
     process.exit(1);
   }
 
@@ -79,7 +79,7 @@ const run = async () => {
 
   console.log("\nMigration download pass complete.");
   console.log(`If any files failed, see: ${FAILED_LOG}`);
-  console.log("Re-run this script any time — completed files are skipped automatically.");
+  console.log("Re-run this script any time - completed files are skipped automatically.");
 };
 
 run()

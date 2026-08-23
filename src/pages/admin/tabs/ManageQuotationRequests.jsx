@@ -139,7 +139,7 @@ export default function ManageQuotationRequests() {
     );
   };
 
-  // ── Autosave draft — debounced PUT to the server so the draft is
+  // ── Autosave draft - debounced PUT to the server so the draft is
   // shared across any admin / any device. Only ever saves; the actual
   // API-visible status stays "pending" until "Send Quotation" is clicked. ──
   useEffect(() => {
@@ -305,7 +305,7 @@ export default function ManageQuotationRequests() {
         )}
         {draftRestored && !successMsg && (
           <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm">
-            📝 A saved draft was found for this request — nothing has been sent yet, keep editing and hit Send Quotation when ready.
+            A saved draft was found for this request - nothing has been sent yet, keep editing and hit Send Quotation when ready.
           </div>
         )}
 
@@ -327,11 +327,11 @@ export default function ManageQuotationRequests() {
           <div className="grid sm:grid-cols-2 gap-3 text-sm mb-4">
             <p className="text-gray-700">
               <span className="font-semibold">Sales Rep:</span>{" "}
-              {selected.salesRep?.name || "—"} ({selected.salesRep?.email || "—"})
+              {selected.salesRep?.name || "-"} ({selected.salesRep?.email || "-"})
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Requested On:</span>{" "}
-              {selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : "—"}
+              {selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : "-"}
             </p>
             {selected.status === "quoted" && selected.adminQuotation?.validUntil && (
               <p className="text-gray-700">
@@ -351,34 +351,34 @@ export default function ManageQuotationRequests() {
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               <p className="text-gray-700">
                 <span className="font-semibold">Partner Name:</span>{" "}
-                {selected.customer?.personalName || "—"}
+                {selected.customer?.personalName || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Company:</span>{" "}
-                {selected.customer?.companyName || "—"}
+                {selected.customer?.companyName || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Partner Type:</span>{" "}
-                {selected.customer?.partnerType || "—"}
+                {selected.customer?.partnerType || "-"}
               </p>
               <p className="text-gray-700">
-                <span className="font-semibold">GST:</span> {selected.customer?.gstNumber || "—"}
+                <span className="font-semibold">GST:</span> {selected.customer?.gstNumber || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Address:</span>{" "}
-                {selected.customer?.address || "—"}
+                {selected.customer?.address || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Phone:</span>{" "}
-                {selected.customer?.contactNumber || "—"}
+                {selected.customer?.contactNumber || "-"}
               </p>
               <p className="text-gray-700">
-                <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
+                <span className="font-semibold">Email:</span> {selected.customer?.email || "-"}
               </p>
             </div>
           </div>
 
-          {/* ── End Customer Details — from quotation.endCustomer, never from notes ── */}
+          {/* ── End Customer Details - from quotation.endCustomer, never from notes ── */}
           <div className="border-t border-gray-100 mt-4 pt-4">
             <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
               End Customer Details
@@ -387,37 +387,37 @@ export default function ManageQuotationRequests() {
               <div className="grid sm:grid-cols-2 gap-3 text-sm">
                 <p className="text-gray-700">
                   <span className="font-semibold">End Customer Name:</span>{" "}
-                  {selected.endCustomer.endCustomerName || "—"}
+                  {selected.endCustomer.endCustomerName || "-"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Organization:</span>{" "}
-                  {selected.endCustomer.organizationName || "—"}
+                  {selected.endCustomer.organizationName || "-"}
                 </p>
                 <p className="text-gray-700 sm:col-span-2">
                   <span className="font-semibold">Address:</span>{" "}
-                  {selected.endCustomer.customerAddress || "—"}
+                  {selected.endCustomer.customerAddress || "-"}
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">City:</span> {selected.endCustomer.city || "—"}
+                  <span className="font-semibold">City:</span> {selected.endCustomer.city || "-"}
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">State:</span> {selected.endCustomer.state || "—"}
+                  <span className="font-semibold">State:</span> {selected.endCustomer.state || "-"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Designation:</span>{" "}
-                  {selected.endCustomer.designation || "—"}
+                  {selected.endCustomer.designation || "-"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Mobile:</span>{" "}
-                  {selected.endCustomer.mobileNumber || "—"}
+                  {selected.endCustomer.mobileNumber || "-"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Email:</span>{" "}
-                  {selected.endCustomer.emailId || "—"}
+                  {selected.endCustomer.emailId || "-"}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-semibold">Industry:</span>{" "}
-                  {selected.endCustomer.industryVertical || "—"}
+                  {selected.endCustomer.industryVertical || "-"}
                 </p>
               </div>
             ) : (
@@ -1007,16 +1007,16 @@ export default function ManageQuotationRequests() {
                     onClick={() => openRequest(r)}
                   >
                     <td className="px-4 py-3 font-medium text-gray-800">{r.requestNumber}</td>
-                    <td className="px-4 py-3 text-gray-600">{r.salesRep?.name || "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{r.salesRep?.name || "-"}</td>
                     <td className="px-4 py-3 text-gray-600">
-                      {r.customer?.personalName || "—"}
+                      {r.customer?.personalName || "-"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {r.endCustomer?.endCustomerName || "—"}
+                      {r.endCustomer?.endCustomerName || "-"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">{(r.items || []).length} items</td>
                     <td className="px-4 py-3 text-gray-600">
-                      {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "—"}
+                      {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "-"}
                     </td>
                     <td className="px-4 py-3">
                       <span

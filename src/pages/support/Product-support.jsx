@@ -219,7 +219,7 @@ const ProductSupport = () => {
               Product Support
             </h1>
             <p className="mt-6 text-md text-white max-w-3xl mx-auto">
-              Get expert assistance for your AADONA products — we respond within 24 hours.
+              Get expert assistance for your AADONA products - we respond within 24 hours.
             </p>
           </div>
         </header>

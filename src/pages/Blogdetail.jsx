@@ -182,14 +182,14 @@ const BlogDetail = () => {
     }
   };
 
-  // ✅ FIXED: Removed Layer 1 (file sharing) — WhatsApp crawls OG tags from URL automatically
+  // ✅ FIXED: Removed Layer 1 (file sharing) - WhatsApp crawls OG tags from URL automatically
   const handleShare = async () => {
     if (shareLoading) return;
     setShareLoading(true);
 
     const shareUrl = `${window.location.origin}/share/blog/${encodeURIComponent(slug)}`;
 
-    // Layer 1: Share URL only — WhatsApp will crawl OG tags and show preview automatically
+    // Layer 1: Share URL only - WhatsApp will crawl OG tags and show preview automatically
     if (navigator.share) {
       try {
         await navigator.share({
@@ -281,7 +281,7 @@ const BlogDetail = () => {
         <meta name="description" content={blog.excerpt || ""} />
         <link rel="canonical" href={canonicalUrl} />
 
-        {/* Open Graph — WhatsApp, Facebook, Telegram */}
+        {/* Open Graph - WhatsApp, Facebook, Telegram */}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={blog.title} />
         <meta property="og:description" content={blog.excerpt || ""} />

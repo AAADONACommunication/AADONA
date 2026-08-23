@@ -77,12 +77,12 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    // 5.5 Fetch End Customer (optional — carried over from the quotation request/project lock)
+    // 5.5 Fetch End Customer (optional - carried over from the quotation request/project lock)
     const endCustomer = quotationRequest.endCustomer
       ? await EndCustomer.findById(quotationRequest.endCustomer)
       : null;
 
-    // 6. Calculate per item — NO GST
+    // 6. Calculate per item - NO GST
     const calculatedItems = items.map((item) => {
       const quantity = Number(item.quantity);
       const unitPrice = Number(item.unitPrice);
@@ -111,7 +111,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
     );
     const grandTotal = parseFloat((subtotal + gstAmount).toFixed(2));
 
-    // 8. Valid till — admin-selected validity period
+    // 8. Valid till - admin-selected validity period
     const approvedAt = new Date();
     const validTill = new Date(approvedAt.getTime() + validityDaysValue * 24 * 60 * 60 * 1000);
 
@@ -134,10 +134,10 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
 
     // 10. Update QuotationRequest status
     quotationRequest.status = "quoted";
-    quotationRequest.adminDraft = null; // clear the in-progress draft — it's been sent now
+    quotationRequest.adminDraft = null; // clear the in-progress draft - it's been sent now
     await quotationRequest.save();
 
-    // 11. Build email HTML — only for Sales Rep, no GST
+    // 11. Build email HTML - only for Sales Rep, no GST
     const requestNumber = quotationRequest.requestNumber;
 
     // GST-inclusive display
@@ -181,7 +181,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
               <tr>
                 <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
                   <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800">AADONA</h1>
-                  <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Internal Pricing — Sales Use Only</p>
+                  <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Internal Pricing - Sales Use Only</p>
                 </td>
               </tr>
 
@@ -213,7 +213,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                     <tr>
                       <td style="padding:4px 0;color:#6b7280;font-size:13px">End Customer</td>
                       <td style="padding:4px 0;color:#111827;font-weight:600;font-size:13px">
-                        ${endCustomer.endCustomerName}${endCustomer.organizationName ? ` — ${endCustomer.organizationName}` : ""}
+                        ${endCustomer.endCustomerName}${endCustomer.organizationName ? ` - ${endCustomer.organizationName}` : ""}
                       </td>
                     </tr>` : ""}
                     <tr>
@@ -324,7 +324,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
         await transporter.sendMail({
         from: `"AADONA Admin" <${process.env.EMAIL_USER}>`,
         to: salesRep.email,
-        subject: `Pricing Ready — Request #${requestNumber} | ${customer.personalName}`,
+        subject: `Pricing Ready - Request #${requestNumber} | ${customer.personalName}`,
         html: emailHtml,
         });
     } catch (err) {

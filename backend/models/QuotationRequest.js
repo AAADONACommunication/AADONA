@@ -38,9 +38,9 @@ const QuotationRequestSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ── Shared autosave draft — visible to ANY admin (not per-browser).
+    // ── Shared autosave draft - visible to ANY admin (not per-browser).
     // Filled in as the pricing form is edited, cleared once actually sent.
-    // Never triggers an email on its own — purely a saved-in-progress state. ──
+    // Never triggers an email on its own - purely a saved-in-progress state. ──
     adminDraft: {
       type: mongoose.Schema.Types.Mixed,
       default: null,

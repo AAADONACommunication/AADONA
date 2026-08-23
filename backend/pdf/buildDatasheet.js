@@ -204,7 +204,7 @@ const buildDatasheetHTML = async (product) => {
     display: block;
   }
 
-  /* Content section — auto height, no repeat header */
+  /* Content section - auto height, no repeat header */
   .content-section {
     display: block;
     width: 794px;
@@ -216,7 +216,7 @@ const buildDatasheetHTML = async (product) => {
 
 
 <!-- ═══════════════════════════════════════
-     PAGE 1 — COVER
+     PAGE 1 - COVER
 ═══════════════════════════════════════ -->
 <div class="page-fixed cover-page">
 
@@ -259,11 +259,11 @@ const buildDatasheetHTML = async (product) => {
 
 
 <!-- ═══════════════════════════════════════
-     PAGE 2 — CONTENT (auto height, no forced page break)
+     PAGE 2 - CONTENT (auto height, no forced page break)
 ═══════════════════════════════════════ -->
 <div class="page-content">
   <div style="height:5px;background:#25a86a;"></div>
-  <!-- Sub-header — sticky at top of every content page -->
+  <!-- Sub-header - sticky at top of every content page -->
   <div style="width:794px;height:52px;background:#f4f9f4;border-bottom:1px solid #d8ead8;display:flex;align-items:center;padding:0 64px;">
     <div style="flex:1;">
       <img src="data:image/jpeg;base64,${logo}" style="height:28px;width:auto;opacity:0.85;" />
@@ -309,7 +309,7 @@ const buildDatasheetHTML = async (product) => {
 </div>
 
 <!-- ═══════════════════════════════════════
-     LAST PAGE — BACK COVER
+     LAST PAGE - BACK COVER
 ═══════════════════════════════════════ -->
 <div class="page-fixed back-cover">
   <img class="page-bg" src="data:image/png;base64,${backBase64}" />

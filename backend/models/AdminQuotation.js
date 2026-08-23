@@ -49,7 +49,7 @@ const AdminQuotationSchema = new mongoose.Schema(
     },
     validUntil: { type: Date },
 
-    // ── Revision history — snapshot of pricing BEFORE each admin revision ──
+    // ── Revision history - snapshot of pricing BEFORE each admin revision ──
     revisionHistory: {
       type: [
         {

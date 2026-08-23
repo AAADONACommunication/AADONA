@@ -37,7 +37,7 @@ const app = express();
    RATE LIMITERS
 ============================= */
 
-// Public form submissions — 10 requests per 15 min per IP
+// Public form submissions - 10 requests per 15 min per IP
 const formLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -46,14 +46,14 @@ const formLimiter = rateLimit({
   message: { success: false, message: "Too many requests. Please try again later." },
 });
 
-// Datasheet PDF route — 30 per 15 min
+// Datasheet PDF route - 30 per 15 min
 const pdfLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
   message: { error: "Too many PDF requests. Please try again later." },
 });
 
-// Analytics / admin routes — 60 per 15 min
+// Analytics / admin routes - 60 per 15 min
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 60,
@@ -65,7 +65,7 @@ const adminLimiter = rateLimit({
 
 const storage = multer.memoryStorage();
 
-// General upload — forms, mail attachments ke liye (PDF + sabhi images)
+// General upload - forms, mail attachments ke liye (PDF + sabhi images)
 const upload = multer({
   storage,
   limits: { fileSize: 15 * 1024 * 1024 },
@@ -89,7 +89,7 @@ const upload = multer({
 
 const uploadBanner = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max — banner 100-200KB hoga
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max - banner 100-200KB hoga
   fileFilter: (req, file, cb) => {
     const allowed = ["image/avif", "image/webp"];
     if (allowed.includes(file.mimetype)) {
@@ -205,7 +205,7 @@ app.use("/assets", express.static("assets"));
 
 app.use("/uploads", express.static("uploads"));
 
-// Generic authenticated upload endpoint — frontend admin panel isko use karega
+// Generic authenticated upload endpoint - frontend admin panel isko use karega
 // (product image, datasheet, assembly diagram, blog hero/block image ke liye)
 // Firebase client SDK ki jagah.
 const genericUpload = multer({
@@ -1794,7 +1794,7 @@ mongoose.connection.once("open", async () => {
         const nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
 
         const lastHistory = await NewsletterHistory.findOne().sort({ createdAt: -1 });
-        // Blog history se check karo — last blog kab bana
+        // Blog history se check karo - last blog kab bana
         const lastBlog = await Blog.findOne().sort({ createdAt: -1 });
         const lastRun = lastBlog ? new Date(lastBlog.createdAt) : null;
         
@@ -1815,7 +1815,7 @@ mongoose.connection.once("open", async () => {
           : false;
 
         if (scheduledTimePassedToday && !last24Hours) {
-          console.log("Missed run detected — running now...");
+          console.log("Missed run detected - running now...");
           const { spawn } = require("child_process");
           const path = require("path");
           const scriptPath = path.join(__dirname, "../python-automation/main.py");
@@ -3243,7 +3243,7 @@ app.get("/share/blog/:slug", async (req, res) => {
     // BOTH og:url and redirect stay on /share/ URL
     const shareUrl = `${baseUrl}/share/blog/${blog.slug}`;
     
-    // React app route — only used for the visible link in body
+    // React app route - only used for the visible link in body
     const blogUrl = `${baseUrl}/blog/${blog.slug}`;
 
     let imageType = "image/jpeg";

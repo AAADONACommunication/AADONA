@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children }) {
 
   useEffect(() => {
     let unsubscribe;
-    // Auth sirf ProtectedRoute pe load hoga — public pages pe nahi
+    // Auth sirf ProtectedRoute pe load hoga - public pages pe nahi
     getFirebaseAuth().then((auth) => {
       unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser || null);

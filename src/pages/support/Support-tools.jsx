@@ -5,7 +5,7 @@ import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.jpg";
 import stbanner from "../../assets/SupportToolsBanner.avif";
 
-// ─── Tool Data (centralized — easy to maintain) ───────────────────────────────
+// ─── Tool Data (centralized - easy to maintain) ───────────────────────────────
 
 const toolSections = [
   {
@@ -191,7 +191,7 @@ const SupportTools = () => {
         {/* Twitter Card */}
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:title"       content="Support Tools – Free Network Utilities | AADONA" />
-        <meta name="twitter:description" content="PuTTY, InSSIDer, Fing, PRTG, Zabbix and more — free tools curated by AADONA for faster network troubleshooting." />
+        <meta name="twitter:description" content="PuTTY, InSSIDer, Fing, PRTG, Zabbix and more - free tools curated by AADONA for faster network troubleshooting." />
         <meta name="twitter:image"       content="https://yourwebsite.com/og-support-tools.jpg" />
 
         {/* Structured Data */}
@@ -268,7 +268,7 @@ const SupportTools = () => {
                 >
                   <p className="text-sm text-gray-700 leading-relaxed">
                     <strong>Note:</strong> All tools listed below are free and recommended based on
-                    our experience. These are third-party tools — use at your own responsibility.
+                    our experience. These are third-party tools - use at your own responsibility.
                     For official support, contact the respective vendors directly.
                   </p>
                 </aside>

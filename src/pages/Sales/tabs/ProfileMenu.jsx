@@ -47,7 +47,7 @@ export default function ProfileMenu() {
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-gray-800 truncate">
-                {salesPerson.name || "—"}
+                {salesPerson.name || "-"}
               </p>
               <p className="text-xs text-gray-500">Sales Person</p>
             </div>
@@ -55,7 +55,7 @@ export default function ProfileMenu() {
 
           <div className="flex items-center gap-2 text-sm text-gray-600 border-t border-gray-100 pt-3">
             <Mail size={14} className="text-gray-400 flex-shrink-0" />
-            <span className="truncate">{salesPerson.email || "—"}</span>
+            <span className="truncate">{salesPerson.email || "-"}</span>
           </div>
         </div>
       )}

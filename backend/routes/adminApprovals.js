@@ -71,9 +71,9 @@ router.get(
 );
 
 /* =========================================================
-   ADMIN — Save/update the shared in-progress revise-pricing draft.
+   ADMIN - Save/update the shared in-progress revise-pricing draft.
    Any admin opening this negotiation afterwards sees the same values.
-   This NEVER sends anything — purely a saved state.
+   This NEVER sends anything - purely a saved state.
 ========================================================= */
 router.put("/admin/sales-quotations/:id/draft", verifyToken, async (req, res) => {
   try {
@@ -137,7 +137,7 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
       newGrandTotal = target;
     }
 
-    // Spread the extra discount proportionally across items — unitPrice & gst untouched
+    // Spread the extra discount proportionally across items - unitPrice & gst untouched
     const effectiveDiscountPercent =
       totalBeforeDiscount > 0
         ? Math.min((newDiscount / totalBeforeDiscount) * 100, 100)
@@ -180,7 +180,7 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
       };
     });
 
-    // Ek hi audit entry — Approve As-Is seedha finalize karta hai, ye "revision" nahi hai
+    // Ek hi audit entry - Approve As-Is seedha finalize karta hai, ye "revision" nahi hai
     quotation.negotiationHistory.push({
       type: "admin_approved",
       actor: "admin",
@@ -213,7 +213,7 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
     quotation.adminApprovedAt = new Date();
     quotation.adminApprovedAmount = newGrandTotal;
     quotation.pricingRevisionType = "discount_applied";
-    quotation.adminReviseDraft = null; // resolved — clear the in-progress draft
+    quotation.adminReviseDraft = null; // resolved - clear the in-progress draft
 
     await quotation.save();
 
@@ -223,13 +223,13 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
         await transporter.sendMail({
           from: `"AADONA Admin" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Admin Approved — #${quotation.quotationNumber}`,
+          subject: `Admin Approved - #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Admin Approved the Discounted Price</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
               <p style="color:#374151;font-size:14px"><strong>Approved Customer Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <p style="color:#374151;font-size:14px">You can now proceed to finalize this with the customer.</p>
             </div>
@@ -284,7 +284,7 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
         recordedAt: rejectedAt,
     });
 
-    quotation.adminReviseDraft = null; // resolved — clear the in-progress draft
+    quotation.adminReviseDraft = null; // resolved - clear the in-progress draft
 
     await quotation.save();
 
@@ -294,13 +294,13 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
         await transporter.sendMail({
           from: `"AADONA Admin" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Customer Offer Rejected — Action Required #${quotation.quotationNumber}`,
+          subject: `Customer Offer Rejected - Action Required #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
               <h2 style="color:#b91c1c">Admin Rejected the Discounted Price</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
               <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <p style="color:#374151;font-size:14px">
                 The quotation has been returned to your Sales Portal.
@@ -440,7 +440,7 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
     quotation.adminApprovedAt = new Date();
     quotation.adminApprovedAmount = revisedGrandTotalWithGst;
     quotation.pricingRevisionType = "item_price_revised";
-    quotation.adminReviseDraft = null; // resolved — clear the in-progress draft
+    quotation.adminReviseDraft = null; // resolved - clear the in-progress draft
     await quotation.save();
 
     try {
@@ -463,13 +463,13 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
         await transporter.sendMail({
           from: `"AADONA Admin" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Revised Pricing Ready — #${quotation.quotationNumber}`,
+          subject: `Revised Pricing Ready - #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
               <h2 style="color:#166534">Admin Has Revised the Pricing</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+              <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+              <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
               <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
                 <thead>
@@ -531,7 +531,7 @@ router.post("/admin/sales-quotations/:id/extend-validity", verifyToken, async (r
     }
 
     const daysToAdd = Number(extendByDays);
-    // purani validity se hi ADD karo — overwrite nahi
+    // purani validity se hi ADD karo - overwrite nahi
     const baseDate = adminQuotation.validUntil || adminQuotation.validTill || quotation.validUntil || new Date();
     const newValidUntil = new Date(new Date(baseDate).getTime() + daysToAdd * 24 * 60 * 60 * 1000);
 

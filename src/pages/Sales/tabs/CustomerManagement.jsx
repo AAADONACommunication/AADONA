@@ -355,14 +355,14 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
                 <tbody>
                   {filtered.map((c) => (
                     <tr key={c._id} className="border-b border-green-100 hover:bg-green-50/50">
-                      <td className="px-4 py-3 text-gray-600">{c.partnerType || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.partnerType || "-"}</td>
                       <td className="px-4 py-3 font-medium text-gray-800">{c.personalName}</td>
-                      <td className="px-4 py-3 text-gray-600">{c.companyName || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.companyName || "-"}</td>
                       <td className="px-4 py-3 text-gray-600">{c.email}</td>
-                      <td className="px-4 py-3 text-gray-600">{c.contactNumber || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{c.city || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{c.pinCode || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{c.gstNumber || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.contactNumber || "-"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.city || "-"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.pinCode || "-"}</td>
+                      <td className="px-4 py-3 text-gray-600">{c.gstNumber || "-"}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-3">
                           <button

@@ -36,7 +36,7 @@ const OurCustomers = () => {
     setLogos(activeTab === "government" ? governmentLogos : privateLogos);
   }, [activeTab]);
 
-  // useCallback — stable reference, no unnecessary re-renders
+  // useCallback - stable reference, no unnecessary re-renders
   const handleSeeMore = useCallback(() => {
     navigate("/customers");
   }, [navigate]);

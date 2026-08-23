@@ -25,7 +25,7 @@ const sanitize = (value) => {
     .replace(/'/g, "&#x27;");
 };
 
-// Safe URL validator — only allow http/https for external links (datasheet etc.)
+// Safe URL validator - only allow http/https for external links (datasheet etc.)
 const isSafeUrl = (url) => {
   try {
     const parsed = new URL(url);
@@ -60,7 +60,7 @@ const ProductCard = memo(({ product }) => {
       aria-label={`View product: ${product.name}`}
     >
       <div className="h-48 flex items-center justify-center p-4 bg-gray-50 border-b border-gray-100">
-        {/* loading="lazy" — defers off-screen images */}
+        {/* loading="lazy" - defers off-screen images */}
         <img
           className="max-h-full object-contain"
           src={product.image}
@@ -232,7 +232,7 @@ const SpecificationsTab = memo(({ specifications }) => {
                 {category}
               </h3>
 
-              {/* Normal rows — jo sub category ke bahar hain */}
+              {/* Normal rows - jo sub category ke bahar hain */}
               {Object.entries(specs).filter(([k]) => !k.startsWith("__sub__")).length > 0 && (
                 <div className="border border-gray-200 rounded-lg overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.04)] mb-4">
                   {renderRows(specs, 0)}
@@ -396,7 +396,7 @@ const ProductDetailPage = () => {
     };
   }, [product]);
 
-  // ── Fetch with AbortController — prevents memory leaks on unmount ───────────
+  // ── Fetch with AbortController - prevents memory leaks on unmount ───────────
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -420,7 +420,7 @@ const ProductDetailPage = () => {
         const data = await res.json();
         setProduct(data);
       } catch (err) {
-        if (err.name === "AbortError") return; // component unmounted — ignore
+        if (err.name === "AbortError") return; // component unmounted - ignore
         setError(err.message);
       } finally {
         setLoading(false);
@@ -435,7 +435,7 @@ const ProductDetailPage = () => {
     window.scrollTo({ top: 0, behavior: "instant" }); // instant is faster than smooth on page load
   }, [slug]);
 
-  // ── Loading skeleton — perceived performance ────────────────────────────────
+  // ── Loading skeleton - perceived performance ────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-[#f5f5f3]" aria-busy="true" aria-label="Loading product">
       <Navbar />
@@ -510,7 +510,7 @@ const ProductDetailPage = () => {
 
           <div className="flex flex-col lg:flex-row items-stretch min-h-[520px]">
 
-            {/* Product Image — fetchpriority="high" for LCP performance */}
+            {/* Product Image - fetchpriority="high" for LCP performance */}
             <div
               className="lg:w-7/12 relative flex items-center justify-center overflow-hidden lg:border-r border-b lg:border-b-0"
               style={{ borderColor: "rgba(0,0,0,0.06)" }}
@@ -523,9 +523,9 @@ const ProductDetailPage = () => {
                 <img
                   src={product.image}
                   alt={product.name}
-                  // fetchpriority="high" — tells browser this is the LCP image, load it first
+                  // fetchpriority="high" - tells browser this is the LCP image, load it first
                   fetchpriority="high"
-                  // No loading="lazy" on hero image — lazy loading delays LCP
+                  // No loading="lazy" on hero image - lazy loading delays LCP
                   decoding="async"
                   width={500}
                   height={440}
@@ -556,7 +556,7 @@ const ProductDetailPage = () => {
                 </span>
               </div>
 
-              {/* h1 — SEO primary signal */}
+              {/* h1 - SEO primary signal */}
               <h1
                 className="anim-2"
                 style={{

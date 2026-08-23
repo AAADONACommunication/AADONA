@@ -123,14 +123,14 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
   // ── State autocomplete (India states) ──
   const [showStateSuggestions, setShowStateSuggestions] = useState(false);
 
-  // ── Partner analytics/history (real backend data — no regex on notes) ──
+  // ── Partner analytics/history (real backend data - no regex on notes) ──
   const [analytics, setAnalytics] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
 
   const selectedCustomer = customers.find((c) => c._id === customerId);
 
-  // Only search results are shown — the full partner list is never rendered
+  // Only search results are shown - the full partner list is never rendered
   // up front, since it gets heavy once there are a lot of partners.
   const filteredCustomers = useMemo(() => {
     if (!customerSearch.trim()) return [];
@@ -217,7 +217,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
     if (field === "state") setShowStateSuggestions(true);
   };
 
-  // Clicking a saved end customer auto-fills every field — this is the
+  // Clicking a saved end customer auto-fills every field - this is the
   // duplicate-detection behaviour the master plan calls for.
   const applySuggestion = (ec) => {
     setForm({
@@ -346,7 +346,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
               </button>
             </div>
 
-            {/* ── Real partner analytics — from GET /project-lock/partners/:id/history ── */}
+            {/* ── Real partner analytics - from GET /project-lock/partners/:id/history ── */}
             <div className="mt-3">
               {historyLoading ? (
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
@@ -431,7 +431,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
         )}
       </div>
 
-      {/* ── End Customer Details — only appears once a partner is selected ── */}
+      {/* ── End Customer Details - only appears once a partner is selected ── */}
       {selectedCustomer && (
         <>
           {error && (
@@ -451,7 +451,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
 
           {!endCustomersLoading && endCustomers.length > 0 && (
             <p className="text-xs text-gray-500 mb-4">
-              This partner has {endCustomers.length} saved end customer{endCustomers.length > 1 ? "s" : ""} —
+              This partner has {endCustomers.length} saved end customer{endCustomers.length > 1 ? "s" : ""} -
               start typing the name below to reuse one and auto-fill the rest.
             </p>
           )}

@@ -140,7 +140,7 @@ const webPageSchema = {
   url: "https://www.aadona.com/",
   name: "AADONA | IT Networking Solutions – Wireless, Switches & Storage India",
   description:
-    "AADONA is India's trusted IT networking solutions provider. We offer Wireless Solutions, Network Switches, Network Attached Storage, and more — built on integrity and innovation.",
+    "AADONA is India's trusted IT networking solutions provider. We offer Wireless Solutions, Network Switches, Network Attached Storage, and more - built on integrity and innovation.",
   isPartOf: { "@id": "https://www.aadona.com/#website" },
   about: { "@id": "https://www.aadona.com/#organization" },
   inLanguage: "en-IN",
@@ -163,7 +163,7 @@ const webPageSchema = {
 const PAGE_TITLE =
   "AADONA | IT Networking Solutions – Wireless, Switches & Storage India";
 const PAGE_DESC =
-  "AADONA is India's trusted IT networking solutions provider. Offering Wireless Solutions, Network Switches, Network Attached Storage & enterprise IT infrastructure — built on integrity and innovation.";
+  "AADONA is India's trusted IT networking solutions provider. Offering Wireless Solutions, Network Switches, Network Attached Storage & enterprise IT infrastructure - built on integrity and innovation.";
 const CANONICAL_URL = "https://www.aadona.com/";
 const OG_IMAGE = "https://www.aadona.com/images/og-banner.jpg"; // 1200×630px recommended
 
@@ -263,20 +263,20 @@ const Home = () => {
           • Must match the primary keyword intent of the page title.
           • Visually hidden if design requires, but NEVER display:none or visibility:hidden
             (use sr-only / clip technique instead so crawlers still read it).
-          • Current implementation is visible — ideal. Keep it that way.
+          • Current implementation is visible - ideal. Keep it that way.
         */}
         <h1 className="sr-only">
-          Made in India IT Networking &amp; Solutions by AADONA — Wireless, Switches, Storage
+          Made in India IT Networking &amp; Solutions by AADONA - Wireless, Switches, Storage
         </h1>
 
-        {/* Hero section — wrap in <section> with aria-label for landmark navigation */}
+        {/* Hero section - wrap in <section> with aria-label for landmark navigation */}
         <section aria-label="Hero – AADONA IT Networking Solutions">
           <Hero />
         </section>
 
         <SearchBar/>
 
-        {/* Stats / Counter — helps E-E-A-T (Experience, Expertise, Authoritativeness, Trust) */}
+        {/* Stats / Counter - helps E-E-A-T (Experience, Expertise, Authoritativeness, Trust) */}
         <section aria-label="Company Milestones and Statistics">
           <Counter />
         </section>
@@ -286,7 +286,7 @@ const Home = () => {
           <TimeLine />
         </section>
 
-        {/* Social proof — customer logos */}
+        {/* Social proof - customer logos */}
         <section aria-label="Our Customers and Clients">
           <Customers />
         </section>
@@ -296,7 +296,7 @@ const Home = () => {
           <Verticals />
         </section>
 
-        {/* Trust signals — certifications */}
+        {/* Trust signals - certifications */}
         <section aria-label="Industry Certifications and Partnerships">
           <Certifications />
         </section>

@@ -308,7 +308,7 @@ export default function SearchBar() {
           </svg>
 
           <div className="flex-1 relative h-full flex items-center min-w-0">
-            {/* ✅ Fix 2: text-[16px] — iOS auto-zoom band karta hai (16px se kam hone par zoom hota hai) */}
+            {/* ✅ Fix 2: text-[16px] - iOS auto-zoom band karta hai (16px se kam hone par zoom hota hai) */}
             <input
               type="text"
               value={value}

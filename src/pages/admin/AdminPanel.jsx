@@ -58,9 +58,9 @@ export const safeJson = async (res) => {
 export const inputStyle =
   "w-full border border-green-300 rounded-xl px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white";
 
-// ── Tab registry — single source of truth for the dashboard tiles + the
+// ── Tab registry - single source of truth for the dashboard tiles + the
 // in-tab switcher dropdown, so both stay in sync automatically.
-// Each tab now carries a `group` — "website" or "sales" — which drives
+// Each tab now carries a `group` - "website" or "sales" - which drives
 // which of the two stacked dashboard sections it renders under. ──
 const TABS = [
   { id: "products", label: "Products", icon: Package, desc: "Manage catalog & specs", group: "website" },
@@ -327,9 +327,9 @@ export default function AdminPanel() {
           )}
 
           {/* ════════════════════════════════════════
-              DASHBOARD LAUNCHER — shown when no tab is selected.
+              DASHBOARD LAUNCHER - shown when no tab is selected.
               Now split into two stacked sections: Website, then
-              Sales Management — one below the other.
+              Sales Management - one below the other.
           ════════════════════════════════════════ */}
           {activeTab === null && (
             <div className="space-y-10">
@@ -377,7 +377,7 @@ export default function AdminPanel() {
           )}
 
           {/* ════════════════════════════════════════
-              IN-TAB NAVIGATION — shown once a section is open
+              IN-TAB NAVIGATION - shown once a section is open
           ════════════════════════════════════════ */}
           {activeTab !== null && (
             <>

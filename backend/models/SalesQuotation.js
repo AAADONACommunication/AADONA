@@ -142,7 +142,7 @@ const SalesQuotationSchema = new mongoose.Schema(
     counterOfferMessage: { type: String, default: "" },
     counterOfferAt: { type: Date, default: null },
 
-    // ── Final negotiated/accepted amount (audit trail — grandTotal is NEVER overwritten) ──
+    // ── Final negotiated/accepted amount (audit trail - grandTotal is NEVER overwritten) ──
     negotiatedAmount: { type: Number, default: null, min: 0 },
     negotiatedAt: { type: Date, default: null },
 
@@ -279,7 +279,7 @@ const SalesQuotationSchema = new mongoose.Schema(
       grandTotal: { type: Number, default: null },
       sentAt: { type: Date, default: null },
     },
-    // ── Shared autosave draft for the admin's "Revise Pricing" form —
+    // ── Shared autosave draft for the admin's "Revise Pricing" form -
     // visible to ANY admin, cleared once actually sent/approved/rejected. ──
     adminReviseDraft: {
       type: mongoose.Schema.Types.Mixed,

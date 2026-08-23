@@ -17,7 +17,7 @@ const structuredData = {
   "@type": "AboutPage",
   name: "Leadership Team – AADONA",
   description:
-    "Meet the leadership team at AADONA — experienced founders and executives guiding the company's vision, strategy, and growth in IT networking solutions.",
+    "Meet the leadership team at AADONA - experienced founders and executives guiding the company's vision, strategy, and growth in IT networking solutions.",
   url: "https://www.aadona.com/leadership", // ← update to your actual domain
   publisher: {
     "@type": "Organization",
@@ -105,7 +105,7 @@ const LeadershipTeam = () => {
         <title>Leadership Team | AADONA – Founders, CEO & Executives</title>
         <meta
           name="description"
-          content="Meet AADONA's leadership team — CEO Pinakii Chatterjje, Co-Founder Senthil VP Kumar, VP Govind Madhav, and CLO Chandan Sharma. Experienced leaders driving innovation in IT networking."
+          content="Meet AADONA's leadership team - CEO Pinakii Chatterjje, Co-Founder Senthil VP Kumar, VP Govind Madhav, and CLO Chandan Sharma. Experienced leaders driving innovation in IT networking."
         />
         <meta
           name="keywords"
@@ -120,7 +120,7 @@ const LeadershipTeam = () => {
         <meta property="og:title" content="Leadership Team | AADONA – Founders, CEO & Executives" />
         <meta
           property="og:description"
-          content="Meet the visionary leaders at AADONA — guiding strategy, innovation, and growth in IT networking solutions across India."
+          content="Meet the visionary leaders at AADONA - guiding strategy, innovation, and growth in IT networking solutions across India."
         />
         <meta property="og:url" content="https://www.aadona.com/leadership" /> {/* ← update */}
         <meta property="og:site_name" content="AADONA" />

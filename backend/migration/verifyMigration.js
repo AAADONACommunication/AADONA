@@ -22,13 +22,13 @@ const isVPSUrl = (url) => typeof url === "string" && url.startsWith(`${FRONTEND_
 const checkField = async (label, docId, docLabel, value, required = false) => {
   if (!value) {
     if (required) {
-      issues.missingRequiredFields.push(`${label} — ${docLabel} (${docId}): field is empty`);
+      issues.missingRequiredFields.push(`${label} - ${docLabel} (${docId}): field is empty`);
     }
     return;
   }
 
   if (isFirebaseUrl(value)) {
-    issues.brokenFirebaseUrls.push(`${label} — ${docLabel} (${docId}): ${value}`);
+    issues.brokenFirebaseUrls.push(`${label} - ${docLabel} (${docId}): ${value}`);
     return;
   }
 
@@ -39,7 +39,7 @@ const checkField = async (label, docId, docLabel, value, required = false) => {
       await fs.access(localPath);
     } catch {
       issues.missingLocalFiles.push(
-        `${label} — ${docLabel} (${docId}): ${value} (expected at ${localPath})`
+        `${label} - ${docLabel} (${docId}): ${value} (expected at ${localPath})`
       );
     }
   }
@@ -47,7 +47,7 @@ const checkField = async (label, docId, docLabel, value, required = false) => {
 
 const run = async () => {
   if (!process.env.MONGO_URL) {
-    console.error("MONGO_URL not set in .env — aborting.");
+    console.error("MONGO_URL not set in .env - aborting.");
     process.exit(1);
   }
 
@@ -113,7 +113,7 @@ const run = async () => {
     failedDownloadsCount;
 
   console.log("\n===========================================");
-  console.log(totalIssues === 0 ? "✅ All checks passed." : `⚠️  ${totalIssues} issue(s) found — review above.`);
+  console.log(totalIssues === 0 ? "✅ All checks passed." : `⚠️  ${totalIssues} issue(s) found - review above.`);
 
   await mongoose.disconnect();
   process.exit(totalIssues === 0 ? 0 : 1);

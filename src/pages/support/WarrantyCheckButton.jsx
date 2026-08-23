@@ -297,7 +297,7 @@ const WarrantyCheckButton = () => {
                     />
                   </div>
                   {fileError && <p className="text-sm mt-1 text-red-600">{fileError}</p>}
-                  {!fileError && <p className="text-sm mt-1 text-slate-500">Supported: PDF / JPG / PNG — max 15MB</p>}
+                  {!fileError && <p className="text-sm mt-1 text-slate-500">Supported: PDF / JPG / PNG - max 15MB</p>}
                   {selectedFile && !fileError && (
                     <p className="text-sm mt-1 text-green-600">
                       ✓ File ready: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB

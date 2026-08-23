@@ -224,7 +224,7 @@ export default function ManageAdmin({
             </div>
           </div>
 
-          {/* Step 1 — Email */}
+          {/* Step 1 - Email */}
           {adminStep === 1 && (
             <div className="space-y-4">
               <div>
@@ -260,7 +260,7 @@ export default function ManageAdmin({
             </div>
           )}
 
-          {/* Step 2 — OTP */}
+          {/* Step 2 - OTP */}
           {adminStep === 2 && (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
@@ -330,7 +330,7 @@ export default function ManageAdmin({
             </div>
           )}
 
-          {/* Step 3 — Password */}
+          {/* Step 3 - Password */}
           {adminStep === 3 && (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-2">

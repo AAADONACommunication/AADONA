@@ -58,15 +58,15 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     <table style="width:100%;font-size:12px;color:#374151;">
       <tr>
         <td style="padding:3px 0;color:#6b7280;width:80px;">Name</td>
-        <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.name || "—"}</td>
+        <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.name || "-"}</td>
       </tr>
       <tr>
         <td style="padding:3px 0;color:#6b7280;">Email</td>
-        <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.email || "—"}</td>
+        <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.email || "-"}</td>
       </tr>
       <tr>
         <td style="padding:3px 0;color:#6b7280;">Phone</td>
-        <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.phone || "—"}</td>
+        <td style="padding:3px 0;font-weight:600;color:#111827;">${salesRep?.phone || "-"}</td>
       </tr>
     </table>
   `;
@@ -78,7 +78,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     <table style="width:100%;font-size:12px;color:#374151;">
       <tr>
         <td style="padding:3px 0;color:#6b7280;width:80px;">Name</td>
-        <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer?.endCustomerName || "—"}</td>
+        <td style="padding:3px 0;font-weight:600;color:#111827;">${endCustomer?.endCustomerName || "-"}</td>
       </tr>
       ${endCustomer?.organizationName ? `
       <tr>
@@ -174,7 +174,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
         <table style="width:100%;font-size:12px;color:#374151;">
           <tr>
             <td style="padding:3px 0;color:#6b7280;width:80px;">Name</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${quotation.customer?.personalName || "—"}</td>
+            <td style="padding:3px 0;font-weight:600;color:#111827;">${quotation.customer?.personalName || "-"}</td>
           </tr>
           ${quotation.customer?.companyName ? `
           <tr>
@@ -183,7 +183,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
           </tr>` : ""}
           <tr>
             <td style="padding:3px 0;color:#6b7280;">Email</td>
-            <td style="padding:3px 0;font-weight:600;color:#111827;">${quotation.customer?.email || "—"}</td>
+            <td style="padding:3px 0;font-weight:600;color:#111827;">${quotation.customer?.email || "-"}</td>
           </tr>
           ${quotation.customer?.contactNumber ? `
           <tr>
@@ -199,7 +199,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     </div>
 
     <!-- Sales Representative gets its own full-width section only for
-         Admin's / Sales's Copy — for Partner's Copy it already sits in the
+         Admin's / Sales's Copy - for Partner's Copy it already sits in the
          right-hand column above instead of leaving that space blank. -->
     ${!isPartnerCopy ? `
     <div style="margin-bottom:28px;padding-left:14px;">

@@ -61,7 +61,7 @@ export default function CreateQuotation({
   });
 };
 
-  // ── End customer — always a real endCustomerId from the backend, never
+  // ── End customer - always a real endCustomerId from the backend, never
   // rebuilt from notes. Either it arrives via prefill (Project Locking →
   // "Product Requirement") or the rep picks a previously-locked one below. ──
   const [endCustomerId, setEndCustomerId] = useState("");
@@ -80,7 +80,7 @@ export default function CreateQuotation({
 
   // Coming from "Project Locking" → Product Requirement carries the
   // selected partner AND the locked end customer's real ID straight into
-  // this form. Notes are left alone — they're never used to carry the
+  // this form. Notes are left alone - they're never used to carry the
   // end customer anymore.
   useEffect(() => {
     if (prefill?.customerId) {
@@ -96,7 +96,7 @@ export default function CreateQuotation({
   // Whenever the selected partner changes, load their saved end customers so
   // the rep can pick one here even without going through Project Locking
   // again. The endCustomerId itself is only ever set from this list or from
-  // prefill — never typed/free-text.
+  // prefill - never typed/free-text.
   useEffect(() => {
     if (!customerId) {
       setEndCustomerOptions([]);
@@ -126,13 +126,13 @@ export default function CreateQuotation({
     }
   };
 
-  // The selected end-customer object — falls back to the prefill name so
+  // The selected end-customer object - falls back to the prefill name so
   // something sensible shows immediately, before the options list has loaded.
   const selectedEndCustomer =
     endCustomerOptions.find((ec) => ec._id === endCustomerId) ||
     (endCustomerId ? { endCustomerName, organizationName: "", city: "", state: "" } : null);
 
-  // Only search results are shown — the full customer list is never
+  // Only search results are shown - the full customer list is never
   // rendered up front, since it gets heavy once there are a lot of them.
   const filteredCustomers = useMemo(() => {
     if (!customerSearch.trim()) return [];
@@ -200,7 +200,7 @@ export default function CreateQuotation({
     });
   }, [products, pickerType, pickerCategory, pickerSubCategory, subCategoryOptions.length]);
 
-  // ── Line item handlers (no price — sales only specifies what & how much) ──
+  // ── Line item handlers (no price - sales only specifies what & how much) ──
   const addProduct = (product) => {
     if (!product) return;
     setItems((prev) => {
@@ -308,7 +308,7 @@ export default function CreateQuotation({
   return (
     <div className="space-y-6 sm:space-y-8" ref={rootRef}>
       <p className="text-sm text-gray-500">
-        Note down what the customer needs — products and quantities. Pricing is
+        Note down what the customer needs - products and quantities. Pricing is
         decided by admin and will come back to you under{" "}
         <button
           onClick={() => setActiveTab?.("incoming")}
@@ -415,7 +415,7 @@ export default function CreateQuotation({
         )}
       </div>
 
-      {/* ── End Customer — always a real endCustomerId, never typed here ── */}
+      {/* ── End Customer - always a real endCustomerId, never typed here ── */}
       {selectedCustomer && (
         <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
@@ -506,7 +506,7 @@ export default function CreateQuotation({
             Type / Category / Sub-category are three dropdowns shown together
             instead of separate click-through screens, so switching between
             them is a single click. The matching product list stays visible
-            below and doesn't collapse after you add one — pick one, then
+            below and doesn't collapse after you add one - pick one, then
             immediately pick the next. */}
         {pickerOpen && (
           <div className="border border-green-200 rounded-xl p-3 sm:p-4 mb-5 bg-green-50/40 space-y-4">
@@ -566,7 +566,7 @@ export default function CreateQuotation({
               </div>
             ) : (
               <>
-                {/* Type / Category / Sub-category — three dropdowns, stacked on mobile */}
+                {/* Type / Category / Sub-category - three dropdowns, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Type</label>
@@ -631,7 +631,7 @@ export default function CreateQuotation({
                   </div>
                 </div>
 
-                {/* Matching products — click one to add, list stays put so the
+                {/* Matching products - click one to add, list stays put so the
                     next one can be added right away without re-navigating. */}
                 {pickerCategory && (subCategoryOptions.length === 0 || pickerSubCategory) && (
                   <div className="max-h-64 overflow-y-auto border border-green-100 rounded-lg bg-white divide-y">
@@ -654,7 +654,7 @@ export default function CreateQuotation({
                             <p className="font-medium text-gray-800 truncate">{p.name}</p>
                             {added ? (
                               <span className="text-xs font-semibold text-green-600 whitespace-nowrap">
-                                Added — pick next one
+                                Added - pick next one
                               </span>
                             ) : (
                               <Plus size={14} className="text-green-600 shrink-0" />
@@ -799,7 +799,7 @@ export default function CreateQuotation({
           rows={3}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Anything admin should know — urgency, special requests, customer context, etc."
+          placeholder="Anything admin should know - urgency, special requests, customer context, etc."
           className={inputStyle}
         />
       </div>

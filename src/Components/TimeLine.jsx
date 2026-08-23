@@ -113,7 +113,7 @@ const Timeline = () => {
             aria-hidden="true"
           />
 
-          {/* DOTS — window.innerWidth moved to state (isMobile) */}
+          {/* DOTS - window.innerWidth moved to state (isMobile) */}
           {dotPositions.map((top, index) => (
             <div
               key={index}

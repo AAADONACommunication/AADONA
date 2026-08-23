@@ -57,7 +57,7 @@ const liftSection =
   "hover:-translate-y-1";
 
 // ─── Allowed document filenames (whitelist) ───────────────────────────────────
-// Only these exact filenames are permitted — prevents path traversal attacks.
+// Only these exact filenames are permitted - prevents path traversal attacks.
 
 const ALLOWED_DOCS = new Set([
   "AADONA-Standard-Manufacturer-Warranty",
@@ -216,8 +216,8 @@ const Warranty = () => {
                     products built for reliability, durability, and long-term service.
                     As a proud Make-in-India brand with a state-of-the-art manufacturing
                     facility in Raipur, Chhattisgarh and Head Office at Hyderabad, our
-                    warranty framework is crafted to give every customer — SMB,
-                    enterprise, government, and system integrator — complete peace of mind.
+                    warranty framework is crafted to give every customer - SMB,
+                    enterprise, government, and system integrator - complete peace of mind.
                   </p>
                   <p className="mt-4 text-lg text-slate-700">
                     Our warranty ensures transparent coverage, quick resolution, and

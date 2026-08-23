@@ -306,7 +306,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       return res.status(400).json({ message: "Invalid source quotation ID" });
     }
 
-    // 2. Fetch AdminQuotation — quantity source of truth
+    // 2. Fetch AdminQuotation - quantity source of truth
     const adminQuotation = await AdminQuotation.findById(sourceQuotation);
     if (!adminQuotation) {
       return res.status(404).json({ message: "Source admin quotation not found" });
@@ -350,12 +350,12 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    // 5.5 Fetch End Customer (optional — old requests may not have one)
+    // 5.5 Fetch End Customer (optional - old requests may not have one)
     const endCustomerDoc = adminQuotation.endCustomer
       ? await EndCustomer.findById(adminQuotation.endCustomer)
       : null;
 
-    // 5.6 Fetch Sales Rep — shown to the Partner as their point of contact
+    // 5.6 Fetch Sales Rep - shown to the Partner as their point of contact
     const salesRepForEmail = await SalesRep.findOne({ uid: req.salesRep.uid });
 
     const rawItems = adminQuotation.items.map((adminItem, index) => {
@@ -522,7 +522,7 @@ router.post("/sales-quotations/send", verifySalesToken, async (req, res) => {
         await transporter.sendMail({
             from: `"AADONA" <${process.env.EMAIL_USER}>`,
             to: customer.email,
-            subject: `Quotation #${quotationNumber} — AADONA`,
+            subject: `Quotation #${quotationNumber} - AADONA`,
             html: emailHtml,
         });
     } catch (err) {
@@ -606,7 +606,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
       return res.status(400).json({ message: "No valid partner offer found to accept" });
     }
 
-    // grandTotal is left untouched — it remains the audit trail of the original quotation.
+    // grandTotal is left untouched - it remains the audit trail of the original quotation.
     const targetGrandTotal = Number(quotation.expectedBudget);
 
     const subtotal = Number(quotation.subtotal);
@@ -660,7 +660,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
     });
     await quotation.save();
 
-    // ── Notify partner, sales rep, and admin — all get the final quotation as a PDF ──
+    // ── Notify partner, sales rep, and admin - all get the final quotation as a PDF ──
     try {
       const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
 
@@ -680,7 +680,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
       const salesAttachments = await makeAttachment("Sales Copy");
       const adminAttachments = await makeAttachment("AADONA Copy");
 
-      // ── Internal report (Sales / Admin) — kept as an internal report email,
+      // ── Internal report (Sales / Admin) - kept as an internal report email,
       //    not the customer template. No discount column; grand total shown. ──
       const internalItemRowsHtml = quotation.items.map((item, i) => `
         <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
@@ -696,8 +696,8 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
         <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
           <h2 style="color:#166534">Negotiated Offer Accepted </h2>
           <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
-          <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "—"}</p>
-          <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "—"}</p>
+          <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
+          <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
             <thead>
               <tr style="background:#166534">
@@ -723,7 +723,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
         </div>
       `;
 
-      // ── Customer email — now uses the SAME shared quotation template as every other quotation email ──
+      // ── Customer email - now uses the SAME shared quotation template as every other quotation email ──
       const viewQuotationUrl = `${FRONTEND_URL}/quotation/${quotation.publicToken}`;
       const acceptedEmailHtml = buildQuotationEmailHtml({
         heading: "Your Offer Was Accepted",
@@ -734,7 +734,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
         discountAmount: quotation.discountAmount,
         gstAmount: quotation.gstAmount,
         grandTotal: quotation.grandTotal,
-        extraMessage: `Good news — your offer of ₹${Number(quotation.negotiatedAmount).toFixed(2)} for this quotation has been accepted. The final quotation is attached as a PDF. Our team will reach out to you shortly.`,
+        extraMessage: `Good news - your offer of ₹${Number(quotation.negotiatedAmount).toFixed(2)} for this quotation has been accepted. The final quotation is attached as a PDF. Our team will reach out to you shortly.`,
         viewQuotationUrl,
         ctaLabel: "View Quotation",
         salesRepForEmail: salesRep,
@@ -744,7 +744,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Your Offer Has Been Accepted — #${quotation.quotationNumber} — AADONA`,
+          subject: `Your Offer Has Been Accepted - #${quotation.quotationNumber} - AADONA`,
           html: acceptedEmailHtml,
           attachments: partnerAttachments,
         });
@@ -754,7 +754,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
+          subject: `Negotiated Offer Accepted - #${quotation.quotationNumber}`,
           html: reportHtml,
           attachments: salesAttachments,
         });
@@ -764,7 +764,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: ADMIN_EMAIL,
-          subject: `Negotiated Offer Accepted — #${quotation.quotationNumber}`,
+          subject: `Negotiated Offer Accepted - #${quotation.quotationNumber}`,
           html: reportHtml,
           attachments: adminAttachments,
         });
@@ -805,7 +805,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       });
     }
 
-    // ── Validate items — same shape/order as the original quotation, quantity LOCKED ──
+    // ── Validate items - same shape/order as the original quotation, quantity LOCKED ──
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Items array is required and cannot be empty" });
     }
@@ -820,7 +820,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
       discountValue = Number(discount.value);
     }
 
-    // ── Build items — quantity/name/description LOCKED from the original quotation ──
+    // ── Build items - quantity/name/description LOCKED from the original quotation ──
     const rawItems = quotation.items.map((originalItem, index) => {
       const incoming = items[index] || {};
       const unitPrice = Number(incoming.unitPrice);
@@ -917,7 +917,7 @@ router.post("/sales-quotations/:id/counter-offer", verifySalesToken, async (req,
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Counter Offer — Quotation #${quotation.quotationNumber} — AADONA`,
+          subject: `Counter Offer - Quotation #${quotation.quotationNumber} - AADONA`,
           html: emailHtml,
         });
       }
@@ -967,7 +967,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
     ) {
       return res.status(400).json({
         message:
-          "This quotation was approved via discount adjustment — use send-approved instead",
+          "This quotation was approved via discount adjustment - use send-approved instead",
       });
     }
 
@@ -987,7 +987,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
       discountValue = Number(discount.value);
     }
 
-    // ── Build items — quantity locked, unit price cannot be below the REVISED admin price ──
+    // ── Build items - quantity locked, unit price cannot be below the REVISED admin price ──
     const rawItems = adminQuotation.items.map((adminItem, index) => {
       const incoming = items[index] || {};
       const unitPrice = Number(incoming.unitPrice);
@@ -1155,7 +1155,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Revised Quotation #${quotation.quotationNumber} — AADONA`,
+          subject: `Revised Quotation #${quotation.quotationNumber} - AADONA`,
           html: emailHtml,
         });
       }
@@ -1171,7 +1171,7 @@ router.post("/sales-quotations/:id/resend-revised", verifySalesToken, async (req
 });
 
 // ── POST /sales-quotations/:id/send-approved ──
-// For the "Approve As-Is" (discount_applied) flow — item price/GST/discount/grandTotal
+// For the "Approve As-Is" (discount_applied) flow - item price/GST/discount/grandTotal
 // were already finalized by the admin. This just re-sends the quotation email to the partner.
 router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req, res) => {
   try {
@@ -1194,7 +1194,7 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
     }
     if (quotation.pricingRevisionType !== "discount_applied") {
       return res.status(400).json({
-        message: "This quotation requires manual pricing — use resend-revised instead",
+        message: "This quotation requires manual pricing - use resend-revised instead",
       });
     }
 
@@ -1270,7 +1270,7 @@ router.post("/sales-quotations/:id/send-approved", verifySalesToken, async (req,
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Updated Quotation #${quotation.quotationNumber} — AADONA`,
+          subject: `Updated Quotation #${quotation.quotationNumber} - AADONA`,
           html: emailHtml,
         });
       }
@@ -1308,7 +1308,7 @@ const { items, discount, notes } = req.body;
     }
     if (quotation.pricingRevisionType !== "discount_applied") {
       return res.status(400).json({
-        message: "This quotation requires the item-price revise flow — use resend-revised instead",
+        message: "This quotation requires the item-price revise flow - use resend-revised instead",
       });
     }
 
@@ -1323,7 +1323,7 @@ const { items, discount, notes } = req.body;
       discountValue = Number(discount.value);
     }
 
-    // ── Build items — quantity locked, unit price cannot go below admin's approved floor ──
+    // ── Build items - quantity locked, unit price cannot go below admin's approved floor ──
     const rawItems = quotation.items.map((currentItem, index) => {
       const incoming = items[index] || {};
       const unitPrice = Number(incoming.unitPrice);
@@ -1471,7 +1471,7 @@ const { items, discount, notes } = req.body;
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Updated Quotation #${quotation.quotationNumber} — AADONA`,
+          subject: `Updated Quotation #${quotation.quotationNumber} - AADONA`,
           html: emailHtml,
         });
       }
@@ -1528,8 +1528,8 @@ router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) =
     });
     await quotation.save();
 
-    // ── Notify Partner only — no link, no request to respond. Not part of the
-    //    full quotation template (unchanged, per spec — only the 6 listed
+    // ── Notify Partner only - no link, no request to respond. Not part of the
+    //    full quotation template (unchanged, per spec - only the 6 listed
     //    routes were converted). ──
     try {
       const salesRep = await SalesRep.findOne({ uid: req.salesRep.uid });
@@ -1538,7 +1538,7 @@ router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) =
         await transporter.sendMail({
           from: `"AADONA" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Quotation Withdrawn — #${quotation.quotationNumber}`,
+          subject: `Quotation Withdrawn - #${quotation.quotationNumber}`,
           html: `
             <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
               <h2 style="color:#b91c1c">Quotation Withdrawn</h2>

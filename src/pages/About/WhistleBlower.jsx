@@ -12,7 +12,7 @@ const structuredData = {
   "@type": "WebPage",
   name: "Whistle Blower – AADONA",
   description:
-    "AADONA's Whistle Blower policy ensures ethics, integrity, and transparency. Report unethical practices securely — your message is encrypted and delivered directly to the CEO.",
+    "AADONA's Whistle Blower policy ensures ethics, integrity, and transparency. Report unethical practices securely - your message is encrypted and delivered directly to the CEO.",
   url: "https://www.aadona.com/whistleblower", // ← update to your actual domain
   publisher: {
     "@type": "Organization",

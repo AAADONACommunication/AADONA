@@ -64,7 +64,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
   const [shareCopied, setShareCopied] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
 
-  // Removed Layer 1 (file sharing) — WhatsApp crawls OG tags from URL automatically
+  // Removed Layer 1 (file sharing) - WhatsApp crawls OG tags from URL automatically
   const handleShare = async (e) => {
     e.stopPropagation();
 
@@ -74,7 +74,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
     const slug = post.slug || generateSlug(post.title);
     const url = `${window.location.origin}/share/blog/${encodeURIComponent(slug)}`;
 
-    // Layer 1: Share URL only — WhatsApp will crawl OG tags and show preview automatically
+    // Layer 1: Share URL only - WhatsApp will crawl OG tags and show preview automatically
     if (navigator.share) {
       try {
         await navigator.share({
@@ -85,7 +85,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
         setShareLoading(false);
         return;
       } catch (err) {
-        // User cancelled or not supported — fall through
+        // User cancelled or not supported - fall through
       }
     }
 

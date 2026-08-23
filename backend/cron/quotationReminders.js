@@ -85,7 +85,7 @@ const startQuotationReminderCron = () => {
         try {
           if (!quotation.customer?.email) {
             console.warn(
-              `[reminder-cron] Skipping ${quotation.quotationNumber} — no customer email`
+              `[reminder-cron] Skipping ${quotation.quotationNumber} - no customer email`
             );
             continue;
           }
@@ -93,7 +93,7 @@ const startQuotationReminderCron = () => {
           await transporter.sendMail({
             from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
             to: quotation.customer.email,
-            subject: `Reminder: Quotation #${quotation.quotationNumber} — AADONA Communication`,
+            subject: `Reminder: Quotation #${quotation.quotationNumber} - AADONA Communication`,
             html: buildReminderEmailHtml(quotation),
           });
 
@@ -109,7 +109,7 @@ const startQuotationReminderCron = () => {
             `[reminder-cron] Failed to send reminder for ${quotation.quotationNumber}:`,
             err.message
           );
-          // Don't mark reminderSent — it'll be retried on the next tick.
+          // Don't mark reminderSent - it'll be retried on the next tick.
         }
       }
     } catch (err) {

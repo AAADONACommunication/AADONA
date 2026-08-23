@@ -79,7 +79,7 @@ const BannerPreviewModal = ({ cat, previewUrl, onClose }) => {
         {/* Header bar */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
           <span className="font-bold text-green-800 text-sm">
-            Preview — <span className="text-gray-600 font-semibold">{cat.name}</span>
+            Preview - <span className="text-gray-600 font-semibold">{cat.name}</span>
           </span>
           <button
             onClick={onClose}
@@ -233,7 +233,7 @@ const BannerCell = ({ cat, onBannerSaved }) => {
           )}
         </button>
 
-        {/* Preview btn — sirf tab dikhao jab banner ho */}
+        {/* Preview btn - sirf tab dikhao jab banner ho */}
         {hasBanner && (
           <button
             onClick={() => setPreviewOpen(true)}
@@ -287,7 +287,7 @@ export default function Categories({
   // ── Helpers ──
   const getCategoriesByType = (type) => allCategories.filter((c) => c.type === type);
 
-  // Banner saved callback — local state update (no full reload needed)
+  // Banner saved callback - local state update (no full reload needed)
   const handleBannerSaved = (catId, bannerUrl) => {
     setAllCategories((prev) =>
       prev.map((c) => (c._id === catId ? { ...c, banner: bannerUrl } : c))
@@ -639,7 +639,7 @@ export default function Categories({
                               </div>
                             ) : (
                               <div className="flex items-center gap-2 min-w-0">
-                                {/* Banner thumbnail — sirf tab dikhao jab set ho */}
+                                {/* Banner thumbnail - sirf tab dikhao jab set ho */}
                                 {cat.banner && (
                                   <img
                                     src={cat.banner}
@@ -696,7 +696,7 @@ export default function Categories({
                                   />
                                   <input
                                     className="w-full sm:flex-[2] sm:min-w-[200px] border border-green-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-300 normal-case"
-                                    placeholder="Extra categories (comma separated) — optional"
+                                    placeholder="Extra categories (comma separated) - optional"
                                     value={newSubExtra}
                                     onChange={(e) => setNewSubExtra(e.target.value)}
                                   />
@@ -712,7 +712,7 @@ export default function Categories({
                                   </div>
                                 </div>
                                 <p className="text-xs text-gray-400 mt-2">
-                                  Extra categories are optional — add them only when products need further filtering.
+                                  Extra categories are optional - add them only when products need further filtering.
                                 </p>
                               </div>
                             )}

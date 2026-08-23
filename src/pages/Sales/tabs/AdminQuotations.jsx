@@ -282,7 +282,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         throw new Error(text);
       }
 
-      // Quotation sent — go back to list, refresh data so reopening shows the sent state
+      // Quotation sent - go back to list, refresh data so reopening shows the sent state
       await reloadIncomingQuotations?.();
       backToList();
     } catch (err) {
@@ -458,13 +458,13 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                           {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
-                          {q.customer?.personalName || "—"}
+                          {q.customer?.personalName || "-"}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
-                          {q.endCustomer?.endCustomerName || "—"}
+                          {q.endCustomer?.endCustomerName || "-"}
                         </td>
                         <td className="px-4 py-3 text-gray-600">
-                          {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
+                          {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "-"}
                         </td>
                         <td className="px-4 py-3 font-semibold text-gray-700">
                           ₹{(
@@ -524,7 +524,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         </div>
       )}
 
-      {/* ── Admin Quotation (READ-ONLY) — always shown ── */}
+      {/* ── Admin Quotation (READ-ONLY) - always shown ── */}
       <div className="bg-gray-50 rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Lock size={16} className="text-gray-500" />
@@ -532,7 +532,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             <h2 className="text-lg font-bold text-gray-700">
               Quotation from Admin{" "}
               <span className="text-sm font-normal text-gray-500">
-                ({selected.quotationNumber || selected._id?.slice(-6).toUpperCase()}) — read only
+                ({selected.quotationNumber || selected._id?.slice(-6).toUpperCase()}) - read only
               </span>
             </h2>
             {selected.validUntil && (
@@ -546,34 +546,34 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         <div className="grid sm:grid-cols-2 gap-3 mb-4 text-sm">
           <p className="text-gray-700">
             <span className="font-semibold">Partner:</span>{" "}
-            {selected.customer?.personalName || "—"}
+            {selected.customer?.personalName || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Company:</span>{" "}
-            {selected.customer?.companyName || "—"}
+            {selected.customer?.companyName || "-"}
           </p>
           <p className="text-gray-700">
-            <span className="font-semibold">Email:</span> {selected.customer?.email || "—"}
+            <span className="font-semibold">Email:</span> {selected.customer?.email || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Contact:</span>{" "}
-            {selected.customer?.contactNumber || "—"}
+            {selected.customer?.contactNumber || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Partner Type:</span>{" "}
-            {selected.customer?.partnerType || "—"}
+            {selected.customer?.partnerType || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">GST:</span>{" "}
-            {selected.customer?.gstNumber || "—"}
+            {selected.customer?.gstNumber || "-"}
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Address:</span>{" "}
-            {selected.customer?.address || "—"}
+            {selected.customer?.address || "-"}
           </p>
         </div>
 
-        {/* ── End Customer — real backend data, never notes ── */}
+        {/* ── End Customer - real backend data, never notes ── */}
         <div className="border-t border-gray-200 pt-4 mb-4">
           <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">
             End Customer
@@ -582,39 +582,39 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               <p className="text-gray-700">
                 <span className="font-semibold">Name:</span>{" "}
-                {selected.endCustomer.endCustomerName || "—"}
+                {selected.endCustomer.endCustomerName || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Organization:</span>{" "}
-                {selected.endCustomer.organizationName || "—"}
+                {selected.endCustomer.organizationName || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">City / State:</span>{" "}
-                {[selected.endCustomer.city, selected.endCustomer.state].filter(Boolean).join(", ") || "—"}
+                {[selected.endCustomer.city, selected.endCustomer.state].filter(Boolean).join(", ") || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Contact Person:</span>{" "}
-                {selected.endCustomer.contactPerson || "—"}
+                {selected.endCustomer.contactPerson || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Designation:</span>{" "}
-                {selected.endCustomer.designation || "—"}
+                {selected.endCustomer.designation || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Mobile:</span>{" "}
-                {selected.endCustomer.mobileNumber || "—"}
+                {selected.endCustomer.mobileNumber || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Email:</span>{" "}
-                {selected.endCustomer.emailId || "—"}
+                {selected.endCustomer.emailId || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Industry:</span>{" "}
-                {selected.endCustomer.industryVertical || "—"}
+                {selected.endCustomer.industryVertical || "-"}
               </p>
               <p className="text-gray-700">
                 <span className="font-semibold">Address:</span>{" "}
-                {selected.endCustomer.customerAddress || "—"}
+                {selected.endCustomer.customerAddress || "-"}
               </p>
             </div>
           ) : (
@@ -622,7 +622,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           )}
         </div>
 
-        {/* ── Admin's internal revision history — created + every revision ── */}
+        {/* ── Admin's internal revision history - created + every revision ── */}
         {(selected.revisionHistory?.length || 0) > 0 && (
           <div className="border-t border-gray-200 pt-4 mb-4">
             <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">
@@ -636,7 +636,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   <span className="text-xs text-gray-500">
                     {selected.createdAt
                       ? new Date(selected.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-                      : "—"}
+                      : "-"}
                   </span>
                 </div>
                 // NEW
@@ -671,7 +671,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 </div>
               </div>
 
-              {/* Each subsequent revision — skip index 0, it's already shown above as "Created" */}
+              {/* Each subsequent revision - skip index 0, it's already shown above as "Created" */}
               {selected.revisionHistory.slice(1).map((rev, i) => (
                 <div key={i} className="rounded-xl border border-purple-200 bg-purple-50 p-3.5">
                   <div className="flex justify-between items-center mb-2">
@@ -681,7 +681,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                     <span className="text-xs text-gray-500">
                       {rev.revisedAt
                         ? new Date(rev.revisedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-                        : "—"}
+                        : "-"}
                     </span>
                   </div>
                   <div className="overflow-x-auto">
@@ -718,7 +718,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 </div>
               ))}
 
-              {/* Current/latest admin quotation state — always the final entry when revisions exist */}
+              {/* Current/latest admin quotation state - always the final entry when revisions exist */}
               <div className="rounded-xl border border-green-200 bg-green-50 p-3.5">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm font-bold text-green-800">
@@ -727,7 +727,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   <span className="text-xs text-gray-500">
                     {selected.updatedAt
                       ? new Date(selected.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-                      : "—"}
+                      : "-"}
                   </span>
                 </div>
                 <div className="overflow-x-auto">
@@ -825,7 +825,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
       {salesQuotation &&
       salesQuotation.status !== "admin_revised" &&
       salesQuotation.status !== "admin_rejected_to_sales" ? (
-        // Already sent to customer — READ ONLY, no editing, no actions.
+        // Already sent to customer - READ ONLY, no editing, no actions.
         // Further process (negotiation, accept/reject, counter-offer, resend etc.)
         // happens on the other Sales Quotations screen.
         <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
@@ -840,8 +840,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             </span>
           </div>
           <p className="text-sm text-gray-500 mb-4">
-            Quotation #{salesQuotation.quotationNumber} — sent on{" "}
-            {salesQuotation.sentAt ? new Date(salesQuotation.sentAt).toLocaleDateString() : "—"}.
+            Quotation #{salesQuotation.quotationNumber} - sent on{" "}
+            {salesQuotation.sentAt ? new Date(salesQuotation.sentAt).toLocaleDateString() : "-"}.
             This has already been sent to the customer and can no longer be edited here.
           </p>
 
@@ -903,7 +903,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           )}
         </div>
       ) : (
-        // ── Not sent yet — EDITABLE form (margin % based pricing) ──
+        // ── Not sent yet - EDITABLE form (margin % based pricing) ──
         <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
           <h2 className="text-lg font-bold text-green-800 mb-1">
             {salesQuotation?.status === "admin_rejected_to_sales"
@@ -923,7 +923,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               ? "Admin approved the customer's requested pricing through discount adjustment. Review it, make any allowed edits, and send it to the customer."
               : salesQuotation?.status === "admin_revised"
               ? "Review the revised pricing, adjust discount if needed, and send it to the customer."
-              : "Set your margin % over the admin price. Only this version is sent to the customer — the admin quotation above is never shown to them."}
+              : "Set your margin % over the admin price. Only this version is sent to the customer - the admin quotation above is never shown to them."}
           </p>
 
           <div className="overflow-x-auto -mx-1 px-1">

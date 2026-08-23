@@ -36,7 +36,7 @@ async function main() {
 
     if (quotation.status !== "accepted") {
       console.error(
-        `Refusing to send final-confirmation mail — quotation status is "${quotation.status}", not "accepted".`
+        `Refusing to send final-confirmation mail - quotation status is "${quotation.status}", not "accepted".`
       );
       process.exit(1);
     }
@@ -61,7 +61,7 @@ async function main() {
       <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
         <h2 style="color:#166534">Quotation Accepted ✅ (Resent Confirmation)</h2>
         <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
-        <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "—"}</p>
+        <p style="color:#374151;font-size:14px"><strong>Customer:</strong> ${quotation.customer?.personalName || "-"}</p>
         <p style="color:#374151;font-size:14px"><strong>Final Accepted Amount:</strong> ₹${Number(finalAmount).toFixed(2)}</p>
         <p style="color:#374151;font-size:14px">Final PDF attached for your records.</p>
       </div>
@@ -74,7 +74,7 @@ async function main() {
         transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: quotation.customer.email,
-          subject: `Quotation Confirmed — #${quotation.quotationNumber}`,
+          subject: `Quotation Confirmed - #${quotation.quotationNumber}`,
           html: reportHtml,
           attachments,
         })
@@ -86,7 +86,7 @@ async function main() {
         transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: salesRep.email,
-          subject: `Quotation Accepted — #${quotation.quotationNumber}`,
+          subject: `Quotation Accepted - #${quotation.quotationNumber}`,
           html: reportHtml,
           attachments,
         })
@@ -98,7 +98,7 @@ async function main() {
         transporter.sendMail({
           from: `"AADONA Communication" <${process.env.EMAIL_USER}>`,
           to: ADMIN_EMAIL,
-          subject: `Quotation Accepted — #${quotation.quotationNumber}`,
+          subject: `Quotation Accepted - #${quotation.quotationNumber}`,
           html: reportHtml,
           attachments,
         })
@@ -110,7 +110,7 @@ async function main() {
       if (r.status === "rejected") {
         console.error(`Email job ${i} failed:`, r.reason?.message || r.reason);
       } else {
-        console.log(`Email job ${i} sent — full SMTP response:`);
+        console.log(`Email job ${i} sent - full SMTP response:`);
         console.log(JSON.stringify(r.value, null, 2));
       }
     });

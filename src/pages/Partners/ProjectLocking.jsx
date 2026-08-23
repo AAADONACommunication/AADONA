@@ -31,7 +31,7 @@ const emptyForm = {
   endCustomerContact: "", endCustomerName: "", expectedClosure: ""
 };
 
-// Sanitize string inputs — strip HTML tags to prevent XSS
+// Sanitize string inputs - strip HTML tags to prevent XSS
 const sanitize = (value) =>
   typeof value === "string" ? value.replace(/<[^>]*>/g, "").trim() : value;
 
@@ -132,7 +132,7 @@ export default function ProjectLocking() {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/submit-project-locking`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Sanitize before sending — strip any injected HTML
+        // Sanitize before sending - strip any injected HTML
         body: JSON.stringify(sanitizeForm(form)),
       });
 
@@ -202,7 +202,7 @@ export default function ProjectLocking() {
             Project Locking
                         </h1>
                         <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
-            Submit project details to lock inventory / create quotations — our team will contact you
+            Submit project details to lock inventory / create quotations - our team will contact you
                               </p>
                       </div>
                     </header>
@@ -459,7 +459,7 @@ export default function ProjectLocking() {
                           ) : (
                             filteredProducts.map((p, i) => {
                               const label = p.model
-                                ? `${p.model} — ${p.name}`
+                                ? `${p.model} - ${p.name}`
                                 : p.name;
                               const value = p.model || p.name;
                               return (
@@ -504,7 +504,7 @@ export default function ProjectLocking() {
                   </div>
                 </div>
 
-                {/* BUG FIX: was using name="streetAddress" — now correctly name="aadonaSales" */}
+                {/* BUG FIX: was using name="streetAddress" - now correctly name="aadonaSales" */}
                 <div className="flex flex-col">
                   <label htmlFor="aadonaSales" className={labelClasses}>
                     Enter AADONA Sales <span className="text-red-500" aria-hidden="true">*</span>

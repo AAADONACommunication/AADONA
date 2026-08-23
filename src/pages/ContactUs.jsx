@@ -1,7 +1,7 @@
 /**
  * ContactPage.jsx
- * SEO Optimized  — react-helmet-async meta tags, JSON-LD structured data, semantic HTML
- * Security Hardened — input sanitization, XSS prevention, honeypot, rate-limit guard, strict validation
+ * SEO Optimized  - react-helmet-async meta tags, JSON-LD structured data, semantic HTML
+ * Security Hardened - input sanitization, XSS prevention, honeypot, rate-limit guard, strict validation
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
@@ -435,7 +435,7 @@ const INITIAL_FORM = {
   zipCode: '',
   natureOfBusiness: BUSINESS_OPTIONS[0],
   message: '',
-  _honey: '', // honeypot — must remain empty
+  _honey: '', // honeypot - must remain empty
 };
 
 // Simple in-memory rate limit: max 3 submissions per 10 minutes
@@ -531,7 +531,7 @@ export default function ContactPage() {
 
     setIsSubmitting(true);
 
-    // Build clean payload — exclude honeypot, apply trim sanitize on submit
+    // Build clean payload - exclude honeypot, apply trim sanitize on submit
     const { _honey, ...payload } = formData;
     const cleanPayload = Object.fromEntries(
       Object.entries(payload).map(([k, v]) => [k, sanitize(v)])

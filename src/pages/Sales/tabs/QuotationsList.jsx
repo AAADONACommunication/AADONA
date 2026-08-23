@@ -27,7 +27,7 @@ const statusLabels = {
   negotiation_requested: "Negotiation Requested",
   awaiting_admin_approval: "Awaiting Admin Approval",
   counter_offered: "Counter Offered",
-  admin_revised: "Admin Revised — Action Needed",
+  admin_revised: "Admin Revised - Action Needed",
   closed: "Closed",
 };
 
@@ -118,7 +118,7 @@ const metaFor = (type) => TYPE_META[type] || { bucket: "seller", label: type?.re
 const buildTimeline = (q) => {
   const timeline = [];
 
-  // Admin item `total` is always stored WITHOUT GST — stripping it forces
+  // Admin item `total` is always stored WITHOUT GST - stripping it forces
   // calcItemTotal to recompute base+GST fresh instead of trusting the stale value.
   const stripTotal = (items = []) => items.map(({ total, ...rest }) => rest);
 
@@ -143,7 +143,7 @@ const buildTimeline = (q) => {
     });
   }
 
-  // ── 2. Intermediate revisions — skip index 0 (already shown above as "Created") ──
+  // ── 2. Intermediate revisions - skip index 0 (already shown above as "Created") ──
   for (let i = 1; i < adminHistory.length; i++) {
     const rev = adminHistory[i];
     timeline.push({
@@ -166,7 +166,7 @@ const buildTimeline = (q) => {
     });
   }
 
-  // ── 3. Original sales quotation snapshot — but skip if negotiationHistory
+  // ── 3. Original sales quotation snapshot - but skip if negotiationHistory
   const hasSalesSentInHistory = (q.negotiationHistory || []).some(
     (h) => h.type === "sales_sent"
   );
@@ -187,7 +187,7 @@ const buildTimeline = (q) => {
     });
   }
 
-  // ── 4. negotiationHistory — every event, old and new types alike ──
+  // ── 4. negotiationHistory - every event, old and new types alike ──
   (q.negotiationHistory || []).forEach((h) => {
     const meta = metaFor(h.type);
     const at = h.eventAt || h.recordedAt || h.revisedAt || h.counterOfferAt || h.revisedSalesSentAt || h.customerRespondedAt;
@@ -203,7 +203,7 @@ const buildTimeline = (q) => {
         at,
       });
     } else if (meta.bucket === "seller" || meta.bucket === "admin") {
-      // adminRevisedItems come from AdminQuotation — their `total` is base-only (no GST).
+      // adminRevisedItems come from AdminQuotation - their `total` is base-only (no GST).
       // counterOfferItems / revisedSalesItems are SalesQuotation-side and already GST-inclusive.
       // Strip `total` ONLY for the admin-sourced array so calcItemTotal recomputes it fresh.
       const items = h.counterOfferItems?.length
@@ -246,7 +246,7 @@ const buildTimeline = (q) => {
 
   // ── Dedupe back-to-back "admin" cards that carry identical figures ──
   // (e.g. "Admin Revised Pricing" immediately followed by "Admin Approved Pricing"
-  // with the exact same subtotal/GST/discount/total/message — same underlying
+  // with the exact same subtotal/GST/discount/total/message - same underlying
   // pricing action logged twice.)
   return sorted.filter((entry, idx) => {
     if (idx === 0) return true;
@@ -294,7 +294,7 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   const [resendDiscountValue, setResendDiscountValue] = useState("");
   const [resendSubmitting, setResendSubmitting] = useState(false);
   const [resendError, setResendError] = useState("");
-  // ── Send-approved (discount_applied flow — no manual pricing needed) ──
+  // ── Send-approved (discount_applied flow - no manual pricing needed) ──
   const [sendingApprovedId, setSendingApprovedId] = useState(null);
   const [sendApprovedError, setSendApprovedError] = useState("");
   // ── Edit-approved (discount_applied flow, rep wants to tweak GST/discount) ──
@@ -500,7 +500,7 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
     );
   };
 
-  // ── Live totals — same formula as /sales-quotations/send (discount on base, then GST) ──
+  // ── Live totals - same formula as /sales-quotations/send (discount on base, then GST) ──
   const resendRawSubtotal = resendItems.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
     0
@@ -722,7 +722,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                     <span className="text-xs text-gray-500 whitespace-nowrap">
                       {entry.at
                         ? new Date(entry.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-                        : "—"}
+                        : "-"}
                     </span>
                   </div>
 
@@ -759,7 +759,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                          <tbody>
                            {(entry.items || []).map((item, idx) => (
                              <tr key={idx} className="border-t border-gray-100">
-                               <td className="px-2 py-2 text-gray-800">{item?.name || "—"}</td>
+                               <td className="px-2 py-2 text-gray-800">{item?.name || "-"}</td>
                                <td className="px-2 py-2 text-gray-700">{item?.quantity ?? 0}</td>
                                <td className="px-2 py-2 text-gray-700">
                                  ₹{Number(item?.unitPrice || 0).toFixed(2)}
@@ -963,13 +963,13 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                       {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
-                      {q.customer?.personalName || q.customer?.companyName || "—"}
+                      {q.customer?.personalName || q.customer?.companyName || "-"}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
-                      {q.endCustomer?.endCustomerName || "—"}
+                      {q.endCustomer?.endCustomerName || "-"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "—"}
+                      {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "-"}
                     </td>
                     <td className="px-4 py-3 font-semibold text-gray-700">
                       ₹{Number(q.grandTotal || 0).toFixed(2)}
@@ -1020,11 +1020,11 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
 
             <p className="text-sm text-gray-600 mb-1">
               <span className="font-semibold">Partner:</span>{" "}
-              {viewing.customer?.personalName || viewing.customer?.companyName || "—"}
+              {viewing.customer?.personalName || viewing.customer?.companyName || "-"}
             </p>
             <p className="text-sm text-gray-600 mb-1">
               <span className="font-semibold">End Customer:</span>{" "}
-              {viewing.endCustomer?.endCustomerName || "—"}
+              {viewing.endCustomer?.endCustomerName || "-"}
             </p>
             {(viewing.validUntil || viewing.validTill) && (
               <p className="text-sm text-gray-600 mb-3">
@@ -1049,11 +1049,11 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                 <p className="text-sm font-bold text-red-700">Quotation Rejected</p>
                 <p className="text-sm text-gray-700">
                   <span className="font-semibold">Rejected By:</span>{" "}
-                  {viewing.rejectedBy === "partner" ? "Partner" : viewing.rejectedBy === "sales" ? "Sales" : "—"}
+                  {viewing.rejectedBy === "partner" ? "Partner" : viewing.rejectedBy === "sales" ? "Sales" : "-"}
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="font-semibold">Rejected Date:</span>{" "}
-                  {viewing.rejectedAt ? new Date(viewing.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
+                  {viewing.rejectedAt ? new Date(viewing.rejectedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "-"}
                 </p>
                 {viewing.rejectReason && (
                   <p className="text-sm text-gray-700">
@@ -1103,7 +1103,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
         </div>
       )}
 
-      {/* ── Counter Offer Modal — item-wise editor ── */}
+      {/* ── Counter Offer Modal - item-wise editor ── */}
       {counterModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] px-4 py-8">
           <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
@@ -1594,7 +1594,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
         title={`Reject Quotation #${rejectModalOpen?.quotationNumber || ""}?`}
       />
 
-      {/* ── Success notification — swap for your app's existing toast system ── */}
+      {/* ── Success notification - swap for your app's existing toast system ── */}
       {successMessage && (
         <div className="fixed bottom-6 right-6 bg-green-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-lg z-[80]">
           {successMessage}
