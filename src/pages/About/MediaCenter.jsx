@@ -22,7 +22,7 @@ const structuredData = {
 
 /* -------- Image Glob -------- */
 const imageModules = import.meta.glob(
-  '../../assets/Media-Center/Media-Center/**/*.{png,jpg,jpeg}',
+  '../../assets/Media-Center/Media-Center/**/*.{png,jpg,jpeg,avif}',
   { eager: true }
 );
 

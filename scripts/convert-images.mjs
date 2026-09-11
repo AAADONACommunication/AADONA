@@ -25,7 +25,7 @@ async function walk(dir, exts) {
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+      if (entry.name === 'node_modules' || entry.name.startsWith('.') || entry.name === 'Media-Center') continue;
       results = results.concat(await walk(full, exts));
     } else if (exts.includes(path.extname(entry.name).toLowerCase())) {
       results.push(full);
@@ -79,7 +79,7 @@ async function convertOne(filePath) {
     await fs.unlink(filePath);
     console.log(`   ↳ Removed original: ${oldFileName}`);
   } catch (err) {
-    console.warn(`   ⚠ Could not delete original (file may be open elsewhere): ${oldFileName}. Delete it manually later — conversion already succeeded.`);
+    console.warn(`   Could not delete original (file may be open elsewhere): ${oldFileName}. Delete it manually later — conversion already succeeded.`);
   }
 }
 
@@ -98,7 +98,7 @@ async function runOnce() {
 
 async function watchMode() {
   const { default: chokidar } = await import('chokidar');
-  console.log(`👀 Watching ${path.relative(ROOT, ASSETS_DIR)} — new PNG/JPEG files will auto-convert to AVIF...`);
+  console.log(`Watching ${path.relative(ROOT, ASSETS_DIR)} — new PNG/JPEG files will auto-convert to AVIF...`);
   const watcher = chokidar.watch(ASSETS_DIR, { ignoreInitial: true });
   watcher.on('add', (filePath) => {
     if (IMAGE_EXT.includes(path.extname(filePath).toLowerCase())) {

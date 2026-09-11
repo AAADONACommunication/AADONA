@@ -75,7 +75,7 @@ const LogoCard = ({ data }) => (
 export default function CustomerPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => window.scrollTo(0, 0), []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   /* ---- Sanitize input to prevent XSS ---- */
   const handleSearch = useCallback((e) => {

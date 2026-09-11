@@ -6,13 +6,13 @@ import arrowIcon from "../assets/arrow.avif";
 const importAll = (modules) => Object.values(modules).map((mod) => mod.default);
 
 const governmentLogos = [
-  ...importAll(import.meta.glob("../assets/Companies/Government/famous/*.jpg", { eager: true })),
-  ...importAll(import.meta.glob("../assets/Companies/Government/less_famous/*.jpg", { eager: true })),
+  ...importAll(import.meta.glob("../assets/Companies/Government/famous/*.{png,jpg,jpeg,avif}", { eager: true })),
+  ...importAll(import.meta.glob("../assets/Companies/Government/less_famous/*.{png,jpg,jpeg,avif}", { eager: true })),
 ];
 
 const privateLogos = [
-  ...importAll(import.meta.glob("../assets/Companies/Private/famous/*.jpg", { eager: true })),
-  ...importAll(import.meta.glob("../assets/Companies/Private/less_famous/*.jpg", { eager: true })),
+  ...importAll(import.meta.glob("../assets/Companies/Private/famous/*.{png,jpg,jpeg,avif}", { eager: true })),
+  ...importAll(import.meta.glob("../assets/Companies/Private/less_famous/*.{png,jpg,jpeg,avif}", { eager: true })),
 ];
 
 // Company name extract karo file path se (SEO-friendly alt text)
