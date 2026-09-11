@@ -6,7 +6,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { Mail, Lock, LogIn, Loader2 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 
 const inputBase =
   "w-full border border-green-300 rounded-xl px-4 py-3 text-base " +

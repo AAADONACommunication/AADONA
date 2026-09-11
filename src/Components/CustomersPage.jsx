@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import bg from "../assets/bg.jpg";
+import bg from "../assets/bg.avif";
 import { FaSearch } from "react-icons/fa";
 import customersbanner from "../assets/OurCustomerBanner.avif";
 

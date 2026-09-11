@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import customArrow from "../../assets/arrow.png";
+import customArrow from "../../assets/arrow.avif";
 import networkswitch from "../../assets/networkswitches.png";
 import wireless from "../../assets/wirelessSol3.png";
 import ruggedswitches from "../../assets/ruggedswitches.png";

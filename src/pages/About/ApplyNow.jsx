@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import careerbanner from "../../assets/CareersBanner.avif";
 
 

@@ -2,16 +2,16 @@ import { React, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-import bg from '../../assets/bg.jpg';
+import bg from '../../assets/bg.avif';
 
-import customerCommitment from '../../assets/CustomerCoomitment.jpeg';
-import quality from '../../assets/Quality.jpeg';
-import integrity from '../../assets/Integrity.jpeg';
-import teamwork from '../../assets/TeamWork.jpeg';
-import goodCitizenship from '../../assets/GoodCitizenship.jpeg';
-import respectPeople from '../../assets/RespectforPeople.jpeg';
-import willToWin from '../../assets/Awilltowin.jpeg';
-import accountability from '../../assets/PersonalAccountability.jpeg';
+import customerCommitment from '../../assets/CustomerCoomitment.avif';
+import quality from '../../assets/Quality.avif';
+import integrity from '../../assets/Integrity.avif';
+import teamwork from '../../assets/TeamWork.avif';
+import goodCitizenship from '../../assets/GoodCitizenship.avif';
+import respectPeople from '../../assets/RespectforPeople.avif';
+import willToWin from '../../assets/Awilltowin.avif';
+import accountability from '../../assets/PersonalAccountability.avif';
 import missionbanner from '../../assets/MissionVissionBanner.avif';
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Mail, Lock, LogIn, Loader2, Eye, EyeOff } from "lucide-react";
 import Footer from "../../Components/Footer";
 import Navbar from "../../Components/Navbar";
-import bg from "./../../assets/bg.jpg";
+import bg from "./../../assets/bg.avif";
 
 const inputBase =
   "w-full border border-green-300 rounded-xl px-4 py-3 text-base " +

@@ -8,7 +8,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async'; // npm install react-helmet-async
 import Footer from '../Components/Footer';
 import Navbar from '../Components/Navbar';
-import bg from '../assets/bg.jpg';
+import bg from '../assets/bg.avif';
 import contactusbanner from '../assets/ContactUs.avif'
 
 

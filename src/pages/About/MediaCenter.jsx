@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-import bg from '../../assets/bg.jpg';
+import bg from '../../assets/bg.avif';
 import mediacenterbanner from '../../assets/MediaCenterBanner.avif';
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */

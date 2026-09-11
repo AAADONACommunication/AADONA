@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Download,
 } from "lucide-react";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import warrantybanner from "../../assets/WarrantyBanner.avif";
 
 // ─── Scroll-reveal ────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import bg from '../assets/bg.jpg';
+import bg from '../assets/bg.avif';
 import ppbanner from '../assets/privacypolicy.webp';
 
 /* ─────────────────────────────────────────────

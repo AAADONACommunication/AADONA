@@ -8,7 +8,13 @@
     "dev:staging": "vite --mode staging",
     "build": "vite build",
     "build:staging": "vite build --mode staging",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "images:convert": "node scripts/convert-images.mjs",
+    "images:watch": "node scripts/convert-images.mjs --watch",
+    "predev": "npm run images:convert",
+    "predev:staging": "npm run images:convert",
+    "prebuild": "npm run images:convert",
+    "prebuild:staging": "npm run images:convert"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.2.8",
@@ -40,11 +46,13 @@
     "@types/react-dom": "^19.1.9",
     "autoprefixer": "^10.4.21",
     "baseline-browser-mapping": "^2.9.19",
+    "chokidar": "^5.0.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
     "postcss": "^8.5.6",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.1.16",
     "vite": "^7.3.1"
   }

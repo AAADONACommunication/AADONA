@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef, memo } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
-import CheckCircle from "../assets/checkcircle.png";
+import CheckCircle from "../assets/checkcircle.avif";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;

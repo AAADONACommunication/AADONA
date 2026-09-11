@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef, memo, lazy, Suspense } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
-import CheckCircle from "../assets/checkcircle.png";
+import CheckCircle from "../assets/checkcircle.avif";
 import { Download, Package, Check } from "lucide-react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────

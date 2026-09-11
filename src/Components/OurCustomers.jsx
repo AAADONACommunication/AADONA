@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import arrowIcon from "../assets/arrow.png";
+import arrowIcon from "../assets/arrow.avif";
 
 const importAll = (modules) => Object.values(modules).map((mod) => mod.default);
 

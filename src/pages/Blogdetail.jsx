@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { Link2, Check, Loader2, CheckCircle2 } from "lucide-react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
-import bg from '../assets/bg.jpg'
+import bg from '../assets/bg.avif'
 
 const UserIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">

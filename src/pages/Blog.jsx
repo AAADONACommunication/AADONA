@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import { Heart, Link2, Check, Loader2 } from "lucide-react";
-import bg from "../assets/bg.jpg";
+import bg from "../assets/bg.avif";
 import blogbanner from "../assets/BlogBanner.avif";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────

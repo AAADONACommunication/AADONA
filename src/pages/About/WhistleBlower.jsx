@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-import bg from '../../assets/bg.jpg';
+import bg from '../../assets/bg.avif';
 import whistlebanner from '../../assets/WhistleBanner.avif';
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */

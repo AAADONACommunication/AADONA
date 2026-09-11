@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { X, UploadCloud, Send, CheckCircle2 } from "lucide-react";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import warrantybanner from '../../assets/WarrantyBanner.avif'
 
 

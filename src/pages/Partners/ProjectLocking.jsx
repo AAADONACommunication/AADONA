@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { CheckCircle2 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import plbanner from "../../assets/ProjectLockBanner.avif";
 
 const COUNTRIES = [

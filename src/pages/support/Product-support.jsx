@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import psbanner from "../../assets/ProductSupportBanner.avif";
 
 // ─── Security Helpers ────────────────────────────────────────────────────────

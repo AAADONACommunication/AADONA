@@ -1,19 +1,19 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
-import c1 from '../assets/FC.jpg';
-import c2 from '../assets/IEC.jpg';
+import c1 from '../assets/FC.avif';
+import c2 from '../assets/IEC.avif';
 import c3 from '../assets/iso45001.avif';
-import c4 from '../assets/ISO2000.jpeg';
-import c5 from '../assets/14001.jpg';
-import c6 from '../assets/ISO900.jpeg';
-import c7 from '../assets/27001.jpg';
+import c4 from '../assets/ISO2000.avif';
+import c5 from '../assets/14001.avif';
+import c6 from '../assets/ISO900.avif';
+import c7 from '../assets/27001.avif';
 import c8 from '../assets/ul.avif';
-import c9 from '../assets/DPII.jpeg';
-import c10 from '../assets/MakeInIndia.jpeg';
-import c11 from '../assets/CE.jpeg';
-import c12 from '../assets/rohs_logo.jpeg';
-import c13 from '../assets/MSME.jpg';
-import c14 from '../assets/startUp.jpg';
+import c9 from '../assets/DPII.avif';
+import c10 from '../assets/MakeInIndia.avif';
+import c11 from '../assets/CE.avif';
+import c12 from '../assets/rohs_logo.avif';
+import c13 from '../assets/MSME.avif';
+import c14 from '../assets/startUp.avif';
 
 const certifications = [
   { url: c1,  name: "FC Certification" },

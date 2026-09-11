@@ -1,6 +1,6 @@
 // src/components/ProductCard.jsx
 import React from 'react';
-import CheckCircle from '../assets/checkcircle.png'; 
+import CheckCircle from '../assets/checkcircle.avif'; 
 
 const ProductCard = ({ product }) => {
   

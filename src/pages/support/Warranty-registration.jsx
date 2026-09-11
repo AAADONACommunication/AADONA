@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import { X, UploadCloud, Plus } from 'lucide-react';
-import bg from '../../assets/bg.jpg';
+import bg from '../../assets/bg.avif';
 import wrbanner from '../../assets/WarrantyRegisterBanner.avif';
 
 const COUNTRIES = [

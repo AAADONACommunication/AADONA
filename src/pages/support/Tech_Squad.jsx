@@ -7,7 +7,7 @@ import {
   Wrench, ClipboardList, CheckCircle2,
   Mail, Phone, MapPin, Send,
 } from "lucide-react";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import tsbanner from "../../assets/TechSquadBanner.avif";
 
 // ─── Security Helpers ────────────────────────────────────────────────────────

@@ -7,8 +7,8 @@ import Pinakii from "../../assets/Pinaki_Chatterjee.avif";
 import Senthil from "../../assets/Senthil_VP_Kumar.avif";
 import Govind from "../../assets/Govind_Madhav.avif";
 import Chandan from "../../assets/Chandan_Sharma.avif";
-import bg from "../../assets/bg.jpg";
-import linkedin from "../../assets/linkedin.png";
+import bg from "../../assets/bg.avif";
+import linkedin from "../../assets/linkedin.avif";
 import leadershipbanner from "../../assets/LeadershipBanner.avif";
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */

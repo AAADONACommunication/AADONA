@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { Link } from "react-router-dom";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import csrbanner from '../../assets/CSRBanner.avif'
 
 /* -------- Hover Lift Card Style -------- */

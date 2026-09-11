@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import bg from "./../../assets/bg.jpg";
+import bg from "./../../assets/bg.avif";
 
 const API = import.meta.env.VITE_API_URL;
 

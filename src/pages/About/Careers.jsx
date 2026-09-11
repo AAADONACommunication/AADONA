@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import careerbanner from "../../assets/CareersBanner.avif";
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */

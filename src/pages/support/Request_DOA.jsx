@@ -6,7 +6,7 @@ import {
   ClipboardList, FileWarning, CheckCircle2,
   UploadCloud, Mail, Phone, MapPin, Hash, Send, X,
 } from "lucide-react";
-import bg from "../../assets/bg.jpg";
+import bg from "../../assets/bg.avif";
 import rdoabanner from "../../assets/RequestDOABanner.avif";
 
 // ─── Security Helpers ────────────────────────────────────────────────────────
