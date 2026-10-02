@@ -994,6 +994,7 @@ export default function ManageQuotationRequests() {
                   <th className="px-4 py-3 text-gray-600 font-semibold">Sales Rep</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Partner</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">End Customer</th>
+                  <th className="px-4 py-3 text-gray-600 font-semibold text-right">Total (₹)</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Items</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Date</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Status</th>
@@ -1014,6 +1015,14 @@ export default function ManageQuotationRequests() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {r.endCustomer?.endCustomerName || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-800 font-semibold text-right whitespace-nowrap">
+                      {r.status === "quoted" && r.adminQuotation?.grandTotal != null
+                        ? `₹${Number(r.adminQuotation.grandTotal).toLocaleString("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}`
+                        : "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">{(r.items || []).length} items</td>
                     <td className="px-4 py-3 text-gray-600">
