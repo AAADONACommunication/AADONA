@@ -6,6 +6,10 @@ import { safeJson, inputStyle } from "../SalesPanel";
 const REQUIREMENTS_API = `${import.meta.env.VITE_API_URL}/quotation-requests`;
 const PROJECT_LOCK_API = `${import.meta.env.VITE_API_URL}/project-lock`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`;
+
 const emptyManualItem = {
   isManual: true,
   productId: null,
@@ -306,13 +310,15 @@ export default function CreateQuotation({
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8" ref={rootRef}>
+    <div className="space-y-6 sm:space-y-8 font-['Poppins',sans-serif] font-medium" ref={rootRef}>
+      <style>{FONT_IMPORT}</style>
+
       <p className="text-sm text-gray-500">
         Note down what the customer needs - products and quantities. Pricing is
         decided by admin and will come back to you under{" "}
         <button
           onClick={() => setActiveTab?.("incoming")}
-          className="text-green-700 font-semibold hover:underline"
+          className="text-[#920609] font-semibold hover:underline"
         >
           Admin Quotation
         </button>
@@ -320,7 +326,7 @@ export default function CreateQuotation({
       </p>
 
       {error && (
-        <div ref={errorRef} className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm break-words">
+        <div ref={errorRef} className="bg-red-50 border border-[#c42126]/30 text-[#920609] px-4 py-3 rounded-xl text-sm break-words">
           {error}
         </div>
       )}
@@ -331,11 +337,11 @@ export default function CreateQuotation({
       )}
 
       {/* ── Partner Selection ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
-        <h2 className="text-lg font-bold text-green-800 mb-4">Partner</h2>
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-4 sm:p-6">
+        <h2 className="text-lg font-semibold text-[#920609] mb-4">Partner</h2>
 
         {selectedCustomer ? (
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 bg-[#a16d36]/10 border border-[#a16d36]/30 rounded-xl p-4">
             <div className="min-w-0">
               <p className="font-semibold text-gray-800 break-words">{selectedCustomer.personalName}</p>
               {selectedCustomer.companyName && (
@@ -356,7 +362,7 @@ export default function CreateQuotation({
                 setEndCustomerName("");
                 setEndCustomerOptions([]);
               }}
-              className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap self-start"
+              className="text-sm font-semibold text-[#920609] hover:underline whitespace-nowrap self-start"
             >
               Change
             </button>
@@ -382,7 +388,7 @@ export default function CreateQuotation({
                 No partners yet. Add one from the{" "}
                 <button
                   onClick={() => setActiveTab?.("customers")}
-                  className="text-green-700 font-semibold hover:underline"
+                  className="text-[#920609] font-semibold hover:underline"
                 >
                   Partners Details
                 </button>{" "}
@@ -391,7 +397,7 @@ export default function CreateQuotation({
             ) : customerSearch.trim() === "" ? (
               <p className="text-sm text-gray-400 px-1">Start typing to search partners...</p>
             ) : (
-              <div className="max-h-56 overflow-y-auto border border-green-100 rounded-xl divide-y">
+              <div className="max-h-56 overflow-y-auto border border-[#a16d36]/30 rounded-xl divide-y divide-[#a16d36]/15">
                 {filteredCustomers.length === 0 ? (
                   <p className="text-sm text-gray-500 p-4">No matching partners.</p>
                 ) : (
@@ -399,9 +405,9 @@ export default function CreateQuotation({
                     <button
                       key={c._id}
                       onClick={() => setCustomerId(c._id)}
-                      className="w-full text-left px-4 py-3 hover:bg-green-50 transition"
+                      className="w-full text-left px-4 py-3 hover:bg-[#a16d36]/5 transition"
                     >
-                      <p className="font-medium text-gray-800 break-words">{c.personalName}</p>
+                      <p className="font-semibold text-gray-800 break-words">{c.personalName}</p>
                       <p className="text-xs text-gray-500 break-words">
                         {c.companyName ? `${c.companyName} · ` : ""}
                         {c.email}
@@ -417,14 +423,14 @@ export default function CreateQuotation({
 
       {/* ── End Customer - always a real endCustomerId, never typed here ── */}
       {selectedCustomer && (
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Building2 size={18} className="text-green-700 shrink-0" />
-            <h2 className="text-lg font-bold text-green-800">End Customer</h2>
+            <Building2 size={18} className="text-[#a16d36] shrink-0" />
+            <h2 className="text-lg font-semibold text-[#920609]">End Customer</h2>
           </div>
 
           {selectedEndCustomer ? (
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 bg-[#a16d36]/10 border border-[#a16d36]/30 rounded-xl p-4">
               <div className="min-w-0">
                 <p className="font-semibold text-gray-800 break-words">{selectedEndCustomer.endCustomerName}</p>
                 {selectedEndCustomer.organizationName && (
@@ -438,7 +444,7 @@ export default function CreateQuotation({
               </div>
               <button
                 onClick={() => setEndCustomerId("")}
-                className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap self-start"
+                className="text-sm font-semibold text-[#920609] hover:underline whitespace-nowrap self-start"
               >
                 Change
               </button>
@@ -450,14 +456,14 @@ export default function CreateQuotation({
               <p className="text-sm text-gray-500 mb-3">
                 Select an end customer already locked for this partner:
               </p>
-              <div className="max-h-56 overflow-y-auto border border-green-100 rounded-xl divide-y">
+              <div className="max-h-56 overflow-y-auto border border-[#a16d36]/30 rounded-xl divide-y divide-[#a16d36]/15">
                 {endCustomerOptions.map((ec) => (
                   <button
                     key={ec._id}
                     onClick={() => setEndCustomerId(ec._id)}
-                    className="w-full text-left px-4 py-3 hover:bg-green-50 transition"
+                    className="w-full text-left px-4 py-3 hover:bg-[#a16d36]/5 transition"
                   >
-                    <p className="font-medium text-gray-800 break-words">{ec.endCustomerName}</p>
+                    <p className="font-semibold text-gray-800 break-words">{ec.endCustomerName}</p>
                     <p className="text-xs text-gray-500 break-words">
                       {ec.organizationName}
                       {ec.city ? ` · ${ec.city}` : ""}
@@ -467,7 +473,7 @@ export default function CreateQuotation({
               </div>
               <button
                 onClick={() => setActiveTab?.("lock")}
-                className="mt-3 text-sm font-semibold text-green-700 hover:underline"
+                className="mt-3 text-sm font-semibold text-[#920609] hover:underline"
               >
                 Lock a new project for a different end customer →
               </button>
@@ -488,13 +494,13 @@ export default function CreateQuotation({
       )}
 
       {/* ── Product Requirement (no price) ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <h2 className="text-lg font-bold text-green-800">Product Requirement</h2>
+          <h2 className="text-lg font-semibold text-[#920609]">Product Requirement</h2>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => (pickerOpen ? closePicker() : setPickerOpen(true))}
-              className="flex items-center justify-center gap-1.5 bg-white border border-green-300 text-green-700 px-3 py-2 rounded-lg hover:bg-green-50 transition text-sm font-semibold flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-1.5 bg-white border border-[#a16d36]/50 text-[#a16d36] px-3 py-2 rounded-lg hover:bg-[#a16d36]/10 transition text-sm font-semibold flex-1 sm:flex-none"
             >
               <Package size={16} /> {pickerOpen ? "Close" : "Select Product"}
             </button>
@@ -509,7 +515,7 @@ export default function CreateQuotation({
             below and doesn't collapse after you add one - pick one, then
             immediately pick the next. */}
         {pickerOpen && (
-          <div className="border border-green-200 rounded-xl p-3 sm:p-4 mb-5 bg-green-50/40 space-y-4">
+          <div className="border border-[#a16d36]/30 rounded-xl p-3 sm:p-4 mb-5 bg-[#a16d36]/5 space-y-4">
             <div className="relative">
               <Search
                 size={16}
@@ -520,13 +526,13 @@ export default function CreateQuotation({
                 placeholder="Or just search all products by name..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full border border-green-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none bg-white"
+                className="w-full border border-[#a16d36]/40 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none bg-white"
               />
             </div>
 
             {/* Search results take priority over category browsing */}
             {productSearch.trim() ? (
-              <div className="max-h-64 overflow-y-auto border border-green-100 rounded-lg bg-white divide-y">
+              <div className="max-h-64 overflow-y-auto border border-[#a16d36]/30 rounded-lg bg-white divide-y divide-[#a16d36]/15">
                 {searchResults.length === 0 ? (
                   <p className="text-sm text-gray-500 p-4 text-center">No products match "{productSearch}".</p>
                 ) : (
@@ -538,14 +544,14 @@ export default function CreateQuotation({
                         onClick={() => addProduct(p)}
                         disabled={added}
                         className={`w-full text-left px-4 py-2.5 flex items-center justify-between gap-3 transition ${
-                          added ? "bg-green-50 cursor-default" : "hover:bg-green-50"
+                          added ? "bg-[#a16d36]/10 cursor-default" : "hover:bg-[#a16d36]/5"
                         }`}
                       >
                         <div className="min-w-0">
-                          <p className="font-medium text-gray-800 truncate">{p.name}</p>
+                          <p className="font-semibold text-gray-800 truncate">{p.name}</p>
                           <p className="text-xs text-gray-500 truncate">
                             {p.isSalesOnly ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#a16d36]/15 text-[#a16d36] font-semibold">
                                 Sales Only
                               </span>
                             ) : (
@@ -557,7 +563,7 @@ export default function CreateQuotation({
                           </p>
                         </div>
                         {added && (
-                          <span className="text-xs font-semibold text-green-600 whitespace-nowrap">Added</span>
+                          <span className="text-xs font-semibold text-[#a16d36] whitespace-nowrap">Added</span>
                         )}
                       </button>
                     );
@@ -577,7 +583,7 @@ export default function CreateQuotation({
                         setPickerCategory("");
                         setPickerSubCategory("");
                       }}
-                      className="w-full border border-green-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-green-500 outline-none"
+                      className="w-full border border-[#a16d36]/40 rounded-lg px-3 py-2 text-sm bg-white focus:border-[#a16d36] outline-none"
                     >
                       <option value="">Select type</option>
                       <option value="active">Active Products</option>
@@ -594,7 +600,7 @@ export default function CreateQuotation({
                         setPickerSubCategory("");
                       }}
                       disabled={!pickerType}
-                      className="w-full border border-green-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-green-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                      className="w-full border border-[#a16d36]/40 rounded-lg px-3 py-2 text-sm bg-white focus:border-[#a16d36] outline-none disabled:bg-gray-100 disabled:text-gray-400"
                     >
                       <option value="">
                         {pickerType ? "Select category" : "Pick type first"}
@@ -613,7 +619,7 @@ export default function CreateQuotation({
                       value={pickerSubCategory}
                       onChange={(e) => setPickerSubCategory(e.target.value)}
                       disabled={!pickerCategory || subCategoryOptions.length === 0}
-                      className="w-full border border-green-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-green-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                      className="w-full border border-[#a16d36]/40 rounded-lg px-3 py-2 text-sm bg-white focus:border-[#a16d36] outline-none disabled:bg-gray-100 disabled:text-gray-400"
                     >
                       <option value="">
                         {!pickerCategory
@@ -634,7 +640,7 @@ export default function CreateQuotation({
                 {/* Matching products - click one to add, list stays put so the
                     next one can be added right away without re-navigating. */}
                 {pickerCategory && (subCategoryOptions.length === 0 || pickerSubCategory) && (
-                  <div className="max-h-64 overflow-y-auto border border-green-100 rounded-lg bg-white divide-y">
+                  <div className="max-h-64 overflow-y-auto border border-[#a16d36]/30 rounded-lg bg-white divide-y divide-[#a16d36]/15">
                     {browsedProducts.length === 0 ? (
                       <p className="text-sm text-gray-500 p-4 text-center">
                         No products found in this category.
@@ -648,16 +654,16 @@ export default function CreateQuotation({
                             onClick={() => addProduct(p)}
                             disabled={added}
                             className={`w-full text-left px-4 py-2.5 flex items-center justify-between gap-3 transition ${
-                              added ? "bg-green-50 cursor-default" : "hover:bg-green-50"
+                              added ? "bg-[#a16d36]/10 cursor-default" : "hover:bg-[#a16d36]/5"
                             }`}
                           >
-                            <p className="font-medium text-gray-800 truncate">{p.name}</p>
+                            <p className="font-semibold text-gray-800 truncate">{p.name}</p>
                             {added ? (
-                              <span className="text-xs font-semibold text-green-600 whitespace-nowrap">
+                              <span className="text-xs font-semibold text-[#a16d36] whitespace-nowrap">
                                 Added - pick next one
                               </span>
                             ) : (
-                              <Plus size={14} className="text-green-600 shrink-0" />
+                              <Plus size={14} className="text-[#920609] shrink-0" />
                             )}
                           </button>
                         );
@@ -682,7 +688,7 @@ export default function CreateQuotation({
               {items.map((item, index) => (
                 <div
                   key={index}
-                  className="border border-green-100 rounded-xl p-3 bg-white"
+                  className="border border-[#a16d36]/30 rounded-xl p-3 bg-white"
                 >
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex-1 min-w-0">
@@ -692,13 +698,13 @@ export default function CreateQuotation({
                           value={item.name}
                           onChange={(e) => updateItem(index, "name", e.target.value)}
                           placeholder="Item name"
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-green-500 outline-none"
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-[#a16d36] outline-none"
                         />
                       ) : (
-                        <p className="font-medium text-gray-800 text-sm break-words">
+                        <p className="font-semibold text-gray-800 text-sm break-words">
                           {item.name}
                           {item.isSalesOnly && (
-                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-semibold align-middle">
+                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-[#a16d36]/15 text-[#a16d36] text-xs font-semibold align-middle">
                               Sales Only
                             </span>
                           )}
@@ -707,7 +713,7 @@ export default function CreateQuotation({
                     </div>
                     <button
                       onClick={() => removeItem(index)}
-                      className="text-red-500 hover:text-red-700 shrink-0 p-1"
+                      className="text-[#c42126] hover:text-[#920609] shrink-0 p-1"
                       aria-label="Remove item"
                     >
                       <Trash2 size={16} />
@@ -723,7 +729,7 @@ export default function CreateQuotation({
                       min="1"
                       value={item.quantity}
                       onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                      className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-green-500 outline-none"
+                      className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-[#a16d36] outline-none"
                     />
                   </div>
                 </div>
@@ -733,8 +739,8 @@ export default function CreateQuotation({
             {/* ── sm and up: table layout ── */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-green-700 text-white text-left">
+                <thead className={BRAND_GRADIENT}>
+                  <tr className="text-white text-left font-semibold">
                     <th className="px-3 py-2 rounded-tl-lg">Product</th>
                     <th className="px-3 py-2">Qty</th>
                     <th className="px-3 py-2 rounded-tr-lg"></th>
@@ -742,7 +748,7 @@ export default function CreateQuotation({
                 </thead>
                 <tbody>
                   {items.map((item, index) => (
-                    <tr key={index} className="border-b border-green-100">
+                    <tr key={index} className="border-b border-[#a16d36]/15">
                       <td className="px-3 py-2 min-w-[260px]">
                         {item.isManual ? (
                           <input
@@ -750,13 +756,13 @@ export default function CreateQuotation({
                             value={item.name}
                             onChange={(e) => updateItem(index, "name", e.target.value)}
                             placeholder="Item name"
-                            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-[#a16d36] outline-none"
                           />
                         ) : (
-                          <p className="font-medium text-gray-800">
+                          <p className="font-semibold text-gray-800">
                             {item.name}
                             {item.isSalesOnly && (
-                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-semibold align-middle">
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-[#a16d36]/15 text-[#a16d36] text-xs font-semibold align-middle">
                                 Sales Only
                               </span>
                             )}
@@ -769,13 +775,13 @@ export default function CreateQuotation({
                           min="1"
                           value={item.quantity}
                           onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-[#a16d36] outline-none"
                         />
                       </td>
                       <td className="px-3 py-2">
                         <button
                           onClick={() => removeItem(index)}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-[#c42126] hover:text-[#920609]"
                           aria-label="Remove item"
                         >
                           <Trash2 size={16} />
@@ -791,7 +797,7 @@ export default function CreateQuotation({
       </div>
 
       {/* ── Notes ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-4 sm:p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-4 sm:p-6">
         <label className="block text-sm font-semibold text-gray-700 mb-1.5">
           Notes for Admin
         </label>
@@ -809,7 +815,7 @@ export default function CreateQuotation({
         <button
           onClick={handleSendToAdmin}
           disabled={submitting}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 ${BRAND_GRADIENT} text-white px-6 py-2.5 rounded-lg hover:brightness-110 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed`}
         >
           <Send size={16} /> {submitting ? "Submitting..." : "Submit Request to Admin"}
         </button>

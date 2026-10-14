@@ -15,6 +15,10 @@ import { getFirebaseAuth } from "../../../firebase"; // adjust this path to matc
 
 const PROJECT_LOCK_API = `${import.meta.env.VITE_API_URL}/project-lock`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`;
+
 const INDUSTRY_OPTIONS = [
   "Government",
   "Education",
@@ -312,21 +316,23 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
   };
 
   return (
-    <div className="space-y-8" ref={rootRef}>
+    <div className="space-y-8 font-['Poppins',sans-serif] font-medium" ref={rootRef}>
+      <style>{FONT_IMPORT}</style>
+
       <p className="text-sm text-gray-500">
         Lock a project to a partner by capturing the end customer's details. Once you continue, the project is
         saved on the server and you'll be taken straight to{" "}
-        <span className="text-green-700 font-semibold">Product Requirement</span> with this partner and end
+        <span className="text-[#920609] font-semibold">Product Requirement</span> with this partner and end
         customer already selected.
       </p>
 
       {/* ── Partner Selection ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-        <h2 className="text-lg font-bold text-green-800 mb-4">Partner</h2>
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
+        <h2 className="text-lg font-semibold text-[#920609] mb-4">Partner</h2>
 
         {selectedCustomer ? (
           <>
-            <div className="flex items-start justify-between gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-start justify-between gap-4 bg-[#a16d36]/10 border border-[#a16d36]/30 rounded-xl p-4">
               <div>
                 <p className="font-semibold text-gray-800">{selectedCustomer.personalName}</p>
                 {selectedCustomer.companyName && (
@@ -340,7 +346,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
               </div>
               <button
                 onClick={() => setCustomerId("")}
-                className="text-sm font-semibold text-green-700 hover:underline whitespace-nowrap"
+                className="text-sm font-semibold text-[#920609] hover:underline whitespace-nowrap"
               >
                 Change
               </button>
@@ -353,7 +359,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
                   <History size={13} className="shrink-0" /> Loading partner history...
                 </p>
               ) : historyError ? (
-                <p className="flex items-center gap-1.5 text-xs text-red-500">
+                <p className="flex items-center gap-1.5 text-xs text-[#c42126]">
                   <History size={13} className="shrink-0" /> {historyError}
                 </p>
               ) : analytics && analytics.analytics.totalProjects > 0 ? (
@@ -373,13 +379,13 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
                     icon={<Clock size={13} />}
                     label="Pending"
                     value={analytics.analytics.pending}
-                    tone="amber"
+                    tone="gold"
                   />
                   <StatChip
                     icon={<IndianRupee size={13} />}
                     label="Total Business"
                     value={`₹${Number(analytics.analytics.totalBusiness || 0).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}`}
-                    tone="green"
+                    tone="red"
                   />
                 </div>
               ) : (
@@ -407,7 +413,7 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
             ) : customerSearch.trim() === "" ? (
               <p className="text-sm text-gray-400 px-1">Start typing to search partners...</p>
             ) : (
-              <div className="max-h-56 overflow-y-auto border border-green-100 rounded-xl divide-y">
+              <div className="max-h-56 overflow-y-auto border border-[#a16d36]/30 rounded-xl divide-y divide-[#a16d36]/15">
                 {filteredCustomers.length === 0 ? (
                   <p className="text-sm text-gray-500 p-4">No matching partners.</p>
                 ) : (
@@ -415,9 +421,9 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
                     <button
                       key={c._id}
                       onClick={() => setCustomerId(c._id)}
-                      className="w-full text-left px-4 py-3 hover:bg-green-50 transition"
+                      className="w-full text-left px-4 py-3 hover:bg-[#a16d36]/5 transition"
                     >
-                      <p className="font-medium text-gray-800">{c.personalName}</p>
+                      <p className="font-semibold text-gray-800">{c.personalName}</p>
                       <p className="text-xs text-gray-500">
                         {c.companyName ? `${c.companyName} · ` : ""}
                         {c.email}
@@ -437,16 +443,16 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
           {error && (
             <div
               ref={errorRef}
-              className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm"
+              className="flex items-start gap-3 bg-red-50 border border-[#c42126]/30 text-[#920609] px-4 py-3 rounded-xl text-sm"
             >
               <AlertCircle size={18} className="shrink-0 mt-0.5" />
               <p className="flex-1">{error}</p>
             </div>
           )}
-          <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
           <div className="flex items-center gap-2 mb-1.5">
-            <Building2 size={18} className="text-green-700" />
-            <h2 className="text-lg font-bold text-green-800">End Customer Details</h2>
+            <Building2 size={18} className="text-[#a16d36]" />
+            <h2 className="text-lg font-semibold text-[#920609]">End Customer Details</h2>
           </div>
 
           {!endCustomersLoading && endCustomers.length > 0 && (
@@ -469,16 +475,16 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
       required
     />
     {showSuggestions && nameSuggestions.length > 0 && (
-      <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-green-200 rounded-xl shadow-lg divide-y">
+      <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-[#a16d36]/40 rounded-xl shadow-lg divide-y divide-[#a16d36]/15">
         {nameSuggestions.map((ec) => (
           <button
             key={ec._id}
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => applySuggestion(ec)}
-            className="w-full text-left px-4 py-2.5 hover:bg-green-50 transition"
+            className="w-full text-left px-4 py-2.5 hover:bg-[#a16d36]/5 transition"
           >
-            <p className="font-medium text-gray-800 text-sm">{ec.endCustomerName}</p>
+            <p className="font-semibold text-gray-800 text-sm">{ec.endCustomerName}</p>
             <p className="text-xs text-gray-500">
               {ec.organizationName}
               {ec.city ? ` · ${ec.city}` : ""}
@@ -530,14 +536,14 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
       required
     />
     {showStateSuggestions && stateSuggestions.length > 0 && (
-      <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-green-200 rounded-xl shadow-lg divide-y">
+      <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-[#a16d36]/40 rounded-xl shadow-lg divide-y divide-[#a16d36]/15">
         {stateSuggestions.map((s) => (
           <button
             key={s}
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => applyStateSuggestion(s)}
-            className="w-full text-left px-4 py-2.5 hover:bg-green-50 transition text-sm text-gray-800"
+            className="w-full text-left px-4 py-2.5 hover:bg-[#a16d36]/5 transition text-sm text-gray-800"
           >
             {s}
           </button>
@@ -598,14 +604,14 @@ export default function ProjectLocking({ customers = [], onProceedToRequirement 
             <button
               onClick={resetAll}
               disabled={locking}
-              className="text-sm font-semibold text-gray-500 hover:text-gray-700 px-4 py-2.5 disabled:opacity-50"
+              className="text-sm font-semibold text-gray-500 hover:text-[#920609] px-4 py-2.5 disabled:opacity-50"
             >
               Reset
             </button>
             <button
               onClick={handleProceed}
               disabled={locking}
-              className="flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+              className={`flex items-center gap-2 ${BRAND_GRADIENT} text-white px-6 py-2.5 rounded-lg hover:brightness-110 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               {locking ? "Locking Project..." : "Product Requirement"}
               {!locking && <ArrowRight size={16} />}
@@ -622,14 +628,15 @@ function StatChip({ icon, label, value, tone = "gray" }) {
   const toneClasses = {
     gray: "bg-gray-50 text-gray-700 border-gray-200",
     green: "bg-green-50 text-green-700 border-green-200",
-    amber: "bg-amber-50 text-amber-700 border-amber-200",
+    gold: "bg-[#a16d36]/10 text-[#a16d36] border-[#a16d36]/30",
+    red: "bg-[#c42126]/5 text-[#920609] border-[#c42126]/30",
   };
   return (
     <div className={`flex flex-col gap-1 rounded-xl border px-3 py-2 ${toneClasses[tone]}`}>
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide opacity-80">
         {icon} {label}
       </div>
-      <p className="text-sm font-bold">{value}</p>
+      <p className="text-sm font-semibold">{value}</p>
     </div>
   );
 }

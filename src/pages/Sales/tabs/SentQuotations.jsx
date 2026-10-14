@@ -4,11 +4,15 @@ import { ChevronLeft, Search, Bell, Lock, ChevronRight, Ban, X, AlertTriangle } 
 
 const SALES_QUOTES_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`;
+
 const statusStyles = {
-  sent: "bg-yellow-100 text-yellow-700",
-  viewed: "bg-blue-100 text-blue-700",
-  negotiation_requested: "bg-orange-100 text-orange-700",
-  counter_offered: "bg-amber-100 text-amber-700",
+  sent: "bg-[#a16d36]/15 text-[#a16d36]",
+  viewed: "bg-[#a16d36]/25 text-[#85592a]",
+  negotiation_requested: "bg-[#c42126]/10 text-[#c42126]",
+  counter_offered: "bg-[#920609]/10 text-[#920609]",
   accepted: "bg-green-100 text-green-700",
   rejected: "bg-red-100 text-red-700",
   closed: "bg-gray-200 text-gray-700",
@@ -421,7 +425,9 @@ export default function SentQuotations() {
   // ════════════════════════════════════════
   if (!selected) {
     return (
-      <div className="space-y-4 sm:space-y-5">
+      <div className="space-y-4 sm:space-y-5 font-['Poppins',sans-serif] font-medium">
+        <style>{FONT_IMPORT}</style>
+
         <div className="relative max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -429,22 +435,22 @@ export default function SentQuotations() {
             placeholder="Search by customer, quotation # or date..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 text-sm sm:text-base focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+            className="w-full border border-[#a16d36]/40 rounded-xl pl-9 pr-4 py-2.5 text-sm sm:text-base focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none transition bg-white"
           />
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          <div className="bg-red-50 border border-[#c42126]/30 text-[#920609] px-4 py-3 rounded-xl text-sm">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-green-100">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30">
             <p className="text-sm text-gray-500 py-10 text-center">Loading quotations...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-green-100">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30">
             <p className="text-sm text-gray-500 py-10 text-center">
               {quotations.length === 0
                 ? "No quotations sent to customers yet."
@@ -459,10 +465,10 @@ export default function SentQuotations() {
                 <button
                   key={item._id}
                   onClick={() => openQuotation(item)}
-                  className="w-full text-left bg-white rounded-2xl shadow-sm border border-green-100 p-4 active:scale-[0.99] transition-transform"
+                  className="w-full text-left bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-4 active:scale-[0.99] transition-transform"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="font-bold text-gray-800 text-sm truncate">
+                    <p className="font-semibold text-[#920609] text-sm truncate">
                       {item.quotationNumber}
                     </p>
                     <span
@@ -493,14 +499,14 @@ export default function SentQuotations() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2.5 border-t border-green-50">
+                  <div className="flex items-center justify-between pt-2.5 border-t border-[#a16d36]/20">
                     <div>
                       <p className="text-[11px] text-gray-400">Grand total</p>
-                      <p className="font-bold text-gray-800 text-sm">
+                      <p className="font-semibold text-gray-800 text-sm">
                         ₹{Number(item.grandTotal || 0).toFixed(2)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 text-green-700 font-semibold text-xs">
+                    <div className="flex items-center gap-1 text-[#920609] font-semibold text-xs">
                       View <ChevronRight size={14} />
                     </div>
                   </div>
@@ -509,11 +515,11 @@ export default function SentQuotations() {
             </div>
 
             {/* ── Desktop / tablet table ── */}
-            <div className="hidden sm:block bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+            <div className="hidden sm:block bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-green-700 text-white text-left">
+                  <thead className={BRAND_GRADIENT}>
+                    <tr className="text-white text-left font-semibold">
                       <th className="px-4 py-3">Quotation #</th>
                       <th className="px-4 py-3">Partner</th>
                       <th className="px-4 py-3">Company</th>
@@ -529,10 +535,10 @@ export default function SentQuotations() {
                     {filtered.map((item) => (
                       <tr
                         key={item._id}
-                        className="border-b border-green-100 hover:bg-green-50/50 cursor-pointer"
+                        className="border-b border-[#a16d36]/15 hover:bg-[#a16d36]/5 cursor-pointer"
                         onClick={() => openQuotation(item)}
                       >
-                        <td className="px-4 py-3 font-medium text-gray-800">
+                        <td className="px-4 py-3 font-semibold text-gray-800">
                           {item.quotationNumber}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
@@ -564,7 +570,7 @@ export default function SentQuotations() {
                             ? `${item.reminderAfterDays} Days`
                             : "No Reminder"}
                         </td>
-                        <td className="px-4 py-3 text-right text-green-700 font-semibold">
+                        <td className="px-4 py-3 text-right text-[#920609] font-semibold">
                           View →
                         </td>
                       </tr>
@@ -583,20 +589,22 @@ export default function SentQuotations() {
   // DETAIL VIEW (read-only)
   // ════════════════════════════════════════
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-5 sm:space-y-6 font-['Poppins',sans-serif] font-medium">
+      <style>{FONT_IMPORT}</style>
+
       <button
         onClick={backToList}
-        className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:underline"
+        className="flex items-center gap-1.5 text-sm font-semibold text-[#920609] hover:underline"
       >
         <ChevronLeft size={16} /> Back to list
       </button>
 
-      <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-4 sm:p-6">
+      <div className="bg-white rounded-2xl shadow-sm border-2 border-[#a16d36]/40 p-4 sm:p-6">
         <div className="flex items-center justify-between flex-wrap gap-2.5 sm:gap-3 mb-4">
           <div className="flex items-center gap-2 min-w-0">
             <Lock size={16} className="text-gray-400 shrink-0" />
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-green-800 truncate">
+              <h2 className="text-base sm:text-lg font-semibold text-[#920609] truncate">
                 {selected.quotationNumber}{" "}
                 <span className="text-xs sm:text-sm font-normal text-gray-500">- read only</span>
               </h2>
@@ -630,7 +638,7 @@ export default function SentQuotations() {
 
         {selected.status === "rejected" && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-5 space-y-1.5 text-sm">
-            <p className="font-bold text-red-700">Quotation Rejected</p>
+            <p className="font-semibold text-red-700">Quotation Rejected</p>
             <p className="text-gray-700">
               <span className="font-semibold">Rejected By:</span>{" "}
               {selected.rejectedBy === "partner" ? "Partner" : selected.rejectedBy === "sales" ? "Sales" : "-"}
@@ -649,7 +657,7 @@ export default function SentQuotations() {
 
         {selected.status === "closed" && (
           <div className="bg-gray-50 border border-gray-300 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-5 space-y-1.5 text-sm">
-            <p className="font-bold text-gray-700 flex items-center gap-1.5">
+            <p className="font-semibold text-gray-700 flex items-center gap-1.5">
               <Ban size={15} /> Quotation Closed by Sales
             </p>
             <p className="text-gray-700">
@@ -699,7 +707,7 @@ export default function SentQuotations() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-2.5 sm:gap-3 mb-4 sm:mb-5 text-sm bg-gray-50 rounded-xl p-3.5 sm:p-4">
-          <p className="text-gray-700 sm:col-span-2 font-bold text-xs uppercase tracking-wide text-green-700">
+          <p className="text-gray-700 sm:col-span-2 font-semibold text-xs uppercase tracking-wide text-[#a16d36]">
             End Customer Details
           </p>
           {selected.endCustomer ? (
@@ -751,8 +759,8 @@ export default function SentQuotations() {
           if (timeline.length <= 1) return null;
 
           return (
-            <div className="border border-orange-200 bg-orange-50 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-5 space-y-3">
-              <h4 className="text-sm font-bold text-orange-800">
+            <div className="border border-[#a16d36]/40 bg-[#a16d36]/5 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-5 space-y-3">
+              <h4 className="text-sm font-semibold text-[#920609]">
                 Complete Quotation History
               </h4>
 
@@ -768,27 +776,27 @@ export default function SentQuotations() {
                     key={`${entry.kind}-${entry.at}-${i}`}
                     className={`rounded-xl border p-3.5 sm:p-4 ${
                       isCustomer
-                        ? "bg-orange-50 border-orange-200"
+                        ? "bg-[#c42126]/5 border-[#c42126]/30"
                         : isAccepted
                         ? "bg-green-50 border-green-200"
                         : isRejected
-                        ? "bg-red-50 border-red-200"
+                        ? "bg-red-50 border-red-300"
                         : isClosed
                         ? "bg-gray-50 border-gray-300"
                         : isAdmin
-                        ? "bg-blue-50 border-blue-200"
+                        ? "bg-[#a16d36]/10 border-[#a16d36]/30"
                         : entry.sellerKind === "revised"
-                        ? "bg-purple-50 border-purple-200"
+                        ? "bg-[#920609]/5 border-[#920609]/30"
                         : entry.sellerKind === "counter"
-                        ? "bg-amber-50 border-amber-200"
-                        : "bg-white border-green-200"
+                        ? "bg-[#a16d36]/20 border-[#a16d36]/50"
+                        : "bg-white border-[#a16d36]/30"
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 mb-3">
                       <p
-                        className={`text-sm font-bold ${
+                        className={`text-sm font-semibold ${
                           isCustomer
-                            ? "text-orange-800"
+                            ? "text-[#c42126]"
                             : isAccepted
                             ? "text-green-800"
                             : isRejected
@@ -796,12 +804,12 @@ export default function SentQuotations() {
                             : isClosed
                             ? "text-gray-800"
                             : isAdmin
-                            ? "text-blue-800"
+                            ? "text-[#85592a]"
                             : entry.sellerKind === "revised"
-                            ? "text-purple-800"
+                            ? "text-[#920609]"
                             : entry.sellerKind === "counter"
-                            ? "text-amber-800"
-                            : "text-green-800"
+                            ? "text-[#85592a]"
+                            : "text-[#920609]"
                         }`}
                       >
                         {entry.label}
@@ -822,7 +830,7 @@ export default function SentQuotations() {
                         <div className="flex justify-between text-sm">
                           <span>Partner Offered</span>
 
-                          <span className="font-bold text-orange-800">
+                          <span className="font-semibold text-[#c42126]">
                             ₹{Number(entry.expectedBudget || 0).toFixed(2)}
                           </span>
                         </div>
@@ -882,7 +890,7 @@ export default function SentQuotations() {
                             <span>₹{Number(entry.gstAmount).toFixed(2)}</span>
                           </div>
 
-                          <div className="flex justify-between font-bold border-t pt-2">
+                          <div className="flex justify-between font-semibold border-t pt-2">
                             <span>Grand Total</span>
                             <span>₹{Number(entry.total).toFixed(2)}</span>
                           </div>
@@ -929,12 +937,12 @@ export default function SentQuotations() {
                                 <tr
                                   className={`text-left ${
                                     isAdmin
-                                      ? "bg-blue-100 text-blue-800"
+                                      ? "bg-[#a16d36]/20 text-[#85592a]"
                                       : entry.sellerKind === "revised"
-                                      ? "bg-purple-100 text-purple-800"
+                                      ? "bg-[#920609]/10 text-[#920609]"
                                       : entry.sellerKind === "counter"
-                                      ? "bg-amber-100 text-amber-800"
-                                      : "bg-green-100 text-green-800"
+                                      ? "bg-[#a16d36]/25 text-[#85592a]"
+                                      : "bg-[#a16d36]/10 text-[#920609]"
                                   }`}
                                 >
                                   <th className="px-2 py-1.5 rounded-tl-md">
@@ -957,7 +965,7 @@ export default function SentQuotations() {
                                     key={idx}
                                     className="border-b border-gray-100"
                                   >
-                                    <td className="px-2 py-1.5 text-gray-800 font-medium">
+                                    <td className="px-2 py-1.5 text-gray-800 font-semibold">
                                       {item.name}
                                     </td>
 
@@ -1010,14 +1018,14 @@ export default function SentQuotations() {
                             />
 
                             <div
-                              className={`flex justify-between font-bold border-t pt-1 ${
+                              className={`flex justify-between font-semibold border-t pt-1 ${
                                 isAdmin
-                                  ? "text-blue-700 border-blue-200"
+                                  ? "text-[#85592a] border-[#a16d36]/40"
                                   : entry.sellerKind === "revised"
-                                  ? "text-purple-700 border-purple-200"
+                                  ? "text-[#920609] border-[#920609]/30"
                                   : entry.sellerKind === "counter"
-                                  ? "text-amber-700 border-amber-200"
-                                  : "text-green-700 border-green-200"
+                                  ? "text-[#85592a] border-[#a16d36]/40"
+                                  : "text-[#920609] border-[#a16d36]/30"
                               }`}
                             >
                               <span>
@@ -1057,8 +1065,8 @@ export default function SentQuotations() {
         {/* Products table */}
         <div className="overflow-x-auto -mx-1 px-1">
           <table className="w-full text-sm min-w-[560px] sm:min-w-0">
-            <thead>
-              <tr className="bg-green-700 text-white text-left">
+            <thead className={BRAND_GRADIENT}>
+              <tr className="text-white text-left font-semibold">
                 <th className="px-3 py-2 rounded-tl-lg">Product</th>
                 <th className="px-3 py-2">Description</th>
                 <th className="px-3 py-2">Qty</th>
@@ -1069,8 +1077,8 @@ export default function SentQuotations() {
             </thead>
             <tbody>
               {(selected.items || []).map((item, i) => (
-                <tr key={i} className="border-b border-green-100">
-                  <td className="px-3 py-2 text-gray-800 font-medium">{item.name}</td>
+                <tr key={i} className="border-b border-[#a16d36]/15">
+                  <td className="px-3 py-2 text-gray-800 font-semibold">{item.name}</td>
                   <td className="px-3 py-2 text-gray-600">{item.description || "-"}</td>
                   <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
                   <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
@@ -1099,7 +1107,7 @@ export default function SentQuotations() {
               <span>GST</span>
               <span>₹{Number(selected.gstAmount || 0).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
+            <div className="flex justify-between text-base font-semibold text-[#920609] border-t border-[#a16d36]/30 pt-1.5 mt-1.5">
               <span>Grand Total</span>
               <span>₹{Number(selected.grandTotal || 0).toFixed(2)}</span>
             </div>
@@ -1113,7 +1121,7 @@ export default function SentQuotations() {
         )}
 
         {/* Reminder + status timeline */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-5 pt-5 border-t border-green-100 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-5 pt-5 border-t border-[#a16d36]/20 text-sm">
           <div>
             <p className="flex items-center gap-1.5 font-semibold text-gray-700 mb-1">
               <Bell size={14} /> Reminder
@@ -1151,7 +1159,7 @@ export default function SentQuotations() {
             <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
               <Ban className="text-gray-600" size={20} />
             </div>
-            <h3 className="text-lg font-extrabold text-gray-800 mb-2">Close Quotation?</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Close Quotation?</h3>
             <p className="text-sm text-gray-500 mb-4 leading-relaxed">
               This will close quotation <strong>#{selected?.quotationNumber}</strong> and stop all
               future reminders. The partner will be notified. This cannot be undone.
@@ -1164,7 +1172,7 @@ export default function SentQuotations() {
                   name="closeReason"
                   checked={closeReasonOption === "No response from Partner"}
                   onChange={() => setCloseReasonOption("No response from Partner")}
-                  className="accent-gray-600"
+                  className="accent-[#920609]"
                 />
                 No response from Partner
               </label>
@@ -1174,7 +1182,7 @@ export default function SentQuotations() {
                   name="closeReason"
                   checked={closeReasonOption === "Partner not interested"}
                   onChange={() => setCloseReasonOption("Partner not interested")}
-                  className="accent-gray-600"
+                  className="accent-[#920609]"
                 />
                 Partner not interested
               </label>
@@ -1184,7 +1192,7 @@ export default function SentQuotations() {
                   name="closeReason"
                   checked={closeReasonOption === "Quotation replaced by another quotation"}
                   onChange={() => setCloseReasonOption("Quotation replaced by another quotation")}
-                  className="accent-gray-600"
+                  className="accent-[#920609]"
                 />
                 Quotation replaced by another quotation
               </label>
@@ -1194,7 +1202,7 @@ export default function SentQuotations() {
                   name="closeReason"
                   checked={closeReasonOption === "Duplicate quotation"}
                   onChange={() => setCloseReasonOption("Duplicate quotation")}
-                  className="accent-gray-600"
+                  className="accent-[#920609]"
                 />
                 Duplicate quotation
               </label>
@@ -1204,7 +1212,7 @@ export default function SentQuotations() {
                   name="closeReason"
                   checked={closeReasonOption === "Other"}
                   onChange={() => setCloseReasonOption("Other")}
-                  className="accent-gray-600"
+                  className="accent-[#920609]"
                 />
                 Other
               </label>
@@ -1214,13 +1222,13 @@ export default function SentQuotations() {
                   value={closeReasonOther}
                   onChange={(e) => setCloseReasonOther(e.target.value)}
                   placeholder="Enter reason"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-gray-500 outline-none mt-1"
+                  className="w-full border border-[#a16d36]/40 rounded-lg px-3 py-2 text-sm focus:border-[#a16d36] outline-none mt-1"
                 />
               )}
             </div>
 
             {closeError && (
-              <p className="text-sm text-red-600 flex items-center gap-1.5 mb-3">
+              <p className="text-sm text-[#c42126] flex items-center gap-1.5 mb-3">
                 <AlertTriangle size={14} /> {closeError}
               </p>
             )}
@@ -1236,7 +1244,7 @@ export default function SentQuotations() {
               <button
                 onClick={handleCloseQuotation}
                 disabled={closeSubmitting}
-                className="flex-1 bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-xl transition disabled:opacity-60"
+                className={`flex-1 ${BRAND_GRADIENT} hover:brightness-110 text-white font-semibold py-2.5 rounded-xl transition disabled:opacity-60`}
               >
                 {closeSubmitting ? "Closing..." : "Close"}
               </button>

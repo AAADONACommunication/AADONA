@@ -5,6 +5,9 @@ import { safeJson, inputStyle } from "../SalesPanel";
 
 const CUSTOMERS_API = `${import.meta.env.VITE_API_URL}/customers`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+
 const PARTNER_TYPES = ["SI", "Reseller", "Distributor", "End Customer", "Consultant"];
 
 const emptyForm = {
@@ -145,17 +148,19 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-['Poppins',sans-serif] font-medium">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`}</style>
+
       {/* ── Add / Edit Form ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-green-800">
+          <h2 className="text-lg font-semibold text-[#920609]">
             {editingId ? "Edit Customer" : "Add Partner"}
           </h2>
           {editingId && (
             <button
               onClick={cancelEdit}
-              className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-[#920609]"
             >
               <X size={16} /> Cancel edit
             </button>
@@ -163,7 +168,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm mb-4">
+          <div className="bg-red-50 border border-[#c42126]/30 text-[#920609] px-3 py-2 rounded-lg text-sm mb-4">
             {error}
           </div>
         )}
@@ -310,7 +315,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
             <button
               type="submit"
               disabled={submitting}
-              className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60"
+              className={`${BRAND_GRADIENT} text-white px-6 py-2.5 rounded-lg hover:brightness-110 transition text-sm font-semibold shadow-md disabled:opacity-60`}
             >
               {submitting ? "Saving..." : editingId ? "Save Changes" : "Add Partner"}
             </button>
@@ -327,11 +332,11 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
             placeholder="Search customers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+            className="w-full border border-[#a16d36]/40 rounded-xl pl-9 pr-4 py-2.5 focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none transition bg-white"
           />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 overflow-hidden">
           {filtered.length === 0 ? (
             <p className="text-sm text-gray-500 py-10 text-center">
               No customers found.
@@ -339,8 +344,8 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-green-700 text-white text-left">
+                <thead className={BRAND_GRADIENT}>
+                  <tr className="text-white text-left font-semibold">
                     <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Company</th>
@@ -354,9 +359,9 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
                 </thead>
                 <tbody>
                   {filtered.map((c) => (
-                    <tr key={c._id} className="border-b border-green-100 hover:bg-green-50/50">
+                    <tr key={c._id} className="border-b border-[#a16d36]/15 hover:bg-[#a16d36]/5">
                       <td className="px-4 py-3 text-gray-600">{c.partnerType || "-"}</td>
-                      <td className="px-4 py-3 font-medium text-gray-800">{c.personalName}</td>
+                      <td className="px-4 py-3 font-semibold text-gray-800">{c.personalName}</td>
                       <td className="px-4 py-3 text-gray-600">{c.companyName || "-"}</td>
                       <td className="px-4 py-3 text-gray-600">{c.email}</td>
                       <td className="px-4 py-3 text-gray-600">{c.contactNumber || "-"}</td>
@@ -367,7 +372,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
                         <div className="flex items-center justify-end gap-3">
                           <button
                             onClick={() => startEdit(c)}
-                            className="text-gray-500 hover:text-green-700"
+                            className="text-[#a16d36] hover:text-[#920609]"
                             aria-label="Edit customer"
                           >
                             <Pencil size={16} />
@@ -375,7 +380,7 @@ export default function CustomerManagement({ customers, setCustomers, reloadCust
                           <button
                             onClick={() => handleDelete(c._id)}
                             disabled={deletingId === c._id}
-                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                            className="text-[#c42126] hover:text-[#920609] disabled:opacity-50"
                             aria-label="Delete customer"
                           >
                             <Trash2 size={16} />

@@ -5,6 +5,10 @@ import { Search, ChevronLeft, TrendingUp } from "lucide-react";
 
 const SALES_QUOTES_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`;
+
 // Statuses recorded on a sales-quotation (see QuotationsList.jsx / SentQuotations.jsx)
 // are bucketed into 3 groups for the insights view.
 const ACCEPTED_STATUSES = ["accepted"];
@@ -19,9 +23,9 @@ const bucketOf = (status) => {
 };
 
 const BUCKET_COLORS = {
-  accepted: "#16a34a", // green-600
-  pending: "#f59e0b", // amber-500
-  rejected: "#dc2626", // red-600
+  accepted: "#16a34a", // green  - kept semantic so "accepted" still reads as success
+  pending: "#a16d36",  // Aadona gold
+  rejected: "#c42126", // Aadona red
 };
 
 const BUCKET_LABELS = {
@@ -213,12 +217,18 @@ export default function Insights() {
   ];
 
   if (loading) {
-    return <p className="text-sm text-gray-500 py-10 text-center">Loading insights...</p>;
+    return (
+      <p className="font-['Poppins',sans-serif] font-medium text-sm text-gray-500 py-10 text-center">
+        <style>{FONT_IMPORT}</style>
+        Loading insights...
+      </p>
+    );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+      <div className="font-['Poppins',sans-serif] font-medium bg-red-50 border border-[#c42126]/30 text-[#920609] px-4 py-3 rounded-xl text-sm">
+        <style>{FONT_IMPORT}</style>
         {error}
       </div>
     );
@@ -259,18 +269,19 @@ export default function Insights() {
       : sortedQuotations;
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 font-['Poppins',sans-serif] font-medium">
+        <style>{FONT_IMPORT}</style>
         <button
           onClick={() => setSelectedPartnerId(null)}
-          className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:underline"
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#920609] hover:underline"
         >
           <ChevronLeft size={16} /> Back to all partners
         </button>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-green-800 break-words">
+              <h2 className="text-lg font-semibold text-[#920609] break-words">
                 {p.customer?.personalName || "Unknown Partner"}
               </h2>
               {p.customer?.companyName && (
@@ -297,7 +308,7 @@ export default function Insights() {
                     Rejected - {p.counts.rejected} (₹{p.totals.rejected.toFixed(2)})
                   </span>
                 </div>
-                <div className="pt-1.5 mt-1.5 border-t border-gray-100 font-bold text-gray-800">
+                <div className="pt-1.5 mt-1.5 border-t border-[#a16d36]/20 font-semibold text-gray-800">
                   Total Quoted - ₹{p.grandTotal.toFixed(2)}
                 </div>
               </div>
@@ -307,8 +318,8 @@ export default function Insights() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-          <h3 className="text-sm font-bold text-green-800 px-6 pt-5 pb-2">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 overflow-hidden">
+          <h3 className="text-sm font-semibold text-[#920609] px-6 pt-5 pb-2">
             Quotations with {p.customer?.personalName || "this partner"}
           </h3>
 
@@ -320,7 +331,7 @@ export default function Insights() {
                 placeholder="Search by end customer, amount, or date..."
                 value={detailSearch}
                 onChange={(e) => setDetailSearch(e.target.value)}
-                className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+                className="w-full border border-[#a16d36]/40 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none transition bg-white"
               />
             </div>
           </div>
@@ -335,9 +346,9 @@ export default function Insights() {
           <div className="space-y-3 p-4 sm:hidden">
             {filteredQuotations
               .map((q) => (
-                <div key={q._id} className="border border-green-100 rounded-xl p-3">
+                <div key={q._id} className="border border-[#a16d36]/30 rounded-xl p-3">
                   <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <p className="font-medium text-gray-800 text-sm break-words">
+                    <p className="font-semibold text-gray-800 text-sm break-words">
                       {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                     </p>
                     <span
@@ -368,8 +379,8 @@ export default function Insights() {
           {/* ── sm and up: table layout ── */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-green-700 text-white text-left">
+              <thead className={BRAND_GRADIENT}>
+                <tr className="text-white text-left font-semibold">
                   <th className="px-4 py-3">Quotation #</th>
                   <th className="px-4 py-3">End Customer</th>
                   <th className="px-4 py-3">Date</th>
@@ -379,8 +390,8 @@ export default function Insights() {
               </thead>
               <tbody>
                 {filteredQuotations.map((q) => (
-                    <tr key={q._id} className="border-b border-green-100">
-                      <td className="px-4 py-3 font-medium text-gray-800">
+                    <tr key={q._id} className="border-b border-[#a16d36]/15">
+                      <td className="px-4 py-3 font-semibold text-gray-800">
                         {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                       </td>
                       <td className="px-4 py-3 text-gray-700">
@@ -422,11 +433,12 @@ export default function Insights() {
   // OVERVIEW - pie chart + partner list
   // ════════════════════════════════════════
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+    <div className="space-y-6 font-['Poppins',sans-serif] font-medium">
+      <style>{FONT_IMPORT}</style>
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
         <div className="flex flex-wrap items-center gap-6 justify-between">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-green-800 mb-1">All Partners - Quotation Overview</h2>
+            <h2 className="text-lg font-semibold text-[#920609] mb-1">All Partners - Quotation Overview</h2>
             <p className="text-sm text-gray-500">
               Combined value of every quotation you've sent, across all partners.
             </p>
@@ -450,7 +462,7 @@ export default function Insights() {
                   Rejected - {overall.counts.rejected} (₹{overall.totals.rejected.toFixed(2)})
                 </span>
               </div>
-              <div className="pt-1.5 mt-1.5 border-t border-gray-100 font-bold text-gray-800">
+              <div className="pt-1.5 mt-1.5 border-t border-[#a16d36]/20 font-semibold text-gray-800">
                 Total Quoted - ₹{overall.grandTotal.toFixed(2)}
               </div>
             </div>
@@ -460,10 +472,10 @@ export default function Insights() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={18} className="text-green-700" />
-          <h2 className="text-lg font-bold text-green-800">Partners</h2>
+          <TrendingUp size={18} className="text-[#a16d36]" />
+          <h2 className="text-lg font-semibold text-[#920609]">Partners</h2>
         </div>
 
         <div className="relative mb-4 max-w-sm">
@@ -473,7 +485,7 @@ export default function Insights() {
             placeholder="Search partners by name, company, email, or end customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+            className="w-full border border-[#a16d36]/40 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none transition bg-white"
           />
         </div>
 
@@ -482,12 +494,12 @@ export default function Insights() {
             {partners.length === 0 ? "No quotations sent yet." : "No matching partners."}
           </p>
         ) : (
-          <div className="border border-green-100 rounded-xl divide-y overflow-hidden">
+          <div className="border border-[#a16d36]/30 rounded-xl divide-y divide-[#a16d36]/15 overflow-hidden">
             {filteredPartners.map((p) => (
               <button
                 key={p.id}
                 onClick={() => setSelectedPartnerId(p.id)}
-                className="w-full text-left px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 hover:bg-green-50 transition"
+                className="w-full text-left px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 hover:bg-[#a16d36]/5 transition"
               >
                 {/* Name + company/email - always visible, never gets squeezed out */}
                 <div className="min-w-0 sm:flex-1">
@@ -514,7 +526,7 @@ export default function Insights() {
                   <span className="font-semibold" style={{ color: BUCKET_COLORS.rejected }}>
                     {p.counts.rejected} rejected
                   </span>
-                  <span className="font-bold text-gray-800 whitespace-nowrap">
+                  <span className="font-semibold text-gray-800 whitespace-nowrap">
                     ₹{p.grandTotal.toFixed(2)}
                   </span>
                 </div>

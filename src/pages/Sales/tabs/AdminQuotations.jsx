@@ -5,9 +5,14 @@ import { safeJson, inputStyle } from "../SalesPanel";
 
 const SALES_QUOTES_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+const FONT_WRAPPER = "font-['Poppins',sans-serif] font-medium";
+const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`;
+
 const statusStyles = {
-  pending: "bg-yellow-100 text-yellow-700",
-  quoted: "bg-blue-100 text-blue-700",
+  pending: "bg-[#a16d36]/15 text-[#a16d36]",
+  quoted: "bg-[#c42126]/10 text-[#920609]",
   sent: "bg-green-100 text-green-700",
 };
 
@@ -414,7 +419,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
   // ════════════════════════════════════════
   if (!selected) {
     return (
-      <div className="space-y-5">
+      <div className={`space-y-5 ${FONT_WRAPPER}`}>
+        <style>{FONT_IMPORT}</style>
         <div className="relative max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -422,11 +428,11 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             placeholder="Search by partner, end customer, or quotation #..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+            className="w-full border border-[#a16d36]/40 rounded-xl pl-9 pr-4 py-2.5 focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none transition bg-white"
           />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 overflow-hidden">
           {filtered.length === 0 ? (
             <p className="text-sm text-gray-500 py-10 text-center">
               No quotations received from admin yet.
@@ -434,8 +440,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-sm">
-                <thead>
-                  <tr className="bg-green-700 text-white text-left">
+                <thead className={BRAND_GRADIENT}>
+                  <tr className="text-white text-left font-semibold">
                     <th className="px-4 py-3">Quotation #</th>
                     <th className="px-4 py-3">Partner</th>
                     <th className="px-4 py-3">End Customer</th>
@@ -451,10 +457,10 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                     return (
                       <tr
                         key={q._id}
-                        className="border-b border-green-100 hover:bg-green-50/50 cursor-pointer"
+                        className="border-b border-[#a16d36]/15 hover:bg-[#a16d36]/5 cursor-pointer"
                         onClick={() => openQuotation(q)}
                       >
-                        <td className="px-4 py-3 font-medium text-gray-800">
+                        <td className="px-4 py-3 font-semibold text-gray-800">
                           {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
@@ -484,7 +490,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                             {status.replace(/_/g, " ")}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right text-green-700 font-semibold">
+                        <td className="px-4 py-3 text-right text-[#920609] font-semibold">
                           View →
                         </td>
                       </tr>
@@ -505,16 +511,17 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
   // DETAIL VIEW
   // ════════════════════════════════════════
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 ${FONT_WRAPPER}`}>
+      <style>{FONT_IMPORT}</style>
       <button
         onClick={backToList}
-        className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:underline"
+        className="flex items-center gap-1.5 text-sm font-semibold text-[#920609] hover:underline"
       >
         <ChevronLeft size={16} /> Back to list
       </button>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-red-50 border border-[#c42126]/30 text-[#920609] px-4 py-3 rounded-xl text-sm">
           {error}
         </div>
       )}
@@ -529,14 +536,14 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         <div className="flex items-center gap-2 mb-4">
           <Lock size={16} className="text-gray-500" />
           <div>
-            <h2 className="text-lg font-bold text-gray-700">
+            <h2 className="text-lg font-semibold text-gray-700">
               Quotation from Admin{" "}
               <span className="text-sm font-normal text-gray-500">
                 ({selected.quotationNumber || selected._id?.slice(-6).toUpperCase()}) - read only
               </span>
             </h2>
             {selected.validUntil && (
-              <p className="text-s text-red-500 mt-0.5">
+              <p className="text-s text-[#c42126] mt-0.5">
                 Valid Until: {new Date(selected.validUntil).toLocaleDateString("en-IN")}
               </p>
             )}
@@ -575,7 +582,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
         {/* ── End Customer - real backend data, never notes ── */}
         <div className="border-t border-gray-200 pt-4 mb-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
             End Customer
           </p>
           {selected.endCustomer ? (
@@ -625,14 +632,14 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         {/* ── Admin's internal revision history - created + every revision ── */}
         {(selected.revisionHistory?.length || 0) > 0 && (
           <div className="border-t border-gray-200 pt-4 mb-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
               Admin Pricing History
             </p>
             <div className="space-y-3">
               {/* First entry: original creation */}
-              <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5">
+              <div className="rounded-xl border border-[#a16d36]/40 bg-[#a16d36]/10 p-3.5">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm font-bold text-blue-800">Admin Quotation Created</p>
+                  <p className="text-sm font-semibold text-[#85592a]">Admin Quotation Created</p>
                   <span className="text-xs text-gray-500">
                     {selected.createdAt
                       ? new Date(selected.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
@@ -643,7 +650,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-blue-100 text-blue-800 text-left">
+                      <tr className="bg-[#a16d36]/20 text-[#85592a] text-left">
                         <th className="px-2 py-1.5">Product</th>
                         <th className="px-2 py-1.5">Qty</th>
                         <th className="px-2 py-1.5">Unit Price</th>
@@ -656,7 +663,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                         ? selected.revisionHistory[0].items
                         : selected.items || []
                       ).map((item, idx) => (
-                        <tr key={idx} className="border-t border-blue-100">
+                        <tr key={idx} className="border-t border-[#a16d36]/20">
                           <td className="px-2 py-1.5 text-gray-800">{item.name}</td>
                           <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
                           <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice || 0).toFixed(2)}</td>
@@ -673,9 +680,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
               {/* Each subsequent revision - skip index 0, it's already shown above as "Created" */}
               {selected.revisionHistory.slice(1).map((rev, i) => (
-                <div key={i} className="rounded-xl border border-purple-200 bg-purple-50 p-3.5">
+                <div key={i} className="rounded-xl border border-[#c42126]/30 bg-[#c42126]/5 p-3.5">
                   <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm font-bold text-purple-800">
+                    <p className="text-sm font-semibold text-[#920609]">
                       Admin Quotation Revised #{i + 1}
                     </p>
                     <span className="text-xs text-gray-500">
@@ -687,7 +694,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-purple-100 text-purple-800 text-left">
+                        <tr className="bg-[#c42126]/10 text-[#920609] text-left">
                           <th className="px-2 py-1.5">Product</th>
                           <th className="px-2 py-1.5">Qty</th>
                           <th className="px-2 py-1.5">Unit Price</th>
@@ -697,7 +704,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                       </thead>
                       <tbody>
                         {(rev.items || []).map((item, idx) => (
-                          <tr key={idx} className="border-t border-purple-100">
+                          <tr key={idx} className="border-t border-[#c42126]/15">
                             <td className="px-2 py-1.5 text-gray-800">{item.name}</td>
                             <td className="px-2 py-1.5 text-gray-700">{item.quantity}</td>
                             <td className="px-2 py-1.5 text-gray-700">₹{Number(item.unitPrice || 0).toFixed(2)}</td>
@@ -721,7 +728,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               {/* Current/latest admin quotation state - always the final entry when revisions exist */}
               <div className="rounded-xl border border-green-200 bg-green-50 p-3.5">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm font-bold text-green-800">
+                  <p className="text-sm font-semibold text-green-800">
                     Admin Quotation Revised #{selected.revisionHistory.length} (Current)
                   </p>
                   <span className="text-xs text-gray-500">
@@ -807,7 +814,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               <span>GST</span>
               <span>₹{adminGstAmount.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold text-green-700 border-t border-gray-300 pt-1.5 mt-1.5">
+            <div className="flex justify-between text-base font-semibold text-[#920609] border-t border-gray-300 pt-1.5 mt-1.5">
               <span>Total</span>
               <span>₹{Number(selected.total ?? adminGrandTotal).toFixed(2)}</span>
             </div>
@@ -815,7 +822,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         </div>
 
         {selected.remarks && (
-          <p className="text-s text-red-400 mt-3 border-t border-gray-200 pt-3">
+          <p className="text-s text-[#c42126] mt-3 border-t border-gray-200 pt-3">
             <span className="font-semibold text-gray-600">Admin notes:</span> {selected.remarks}
           </p>
         )}
@@ -828,9 +835,9 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
         // Already sent to customer - READ ONLY, no editing, no actions.
         // Further process (negotiation, accept/reject, counter-offer, resend etc.)
         // happens on the other Sales Quotations screen.
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border-2 border-[#a16d36]/40 p-6">
           <div className="flex items-center justify-between mb-1">
-            <h2 className="text-lg font-bold text-green-800">Your Quotation to Customer</h2>
+            <h2 className="text-lg font-semibold text-[#920609]">Your Quotation to Customer</h2>
             <span
               className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
                 statusStyles[salesQuotation.status] || "bg-gray-100 text-gray-700"
@@ -847,8 +854,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
           <div className="overflow-x-auto -mx-1 px-1">
             <table className="w-full min-w-[560px] text-sm">
-              <thead>
-                <tr className="bg-green-700 text-white text-left">
+              <thead className={BRAND_GRADIENT}>
+                <tr className="text-white text-left font-semibold">
                   <th className="px-3 py-2 rounded-tl-lg">Product</th>
                   <th className="px-3 py-2">Qty</th>
                   <th className="px-3 py-2">Price (₹)</th>
@@ -861,8 +868,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   ? salesQuotation.originalSnapshot.items
                   : salesQuotation.items || []
                 ).map((item, i) => (
-                  <tr key={i} className="border-b border-green-100">
-                    <td className="px-3 py-2 text-gray-800 font-medium">{item.name}</td>
+                  <tr key={i} className="border-b border-[#a16d36]/15">
+                    <td className="px-3 py-2 text-gray-800 font-semibold">{item.name}</td>
                     <td className="px-3 py-2 text-gray-700">{item.quantity}</td>
                     <td className="px-3 py-2 text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
                     <td className="px-3 py-2 text-gray-700">{Number(item.gst ?? 0)}%</td>
@@ -889,7 +896,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 <span>GST</span>
                 <span>₹{Number(salesQuotation.originalSnapshot?.gstAmount ?? salesQuotation.gstAmount).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
+              <div className="flex justify-between text-base font-semibold text-[#920609] border-t border-[#a16d36]/30 pt-1.5 mt-1.5">
                 <span>Grand Total</span>
                 <span>₹{Number(salesQuotation.originalSnapshot?.grandTotal ?? salesQuotation.grandTotal).toFixed(2)}</span>
               </div>
@@ -897,15 +904,15 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
           </div>
 
           {salesQuotation.notes && (
-            <p className="text-sm text-gray-600 mt-3 border-t border-green-100 pt-3">
+            <p className="text-sm text-gray-600 mt-3 border-t border-[#a16d36]/20 pt-3">
               <span className="font-semibold">Notes:</span> {salesQuotation.notes}
             </p>
           )}
         </div>
       ) : (
         // ── Not sent yet - EDITABLE form (margin % based pricing) ──
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
-          <h2 className="text-lg font-bold text-green-800 mb-1">
+        <div className="bg-white rounded-2xl shadow-sm border-2 border-[#a16d36]/40 p-6">
+          <h2 className="text-lg font-semibold text-[#920609] mb-1">
             {salesQuotation?.status === "admin_rejected_to_sales"
               ? "Edit Last Quotation & Resend"
               : salesQuotation?.status === "admin_revised" &&
@@ -928,8 +935,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
 
           <div className="overflow-x-auto -mx-1 px-1">
             <table className="w-full min-w-[560px] text-sm">
-              <thead>
-                <tr className="bg-green-700 text-white text-left">
+              <thead className={BRAND_GRADIENT}>
+                <tr className="text-white text-left font-semibold">
                   <th className="px-3 py-2 rounded-tl-lg">Product</th>
                   <th className="px-3 py-2">Qty</th>
                   <th className="px-3 py-2">Your Price (₹)</th>
@@ -939,8 +946,8 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               </thead>
               <tbody>
                 {items.map((item, index) => (
-                  <tr key={index} className="border-b border-green-100">
-                    <td className="px-3 py-2 text-gray-800 font-medium min-w-[160px]">
+                  <tr key={index} className="border-b border-[#a16d36]/15">
+                    <td className="px-3 py-2 text-gray-800 font-semibold min-w-[160px]">
                       {item.name}
                     </td>
                     <td className="px-3 py-2 w-20">
@@ -949,7 +956,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                         min="1"
                         value={item.quantity}
                         readOnly
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none bg-gray-50"
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-[#a16d36] outline-none bg-gray-50"
                       />
                     </td>
                     <td className="px-3 py-2 w-36">
@@ -964,7 +971,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                           value={item.marginPercent}
                           onChange={(e) => updateItemMargin(index, e.target.value)}
                           placeholder="0"
-                          className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-xs focus:border-green-500 outline-none"
+                          className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-xs focus:border-[#a16d36] outline-none"
                         />
                         <span className="text-gray-500 text-xs">%</span>
                       </div>
@@ -986,7 +993,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
             </table>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4 mt-5 pt-5 border-t border-green-100">
+          <div className="grid sm:grid-cols-3 gap-4 mt-5 pt-5 border-t border-[#a16d36]/20">
 
             <div>
               <div className="flex items-center gap-2 mb-1.5">
@@ -995,7 +1002,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   id="salesDiscountToggle"
                   checked={discountEnabled}
                   onChange={(e) => setDiscountEnabled(e.target.checked)}
-                  className="accent-green-600"
+                  className="accent-[#920609]"
                 />
                 <label htmlFor="salesDiscountToggle" className="text-sm font-semibold text-gray-700">
                   Discount (optional)
@@ -1007,7 +1014,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   <select
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value)}
-                    className="border border-green-300 rounded-lg px-2 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none bg-white"
+                    className="border border-[#a16d36]/40 rounded-lg px-2 py-2.5 text-sm focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none bg-white"
                   >
                     <option value="percent">%</option>
                     <option value="flat">₹ flat</option>
@@ -1019,7 +1026,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                     value={discountValue}
                     onChange={(e) => setDiscountValue(e.target.value)}
                     placeholder={discountType === "percent" ? "e.g. 10" : "e.g. 500"}
-                    className="flex-1 border border-green-300 rounded-lg px-3 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none"
+                    className="flex-1 border border-[#a16d36]/40 rounded-lg px-3 py-2.5 text-sm focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none"
                   />
                 </div>
               )}
@@ -1032,7 +1039,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
               <select
                 value={reminderDays}
                 onChange={(e) => setReminderDays(e.target.value)}
-                className="border border-green-300 rounded-lg px-3 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none bg-white w-full"
+                className="border border-[#a16d36]/40 rounded-lg px-3 py-2.5 text-sm focus:border-[#a16d36] focus:ring-2 focus:ring-[#a16d36]/30 outline-none bg-white w-full"
               >
                 <option value="">No reminder</option>
                 <option value="3">In 3 days</option>
@@ -1060,7 +1067,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                 <span>GST</span>
                 <span>₹{tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
+              <div className="flex justify-between text-base font-semibold text-[#920609] border-t border-[#a16d36]/30 pt-1.5 mt-1.5">
                 <span>Total</span>
                 <span>₹{total.toFixed(2)}</span>
               </div>
@@ -1094,7 +1101,7 @@ export default function IncomingQuotations({ incomingQuotations, reloadIncomingQ
                   : handleSendToCustomer
               }
               disabled={submitting}
-              className="flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+              className={`flex items-center gap-2 ${BRAND_GRADIENT} text-white px-6 py-2.5 rounded-lg hover:brightness-110 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               <Mail size={16} />
                 {submitting

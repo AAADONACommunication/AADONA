@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import { User, Mail } from "lucide-react";
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`;
+
 export default function ProfileMenu() {
   const [open, setOpen] = useState(false);
   const [salesPerson, setSalesPerson] = useState({ name: "", email: "" });
@@ -30,31 +34,33 @@ export default function ProfileMenu() {
   }, []);
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative font-['Poppins',sans-serif] font-medium" ref={containerRef}>
+      <style>{FONT_IMPORT}</style>
+
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Profile"
-        className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-green-100 hover:bg-green-200 transition text-green-700"
+        className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-[#a16d36]/15 hover:bg-[#a16d36]/25 transition text-[#a16d36]"
       >
         <User size={20} />
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-green-100 p-4 z-50">
+        <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-[#a16d36]/30 p-4 z-50">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-              <User size={18} className="text-green-600" />
+            <div className={`w-10 h-10 rounded-full ${BRAND_GRADIENT} flex items-center justify-center flex-shrink-0`}>
+              <User size={18} className="text-white" />
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-gray-800 truncate">
+              <p className="font-semibold text-[#920609] truncate">
                 {salesPerson.name || "-"}
               </p>
-              <p className="text-xs text-gray-500">Sales Person</p>
+              <p className="text-xs text-[#a16d36]">Sales Person</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-600 border-t border-gray-100 pt-3">
-            <Mail size={14} className="text-gray-400 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-gray-600 border-t border-[#a16d36]/20 pt-3">
+            <Mail size={14} className="text-[#a16d36] flex-shrink-0" />
             <span className="truncate">{salesPerson.email || "-"}</span>
           </div>
         </div>

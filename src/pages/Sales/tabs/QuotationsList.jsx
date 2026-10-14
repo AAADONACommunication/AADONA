@@ -6,6 +6,17 @@ import RejectQuotationModal from "../../../Components/shared/RejectQuotationModa
 
 const QUOTATIONS_API = `${import.meta.env.VITE_API_URL}/sales-quotations`;
 
+/* ─────────────────────────────────────────────────────────────
+   AADONA COMMUNICATION - BRAND THEME
+   Red   : #920609 → #c42126 (gradient)
+   Gold  : #a16d36
+   Font  : Poppins (SemiBold for headings)
+   Soft gold tints used for borders / backgrounds:
+     #fbf6ee (bg) · #ecdcc4 (light border) · #e3cfae · #d9b98a
+   Make sure Poppins is loaded in index.html:
+   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+   ───────────────────────────────────────────────────────────── */
+
 const statusStyles = {
   draft: "bg-gray-100 text-gray-700",
   sent: "bg-blue-100 text-blue-700",
@@ -607,21 +618,21 @@ export default function QuotationsList({ quotations, reloadQuotations }) {
   };
 
   const editApprovedRawSubtotal = editApprovedItems.reduce(
-  (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
-  0
-);
-const editApprovedGstAmt = editApprovedItems.reduce(
-  (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0) * (Number(item.gst) / 100),
-  0
-);
-const editApprovedTotalBeforeDiscount = editApprovedRawSubtotal + editApprovedGstAmt;
-const editApprovedDiscountAmount =
-  !editApprovedDiscountEnabled || !editApprovedDiscountValue
-    ? 0
-    : editApprovedDiscountType === "percent"
-    ? editApprovedTotalBeforeDiscount * (Math.min(Number(editApprovedDiscountValue), 100) / 100)
-    : Math.min(Number(editApprovedDiscountValue), editApprovedTotalBeforeDiscount);
-const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editApprovedDiscountAmount, 0);
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+    0
+  );
+  const editApprovedGstAmt = editApprovedItems.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0) * (Number(item.gst) / 100),
+    0
+  );
+  const editApprovedTotalBeforeDiscount = editApprovedRawSubtotal + editApprovedGstAmt;
+  const editApprovedDiscountAmount =
+    !editApprovedDiscountEnabled || !editApprovedDiscountValue
+      ? 0
+      : editApprovedDiscountType === "percent"
+      ? editApprovedTotalBeforeDiscount * (Math.min(Number(editApprovedDiscountValue), 100) / 100)
+      : Math.min(Number(editApprovedDiscountValue), editApprovedTotalBeforeDiscount);
+  const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editApprovedDiscountAmount, 0);
 
   const handleSubmitEditApproved = async (e) => {
     e.preventDefault();
@@ -663,9 +674,11 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
       setEditApprovedSubmitting(false);
     }
   };
-  
+
+  // ── Timeline card colours. "original" uses the brand gold; the rest keep
+  //    their semantic colours so each stage stays easy to tell apart. ──
   const cardStyles = {
-    original: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800", badge: "bg-emerald-600" },
+    original: { bg: "bg-[#fbf6ee]", border: "border-[#e3cfae]", text: "text-[#7a5228]", badge: "bg-[#a16d36]" },
     counter: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", badge: "bg-amber-500" },
     revised: { bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800", badge: "bg-purple-600" },
     admin: { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800", badge: "bg-blue-600" },
@@ -695,8 +708,8 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
     }
 
     return (
-      <div className="border border-green-200 bg-green-50/40 rounded-2xl p-4 mb-4">
-        <h4 className="text-sm font-bold text-gray-800 mb-4">
+      <div className="border border-[#e3cfae] bg-[#fbf6ee] rounded-2xl p-4 mb-4">
+        <h4 className="text-sm font-semibold text-[#920609] mb-4">
           Complete Quotation History
         </h4>
 
@@ -717,7 +730,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                   <div className="flex justify-between items-center mb-3 gap-3">
                     <div className="flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full ${style.badge}`} />
-                      <p className={`font-bold text-sm ${style.text}`}>{entry.label}</p>
+                      <p className={`font-semibold text-sm ${style.text}`}>{entry.label}</p>
                     </div>
                     <span className="text-xs text-gray-500 whitespace-nowrap">
                       {entry.at
@@ -756,49 +769,49 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                               <th className="px-2 py-2">Total</th>
                             </tr>
                           </thead>
-                         <tbody>
-                           {(entry.items || []).map((item, idx) => (
-                             <tr key={idx} className="border-t border-gray-100">
-                               <td className="px-2 py-2 text-gray-800">{item?.name || "-"}</td>
-                               <td className="px-2 py-2 text-gray-700">{item?.quantity ?? 0}</td>
-                               <td className="px-2 py-2 text-gray-700">
-                                 ₹{Number(item?.unitPrice || 0).toFixed(2)}
-                               </td>
-                               <td className="px-2 py-2 text-gray-700">{Number(item?.gst || 0)}%</td>
-                               <td className="px-2 py-2 font-semibold text-gray-800">
-                                 ₹{Number(item?.total || 0).toFixed(2)}
-                               </td>
-                             </tr>
-                           ))}
-                         </tbody>
+                          <tbody>
+                            {(entry.items || []).map((item, idx) => (
+                              <tr key={idx} className="border-t border-gray-100">
+                                <td className="px-2 py-2 text-gray-800">{item?.name || "-"}</td>
+                                <td className="px-2 py-2 text-gray-700">{item?.quantity ?? 0}</td>
+                                <td className="px-2 py-2 text-gray-700">
+                                  ₹{Number(item?.unitPrice || 0).toFixed(2)}
+                                </td>
+                                <td className="px-2 py-2 text-gray-700">{Number(item?.gst || 0)}%</td>
+                                <td className="px-2 py-2 font-semibold text-gray-800">
+                                  ₹{Number(item?.total || 0).toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
                         </table>
                       </div>
 
                       <div className="mt-3 space-y-1 text-sm max-w-xs ml-auto bg-white/60 rounded-lg p-3 border border-gray-100">
-                      <div className="flex justify-between text-gray-600">
-                        <span>Subtotal</span>
-                        <span>₹{Number(entry.subtotal || 0).toFixed(2)}</span>
-                      </div>
-                      {Number(entry.discountAmount || 0) > 0 && (
                         <div className="flex justify-between text-gray-600">
-                          <span>
-                            Discount
-                            {Number(entry.subtotal) > 0 && (
-                              <> ({((Number(entry.discountAmount) / Number(entry.subtotal)) * 100).toFixed(2)}%)</>
-                            )}
-                          </span>
-                          <span>− ₹{Number(entry.discountAmount).toFixed(2)}</span>
+                          <span>Subtotal</span>
+                          <span>₹{Number(entry.subtotal || 0).toFixed(2)}</span>
                         </div>
-                      )}
-                      <div className="flex justify-between text-gray-600">
-                        <span>GST</span>
-                        <span>₹{Number(entry.gstAmount || 0).toFixed(2)}</span>
+                        {Number(entry.discountAmount || 0) > 0 && (
+                          <div className="flex justify-between text-gray-600">
+                            <span>
+                              Discount
+                              {Number(entry.subtotal) > 0 && (
+                                <> ({((Number(entry.discountAmount) / Number(entry.subtotal)) * 100).toFixed(2)}%)</>
+                              )}
+                            </span>
+                            <span>− ₹{Number(entry.discountAmount).toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-gray-600">
+                          <span>GST</span>
+                          <span>₹{Number(entry.gstAmount || 0).toFixed(2)}</span>
+                        </div>
+                        <div className={`flex justify-between border-t pt-1.5 mt-1 font-bold ${style.text}`}>
+                          <span>Grand Total</span>
+                          <span>₹{Number(entry.total || 0).toFixed(2)}</span>
+                        </div>
                       </div>
-                      <div className={`flex justify-between border-t pt-1.5 mt-1 font-bold ${style.text}`}>
-                        <span>Grand Total</span>
-                        <span>₹{Number(entry.total || 0).toFixed(2)}</span>
-                      </div>
-                    </div>
 
                       {entry.message && (
                         <p className="mt-3 text-sm text-gray-700 whitespace-pre-line bg-white/60 rounded-lg p-2 border border-gray-100">
@@ -839,7 +852,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
 
                 {i !== timeline.length - 1 && (
                   <div className="flex justify-center py-1.5">
-                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-white border border-[#e3cfae] flex items-center justify-center text-[#a16d36] shadow-sm">
                       ↓
                     </div>
                   </div>
@@ -901,24 +914,24 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 font-['Poppins',sans-serif]">
       {/* ── Filters ── */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="relative flex-1 min-w-[220px] max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a16d36]" />
           <input
             type="text"
             placeholder="Search by customer or quotation #..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+            className="w-full border border-[#d9b98a] rounded-xl pl-9 pr-4 py-2.5 focus:border-[#c42126] focus:ring-2 focus:ring-[#c42126]/30 outline-none transition bg-white"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-green-300 rounded-xl px-3 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none bg-white"
+          className="border border-[#d9b98a] rounded-xl px-3 py-2.5 text-sm focus:border-[#c42126] focus:ring-2 focus:ring-[#c42126]/30 outline-none bg-white"
         >
           <option value="all">All statuses</option>
           <option value="draft">Draft</option>
@@ -933,7 +946,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
       </div>
 
       {/* ── Table ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#ecdcc4] overflow-hidden">
         {filtered.length === 0 ? (
           <p className="text-sm text-gray-500 py-10 text-center">
             No quotations found.
@@ -942,14 +955,14 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-green-700 text-white text-left">
-                  <th className="px-4 py-3">Quotation #</th>
-                  <th className="px-4 py-3">Partner</th>
-                  <th className="px-4 py-3">End Customer</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Total (₹)</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                <tr className="bg-gradient-to-b from-[#920609] to-[#c42126] text-white text-left">
+                  <th className="px-4 py-3 font-semibold">Quotation #</th>
+                  <th className="px-4 py-3 font-semibold">Partner</th>
+                  <th className="px-4 py-3 font-semibold">End Customer</th>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Total (₹)</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -957,7 +970,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                   <tr
                     key={q._id}
                     onClick={() => setViewing(q)}
-                    className="border-b border-green-100 hover:bg-green-50/50 cursor-pointer"
+                    className="border-b border-[#ecdcc4] hover:bg-[#fbf6ee] cursor-pointer"
                   >
                     <td className="px-4 py-3 font-medium text-gray-800">
                       {q.quotationNumber || q._id?.slice(-6).toUpperCase()}
@@ -989,7 +1002,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                           e.stopPropagation();
                           setViewing(q);
                         }}
-                        className="text-green-700 font-semibold hover:underline"
+                        className="text-[#920609] font-semibold hover:underline"
                       >
                         View
                       </button>
@@ -1005,14 +1018,14 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
       {/* ── Quick View Modal ── */}
       {viewing && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto border-t-4 border-[#a16d36]">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-bold text-green-800">
+              <h3 className="text-lg font-semibold text-[#920609]">
                 Quotation {viewing.quotationNumber || viewing._id?.slice(-6).toUpperCase()}
               </h3>
               <button
                 onClick={() => { setViewing(null); setActionError(""); }}
-                className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+                className="text-gray-400 hover:text-[#920609] text-xl leading-none"
               >
                 ×
               </button>
@@ -1069,14 +1082,14 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               <div className="mb-4">
                 <button
                   onClick={() => { setRejectError(""); setRejectModalOpen(viewing); }}
-                  className="w-full bg-white border-2 border-red-500 text-red-600 hover:bg-red-50 text-sm font-semibold py-2 rounded-lg transition"
+                  className="w-full bg-white border-2 border-[#c42126] text-[#920609] hover:bg-[#c42126]/10 text-sm font-semibold py-2 rounded-lg transition"
                 >
                   Reject Quotation
                 </button>
               </div>
             )}
 
-            <div className="border border-green-100 rounded-xl divide-y mb-4">
+            <div className="border border-[#ecdcc4] rounded-xl divide-y divide-[#ecdcc4] mb-4">
               {(viewing.items || []).map((item, i) => (
                 <div key={i} className="flex justify-between px-3 py-2 text-sm">
                   <span className="text-gray-700">
@@ -1089,13 +1102,13 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
               ))}
             </div>
 
-            <div className="flex justify-between text-base font-bold text-green-800">
+            <div className="flex justify-between text-base font-semibold text-[#920609]">
               <span>{viewing.negotiatedAmount != null ? "Final Total (Negotiated)" : "Total"}</span>
               <span>₹{Number(viewing.negotiatedAmount ?? viewing.grandTotal ?? 0).toFixed(2)}</span>
-            </div> 
+            </div>
 
             {viewing.notes && (
-              <p className="text-sm text-gray-600 mt-4 border-t border-gray-100 pt-3">
+              <p className="text-sm text-gray-600 mt-4 border-t border-[#ecdcc4] pt-3">
                 <span className="font-semibold">Notes:</span> {viewing.notes}
               </p>
             )}
@@ -1106,21 +1119,21 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
       {/* ── Counter Offer Modal - item-wise editor ── */}
       {counterModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] px-4 py-8">
-          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-[#a16d36]">
             <button
               onClick={() => setCounterModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#920609] text-xl leading-none"
             >
               ×
             </button>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Send Counter Offer</h3>
+            <h3 className="text-lg font-semibold text-[#920609] mb-1">Send Counter Offer</h3>
             <p className="text-sm text-gray-500 mb-5">
               Quotation #{counterModalOpen.quotationNumber}
             </p>
 
             {/* ── Originally Sent (read-only) ── */}
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-6">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+            <div className="bg-[#fbf6ee] rounded-xl border border-[#e3cfae] p-4 mb-6">
+              <p className="text-xs font-bold text-[#7a5228] uppercase tracking-wide mb-3">
                 Originally Sent
               </p>
               <div className="overflow-x-auto">
@@ -1137,7 +1150,7 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
                   </thead>
                   <tbody>
                     {(counterModalOpen.items || []).map((item, i) => (
-                      <tr key={i} className="border-t border-gray-200">
+                      <tr key={i} className="border-t border-[#e3cfae]">
                         <td className="py-1.5 pr-2 text-gray-700">{item.name}</td>
                         <td className="py-1.5 pr-2 text-gray-700">{item.quantity}</td>
                         <td className="py-1.5 pr-2 text-right text-gray-700">₹{Number(item.unitPrice).toFixed(2)}</td>
@@ -1291,17 +1304,18 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
           </div>
         </div>
       )}
+
       {/* ── Resend Revised Quotation Modal ── */}
       {resendModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] px-4 py-8">
-          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-[#a16d36]">
             <button
               onClick={() => setResendModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#920609] text-xl leading-none"
             >
               ×
             </button>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Resend Revised Quotation</h3>
+            <h3 className="text-lg font-semibold text-[#920609] mb-1">Resend Revised Quotation</h3>
             <p className="text-sm text-gray-500 mb-5">
               Quotation #{resendModalOpen.quotationNumber}
             </p>
@@ -1437,17 +1451,18 @@ const editApprovedGrandTotal = Math.max(editApprovedTotalBeforeDiscount - editAp
           </div>
         </div>
       )}
+
       {/* ── Edit Approved Pricing Modal (discount_applied flow) ── */}
       {editApprovedModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] px-4 py-8">
-          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-[#a16d36]">
             <button
               onClick={() => setEditApprovedModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#920609] text-xl leading-none"
             >
               ×
             </button>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Edit Pricing Before Sending</h3>
+            <h3 className="text-lg font-semibold text-[#920609] mb-1">Edit Pricing Before Sending</h3>
             <p className="text-sm text-gray-500 mb-5">
               Quotation #{editApprovedModalOpen.quotationNumber}
             </p>
