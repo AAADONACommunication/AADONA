@@ -3,12 +3,24 @@ import { useEffect } from "react";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 
+/* Aadona Communication brand
+   Red  : #920609 -> #c42126 (gradient)
+   Gold : #a16d36
+   Font : Poppins SemiBold */
+const RED_DARK = "#920609";
+const RED_LIGHT = "#c42126";
+const GOLD = "#a16d36";
+const GRADIENT = `linear-gradient(180deg, ${RED_DARK}, ${RED_LIGHT})`;
+const GRADIENT_HOVER = `linear-gradient(180deg, ${RED_LIGHT}, ${RED_DARK})`;
+
 export default function NotFound() {
   const navigate = useNavigate();
 
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to   { opacity: 1; transform: translateY(0); }
@@ -40,32 +52,31 @@ export default function NotFound() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "system-ui, sans-serif",
+        fontFamily: "'Poppins', system-ui, sans-serif",
         padding: "2rem",
       }}>
 
         {/* Card */}
         <div className="nf-1" style={{
-border: "2px solid #d1d5db",
-boxShadow: "0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px rgba(34,197,94,0.15)",         
- borderRadius: "16px",
+          border: `2px solid ${GOLD}`,
+          boxShadow: "0 10px 30px rgba(146,6,9,0.12), 0 0 0 1px rgba(161,109,54,0.2)",
+          borderRadius: "16px",
           width: "280px",
           background: "#ffffff",
           marginBottom: "2rem",
           overflow: "hidden",
-          // boxShadow: "0 12px 35px rgba(0,0,0,0.08)",
         }}>
-          
+
           {/* Top bar */}
-    <div style={{
-  background: "#f9fafb",
-  padding: "10px 14px",
-  display: "flex",
-  alignItems: "center",
-  gap: "7px",
-borderBottom: "2px solid rgba(34,197,94,0.15)"
-}}>
-            {["#22c55e", "#eab308", "#ef4444"].map((color, i) => (
+          <div style={{
+            background: "#fbf6ee",
+            padding: "10px 14px",
+            display: "flex",
+            alignItems: "center",
+            gap: "7px",
+            borderBottom: "2px solid rgba(161,109,54,0.25)",
+          }}>
+            {[RED_DARK, GOLD, RED_LIGHT].map((color, i) => (
               <div key={i} style={{
                 width: "9px",
                 height: "9px",
@@ -84,13 +95,13 @@ borderBottom: "2px solid rgba(34,197,94,0.15)"
               fontFamily: "monospace",
               fontSize: "56px",
               fontWeight: 700,
-              color: "#22c55e",
+              color: RED_LIGHT,
               letterSpacing: "-2px",
             }}>
               {"{"}4
               <span style={{
                 fontSize: "42px",
-                color: "#16a34a"
+                color: GOLD,
               }}>0</span>
               4{"}"}
             </span>
@@ -100,8 +111,8 @@ borderBottom: "2px solid rgba(34,197,94,0.15)"
         {/* Heading */}
         <h1 className="nf-2" style={{
           fontSize: "28px",
-          fontWeight: 700,
-          color: "#111827",
+          fontWeight: 600,
+          color: RED_DARK,
           marginBottom: "10px",
         }}>
           Page Not Found
@@ -124,23 +135,25 @@ borderBottom: "2px solid rgba(34,197,94,0.15)"
           className="nf-4"
           onClick={() => navigate("/")}
           style={{
-            background: "#22c55e",
+            background: GRADIENT,
             border: "none",
             color: "#fff",
             borderRadius: "10px",
             padding: "12px 28px",
             fontSize: "14px",
+            fontWeight: 600,
+            fontFamily: "'Poppins', system-ui, sans-serif",
             cursor: "pointer",
             transition: "all .25s ease",
-            boxShadow: "0 6px 18px rgba(34,197,94,0.3)",
+            boxShadow: "0 6px 18px rgba(146,6,9,0.3)",
           }}
-          onMouseEnter={e => {
-            e.target.style.background = "#16a34a";
-            e.target.style.transform = "translateY(-2px)";
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = GRADIENT_HOVER;
+            e.currentTarget.style.transform = "translateY(-2px)";
           }}
-          onMouseLeave={e => {
-            e.target.style.background = "#22c55e";
-            e.target.style.transform = "translateY(0)";
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = GRADIENT;
+            e.currentTarget.style.transform = "translateY(0)";
           }}
         >
           Back to Home

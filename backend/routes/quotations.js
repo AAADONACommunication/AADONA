@@ -100,7 +100,7 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
       const itemsRows = quotationRequest.items
         .map(
           (item, i) => `
-            <tr style="${i % 2 === 0 ? "background:#f0fdf4" : ""}">
+            <tr style="${i % 2 === 0 ? "background:#fdf8f3" : ""}">
               <td style="padding:8px;border:1px solid #e5e7eb">${i + 1}</td>
               <td style="padding:8px;border:1px solid #e5e7eb">${item.name}</td>
               <td style="padding:8px;border:1px solid #e5e7eb">${item.description || "-"}</td>
@@ -115,8 +115,8 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
           to: process.env.COMPANY_EMAIL,
           subject: `New Quotation Request - ${requestNumber}`,
           html: `
-            <div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-              <h2 style="color:#166534;margin-bottom:4px">New Quotation Request</h2>
+            <div style="font-family:'Poppins',Arial,sans-serif;max-width:640px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-top:4px solid #a16d36;border-radius:12px">
+              <h2 style="color:#920609;margin-bottom:4px">New Quotation Request</h2>
               <p style="color:#6b7280;font-size:13px;margin-top:0">Request #: <b>${requestNumber}</b></p>
 
               <table border="0" cellpadding="6" cellspacing="0" style="width:100%;font-size:14px;margin-bottom:16px">
@@ -130,7 +130,7 @@ router.post("/quotation-requests", verifySalesToken, async (req, res) => {
 
               <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">
                 <thead>
-                  <tr style="background:#166534;color:#fff">
+                  <tr style="background:#920609;color:#fff">
                     <th style="padding:8px;text-align:left">#</th>
                     <th style="padding:8px;text-align:left">Product</th>
                     <th style="padding:8px;text-align:left">Description</th>

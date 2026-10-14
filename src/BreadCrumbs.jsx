@@ -12,7 +12,7 @@ const Breadcrumbs = () => {
       style={{
         padding: "15px 40px 8px 40px",
         backgroundColor: "#f1f1f1",
-        marginTop: "80px",
+        marginTop: "95px",
         position: "relative",
         zIndex: 10,
         borderBottom: "1px solid #ddd",

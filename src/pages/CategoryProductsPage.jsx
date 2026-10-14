@@ -4,6 +4,8 @@ import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import CheckCircle from "../assets/checkcircle.avif";
 
+// Brand: Poppins SemiBold | Red #920609 → #C42126 | Gold #C79D46
+
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const RELATED_API = `${import.meta.env.VITE_API_URL}/related-products`;
 const CATEGORY_API = `${import.meta.env.VITE_API_URL}/categories`;
@@ -47,7 +49,7 @@ const ProductCard = memo(({ product }) => {
   return (
     <div
       onClick={() => window.open(detailUrl, "_blank", "noopener,noreferrer")}
-      className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group transform transition duration-300 ease-in-out hover:shadow-2xl hover:scale-[1.02] hover:border-green-500 border border-transparent"
+      className="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer flex flex-col group transform transition duration-300 ease-in-out hover:shadow-2xl hover:scale-[1.02] hover:border-[#C79D46] border border-transparent border-t-[3px] border-t-[#C42126]"
     >
       <div className="h-48 flex items-center justify-center p-4 bg-gray-50 border-b border-gray-100">
         <img
@@ -60,7 +62,7 @@ const ProductCard = memo(({ product }) => {
       </div>
       <div className="p-4 sm:p-6 flex-grow flex flex-col justify-between text-left">
         <div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">{product.name}</h3>
+          <h3 className="text-2xl font-semibold text-[#920609] mb-2">{product.name}</h3>
           {product.description && <p className="text-gray-600 text-base mb-4">{product.description}</p>}
         </div>
         {product.features && product.features.length > 0 && (
@@ -74,7 +76,7 @@ const ProductCard = memo(({ product }) => {
           </ul>
         )}
         <div className="mt-auto">
-          <div className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 hover:shadow-lg transition duration-200 ease-in-out w-full">
+          <div className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-md shadow-sm text-white bg-gradient-to-r from-[#920609] to-[#C42126] hover:from-[#C42126] hover:to-[#920609] hover:shadow-lg transition duration-200 ease-in-out w-full">
             View Product
           </div>
         </div>
@@ -128,7 +130,11 @@ const RelatedProducts = memo(({ relatedProducts }) => {
   return (
     <div className="mt-24 py-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center text-green-700 mb-10">Related Products</h2>
+        <h2 className="text-3xl font-semibold text-center text-[#920609] mb-3">Related Products</h2>
+        <div className="flex justify-center gap-1.5 mb-10" aria-hidden="true">
+          <div className="h-[3px] w-10 rounded bg-[#C42126]" />
+          <div className="h-[3px] w-4 rounded bg-[#C79D46]" />
+        </div>
         <div
           style={{ overflow: "hidden" }}
           onPointerEnter={() => (isPaused.current = true)}
@@ -206,12 +212,12 @@ const CategoryBanner = memo(({ categoryName, bannerUrl, bannerLoading }) => (
         decoding="async"
       />
     ) : (
-      <div className="absolute inset-0 bg-gradient-to-br from-green-800 via-green-700 to-teal-600" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#920609] via-[#C42126] to-[#C79D46]" />
     )}
     <div className="absolute inset-0 bg-black/35" />
     <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
       {categoryName && (
-        <h1 className="text-4xl sm:text-4xl md:text-6xl font-bold text-white border-b-4 border-green-500 inline-block pb-1">
+        <h1 className="text-4xl sm:text-4xl md:text-6xl font-semibold text-white border-b-4 border-[#C79D46] inline-block pb-1">
           {categoryName}
         </h1>
       )}
@@ -234,7 +240,7 @@ const detailContent = {
 /* -------------------- MAIN PAGE -------------------- */
 export default function CategoryProductsPage() {
   const { categoryName: categorySlug } = useParams();
-  const navigate = useNavigate(); // ← ADD
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
   const [actualCategoryName, setActualCategoryName] = useState("");
@@ -286,7 +292,7 @@ export default function CategoryProductsPage() {
         const filtered = productsData.filter(p => nameToSlug(p.category) === categorySlug);
         const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
 
-        // ← 404 redirect: na products mile, na category mile
+        // 404 redirect: neither products nor category found
         if (filtered.length === 0 && !categoryDoc) {
           navigate("/404", { replace: true });
           return;
@@ -315,7 +321,7 @@ export default function CategoryProductsPage() {
             setOrderedExtraCategories([]);
           }
         } else {
-          // Category exist karti hai but products nahi hain abhi
+          // Category exists but has no products yet
           if (categoryDoc) {
             setActualCategoryName(categoryDoc.name);
             if (categoryDoc.banner) setCategoryBanner(categoryDoc.banner);
@@ -325,7 +331,7 @@ export default function CategoryProductsPage() {
       })
       .catch(err => {
         if (err.name !== "AbortError") {
-          navigate("/404", { replace: true }); // ← network error pe bhi 404
+          navigate("/404", { replace: true });
         }
       })
       .finally(() => {
@@ -396,7 +402,12 @@ export default function CategoryProductsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="cat-page min-h-screen bg-gray-50 flex flex-col">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        .cat-page, .cat-page * { font-family: 'Poppins', sans-serif; }
+      `}</style>
+
       <Navbar />
 
       <CategoryBanner
@@ -422,8 +433,8 @@ export default function CategoryProductsPage() {
                     min-w-0 break-words whitespace-normal text-center
                     ${isOdd && isLast ? "col-span-2 mx-auto" : ""}
                     ${activeSubCategory === cat
-                      ? "bg-green-600 text-white shadow-md"
-                      : "bg-white text-gray-600 border hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-[#920609] to-[#C42126] text-white shadow-md"
+                      : "bg-white text-gray-600 border hover:border-[#C79D46] hover:text-[#920609]"
                     }`}
                 >
                   {cat}
@@ -440,9 +451,9 @@ export default function CategoryProductsPage() {
                 <button
                   key={opt}
                   onClick={() => setActiveDetail(opt)}
-                  className={`px-10 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+                  className={`px-10 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
                     activeDetail === opt
-                      ? "bg-white text-green-700 shadow-md"
+                      ? "bg-white text-[#C42126] shadow-md"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
@@ -452,8 +463,8 @@ export default function CategoryProductsPage() {
             </div>
 
             {activeDetail && detailContent[activeDetail] && (
-              <div className="max-w-4xl w-full p-8 bg-white border-l-8 border-green-500 shadow-xl rounded-r-xl text-left">
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              <div className="max-w-4xl w-full p-8 bg-white border-l-8 border-[#C79D46] shadow-xl rounded-r-xl text-left">
+                <h2 className="text-2xl font-semibold text-[#920609] mb-3">
                   {detailContent[activeDetail].title}
                 </h2>
                 <p className="text-gray-600 italic leading-relaxed text-justify">
@@ -476,7 +487,7 @@ export default function CategoryProductsPage() {
           </div>
         ) : (
           <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-gray-300 w-full">
-            <h3 className="text-xl font-bold text-gray-400">No products available in this section</h3>
+            <h3 className="text-xl font-semibold text-gray-400">No products available in this section</h3>
           </div>
         )}
       </div>
