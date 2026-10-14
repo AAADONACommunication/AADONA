@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import linkedin from '../assets/linkedin.avif';
 import facebook from '../assets/facebook.avif';
 import insta from '../assets/insta.avif';
-import whitelogo from '../assets/WhiteLogo.webp';
+import whitelogo from '../assets/WhiteLogo.png';
 
 // ─── Security helpers ──────────────────────────────────────────────────────────
 
