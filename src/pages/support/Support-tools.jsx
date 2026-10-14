@@ -3,7 +3,12 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.avif";
-import stbanner from "../../assets/SupportToolsBanner.avif";
+import stbanner from "../../assets/SupportToolsBanner.webp";
+
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
 
 // ─── Tool Data (centralized - easy to maintain) ───────────────────────────────
 
@@ -123,26 +128,59 @@ const structuredData = {
   },
 };
 
+// ─── Small gold decorative helpers ────────────────────────────────────────────
+
+// Thin gold divider with a diamond in the middle
+
+
+const ExternalIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
+
 // ─── Tool Section Component ───────────────────────────────────────────────────
 const ToolSection = ({ id, heading, description, note, tools }) => (
   <section className="mb-12" aria-labelledby={`${id}-heading`}>
-    <h2 id={`${id}-heading`} className="text-2xl font-bold text-gray-800 mb-2">
-      {heading}
-    </h2>
-    <p className="text-lg text-gray-700 mb-6">{description}</p>
+    <div className="flex items-stretch gap-3 mb-2">
+      <span className="w-1.5 rounded-full bg-gradient-to-b from-[#c79d47] to-[#a16d36]" aria-hidden="true" />
+      <h2 id={`${id}-heading`} className="text-2xl font-bold text-[#920609]">
+        {heading}
+      </h2>
+    </div>
+    <p className="text-lg text-gray-700 mb-6 pl-[18px]">{description}</p>
 
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg hover:shadow-[#c79d47]/25 border border-[#c79d47]/40 border-t-4 border-t-[#c79d47] p-6 transition-shadow duration-500">
       <ul className="space-y-4" role="list">
         {tools.map(({ name, href, desc }) => (
-          <li key={name}>
+          <li
+            key={name}
+            className="pl-4 border-l-2 border-[#c79d47]/40 hover:border-[#a16d36] transition-colors duration-300"
+          >
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-lg text-green-600 hover:text-green-900 hover:underline transition-all duration-200 font-medium"
+              className="inline-flex items-center gap-2 text-lg text-[#c42126] hover:text-[#920609] hover:underline decoration-[#c79d47] decoration-2 underline-offset-4 transition-all duration-200 font-medium"
               aria-label={`${name} – opens in a new tab`}
             >
               {name}
+              <span className="text-[#c79d47]">
+                <ExternalIcon />
+              </span>
               {/* Visually hidden hint for screen readers */}
               <span className="sr-only">(external link)</span>
             </a>
@@ -151,9 +189,9 @@ const ToolSection = ({ id, heading, description, note, tools }) => (
         ))}
       </ul>
 
-      <div className="mt-6 pt-4 border-t border-gray-100">
+      <div className="mt-6 pt-4 border-t border-[#c79d47]/40">
         <p className="text-sm text-gray-700">
-          <strong>Note:</strong> {note}
+          <strong className="text-[#a16d36]">Note:</strong> {note}
         </p>
       </div>
     </div>
@@ -166,8 +204,13 @@ const SupportTools = () => {
 
   return (
     <>
-      {/* ── SEO Meta Tags ─────────────────────────────────────────────────── */}
+      {/* ── SEO Meta Tags + Brand Font ────────────────────────────────────── */}
       <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
         <title>Support Tools – Free Network Troubleshooting Utilities | AADONA</title>
         <meta
           name="description"
@@ -203,7 +246,7 @@ const SupportTools = () => {
 
         {/* ── Hero Banner ──────────────────────────────────────────────────── */}
         <header
-          className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
+          className="relative pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none "
             style={{
               backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${stbanner})`
             }}
@@ -213,7 +256,7 @@ const SupportTools = () => {
             <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
               Support Tools
             </h1>
-            <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+            <p className="mt-4 text-md text-white max-w-3xl mx-auto">
               Access comprehensive support tools and resources
             </p>
           </div>
@@ -227,12 +270,12 @@ const SupportTools = () => {
 
                 {/* Intro */}
                 <section
-                  className="bg-green-50/90 py-10 px-6 rounded-2xl mb-12 border border-green-100"
+                  className="bg-white/90 py-10 px-6 rounded-2xl mb-12 border border-[#c79d47]/50 border-t-4 border-t-[#c79d47] shadow-md shadow-[#c79d47]/20"
                   aria-labelledby="intro-heading"
                 >
                   <h2
                     id="intro-heading"
-                    className="text-2xl md:text-3xl font-bold text-green-800 mb-4 text-center"
+                    className="text-2xl md:text-3xl font-bold text-[#920609] mb-4 text-center"
                   >
                     Need Help with Your Product? We're Here to Assist You.
                   </h2>
@@ -246,14 +289,19 @@ const SupportTools = () => {
                 <section className="max-w-3xl mx-auto mb-12" aria-labelledby="why-heading">
                   <h2
                     id="why-heading"
-                    className="text-xl font-semibold text-green-800 mb-6 text-center"
+                    className="text-xl font-semibold text-[#920609] mb-3 text-center"
                   >
                     Why Does This Page Exist?
                   </h2>
                   <ul className="space-y-3 text-gray-700" role="list">
                     {reasons.map((reason, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-green-600 mt-1" aria-hidden="true">✔️</span>
+                      <li key={i} className="flex items-start gap-3">
+                        <span
+                          className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-br from-[#c79d47] to-[#a16d36] text-white text-[11px] font-bold flex items-center justify-center shadow-sm"
+                          aria-hidden="true"
+                        >
+                          ✓
+                        </span>
                         <span>{reason}</span>
                       </li>
                     ))}
@@ -262,12 +310,12 @@ const SupportTools = () => {
 
                 {/* Disclaimer Note */}
                 <aside
-                  className="bg-blue-50/95 border-l-4 border-blue-500 p-6 rounded-lg mb-12"
+                  className="bg-gradient-to-r from-[#c79d47]/20 to-[#c79d47]/5 border-l-4 border-[#c79d47] border border-[#c79d47]/30 p-6 rounded-lg mb-12 shadow-sm"
                   role="note"
                   aria-label="Third-party tools disclaimer"
                 >
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    <strong>Note:</strong> All tools listed below are free and recommended based on
+                    <strong className="text-[#a16d36]">Note:</strong> All tools listed below are free and recommended based on
                     our experience. These are third-party tools - use at your own responsibility.
                     For official support, contact the respective vendors directly.
                   </p>

@@ -2,9 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-import { X, UploadCloud, Plus } from 'lucide-react';
+import { X, UploadCloud, Plus, CheckCircle2, Send } from 'lucide-react';
 import bg from '../../assets/bg.avif';
-import wrbanner from '../../assets/WarrantyRegisterBanner.avif';
+import wrbanner from '../../assets/WarrantyRegisterBanner.webp';
+
+// Brand theme (Aadona Communication) - same as Request DOA page
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36), crimson #c42126 (dark #920609)
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia",
@@ -48,6 +52,20 @@ const emptyForm = {
   models: [], serialNumbers: [],
   invoiceNumber: '', purchasedFrom: '', purchaseDate: ''
 };
+
+// ─── Style Constants ─────────────────────────────────────────────────────────
+const liftSection =
+  "rounded-2xl bg-white p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-[#c79d47]/20 " +
+  "border border-[#c79d47]/30 hover:border-[#c79d47] transition-all duration-500 ease-out hover:-translate-y-1";
+const inputBase =
+  "w-full border border-[#c79d47]/40 rounded-xl px-4 py-3 text-base " +
+  "focus:border-[#c79d47] focus:ring-2 focus:ring-[#c79d47] outline-none transition";
+const labelClass = "block text-slate-700 font-medium mb-1";
+const addBtn =
+  "bg-gradient-to-r from-[#920609] to-[#c42126] text-white p-3 rounded-xl hover:from-[#c42126] hover:to-[#920609] " +
+  "focus:outline-none focus:ring-4 focus:ring-[#c42126]/40 transition";
+
+const Req = () => <span aria-hidden="true" className="text-[#c42126]">*</span>;
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -243,11 +261,24 @@ const ProductRegistration = () => {
     }
   };
 
+  const inputClass = (name) =>
+    `${inputBase} ${errors[name] ? "border-red-400" : ""}`;
+
+  const fieldError = (name) =>
+    errors[name] ? (
+      <p role="alert" className="text-sm mt-1 text-red-600">{errors[name]}</p>
+    ) : null;
+
   return (
     <div className="min-h-screen">
 
-      {/* ── SEO HEAD ── */}
+      {/* ── SEO HEAD + Brand Font ── */}
       <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
         {/* Primary Meta */}
         <title>Product Warranty Registration | AADONA – Activate Your Warranty</title>
         <meta
@@ -290,10 +321,10 @@ const ProductRegistration = () => {
 
       {/* ── HERO ── */}
       <header
-       className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
-         style={{
-           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.5), transparent), url(${wrbanner})` }}
-        role="banner"
+        className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
+        style={{
+          backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${wrbanner})`,
+        }}
         aria-label="Product Registration Hero"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -312,173 +343,180 @@ const ProductRegistration = () => {
         style={{ backgroundImage: `url(${bg})` }}
         aria-label="Product Registration Form"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grow pb-16 px-4 md:px-8 lg:px-16">
-            <div className="max-w-4xl mx-auto rounded-lg border-2 border-green-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
 
-              {isSubmitted && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm" role="status" aria-live="polite">
-                  <div className="flex items-start">
-                    <svg className="w-6 h-6 text-green-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <h2 className="text-green-800 font-semibold">Registration Successful!</h2>
-                      <p className="text-green-700 mt-1">Your product has been registered successfully. Thank you!</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-white rounded-xl shadow-lg p-8 md:p-10">
-                <form onSubmit={handleSubmit} noValidate aria-label="Product registration form" className="space-y-6">
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">First Name <span aria-hidden="true" className="text-red-500">*</span></label>
-                      <input id="firstName" type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Enter your first name" autoComplete="given-name" maxLength={50} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
-                    </div>
-                    <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                      <input id="lastName" type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Enter your last name" autoComplete="family-name" maxLength={50} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
-                    </div>
-                    <div>
-                      <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 mb-2">Date of Purchase <span className="text-red-500" aria-hidden="true">*</span></label>
-                      <input id="purchaseDate" type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleChange} max={new Date().toISOString().split('T')[0]} aria-required="true"
-                        className={`w-full px-4 py-3 rounded-lg border ${errors.purchaseDate ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
-                      {errors.purchaseDate && <p className="mt-1 text-sm text-red-600" role="alert">{errors.purchaseDate}</p>}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email <span className="text-red-500" aria-hidden="true">*</span></label>
-                      <input id="email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" autoComplete="email" inputMode="email" maxLength={254} aria-required="true"
-                        className={`w-full px-4 py-3 rounded-lg border ${errors.email ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
-                      {errors.email && <p className="mt-1 text-sm text-red-600" role="alert">{errors.email}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="companyCity" className="block text-sm font-medium text-gray-700 mb-2">City <span aria-hidden="true" className="text-red-500">*</span></label>
-                      <input id="companyCity" type="text" name="companyCity" value={formData.companyCity} onChange={handleChange} placeholder="Enter city" autoComplete="address-level2" maxLength={100} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
-                    </div>
-                    <div>
-                      <label htmlFor="regionStateProvince" className="block text-sm font-medium text-gray-700 mb-2">Region/State/Province</label>
-                      <input id="regionStateProvince" type="text" name="regionStateProvince" value={formData.regionStateProvince} onChange={handleChange} placeholder="Region/State/Province" autoComplete="address-level1" maxLength={100} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone <span aria-hidden="true" className="text-red-500">*</span></label>
-                      <input id="phone" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter your phone number" autoComplete="tel-national" inputMode="numeric" maxLength={10}
-                        className={`w-full px-4 py-3 rounded-lg border ${errors.phone ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
-                      {errors.phone && <p className="mt-1 text-sm text-red-600" role="alert">{errors.phone}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="postalZipCode" className="block text-sm font-medium text-gray-700 mb-2">Postal / Zip code <span aria-hidden="true" className="text-red-500">*</span></label>
-                      <input id="postalZipCode" type="text" name="postalZipCode" value={formData.postalZipCode} onChange={handleChange} placeholder="Enter postal or zip code" autoComplete="postal-code" maxLength={10} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200" />
-                    </div>
-                    <div>
-                      <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                      <select id="country" name="country" value={formData.country} onChange={handleChange} autoComplete="country-name" className="w-full h-12 text-sm rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition duration-200 bg-white">
-                        <option value="">Select Country</option>
-                        {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label htmlFor="models" className="block text-sm font-medium text-gray-700 mb-2">Model(s) <span className="text-red-500" aria-hidden="true">*</span></label>
-                      <div className="flex gap-2">
-                        <input id="models" type="text" value={currentModel} onChange={e => setCurrentModel(e.target.value)} onKeyDown={e => handleAddItem(e, 'models', currentModel, setCurrentModel)} placeholder="Type model and press Enter" maxLength={100} aria-required="true"
-                          className={`flex-1 px-4 py-3 rounded-lg border ${errors.models ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
-                        <button type="button" onClick={e => handleAddItem(e, 'models', currentModel, setCurrentModel)} aria-label="Add model" className="bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                          <Plus className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {formData.models.map((m, i) => (
-                          <span key={i} className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                            {m} <X onClick={() => removeItem('models', i)} className="w-3 h-3 cursor-pointer hover:text-red-600" aria-label={`Remove model ${m}`} />
-                          </span>
-                        ))}
-                      </div>
-                      {errors.models && <p className="mt-1 text-sm text-red-600" role="alert">{errors.models}</p>}
-                    </div>
-
-                    <div>
-                      <label htmlFor="serialNumbers" className="block text-sm font-medium text-gray-700 mb-2">Serial Number(s) <span className="text-red-500" aria-hidden="true">*</span></label>
-                      <div className="flex gap-2">
-                        <input id="serialNumbers" type="text" value={currentSerial} onChange={e => setCurrentSerial(e.target.value)} onKeyDown={e => handleAddItem(e, 'serialNumbers', currentSerial, setCurrentSerial)} placeholder="Type serial and press Enter" maxLength={100} aria-required="true"
-                          className={`flex-1 px-4 py-3 rounded-lg border ${errors.serialNumbers ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
-                        <button type="button" onClick={e => handleAddItem(e, 'serialNumbers', currentSerial, setCurrentSerial)} aria-label="Add serial number" className="bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                          <Plus className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {formData.serialNumbers.map((s, i) => (
-                          <span key={i} className="flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                            {s} <X onClick={() => removeItem('serialNumbers', i)} className="w-3 h-3 cursor-pointer hover:text-red-600" aria-label={`Remove serial number ${s}`} />
-                          </span>
-                        ))}
-                      </div>
-                      {errors.serialNumbers && <p className="mt-1 text-sm text-red-600" role="alert">{errors.serialNumbers}</p>}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-2">Invoice Number <span className="text-red-500" aria-hidden="true">*</span></label>
-                      <input id="invoiceNumber" type="text" name="invoiceNumber" value={formData.invoiceNumber} onChange={handleChange} placeholder="Enter Number" maxLength={50} aria-required="true"
-                        className={`w-full px-4 py-3 rounded-lg border ${errors.invoiceNumber ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
-                      {errors.invoiceNumber && <p className="mt-1 text-sm text-red-600" role="alert">{errors.invoiceNumber}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="purchasedFrom" className="block text-sm font-medium text-gray-700 mb-2">Purchased From <span className="text-red-500" aria-hidden="true">*</span></label>
-                      <input id="purchasedFrom" type="text" name="purchasedFrom" value={formData.purchasedFrom} onChange={handleChange} placeholder="Purchased From" maxLength={100} aria-required="true"
-                        className={`w-full px-4 py-3 rounded-lg border ${errors.purchasedFrom ? 'bg-red-50 border-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} focus:ring-2 focus:outline-none transition duration-200`} />
-                      {errors.purchasedFrom && <p className="mt-1 text-sm text-red-600" role="alert">{errors.purchasedFrom}</p>}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="invoiceFile" className="block text-sm font-medium text-gray-700 mb-2">Upload Invoice <span aria-hidden="true" className="text-red-500">*</span></label>
-                    <div className={`relative flex items-center justify-between border rounded-lg px-4 py-3 cursor-pointer transition-all ${fileError ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-green-500'}`}>
-                      <span className={`truncate text-sm ${selectedFile ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>{fileName}</span>
-                      <div className="flex items-center gap-2 ml-2">
-                        {selectedFile && (
-                          <button type="button" onClick={removeFile} className="p-1 hover:bg-red-100 rounded-full transition flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Remove uploaded file">
-                            <X className="w-4 h-4 text-red-600" />
-                          </button>
-                        )}
-                        <UploadCloud className="w-5 h-5 text-green-600 flex-shrink-0" aria-hidden="true" />
-                      </div>
-                      <input ref={fileInputRef} id="invoiceFile" type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" aria-label="Upload invoice file" />
-                    </div>
-                    {fileError && <p className="mt-1 text-sm text-red-600" role="alert">{fileError}</p>}
-                    {!fileError && <p className="mt-1 text-xs text-gray-500">Supported formats: PDF, JPG, PNG (Max 15MB)</p>}
-                    {selectedFile && !fileError && (
-                      <p className="text-sm mt-1 text-green-600" role="status">&#10003; File ready: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                    )}
-                  </div>
-
-                  <div className="flex justify-center pt-4">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || !!fileError}
-                      aria-busy={isSubmitting}
-                      aria-disabled={isSubmitting || !!fileError}
-                      className={`px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${isSubmitting || fileError ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Register Product'}
-                    </button>
-                  </div>
-
-                </form>
+          {isSubmitted && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-5 mb-6 flex items-start gap-3"
+            >
+              <CheckCircle2 className="w-6 h-6 text-[#c79d47] shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <h2 className="font-semibold text-lg">Registration Successful!</h2>
+                <p className="mt-1">Your product has been registered successfully. Thank you!</p>
               </div>
             </div>
-          </div>
+          )}
+
+          <section className={liftSection} aria-labelledby="register-form-heading">
+            <h2 id="register-form-heading" className="text-2xl font-bold text-[#920609] mb-6">
+              Product Registration
+            </h2>
+
+            <form onSubmit={handleSubmit} noValidate aria-label="Product registration form" className="space-y-6">
+
+              {/* Row 1 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                  <label htmlFor="firstName" className={labelClass}>First Name <Req /></label>
+                  <input id="firstName" type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Enter your first name" autoComplete="given-name" maxLength={50} className={inputBase} />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className={labelClass}>Last Name</label>
+                  <input id="lastName" type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Enter your last name" autoComplete="family-name" maxLength={50} className={inputBase} />
+                </div>
+                <div>
+                  <label htmlFor="purchaseDate" className={labelClass}>Date of Purchase <Req /></label>
+                  <input id="purchaseDate" type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleChange} max={new Date().toISOString().split('T')[0]} aria-required="true" className={inputClass("purchaseDate")} />
+                  {fieldError("purchaseDate")}
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                  <label htmlFor="email" className={labelClass}>Email <Req /></label>
+                  <input id="email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" autoComplete="email" inputMode="email" maxLength={254} aria-required="true" className={inputClass("email")} />
+                  {fieldError("email")}
+                </div>
+                <div>
+                  <label htmlFor="companyCity" className={labelClass}>City <Req /></label>
+                  <input id="companyCity" type="text" name="companyCity" value={formData.companyCity} onChange={handleChange} placeholder="Enter city" autoComplete="address-level2" maxLength={100} className={inputBase} />
+                </div>
+                <div>
+                  <label htmlFor="regionStateProvince" className={labelClass}>Region/State/Province</label>
+                  <input id="regionStateProvince" type="text" name="regionStateProvince" value={formData.regionStateProvince} onChange={handleChange} placeholder="Region/State/Province" autoComplete="address-level1" maxLength={100} className={inputBase} />
+                </div>
+              </div>
+
+              {/* Row 3 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                  <label htmlFor="phone" className={labelClass}>Phone <Req /></label>
+                  <input id="phone" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter your phone number" autoComplete="tel-national" inputMode="numeric" maxLength={10} className={inputClass("phone")} />
+                  {fieldError("phone")}
+                </div>
+                <div>
+                  <label htmlFor="postalZipCode" className={labelClass}>Postal / Zip code <Req /></label>
+                  <input id="postalZipCode" type="text" name="postalZipCode" value={formData.postalZipCode} onChange={handleChange} placeholder="Enter postal or zip code" autoComplete="postal-code" maxLength={10} className={inputBase} />
+                </div>
+                <div>
+                  <label htmlFor="country" className={labelClass}>Country</label>
+                  <select id="country" name="country" value={formData.country} onChange={handleChange} autoComplete="country-name" className={`${inputBase} bg-white`}>
+                    <option value="">Select Country</option>
+                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Models & Serials */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="models" className={labelClass}>Model(s) <Req /></label>
+                  <div className="flex gap-2">
+                    <input id="models" type="text" value={currentModel} onChange={e => setCurrentModel(e.target.value)} onKeyDown={e => handleAddItem(e, 'models', currentModel, setCurrentModel)} placeholder="Type model and press Enter" maxLength={100} aria-required="true" className={`flex-1 ${inputClass("models")}`} />
+                    <button type="button" onClick={e => handleAddItem(e, 'models', currentModel, setCurrentModel)} aria-label="Add model" className={addBtn}>
+                      <Plus className="w-5 h-5" aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.models.map((m, i) => (
+                      <span key={i} className="flex items-center gap-1 bg-[#c79d47]/15 text-[#a16d36] border border-[#c79d47]/40 px-3 py-1 rounded-full text-sm font-medium">
+                        {m}
+                        <button type="button" onClick={() => removeItem('models', i)} aria-label={`Remove model ${m}`} className="hover:text-[#c42126]">
+                          <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  {fieldError("models")}
+                </div>
+
+                <div>
+                  <label htmlFor="serialNumbers" className={labelClass}>Serial Number(s) <Req /></label>
+                  <div className="flex gap-2">
+                    <input id="serialNumbers" type="text" value={currentSerial} onChange={e => setCurrentSerial(e.target.value)} onKeyDown={e => handleAddItem(e, 'serialNumbers', currentSerial, setCurrentSerial)} placeholder="Type serial and press Enter" maxLength={100} aria-required="true" className={`flex-1 ${inputClass("serialNumbers")}`} />
+                    <button type="button" onClick={e => handleAddItem(e, 'serialNumbers', currentSerial, setCurrentSerial)} aria-label="Add serial number" className={addBtn}>
+                      <Plus className="w-5 h-5" aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.serialNumbers.map((s, i) => (
+                      <span key={i} className="flex items-center gap-1 bg-[#920609]/10 text-[#920609] border border-[#920609]/30 px-3 py-1 rounded-full text-sm font-medium">
+                        {s}
+                        <button type="button" onClick={() => removeItem('serialNumbers', i)} aria-label={`Remove serial number ${s}`} className="hover:text-[#c42126]">
+                          <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  {fieldError("serialNumbers")}
+                </div>
+              </div>
+
+              {/* Invoice details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="invoiceNumber" className={labelClass}>Invoice Number <Req /></label>
+                  <input id="invoiceNumber" type="text" name="invoiceNumber" value={formData.invoiceNumber} onChange={handleChange} placeholder="Enter Number" maxLength={50} aria-required="true" className={inputClass("invoiceNumber")} />
+                  {fieldError("invoiceNumber")}
+                </div>
+                <div>
+                  <label htmlFor="purchasedFrom" className={labelClass}>Purchased From <Req /></label>
+                  <input id="purchasedFrom" type="text" name="purchasedFrom" value={formData.purchasedFrom} onChange={handleChange} placeholder="Purchased From" maxLength={100} aria-required="true" className={inputClass("purchasedFrom")} />
+                  {fieldError("purchasedFrom")}
+                </div>
+              </div>
+
+              {/* File Upload */}
+              <div>
+                <label htmlFor="invoiceFile" className={labelClass}>
+                  Upload Invoice <span className="text-slate-400 font-normal">(Max 15 MB)</span>
+                </label>
+                <div className={`relative flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition ${fileError ? 'border-red-400 bg-red-50' : 'border-[#c79d47]/40 hover:border-[#c79d47]'}`}>
+                  <span className={`truncate text-sm ${selectedFile ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>{fileName}</span>
+                  <div className="flex items-center gap-2 ml-2">
+                    {selectedFile && (
+                      <button type="button" onClick={removeFile} className="p-1 hover:bg-red-100 rounded-full transition shrink-0 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Remove uploaded file">
+                        <X className="w-4 h-4 text-red-600" aria-hidden="true" />
+                      </button>
+                    )}
+                    <UploadCloud className="w-5 h-5 text-[#c79d47] shrink-0" aria-hidden="true" />
+                  </div>
+                  <input ref={fileInputRef} id="invoiceFile" type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" aria-label="Upload invoice file" />
+                </div>
+                {fileError && <p role="alert" className="text-sm mt-1 text-red-600">{fileError}</p>}
+                {!fileError && !selectedFile && <p className="text-sm mt-1 text-slate-500">Supported: PDF / JPG / PNG (Max 15 MB)</p>}
+                {selectedFile && !fileError && (
+                  <p className="text-sm mt-1 text-[#a16d36]" role="status">✓ File ready: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                )}
+              </div>
+
+              {/* Submit */}
+              <div className="flex justify-center pt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !!fileError}
+                  aria-busy={isSubmitting}
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#920609] to-[#c42126] text-white px-10 py-4 font-semibold shadow-md hover:shadow-lg hover:from-[#c42126] hover:to-[#920609] focus:outline-none focus:ring-4 focus:ring-[#c42126]/40 transition-all duration-500 ease-out hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="w-5 h-5" aria-hidden="true" />
+                  {isSubmitting ? 'Submitting…' : 'Register Product'}
+                </button>
+              </div>
+            </form>
+          </section>
         </div>
       </main>
 

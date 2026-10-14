@@ -2,8 +2,13 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
+import { CheckCircle2, Send } from "lucide-react";
 import bg from "../../assets/bg.avif";
-import psbanner from "../../assets/ProductSupportBanner.avif";
+import psbanner from "../../assets/ProductSupportBanner.webp";
+
+// Brand theme (Aadona Communication) - same as Request DOA page
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36), crimson #c42126 (dark #920609)
 
 // ─── Security Helpers ────────────────────────────────────────────────────────
 
@@ -48,31 +53,32 @@ const structuredData = {
   },
 };
 
-// ─── Shared Input Class Helper ───────────────────────────────────────────────
-const inputClass = (error) =>
-  `w-full px-4 py-3 rounded-lg border focus:ring-2 focus:outline-none transition duration-200 ${
-    error
-      ? "bg-red-50 border-red-500 focus:ring-red-500"
-      : "border-gray-300 focus:border-green-500 focus:ring-green-500"
-  }`;
+// ─── Style Constants ─────────────────────────────────────────────────────────
+const liftSection =
+  "rounded-2xl bg-white p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-[#c79d47]/20 " +
+  "border border-[#c79d47]/30 hover:border-[#c79d47] transition-all duration-500 ease-out hover:-translate-y-1";
+const inputBase =
+  "w-full border border-[#c79d47]/40 rounded-xl px-4 py-3 text-base " +
+  "focus:border-[#c79d47] focus:ring-2 focus:ring-[#c79d47] outline-none transition";
+const labelClass = "block text-slate-700 font-medium mb-1";
 
 const emptyForm = {
-  name:        "",
-  companyName: "",
+  name:         "",
+  companyName:  "",
   productModel: "",
-  email:       "",
-  phone:       "",
-  city:        "",
-  zipCode:     "",
-  details:     "",
+  email:        "",
+  phone:        "",
+  city:         "",
+  zipCode:      "",
+  details:      "",
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const ProductSupport = () => {
-  const [formData, setFormData]         = useState(emptyForm);
-  const [errors, setErrors]             = useState({});
-  const [isSubmitted, setIsSubmitted]   = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData]             = useState(emptyForm);
+  const [errors, setErrors]                 = useState({});
+  const [isSubmitted, setIsSubmitted]       = useState(false);
+  const [isSubmitting, setIsSubmitting]     = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
   const successRef = useRef(null);
 
@@ -169,11 +175,26 @@ const ProductSupport = () => {
     }
   };
 
+  const inputClass = (name) =>
+    `${inputBase} ${errors[name] ? "border-red-400" : ""}`;
+
+  const fieldError = (name) =>
+    errors[name] ? (
+      <p id={`err-${name}`} role="alert" className="text-sm mt-1 text-red-600">{errors[name]}</p>
+    ) : null;
+
+  const Req = () => <span aria-hidden="true" className="text-[#c42126]">*</span>;
+
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── SEO Meta Tags ─────────────────────────────────────────────────── */}
+      {/* ── SEO Meta Tags + Brand Font ────────────────────────────────────── */}
       <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
         <title>Product Support – Get Help with AADONA Networking &amp; CCTV Products</title>
         <meta
           name="description"
@@ -210,8 +231,9 @@ const ProductSupport = () => {
         {/* ── Hero Banner ──────────────────────────────────────────────────── */}
         <header
           className="pt-32 pb-16 bg-cover bg-no-repeat bg-right sm:bg-center sm:bg-none"
-            style={{
-              backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${psbanner})` }}
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${psbanner})`,
+          }}
           aria-label="Product Support hero banner"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -226,314 +248,170 @@ const ProductSupport = () => {
 
         {/* ── Main Content ─────────────────────────────────────────────────── */}
         <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-8">
-            <main className="grow pt-4 pb-16 px-4 md:px-8 lg:px-16">
-              <div className="max-w-4xl mx-auto">
+          <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
 
-                {/* Success Message */}
-                {isSubmitted && (
-                  <div
-                    ref={successRef}
-                    tabIndex={-1}
-                    role="status"
-                    aria-live="polite"
-                    className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm outline-none"
-                  >
-                    <div className="flex items-start">
-                      <svg
-                        className="w-6 h-6 text-green-500 mt-0.5 mr-3 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <div>
-                        <h2 className="text-green-800 font-semibold">Request Submitted!</h2>
-                        <p className="text-green-700 mt-1">
-                          Your support request has been received. We'll respond within 24 hours.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Form Card */}
-                <section
-                  className="bg-white rounded-xl shadow-md border-2 border-green-200 p-8 md:p-10"
-                  aria-labelledby="support-form-heading"
-                >
-                  <h2
-                    id="support-form-heading"
-                    className="text-xl font-bold text-gray-800 mb-6"
-                  >
-                    Submit a Support Request
-                  </h2>
-
-                  <form
-                    onSubmit={handleSubmit}
-                    noValidate
-                    aria-label="Product support request form"
-                    autoComplete="on"
-                    className="space-y-6"
-                  >
-
-                    {/* ── Row 1: Name & Company Name ── */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                      {/* Full Name */}
-                      <div>
-                        <label
-                          htmlFor="name"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          Full Name{" "}
-                          <span aria-hidden="true" className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="name"
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          placeholder="Enter your name"
-                          className={inputClass(errors.name)}
-                          required
-                          aria-required="true"
-                          autoComplete="name"
-                          aria-describedby={errors.name ? "err-name" : undefined}
-                        />
-                        {errors.name && (
-                          <p id="err-name" role="alert" className="mt-1 text-sm text-red-600">
-                            {errors.name}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Company Name */}
-                      <div>
-                        <label
-                          htmlFor="companyName"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          Company Name <span aria-hidden="true" className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="companyName"
-                          type="text"
-                          name="companyName"
-                          value={formData.companyName}
-                          onChange={handleChange}
-                          placeholder="Enter your company name"
-                          className={inputClass(errors.companyName)}
-                          autoComplete="organization"
-                          aria-describedby={errors.companyName ? "err-companyName" : undefined}
-                        />
-                        {errors.companyName && (
-                          <p id="err-companyName" role="alert" className="mt-1 text-sm text-red-600">
-                            {errors.companyName}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* ── Row 2: Product Model, Email, Phone ── */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-                      {/* Product Model */}
-                      <div>
-                        <label
-                          htmlFor="productModel"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          Product Model <span aria-hidden="true" className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="productModel"
-                          type="text"
-                          name="productModel"
-                          value={formData.productModel}
-                          onChange={handleChange}
-                          placeholder="e.g. AC1200, NVR-4CH"
-                          className={inputClass(errors.productModel)}
-                          required
-                          aria-required="true"
-                          aria-describedby={errors.productModel ? "err-productModel" : undefined}
-                        />
-                        {errors.productModel && (
-                          <p id="err-productModel" role="alert" className="mt-1 text-sm text-red-600">
-                            {errors.productModel}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Email */}
-                      <div>
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          Email <span aria-hidden="true" className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="email"
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          placeholder="Enter your email"
-                          className={inputClass(errors.email)}
-                          required
-                          aria-required="true"
-                          autoComplete="email"
-                          aria-describedby={errors.email ? "err-email" : undefined}
-                        />
-                        {errors.email && (
-                          <p id="err-email" role="alert" className="mt-1 text-sm text-red-600">
-                            {errors.email}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Phone */}
-                      <div>
-                        <label
-                          htmlFor="phone"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          Phone <span aria-hidden="true" className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="phone"
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          placeholder="Enter your phone number"
-                          className={inputClass(errors.phone)}
-                          autoComplete="tel"
-                          aria-describedby={errors.phone ? "err-phone" : undefined}
-                        />
-                        {errors.phone && (
-                          <p id="err-phone" role="alert" className="mt-1 text-sm text-red-600">
-                            {errors.phone}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* ── Row 3: City & ZIP ── */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                      {/* City */}
-                      <div>
-                        <label
-                          htmlFor="city"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          City{" "}
-                          <span aria-hidden="true" className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="city"
-                          type="text"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleChange}
-                          placeholder="Enter your city"
-                          className={inputClass(errors.city)}
-                          required
-                          aria-required="true"
-                          autoComplete="address-level2"
-                          aria-describedby={errors.city ? "err-city" : undefined}
-                        />
-                        {errors.city && (
-                          <p id="err-city" role="alert" className="mt-1 text-sm text-red-600">
-                            {errors.city}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* ZIP / PIN Code */}
-                      <div>
-                        <label
-                          htmlFor="zipCode"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="zipCode"
-                          type="text"
-                          name="zipCode"
-                          value={formData.zipCode}
-                          onChange={handleChange}
-                          placeholder="Enter postal or zip code"
-                          className={inputClass(errors.zipCode)}
-                          autoComplete="postal-code"
-                          inputMode="numeric"
-                          aria-describedby={errors.zipCode ? "err-zipCode" : undefined}
-                        />
-                        {errors.zipCode && (
-                          <p id="err-zipCode" role="alert" className="mt-1 text-sm text-red-600">
-                            {errors.zipCode}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* ── Issue Description ── */}
-                    <div>
-                      <label
-                        htmlFor="details"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        Describe Your Issue or Question <span aria-hidden="true" className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        id="details"
-                        name="details"
-                        value={formData.details}
-                        onChange={handleChange}
-                        rows={6}
-                        placeholder="Describe your question or issue in detail (min 20 characters)..."
-                        className={`${inputClass(errors.details)} resize-none`}
-                        required
-                        aria-required="true"
-                        aria-describedby={errors.details ? "err-details" : undefined}
-                      />
-                      {errors.details && (
-                        <p id="err-details" role="alert" className="mt-1 text-sm text-red-600">
-                          {errors.details}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Submit */}
-                    <div className="flex justify-center pt-4">
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        aria-busy={isSubmitting}
-                        className={`px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-                          isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        {isSubmitting ? "Submitting…" : "Submit Request"}
-                      </button>
-                    </div>
-                  </form>
-                </section>
-
+            {/* Success Message */}
+            {isSubmitted && (
+              <div
+                ref={successRef}
+                tabIndex={-1}
+                role="status"
+                aria-live="polite"
+                className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-5 mb-6 outline-none flex items-start gap-3"
+              >
+                <CheckCircle2 className="w-6 h-6 text-[#c79d47] shrink-0 mt-0.5" aria-hidden="true" />
+                <div>
+                  <h2 className="font-semibold text-lg">Request Submitted!</h2>
+                  <p className="mt-1">
+                    Your support request has been received. We'll respond within 24 hours.
+                  </p>
+                </div>
               </div>
-            </main>
-          </div>
+            )}
+
+            {/* Form Card */}
+            <section className={liftSection} aria-labelledby="support-form-heading">
+              <h2 id="support-form-heading" className="text-2xl font-bold text-[#920609] mb-6">
+                Submit a Support Request
+              </h2>
+
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                aria-label="Product support request form"
+                autoComplete="on"
+                className="space-y-6"
+              >
+                {/* Row 1: Name & Company */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="name" className={labelClass}>Full Name <Req /></label>
+                    <input
+                      id="name" type="text" name="name"
+                      value={formData.name} onChange={handleChange}
+                      placeholder="Enter your name"
+                      className={inputClass("name")}
+                      required aria-required="true" autoComplete="name"
+                      aria-describedby={errors.name ? "err-name" : undefined}
+                    />
+                    {fieldError("name")}
+                  </div>
+
+                  <div>
+                    <label htmlFor="companyName" className={labelClass}>Company Name</label>
+                    <input
+                      id="companyName" type="text" name="companyName"
+                      value={formData.companyName} onChange={handleChange}
+                      placeholder="Enter your company name"
+                      className={inputClass("companyName")}
+                      autoComplete="organization"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2: Product Model, Email, Phone */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div>
+                    <label htmlFor="productModel" className={labelClass}>Product Model <Req /></label>
+                    <input
+                      id="productModel" type="text" name="productModel"
+                      value={formData.productModel} onChange={handleChange}
+                      placeholder="e.g. AC1200, NVR-4CH"
+                      className={inputClass("productModel")}
+                      required aria-required="true"
+                      aria-describedby={errors.productModel ? "err-productModel" : undefined}
+                    />
+                    {fieldError("productModel")}
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className={labelClass}>Email <Req /></label>
+                    <input
+                      id="email" type="email" name="email"
+                      value={formData.email} onChange={handleChange}
+                      placeholder="Enter your email"
+                      className={inputClass("email")}
+                      required aria-required="true" autoComplete="email"
+                      aria-describedby={errors.email ? "err-email" : undefined}
+                    />
+                    {fieldError("email")}
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className={labelClass}>Phone</label>
+                    <input
+                      id="phone" type="tel" name="phone"
+                      value={formData.phone} onChange={handleChange}
+                      placeholder="Enter your phone number"
+                      className={inputClass("phone")}
+                      autoComplete="tel"
+                      aria-describedby={errors.phone ? "err-phone" : undefined}
+                    />
+                    {fieldError("phone")}
+                  </div>
+                </div>
+
+                {/* Row 3: City & ZIP */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="city" className={labelClass}>City <Req /></label>
+                    <input
+                      id="city" type="text" name="city"
+                      value={formData.city} onChange={handleChange}
+                      placeholder="Enter your city"
+                      className={inputClass("city")}
+                      required aria-required="true" autoComplete="address-level2"
+                      aria-describedby={errors.city ? "err-city" : undefined}
+                    />
+                    {fieldError("city")}
+                  </div>
+
+                  <div>
+                    <label htmlFor="zipCode" className={labelClass}>ZIP / PIN Code</label>
+                    <input
+                      id="zipCode" type="text" name="zipCode"
+                      value={formData.zipCode} onChange={handleChange}
+                      placeholder="Enter postal or zip code"
+                      className={inputClass("zipCode")}
+                      autoComplete="postal-code" inputMode="numeric"
+                      aria-describedby={errors.zipCode ? "err-zipCode" : undefined}
+                    />
+                    {fieldError("zipCode")}
+                  </div>
+                </div>
+
+                {/* Issue Description */}
+                <div>
+                  <label htmlFor="details" className={labelClass}>
+                    Describe Your Issue or Question <Req />
+                  </label>
+                  <textarea
+                    id="details" name="details"
+                    value={formData.details} onChange={handleChange}
+                    rows={6}
+                    placeholder="Describe your question or issue in detail (min 20 characters)..."
+                    className={`${inputClass("details")} resize-none`}
+                    required aria-required="true"
+                    aria-describedby={errors.details ? "err-details" : undefined}
+                  />
+                  {fieldError("details")}
+                </div>
+
+                {/* Submit */}
+                <div className="flex justify-center pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    aria-busy={isSubmitting}
+                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#920609] to-[#c42126] text-white px-10 py-4 font-semibold shadow-md hover:shadow-lg hover:from-[#c42126] hover:to-[#920609] focus:outline-none focus:ring-4 focus:ring-[#c42126]/40 transition-all duration-500 ease-out hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="w-5 h-5" aria-hidden="true" />
+                    {isSubmitting ? "Submitting…" : "Submit Request"}
+                  </button>
+                </div>
+              </form>
+            </section>
+          </main>
         </div>
 
         <Footer />
@@ -543,4 +421,3 @@ const ProductSupport = () => {
 };
 
 export default ProductSupport;
-//

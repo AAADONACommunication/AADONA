@@ -8,7 +8,12 @@ import {
   Mail, Phone, MapPin, Send,
 } from "lucide-react";
 import bg from "../../assets/bg.avif";
-import tsbanner from "../../assets/TechSquadBanner.avif";
+import tsbanner from "../../assets/TechSquadBanner.webp";
+
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
 
 // ─── Security Helpers ────────────────────────────────────────────────────────
 
@@ -66,15 +71,28 @@ const Reveal = ({ children, className = "" }) => {
 // ─── Style Constants ─────────────────────────────────────────────────────────
 
 const liftCard =
-  "rounded-2xl bg-white/90 p-6 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white/90 p-6 shadow-md hover:shadow-2xl hover:shadow-[#c79d47]/40 " +
+  "border border-[#c79d47]/50 border-t-4 border-t-[#c79d47] hover:border-[#c79d47] " +
+  "transition-all duration-500 ease-out hover:-translate-y-1";
 
 const liftSection =
-  "rounded-2xl bg-white/90 p-6 md:p-8 border border-green-200 transition-all duration-500 ease-out";
+  "rounded-2xl bg-white/90 p-6 md:p-8 shadow-sm " +
+  "border border-[#c79d47]/50 border-l-4 border-l-[#c79d47] " +
+  "transition-all duration-500 ease-out";
+
+const iconCircle =
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full " +
+  "bg-[#c79d47]/15 ring-1 ring-[#c79d47]/40";
 
 const inputBase =
-  "w-full border border-green-300 rounded-xl px-4 py-3 text-base " +
-  "focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition";
+  "w-full border border-[#c79d47]/40 rounded-xl px-4 py-3 text-base " +
+  "focus:border-[#c79d47] focus:ring-2 focus:ring-[#c79d47] outline-none transition";
+
+const btnPrimary =
+  "inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#920609] to-[#c42126] text-white font-semibold " +
+  "border-2 border-[#c79d47] shadow-md shadow-[#c79d47]/40 hover:shadow-lg hover:from-[#c42126] hover:to-[#920609] " +
+  "focus:outline-none focus:ring-4 focus:ring-[#c79d47]/50 " +
+  "disabled:opacity-50 disabled:cursor-not-allowed";
 
 const emptyForm = {
   firstName: "", lastName: "", email: "", phone: "",
@@ -205,8 +223,13 @@ const TechSquad = () => {
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── SEO Meta Tags ─────────────────────────────────────────────────── */}
+      {/* ── SEO Meta Tags + Brand Font ────────────────────────────────────── */}
       <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
         <title>Tech Squad – On-site & Remote IT Engineering Support Across India</title>
         <meta
           name="description"
@@ -257,6 +280,10 @@ const TechSquad = () => {
             <p className="mt-6 text-md text-white  max-w-3xl mx-auto">
               On-site &amp; Remote Engineering Support across India - fast, reliable, professional.
             </p>
+            <div
+              className="mt-6 mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-[#c79d47] via-[#e6c06a] to-[#a16d36]"
+              aria-hidden="true"
+            />
           </div>
         </header>
 
@@ -275,8 +302,10 @@ const TechSquad = () => {
               <Reveal>
                 <article className={liftCard}>
                   <div className="flex items-center gap-3 mb-3">
-                    <Wrench className="w-6 h-6 text-green-600" aria-hidden="true" />
-                    <h2 className="text-lg font-semibold text-slate-900">Flexible Service</h2>
+                    <span className={iconCircle}>
+                      <Wrench className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />
+                    </span>
+                    <h2 className="text-lg font-semibold text-[#920609]">Flexible Service</h2>
                   </div>
                   <p className="text-slate-700">
                     On-site &amp; remote options for installation, troubleshooting, and replacements.
@@ -287,8 +316,10 @@ const TechSquad = () => {
               <Reveal className="delay-100">
                 <article className={liftCard}>
                   <div className="flex items-center gap-3 mb-3">
-                    <ClipboardList className="w-6 h-6 text-green-600" aria-hidden="true" />
-                    <h2 className="text-lg font-semibold text-slate-900">Clear Process</h2>
+                    <span className={iconCircle}>
+                      <ClipboardList className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />
+                    </span>
+                    <h2 className="text-lg font-semibold text-[#920609]">Clear Process</h2>
                   </div>
                   <p className="text-slate-700">
                     Log a request, get a callback, confirm scope &amp; quotation, and we dispatch.
@@ -299,8 +330,10 @@ const TechSquad = () => {
               <Reveal className="delay-200">
                 <article className={liftCard}>
                   <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle2 className="w-6 h-6 text-green-600" aria-hidden="true" />
-                    <h2 className="text-lg font-semibold text-slate-900">Certified Engineers</h2>
+                    <span className={iconCircle}>
+                      <CheckCircle2 className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />
+                    </span>
+                    <h2 className="text-lg font-semibold text-[#920609]">Certified Engineers</h2>
                   </div>
                   <p className="text-slate-700">
                     Experienced team with ESD safety practices and proper documentation.
@@ -318,11 +351,11 @@ const TechSquad = () => {
                   <section className={liftSection} aria-labelledby="how-it-works-heading">
                     <h2
                       id="how-it-works-heading"
-                      className="text-2xl md:text-3xl font-bold text-teal-900 mb-3"
+                      className="text-2xl md:text-3xl font-bold text-[#920609] mb-3"
                     >
                       How it Works
                     </h2>
-                    <ol className="list-decimal pl-6 space-y-2 leading-relaxed text-slate-700">
+                    <ol className="list-decimal pl-6 space-y-2 leading-relaxed text-slate-700 marker:text-[#c79d47]">
                       <li>Fill the request form with accurate details.</li>
                       <li>Our coordinator confirms scope and location.</li>
                       <li>Quotation shared for approval; visit scheduled.</li>
@@ -337,11 +370,11 @@ const TechSquad = () => {
                   <section className={liftSection} aria-labelledby="services-heading">
                     <h2
                       id="services-heading"
-                      className="text-2xl font-bold text-teal-900 mb-3"
+                      className="text-2xl font-bold text-[#920609] mb-3"
                     >
                       Services Include
                     </h2>
-                    <ul className="list-disc pl-6 space-y-2 leading-relaxed text-slate-700">
+                    <ul className="list-disc pl-6 space-y-2 leading-relaxed text-slate-700 marker:text-[#c79d47]">
                       <li>Advanced replacement coordination</li>
                       <li>Network / L2 &amp; L3 configuration</li>
                       <li>CCTV installation &amp; health checks</li>
@@ -356,11 +389,11 @@ const TechSquad = () => {
                   <section className={liftSection} aria-labelledby="notes-heading">
                     <h2
                       id="notes-heading"
-                      className="text-2xl font-bold text-teal-900 mb-3"
+                      className="text-2xl font-bold text-[#920609] mb-3"
                     >
                       Important Notes
                     </h2>
-                    <ul className="list-disc pl-6 space-y-2 text-slate-700">
+                    <ul className="list-disc pl-6 space-y-2 text-slate-700 marker:text-[#c79d47]">
                       <li>Paid service - charges vary by location.</li>
                       <li>Visit fee is non-refundable once engineer dispatched.</li>
                       <li>Parts replacement billed separately.</li>
@@ -376,19 +409,23 @@ const TechSquad = () => {
                 <section className={liftSection} aria-labelledby="request-form-heading">
                   <h2
                     id="request-form-heading"
-                    className="text-2xl font-bold text-slate-900 mb-6"
+                    className="text-2xl font-bold text-[#920609]"
                   >
                     Request Tech Squad
                   </h2>
+                  <div
+                    className="mt-3 mb-6 h-1 w-16 rounded-full bg-gradient-to-r from-[#c79d47] to-[#a16d36]"
+                    aria-hidden="true"
+                  />
 
                   {/* Success State */}
                   {submitted && (
                     <div
                       role="status"
                       aria-live="polite"
-                      className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6 flex items-center justify-center gap-3"
+                      className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6 flex items-center justify-center gap-3"
                     >
-                      <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" aria-hidden="true" />
+                      <CheckCircle2 className="w-6 h-6 text-[#c79d47] shrink-0" aria-hidden="true" />
                       <span>Tech Squad request submitted! Our team will contact you soon.</span>
                     </div>
                   )}
@@ -406,7 +443,7 @@ const TechSquad = () => {
                         {/* First Name */}
                         <div>
                           <label htmlFor="firstName" className="block text-slate-700 font-medium mb-1">
-                            First Name <span aria-hidden="true" className="text-red-500">*</span>
+                            First Name <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <input
                             id="firstName"
@@ -442,8 +479,8 @@ const TechSquad = () => {
                         {/* Email */}
                         <div>
                           <label htmlFor="email" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-green-600" aria-hidden="true" />
-                            Email <span aria-hidden="true" className="text-red-500">*</span>
+                            <Mail className="w-4 h-4 text-[#c79d47]" aria-hidden="true" />
+                            Email <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <input
                             id="email"
@@ -463,8 +500,8 @@ const TechSquad = () => {
                         {/* Phone */}
                         <div>
                           <label htmlFor="phone" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-green-600" aria-hidden="true" />
-                            Phone <span aria-hidden="true" className="text-red-500">*</span>
+                            <Phone className="w-4 h-4 text-[#c79d47]" aria-hidden="true" />
+                            Phone <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <input
                             id="phone"
@@ -484,8 +521,8 @@ const TechSquad = () => {
                         {/* Address */}
                         <div className="md:col-span-2">
                           <label htmlFor="address" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-green-600" aria-hidden="true" />
-                            Address <span aria-hidden="true" className="text-red-500">*</span>
+                            <MapPin className="w-4 h-4 text-[#c79d47]" aria-hidden="true" />
+                            Address <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <input
                             id="address"
@@ -504,7 +541,7 @@ const TechSquad = () => {
                         {/* City */}
                         <div>
                           <label htmlFor="city" className="block text-slate-700 font-medium mb-1">
-                            City <span aria-hidden="true" className="text-red-500">*</span>
+                            City <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <input
                             id="city"
@@ -523,7 +560,7 @@ const TechSquad = () => {
                         {/* ZIP / PIN Code */}
                         <div>
                           <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-1">
-                            ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                            ZIP / PIN Code <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <input
                             id="zipCode"
@@ -560,7 +597,7 @@ const TechSquad = () => {
                         {/* Service Type */}
                         <div>
                           <label htmlFor="serviceType" className="block text-slate-700 font-medium mb-1">
-                            Service Type <span aria-hidden="true" className="text-red-500">*</span>
+                            Service Type <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <select
                             id="serviceType"
@@ -584,7 +621,7 @@ const TechSquad = () => {
                         {/* Issue Description */}
                         <div className="md:col-span-2">
                           <label htmlFor="issue" className="block text-slate-700 font-medium mb-1">
-                            Describe the Issue <span aria-hidden="true" className="text-red-500">*</span>
+                            Describe the Issue <span aria-hidden="true" className="text-[#c42126]">*</span>
                           </label>
                           <textarea
                             id="issue"
@@ -606,7 +643,7 @@ const TechSquad = () => {
                         <button
                           type="submit"
                           disabled={submitting}
-                          className="inline-flex items-center gap-2 rounded-lg bg-green-600 text-white px-10 py-4 font-semibold hover:bg-green-700 transition duration-300 ease-out hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className={`${btnPrimary} px-10 py-4 transition duration-300 ease-out hover:-translate-y-1`}
                           aria-busy={submitting}
                         >
                           <Send className="w-5 h-5" aria-hidden="true" />
@@ -623,7 +660,7 @@ const TechSquad = () => {
             <div className="w-full flex justify-center mt-8">
               <Link
                 to="/warranty"
-                className="inline-flex items-center gap-2 rounded-lg bg-green-600 text-white px-8 py-3 font-semibold hover:bg-green-700 transition"
+                className={`${btnPrimary} px-8 py-3 transition`}
                 aria-label="Learn about Warranty and Support"
               >
                 Warranty &amp; Support

@@ -7,7 +7,12 @@ import {
   UploadCloud, Mail, Phone, MapPin, Hash, Send, X,
 } from "lucide-react";
 import bg from "../../assets/bg.avif";
-import rdoabanner from "../../assets/RequestDOABanner.avif";
+import rdoabanner from "../../assets/RequestDOABanner.webp";
+
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
 
 // ─── Security Helpers ────────────────────────────────────────────────────────
 
@@ -89,14 +94,19 @@ const Reveal = ({ children, className = "" }) => {
 
 // ─── Style Constants ─────────────────────────────────────────────────────────
 const liftCard =
-  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-[#c79d47]/40 " +
+  "border border-[#c79d47]/50 border-t-4 border-t-[#c79d47] hover:border-[#c79d47] " +
+  "transition-all duration-500 ease-out hover:-translate-y-1";
 const liftSection =
-  "rounded-2xl bg-white p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-green-100/70 " +
-  "border border-green-200 hover:border-green-400 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-[#c79d47]/30 " +
+  "border border-[#c79d47]/50 border-l-4 border-l-[#c79d47] hover:border-[#c79d47] " +
+  "transition-all duration-500 ease-out hover:-translate-y-1";
+const iconCircle =
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full " +
+  "bg-[#c79d47]/15 ring-1 ring-[#c79d47]/40";
 const inputBase =
-  "w-full border border-green-300 rounded-xl px-4 py-3 text-base " +
-  "focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition";
+  "w-full border border-[#c79d47]/40 rounded-xl px-4 py-3 text-base " +
+  "focus:border-[#c79d47] focus:ring-2 focus:ring-[#c79d47] outline-none transition";
 
 const emptyForm = {
   firstName: "", lastName: "", email: "", phone: "",
@@ -274,8 +284,13 @@ const RequestDOA = () => {
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── SEO Meta Tags ─────────────────────────────────────────────────── */}
+      {/* ── SEO Meta Tags + Brand Font ────────────────────────────────────── */}
       <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
         <title>Request DOA – Dead-On-Arrival Return Policy | AADONA</title>
         <meta
           name="description"
@@ -324,6 +339,10 @@ const RequestDOA = () => {
             <p className="mt-6 text-md text-white max-w-3xl mx-auto">
               Raise a Dead-On-Arrival request &amp; review our product return policies
             </p>
+            <div
+              className="mt-6 mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-[#c79d47] via-[#e6c06a] to-[#a16d36]"
+              aria-hidden="true"
+            />
           </div>
         </header>
 
@@ -339,8 +358,10 @@ const RequestDOA = () => {
               <Reveal>
                 <article className={liftCard}>
                   <div className="flex items-center gap-3 mb-3">
-                    <ClipboardList className="w-6 h-6 text-green-600" aria-hidden="true" />
-                    <h2 className="text-lg font-semibold text-slate-900">7-Day DOA Window</h2>
+                    <span className={iconCircle}>
+                      <ClipboardList className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />
+                    </span>
+                    <h2 className="text-lg font-semibold text-[#920609]">7-Day DOA Window</h2>
                   </div>
                   <p className="text-slate-600">
                     DOA must be reported within <strong>7 days</strong> of billing to the end customer via our portal.
@@ -351,8 +372,10 @@ const RequestDOA = () => {
               <Reveal className="delay-100">
                 <article className={liftCard}>
                   <div className="flex items-center gap-3 mb-3">
-                    <FileWarning className="w-6 h-6 text-amber-600" aria-hidden="true" />
-                    <h2 className="text-lg font-semibold text-slate-900">Physical Condition</h2>
+                    <span className={iconCircle}>
+                      <FileWarning className="w-6 h-6 text-[#c42126]" aria-hidden="true" />
+                    </span>
+                    <h2 className="text-lg font-semibold text-[#920609]">Physical Condition</h2>
                   </div>
                   <p className="text-slate-600">
                     Unit must be free from scratches, tampering, liquid damage; <em>gift box &amp; warranty seal should be intact</em>.
@@ -363,8 +386,10 @@ const RequestDOA = () => {
               <Reveal className="delay-200">
                 <article className={liftCard}>
                   <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle2 className="w-6 h-6 text-green-600" aria-hidden="true" />
-                    <h2 className="text-lg font-semibold text-slate-900">Clear Verification</h2>
+                    <span className={iconCircle}>
+                      <CheckCircle2 className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />
+                    </span>
+                    <h2 className="text-lg font-semibold text-[#920609]">Clear Verification</h2>
                   </div>
                   <p className="text-slate-600">
                     Our PM calls the customer for verification; replacement or repair is processed per policy.
@@ -381,11 +406,11 @@ const RequestDOA = () => {
             <div className="space-y-8">
               <Reveal>
                 <section className={liftSection} aria-labelledby="doa-policy-heading">
-                  <h2 id="doa-policy-heading" className="text-2xl md:text-3xl font-bold text-teal-900">
+                  <h2 id="doa-policy-heading" className="text-2xl md:text-3xl font-bold text-[#920609]">
                     AADONA Product Returns Policy
                   </h2>
                   <p className="text-slate-700 mt-2">This includes products that you wish to report as DOA.</p>
-                  <ul className="list-disc pl-6 space-y-2 leading-relaxed text-slate-700 mt-4">
+                  <ul className="list-disc pl-6 space-y-2 leading-relaxed text-slate-700 mt-4 marker:text-[#c79d47]">
                     <li>DOA must be reported within <strong>7 days</strong> of billing to the end customer.</li>
                     <li>DOA request should be raised via our portal after product registration.</li>
                     <li>No signs of scratches, damage, tampering, liquid damage or user defect.</li>
@@ -402,10 +427,10 @@ const RequestDOA = () => {
 
               <Reveal>
                 <section className={liftSection} aria-labelledby="sales-return-heading">
-                  <h2 id="sales-return-heading" className="text-2xl font-bold text-teal-900">
+                  <h2 id="sales-return-heading" className="text-2xl font-bold text-[#920609]">
                     Sales Return Policy
                   </h2>
-                  <ul className="list-disc pl-6 space-y-2 leading-relaxed text-slate-700 mt-3">
+                  <ul className="list-disc pl-6 space-y-2 leading-relaxed text-slate-700 mt-3 marker:text-[#c79d47]">
                     <li>Once sold there will be <strong>NO</strong> returns.</li>
                     <li>Return is possible only with AADONA authorization (exceptional cases).</li>
                     <li>Due to firmware upgrade/field fix, if product can be made working, only the exception in return policy will apply.</li>
@@ -420,18 +445,22 @@ const RequestDOA = () => {
             {/* Right - Request Form */}
             <Reveal>
               <section className={liftSection} aria-labelledby="doa-form-heading">
-                <h2 id="doa-form-heading" className="text-2xl font-bold text-slate-900 mb-6">
+                <h2 id="doa-form-heading" className="text-2xl font-bold text-[#920609]">
                   Raise DOA Request
                 </h2>
+                <div
+                  className="mt-3 mb-6 h-1 w-16 rounded-full bg-gradient-to-r from-[#c79d47] to-[#a16d36]"
+                  aria-hidden="true"
+                />
 
                 {/* Success */}
                 {submitted && (
                   <div
                     role="status"
                     aria-live="polite"
-                    className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6 flex items-center justify-center gap-3"
+                    className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6 flex items-center justify-center gap-3"
                   >
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" aria-hidden="true" />
+                    <CheckCircle2 className="w-6 h-6 text-[#c79d47] shrink-0" aria-hidden="true" />
                     <span>DOA request submitted successfully! Our team will contact you soon.</span>
                   </div>
                 )}
@@ -448,7 +477,7 @@ const RequestDOA = () => {
                       {/* First Name */}
                       <div>
                         <label htmlFor="firstName" className="block text-slate-700 font-medium mb-1">
-                          First Name <span aria-hidden="true" className="text-red-500">*</span>
+                          First Name <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="firstName" name="firstName"
@@ -478,8 +507,8 @@ const RequestDOA = () => {
                       {/* Email */}
                       <div>
                         <label htmlFor="email" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Email <span aria-hidden="true" className="text-red-500">*</span>
+                          <Mail className="w-4 h-4 text-[#c79d47]" aria-hidden="true" />
+                          Email <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="email" type="email" name="email"
@@ -495,8 +524,8 @@ const RequestDOA = () => {
                       {/* Phone */}
                       <div>
                         <label htmlFor="phone" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Phone <span aria-hidden="true" className="text-red-500">*</span>
+                          <Phone className="w-4 h-4 text-[#c79d47]" aria-hidden="true" />
+                          Phone <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="phone" name="phone" type="tel"
@@ -512,8 +541,8 @@ const RequestDOA = () => {
                       {/* Address */}
                       <div className="md:col-span-2">
                         <label htmlFor="address" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Address <span aria-hidden="true" className="text-red-500">*</span>
+                          <MapPin className="w-4 h-4 text-[#c79d47]" aria-hidden="true" />
+                          Address <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="address" name="address"
@@ -529,7 +558,7 @@ const RequestDOA = () => {
                       {/* City */}
                       <div>
                         <label htmlFor="city" className="block text-slate-700 font-medium mb-1">
-                          City <span aria-hidden="true" className="text-red-500">*</span>
+                          City <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="city" name="city"
@@ -545,14 +574,14 @@ const RequestDOA = () => {
                       {/* ZIP / PIN Code */}
                       <div>
                         <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-1">
-                          ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                          ZIP / PIN Code <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="zipCode" name="zipCode"
                           type="text" inputMode="numeric"
                           value={form.zipCode} onChange={handleChange}
                           className={inputClass("zipCode")}
-                          placeholder="Enter psotal or zip code"
+                          placeholder="Enter postal or zip code"
                           autoComplete="postal-code"
                           required aria-required="true"
                         />
@@ -562,7 +591,7 @@ const RequestDOA = () => {
                       {/* Product Type */}
                       <div>
                         <label htmlFor="productType" className="block text-slate-700 font-medium mb-1">
-                          Product Type <span aria-hidden="true" className="text-red-500">*</span>
+                          Product Type <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <select
                           id="productType" name="productType"
@@ -595,7 +624,7 @@ const RequestDOA = () => {
                       {/* Warranty Year */}
                       <div>
                         <label htmlFor="warrantyYear" className="block text-slate-700 font-medium mb-1">
-                          Warranty Period <span aria-hidden="true" className="text-red-500">*</span>
+                          Warranty Period <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <select
                           id="warrantyYear" name="warrantyYear"
@@ -615,8 +644,8 @@ const RequestDOA = () => {
                       {/* Serial Number */}
                       <div>
                         <label htmlFor="serialNumber" className="block text-slate-700 font-medium mb-1 flex items-center gap-2">
-                          <Hash className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Serial Number <span aria-hidden="true" className="text-red-500">*</span>
+                          <Hash className="w-4 h-4 text-[#c79d47]" aria-hidden="true" />
+                          Serial Number <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="serialNumber" name="serialNumber"
@@ -631,7 +660,7 @@ const RequestDOA = () => {
                       {/* Invoice Number */}
                       <div>
                         <label htmlFor="invoiceNumber" className="block text-slate-700 font-medium mb-1">
-                          Invoice Number <span aria-hidden="true" className="text-red-500">*</span>
+                          Invoice Number <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="invoiceNumber" name="invoiceNumber"
@@ -646,7 +675,7 @@ const RequestDOA = () => {
                       {/* DOA Auth Code */}
                       <div>
                         <label htmlFor="doaAuthCode" className="block text-slate-700 font-medium mb-1">
-                          DOA Authorization Code <span aria-hidden="true" className="text-red-500">*</span>
+                          DOA Authorization Code <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <input
                           id="doaAuthCode" name="doaAuthCode"
@@ -666,7 +695,7 @@ const RequestDOA = () => {
                         </label>
                         <div
                           className={`relative flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition ${
-                            fileError ? "border-red-400 bg-red-50" : "border-green-300 hover:border-green-500"
+                            fileError ? "border-red-400 bg-red-50" : "border-[#c79d47]/40 hover:border-[#c79d47]"
                           }`}
                         >
                           <span className={`text-sm ${selectedFile ? "text-slate-800 font-medium" : "text-slate-500"}`}>
@@ -683,7 +712,7 @@ const RequestDOA = () => {
                                 <X className="w-4 h-4 text-red-600" aria-hidden="true" />
                               </button>
                             )}
-                            <UploadCloud className="w-5 h-5 text-green-700" aria-hidden="true" />
+                            <UploadCloud className="w-5 h-5 text-[#c79d47]" aria-hidden="true" />
                           </div>
                           <input
                             ref={fileInputRef}
@@ -702,7 +731,7 @@ const RequestDOA = () => {
                           <p className="text-sm mt-1 text-slate-500">Supported: PDF / JPG / PNG (Max 15 MB)</p>
                         )}
                         {selectedFile && !fileError && (
-                          <p className="text-sm mt-1 text-green-600">
+                          <p className="text-sm mt-1 text-[#a16d36]">
                             ✓ File ready: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         )}
@@ -711,7 +740,7 @@ const RequestDOA = () => {
                       {/* Describe the Issue */}
                       <div className="md:col-span-2">
                         <label htmlFor="issue" className="block text-slate-700 font-medium mb-1">
-                          Describe the Issue <span aria-hidden="true" className="text-red-500">*</span>
+                          Describe the Issue <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                         <textarea
                           id="issue"
@@ -737,12 +766,12 @@ const RequestDOA = () => {
                             setAgree(e.target.checked);
                             setErrors((prev) => ({ ...prev, agree: undefined }));
                           }}
-                          className="mt-0.5 h-4 w-4 rounded border-green-300 text-green-600 focus:ring-green-400"
+                          className="mt-0.5 h-4 w-4 accent-[#c79d47] cursor-pointer"
                           aria-required="true"
                         />
                         <label htmlFor="agree" className="text-slate-700 cursor-pointer">
                           I accept the terms &amp; conditions.{" "}
-                          <span aria-hidden="true" className="text-red-500">*</span>
+                          <span aria-hidden="true" className="text-[#c42126]">*</span>
                         </label>
                       </div>
                       {errors.agree && (
@@ -758,7 +787,7 @@ const RequestDOA = () => {
                         type="submit"
                         disabled={submitting || !!fileError}
                         aria-busy={submitting}
-                        className="inline-flex items-center gap-2 rounded-lg bg-green-600 text-white px-10 py-4 font-semibold shadow-xl hover:shadow-2xl hover:shadow-green-300/50 hover:bg-green-700 transition-all duration-500 ease-out hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#920609] to-[#c42126] text-white border-2 border-[#c79d47] px-10 py-4 font-semibold shadow-md shadow-[#c79d47]/40 hover:shadow-lg hover:from-[#c42126] hover:to-[#920609] focus:outline-none focus:ring-4 focus:ring-[#c79d47]/50 transition-all duration-500 ease-out hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Send className="w-5 h-5" aria-hidden="true" />
                         {submitting ? "Submitting…" : "Submit Request"}

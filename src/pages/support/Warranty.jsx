@@ -11,7 +11,12 @@ import {
   Download,
 } from "lucide-react";
 import bg from "../../assets/bg.avif";
-import warrantybanner from "../../assets/WarrantyBanner.avif";
+import warrantybanner from "../../assets/WarrantyBanner.webp";
+
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
 
 // ─── Scroll-reveal ────────────────────────────────────────────────────────────
 
@@ -47,14 +52,14 @@ const Reveal = ({ children, className = "" }) => {
 // ─── Style constants ──────────────────────────────────────────────────────────
 
 const liftCard =
-  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out " +
-  "hover:-translate-y-1 relative group";
+  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-[#c79d47]/40 " +
+  "border border-[#c79d47]/50 border-t-4 border-t-[#c79d47] hover:border-[#c79d47] " +
+  "transition-all duration-500 ease-out hover:-translate-y-1 relative group";
 
 const liftSection =
-  "rounded-2xl bg-white p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-green-100/70 " +
-  "border border-green-200 hover:border-green-400 transition-all duration-500 ease-out " +
-  "hover:-translate-y-1";
+  "rounded-2xl bg-white p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-[#c79d47]/30 " +
+  "border border-[#c79d47]/50 border-l-4 border-l-[#c79d47] hover:border-[#c79d47] " +
+  "transition-all duration-500 ease-out hover:-translate-y-1";
 
 // ─── Allowed document filenames (whitelist) ───────────────────────────────────
 // Only these exact filenames are permitted - prevents path traversal attacks.
@@ -87,25 +92,25 @@ const JSON_LD = JSON.stringify({
 const WARRANTY_DOCS = [
   {
     id:       "standard",
-    icon:     <ShieldCheck className="w-6 h-6 text-green-600" aria-hidden="true" />,
+    icon:     <ShieldCheck className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />,
     title:    "Standard Manufacturer Warranty",
     fileName: "AADONA-Standard-Manufacturer-Warranty",
   },
   {
     id:       "advance",
-    icon:     <ShieldCheck className="w-6 h-6 text-green-600" aria-hidden="true" />,
+    icon:     <ShieldCheck className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />,
     title:    "Advance Replacement Warranty",
     fileName: "AADONA-Advance-Replacement-Warranty",
   },
   {
     id:       "doa",
-    icon:     <FileCheck2 className="w-6 h-6 text-green-600" aria-hidden="true" />,
+    icon:     <FileCheck2 className="w-6 h-6 text-[#c79d47]" aria-hidden="true" />,
     title:    "Dead-On-Arrival (DOA)",
     fileName: "AADONA-DOA-Warranty",
   },
   {
     id:       "transit",
-    icon:     <AlertTriangle className="w-6 h-6 text-amber-600" aria-hidden="true" />,
+    icon:     <AlertTriangle className="w-6 h-6 text-[#c42126]" aria-hidden="true" />,
     title:    "Transit Damage",
     fileName: "AADONA-Transit-Damage-Warranty",
   },
@@ -152,8 +157,13 @@ const Warranty = () => {
 
   return (
     <>
-      {/* ─── SEO ──────────────────────────────────────────────────────────── */}
+      {/* ─── SEO + Brand Font ─────────────────────────────────────────────── */}
       <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
         <title>Warranty Policy | AADONA Networking Products</title>
         <meta
           name="description"
@@ -194,6 +204,10 @@ const Warranty = () => {
             <p className="mt-6 text-md text-white max-w-3xl mx-auto">
               Standard terms, claim process, and extended coverage.
             </p>
+            <div
+              className="mt-6 mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-[#c79d47] via-[#e6c06a] to-[#a16d36]"
+              aria-hidden="true"
+            />
           </div>
         </header>
 
@@ -208,7 +222,7 @@ const Warranty = () => {
               {/* ── Trust section ─────────────────────────────────────────── */}
               <Reveal>
                 <section className={liftSection} aria-label="Our warranty commitment">
-                  <h2 className="text-2xl md:text-3xl font-bold text-teal-900">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#920609]">
                     Your Trust, Our Commitment
                   </h2>
                   <p className="mt-3 text-lg text-slate-700">
@@ -231,9 +245,13 @@ const Warranty = () => {
 
               {/* ── Download section ──────────────────────────────────────── */}
               <section aria-label="Download warranty policy documents">
-                <h2 className="text-3xl md:text-4xl font-extrabold text-green-700 mb-8 text-center tracking-tight">
+                <h2 className="text-3xl md:text-4xl font-extrabold text-[#920609] mb-8 text-center tracking-tight">
                   Download Policy Documents
                 </h2>
+                <div
+                  className="mx-auto -mt-5 mb-8 h-1 w-20 rounded-full bg-gradient-to-r from-[#c79d47] to-[#a16d36]"
+                  aria-hidden="true"
+                />
 
                 <div className="grid md:grid-cols-2 gap-6 mb-8">
                   {WARRANTY_DOCS.map(({ id, icon, title, fileName }) => (
@@ -241,14 +259,16 @@ const Warranty = () => {
                       <article className={liftCard}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            {icon}
-                            <h3 className="text-lg font-semibold text-teal-900">{title}</h3>
+                            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#c79d47]/15 ring-1 ring-[#c79d47]/40">
+                              {icon}
+                            </span>
+                            <h3 className="text-lg font-semibold text-[#920609]">{title}</h3>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleDownload(fileName)}
                             aria-label={`Download ${title} PDF`}
-                            className="p-2 hover:bg-green-50 rounded-full text-gray-400 hover:text-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
+                            className="p-2 rounded-full text-[#c79d47] hover:bg-[#c79d47]/15 hover:text-[#a16d36] transition-colors focus:outline-none focus:ring-2 focus:ring-[#c79d47] focus:ring-offset-1"
                           >
                             <Download className="w-5 h-5" aria-hidden="true" />
                           </button>
@@ -262,7 +282,7 @@ const Warranty = () => {
               {/* ── Spare parts ───────────────────────────────────────────── */}
               <Reveal>
                 <section className={liftSection} aria-label="Genuine spare parts">
-                  <h2 className="text-2xl md:text-3xl font-bold text-teal-900">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#920609]">
                     Genuine Spare Parts Replacement
                   </h2>
                   <p className="mt-3 text-lg text-slate-700">
@@ -275,13 +295,13 @@ const Warranty = () => {
               {/* ── Claim process ─────────────────────────────────────────── */}
               <Reveal>
                 <section className={liftSection} aria-label="Warranty claim process">
-                  <h2 className="text-2xl md:text-3xl font-bold text-teal-900">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#920609]">
                     Easy &amp; Transparent Warranty Claim Process
                   </h2>
                   <p className="mt-3 text-lg text-slate-700">
                     All warranty claims can be logged online through the AADONA Customer Portal:
                   </p>
-                  <ol className="mt-5 list-decimal pl-6 space-y-3 leading-relaxed text-slate-700">
+                  <ol className="mt-5 list-decimal pl-6 space-y-3 leading-relaxed text-slate-700 marker:text-[#c79d47]">
                     <li>Log in to your account.</li>
                     <li>Submit the warranty claim form.</li>
                     <li>
@@ -297,10 +317,10 @@ const Warranty = () => {
               {/* ── Service philosophy ────────────────────────────────────── */}
               <Reveal>
                 <section className={liftSection} aria-label="Service philosophy">
-                  <h2 className="text-2xl md:text-3xl font-bold text-teal-900">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#920609]">
                     Our Service Philosophy
                   </h2>
-                  <ul className="mt-5 list-disc pl-6 space-y-3 leading-relaxed text-slate-700">
+                  <ul className="mt-5 list-disc pl-6 space-y-3 leading-relaxed text-slate-700 marker:text-[#c79d47]">
                     <li>
                       <strong>Fast Turnaround.</strong> With an in-house SMT-based
                       manufacturing setup and stocked components, we ensure minimal
@@ -318,7 +338,7 @@ const Warranty = () => {
               {/* ── Quality assured ───────────────────────────────────────── */}
               <Reveal>
                 <section className={liftSection} aria-label="Quality assurance">
-                  <h2 className="text-2xl md:text-3xl font-bold text-teal-900">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#920609]">
                     Quality Assured
                   </h2>
                   <p className="mt-3 text-lg text-slate-700">
@@ -331,10 +351,10 @@ const Warranty = () => {
               {/* ── Why AADONA ────────────────────────────────────────────── */}
               <Reveal>
                 <section className={liftSection} aria-label="Why AADONA warranty stands out">
-                  <h2 className="text-2xl md:text-3xl font-bold text-teal-900">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#920609]">
                     Why AADONA Warranty Stands Out
                   </h2>
-                  <ul className="mt-5 list-disc pl-6 space-y-3 leading-relaxed text-slate-700">
+                  <ul className="mt-5 list-disc pl-6 space-y-3 leading-relaxed text-slate-700 marker:text-[#c79d47]">
                     <li>Transparent policy with clear guidelines.</li>
                     <li>India-based manufacturing for faster service.</li>
                     <li>Priority support for registered customers.</li>
@@ -351,11 +371,11 @@ const Warranty = () => {
             <div className="w-full flex justify-center mt-8">
               <Link
                 to="/warranty/check-Warranty"
-                className="inline-flex items-center gap-2 rounded-lg bg-green-600 text-white
-                           px-8 py-4 font-semibold shadow-xl hover:shadow-2xl
-                           hover:shadow-green-300/50 hover:bg-green-700
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#920609] to-[#c42126] text-white
+                           border-2 border-[#c79d47] px-8 py-4 font-semibold shadow-xl shadow-[#c79d47]/40 hover:shadow-2xl
+                           hover:from-[#c42126] hover:to-[#920609]
                            transition-all duration-500 ease-out hover:-translate-y-0.5
-                           focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-offset-2"
+                           focus:outline-none focus:ring-4 focus:ring-[#c42126]/40"
                 aria-label="Check your product warranty status"
               >
                 Check Warranty
