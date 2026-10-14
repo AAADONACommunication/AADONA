@@ -4,8 +4,9 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { X, UploadCloud } from "lucide-react";
 import bg from "../../assets/bg.avif";
-import whistlebanner from '../../assets/WhistleBanner.avif';
+import whistlebanner from '../../assets/WhistleBanner.webp';
 
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
 const WhistleBlowerButton = () => {
   const navigate = useNavigate();
@@ -116,22 +117,32 @@ const WhistleBlowerButton = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Load Poppins
+    if (!document.getElementById("poppins-font")) {
+      const l = document.createElement("link");
+      l.id = "poppins-font";
+      l.rel = "stylesheet";
+      l.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap";
+      document.head.appendChild(l);
+    }
   }, []);
 
-  const inputClass = "w-full border border-green-300 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none px-4 py-3 text-lg transition duration-300";
+  const inputClass = "w-full border border-[#a16d36]/50 rounded-xl focus:border-[#920609] focus:ring-2 focus:ring-[#920609]/30 outline-none px-4 py-3 text-lg transition duration-300 bg-white/80";
+  const labelClass = "text-[#920609] font-semibold block text-lg";
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       <Navbar />
 
       {/* Hero Section */}
       <header
         className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${whistlebanner})` }}
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${whistlebanner})` }}
         aria-label="Whistle Blower banner"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+          <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
             Whistle Blower
           </h1>
           <p className="mt-6 text-md text-white max-w-3xl mx-auto">
@@ -148,17 +159,17 @@ const WhistleBlowerButton = () => {
         {/* Form Container */}
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10">
           <div
-            className="rounded-3xl p-8 shadow-xl border border-white/20"
+            className="rounded-3xl p-8 shadow-xl border border-[#a16d36]/40"
             style={{ background: "rgba(255,255,255,0.65)", backdropFilter: "saturate(120%) blur(6px)" }}
           >
             {/* Form Header */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl sm:text-2xl font-semibold text-green-800">
+              <h2 className="text-xl sm:text-2xl font-semibold text-[#920609]">
                 Whistle Blower Form
               </h2>
               <button
                 onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-green-700 transition text-sm font-medium"
+                className="text-gray-600 hover:text-[#920609] transition text-sm font-medium"
               >
                 ← Back
               </button>
@@ -166,7 +177,7 @@ const WhistleBlowerButton = () => {
 
             {/* Success Message */}
             {submitted && (
-              <div className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6">
+              <div className="bg-[#fbf3ea] border border-[#a16d36]/50 text-[#920609] rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6">
                 ✅ Report submitted successfully! Thank you for your submission.
               </div>
             )}
@@ -181,8 +192,8 @@ const WhistleBlowerButton = () => {
 
                 {/* Name Field */}
                 <div>
-                  <label className="text-green-700 font-semibold block text-lg">
-                    Name <span aria-hidden="true" className="text-red-500">*</span>
+                  <label className={labelClass}>
+                    Name <span aria-hidden="true" className="text-[#c42126]">*</span>
                   </label>
                   <input
                     type="text"
@@ -197,8 +208,8 @@ const WhistleBlowerButton = () => {
 
                 {/* Telephone Field */}
                 <div>
-                  <label className="text-green-700 font-semibold block text-lg">
-                    Telephone <span aria-hidden="true" className="text-red-500">*</span>
+                  <label className={labelClass}>
+                    Telephone <span aria-hidden="true" className="text-[#c42126]">*</span>
                   </label>
                   <input
                     type="tel"
@@ -213,8 +224,8 @@ const WhistleBlowerButton = () => {
 
                 {/* Email Field */}
                 <div>
-                  <label className="text-green-700 font-semibold block text-lg">
-                    Email <span aria-hidden="true" className="text-red-500">*</span>
+                  <label className={labelClass}>
+                    Email <span aria-hidden="true" className="text-[#c42126]">*</span>
                   </label>
                   <input
                     type="email"
@@ -232,8 +243,8 @@ const WhistleBlowerButton = () => {
                   
                   {/* City Field */}
                   <div>
-                    <label className="text-green-700 font-semibold block text-lg">
-                      City <span aria-hidden="true" className="text-red-500">*</span>
+                    <label className={labelClass}>
+                      City <span aria-hidden="true" className="text-[#c42126]">*</span>
                     </label>
                     <input
                       type="text"
@@ -248,8 +259,8 @@ const WhistleBlowerButton = () => {
 
                   {/* ZIP / PIN Code Field */}
                   <div>
-                    <label className="text-green-700 font-semibold block text-lg">
-                      ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                    <label className={labelClass}>
+                      ZIP / PIN Code <span aria-hidden="true" className="text-[#c42126]">*</span>
                     </label>
                     <input
                       type="text"
@@ -267,8 +278,8 @@ const WhistleBlowerButton = () => {
 
                 {/* Comment Section */}
                 <div>
-                  <label className="text-green-700 font-semibold block text-lg">
-                    Comment <span aria-hidden="true" className="text-red-500">*</span>
+                  <label className={labelClass}>
+                    Comment <span aria-hidden="true" className="text-[#c42126]">*</span>
                   </label>
                   <textarea
                     name="comment"
@@ -283,11 +294,11 @@ const WhistleBlowerButton = () => {
 
                 {/* File Upload */}
                 <div>
-                  <label className="text-green-700 font-semibold block text-lg">
+                  <label className={labelClass}>
                     Upload Evidence (Optional, Max 15MB)
                   </label>
-                  <div className={`relative flex items-center justify-between border rounded-xl px-4 py-3 mt-2 cursor-pointer transition-all ${
-                    fileError ? 'border-red-400 bg-red-50' : 'border-green-300 hover:border-green-500'
+                  <div className={`relative flex items-center justify-between border rounded-xl px-4 py-3 mt-2 cursor-pointer transition-all bg-white/80 ${
+                    fileError ? 'border-red-400 bg-red-50' : 'border-[#a16d36]/50 hover:border-[#920609]'
                   }`}>
                     <span className={`truncate text-base ${selectedFile ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>
                       {fileName}
@@ -303,7 +314,7 @@ const WhistleBlowerButton = () => {
                           <X className="w-4 h-4 text-red-600" />
                         </button>
                       )}
-                      <UploadCloud className="w-5 h-5 text-green-700 flex-shrink-0" />
+                      <UploadCloud className="w-5 h-5 text-[#920609] flex-shrink-0" />
                     </div>
                     <input
                       ref={fileInputRef}
@@ -320,16 +331,16 @@ const WhistleBlowerButton = () => {
                     <p className="text-sm mt-1 text-slate-500">Supported: PDF / JPG / PNG - max 15MB</p>
                   )}
                   {selectedFile && !fileError && (
-                    <p className="text-sm mt-1 text-green-600">
+                    <p className="text-sm mt-1 text-[#a16d36] font-medium">
                       ✓ File ready: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   )}
                 </div>
 
                 {/* Privacy Notice */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-[#fbf3ea] border border-[#a16d36]/40 rounded-lg p-4">
                   <p className="text-sm text-gray-700">
-                    <span className="font-semibold text-green-800">Privacy Notice:</span> Your submission is encrypted and will be delivered directly to the CEO. We maintain strict confidentiality for all whistle blower reports.
+                    <span className="font-semibold text-[#920609]">Privacy Notice:</span> Your submission is encrypted and will be delivered directly to the CEO. We maintain strict confidentiality for all whistle blower reports.
                   </p>
                 </div>
 
@@ -338,7 +349,7 @@ const WhistleBlowerButton = () => {
                   <button
                     type="submit"
                     disabled={submitting || !!fileError}
-                    className={`inline-flex items-center gap-2 rounded-lg bg-green-600 text-white px-10 py-4 font-semibold shadow-xl hover:shadow-2xl hover:shadow-green-300/50 hover:bg-green-700 transition-all duration-500 ease-out transform hover:-translate-y-1 ${
+                    className={`inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#920609] to-[#c42126] text-white px-10 py-4 font-semibold shadow-xl hover:shadow-2xl hover:shadow-[#920609]/40 hover:brightness-110 transition-all duration-500 ease-out transform hover:-translate-y-1 ${
                       submitting || fileError ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
@@ -366,7 +377,7 @@ const WhistleBlowerButton = () => {
       </div>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

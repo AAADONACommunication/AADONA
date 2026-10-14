@@ -3,7 +3,9 @@ import { Helmet } from 'react-helmet-async';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import bg from '../../assets/bg.avif';
-import mediacenterbanner from '../../assets/MediaCenterBanner.avif';
+import mediacenterbanner from '../../assets/MediaCenterBanner.webp';
+
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -137,7 +139,7 @@ export default function MediaCenter() {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         {/* Primary Meta */}
@@ -153,6 +155,11 @@ export default function MediaCenter() {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/media-center" /> {/* ← update */}
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -184,11 +191,11 @@ export default function MediaCenter() {
       {/* ── HERO ── */}
         <header
                            className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                           style={{ backgroundImage: `url(${mediacenterbanner})` }}
+                           style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${mediacenterbanner})` }}
                            aria-label="Media Center herbanner"
                          >
                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                             <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+                             <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
                                Media Center
                              </h1>
                              <p className="mt-6 text-md text-white max-w-3xl mx-auto">
@@ -205,7 +212,7 @@ export default function MediaCenter() {
         aria-label="Media Center Gallery"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 -mt-10">
-          <div className="backdrop-blur-sm bg-white/40 py-10 rounded-2xl shadow-lg space-y-24">
+          <div className="backdrop-blur-sm bg-white/40 py-10 rounded-2xl shadow-lg space-y-24 border border-[#a16d36]/30">
 
             {sortedCategories.length === 0 && (
               <div className="text-center py-16" role="status" aria-live="polite">
@@ -219,15 +226,16 @@ export default function MediaCenter() {
               }
               return (
                 <section key={i} className="px-4 relative" aria-label={`${cat.title} Gallery`}>
-                  <h2 className="text-4xl font-bold text-green-800 text-center mb-10">
+                  <h2 className="text-4xl font-semibold text-[#920609] text-center">
                     {cat.title}
                   </h2>
+                  <span className="block w-20 h-1 bg-[#a16d36] rounded-full mx-auto mt-3 mb-10" />
 
                   <div className="relative group flex items-center">
                     {/* Left Arrow */}
                     <button
                       onClick={() => handleScroll(cat.title, 'left')}
-                      className="hidden md:flex absolute -left-4 lg:-left-8 top-1/2 -translate-y-1/2 bg-green-700 text-white w-12 h-12 items-center justify-center rounded-full shadow-lg hover:bg-green-800 transition-all z-30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      className="hidden md:flex absolute -left-4 lg:-left-8 top-1/2 -translate-y-1/2 bg-gradient-to-br from-[#920609] to-[#c42126] text-white w-12 h-12 items-center justify-center rounded-full shadow-lg hover:brightness-110 transition-all z-30 focus:outline-none focus:ring-2 focus:ring-[#a16d36] focus:ring-offset-2"
                       aria-label={`Scroll ${cat.title} gallery left`}
                     >
                       <span className="text-3xl mb-1" aria-hidden="true">‹</span>
@@ -243,7 +251,7 @@ export default function MediaCenter() {
                         {cat.images.map((img, idx) => (
                           <div
                             key={idx}
-                            className="min-w-[260px] bg-white p-4 rounded-2xl shadow-md snap-start border border-green-300 transition-all duration-500 cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:shadow-green-200/60 hover:border-green-500 hover:scale-105 hover:z-20"
+                            className="min-w-[260px] bg-white p-4 rounded-2xl shadow-md snap-start border border-[#a16d36]/40 transition-all duration-500 cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#a16d36]/30 hover:border-[#a16d36] hover:scale-105 hover:z-20"
                             onClick={() => setSelectedImage(img)}
                             role="button"
                             tabIndex={0}
@@ -259,7 +267,7 @@ export default function MediaCenter() {
                             />
                             <button
                               onClick={(e) => { e.stopPropagation(); downloadImage(img); }}
-                              className="mt-3 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200"
+                              className="mt-3 w-full bg-gradient-to-r from-[#920609] to-[#c42126] text-white font-semibold py-2 rounded-lg hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[#a16d36] focus:ring-offset-2 transition-all duration-200"
                               aria-label={`Download ${cat.title} image ${idx + 1}`}
                             >
                               Download
@@ -272,7 +280,7 @@ export default function MediaCenter() {
                     {/* Right Arrow */}
                     <button
                       onClick={() => handleScroll(cat.title, 'right')}
-                      className="hidden md:flex absolute -right-4 lg:-right-8 top-1/2 -translate-y-1/2 bg-green-700 text-white w-12 h-12 items-center justify-center rounded-full shadow-lg hover:bg-green-800 transition-all z-30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      className="hidden md:flex absolute -right-4 lg:-right-8 top-1/2 -translate-y-1/2 bg-gradient-to-br from-[#920609] to-[#c42126] text-white w-12 h-12 items-center justify-center rounded-full shadow-lg hover:brightness-110 transition-all z-30 focus:outline-none focus:ring-2 focus:ring-[#a16d36] focus:ring-offset-2"
                       aria-label={`Scroll ${cat.title} gallery right`}
                     >
                       <span className="text-3xl mb-1" aria-hidden="true">›</span>
@@ -296,12 +304,12 @@ export default function MediaCenter() {
           >
             <img
               src={selectedImage}
-              className="max-w-[90vw] max-h-[90vh] rounded-lg"
+              className="max-w-[90vw] max-h-[90vh] rounded-lg border-2 border-[#a16d36]/60"
               onClick={(e) => e.stopPropagation()}
               alt="Fullscreen Preview"
             />
             <button
-              className="absolute top-6 right-6 text-white text-3xl focus:outline-none focus:ring-2 focus:ring-white rounded"
+              className="absolute top-6 right-6 text-white text-3xl focus:outline-none focus:ring-2 focus:ring-[#a16d36] rounded hover:text-[#d9a566]"
               onClick={() => setSelectedImage(null)}
               aria-label="Close image preview"
             >
@@ -317,6 +325,6 @@ export default function MediaCenter() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { scrollbar-width: none; }
       `}</style>
-    </>
+    </div>
   );
 }

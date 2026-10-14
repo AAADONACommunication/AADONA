@@ -40,6 +40,8 @@ import {
   Cloud,
 } from "lucide-react";
 
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
+
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
@@ -58,8 +60,15 @@ const structuredData = {
 };
 
 const liftCard =
-  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.01] hover:shadow-2xl hover:shadow-green-200/60";
+  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-[#a16d36]/30 " +
+  "border border-[#a16d36]/40 hover:border-[#a16d36] transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.01]";
+
+/* Shared inline styles (Tailwind / global CSS override se bachne ke liye) */
+const redGradient = {
+  backgroundColor: '#920609',
+  backgroundImage: 'linear-gradient(to right, #5c0407 0%, #920609 50%, #5c0407 100%)',
+  opacity: 1,
+};
 
 /* -------- Scroll-reveal hook -------- */
 const useFadeIn = () => {
@@ -106,10 +115,10 @@ const CategoryPill = ({ item }) => {
         to={item.to}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 border border-transparent hover:border-gray-200 transition-all duration-150 group"
+        className="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-gray-700 hover:bg-[#fbf3ea] hover:text-gray-900 border border-transparent hover:border-[#a16d36]/40 transition-all duration-150 group"
       >
         <span className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-green-400 transition-colors duration-150 flex-shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-[#a16d36] transition-colors duration-150 flex-shrink-0" />
           {item.label}
         </span>
         <svg
@@ -121,7 +130,7 @@ const CategoryPill = ({ item }) => {
       </Link>
       {hovered && (
         <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-xl p-3 z-[999] pointer-events-none">
-          <p className="text-xs font-bold text-gray-800 mb-1">{item.label}</p>
+          <p className="text-xs font-semibold text-gray-800 mb-1">{item.label}</p>
           <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
         </div>
       )}
@@ -129,106 +138,103 @@ const CategoryPill = ({ item }) => {
   );
 };
 
-/* -------- IMAGE 1: Core Strengths - recreated in code -------- */
+/* -------- Core Strengths -------- */
 const CoreStrengths = () => {
+  // Brand palette variations: red, gold, crimson (with soft tints)
   const strengths = [
     {
       title: 'TECHNOLOGY',
       icon: Cpu,
       desc: 'Future-ready networking solutions built with advanced technology and engineering excellence.',
       note: 'We leverage the latest technology to deliver high-performance, secure and scalable networking products.',
-      color: '#1e6fb5',
-      bg: '#e8f2fb',
+      color: '#920609',
+      bg: '#fbeaea',
     },
     {
       title: 'INNOVATION',
       icon: Lightbulb,
       desc: 'Continuous innovation that creates value and addresses real-world business challenges.',
       note: 'We constantly innovate to develop smarter solutions that help our customers stay ahead of tomorrow.',
-      color: '#1a8fa0',
-      bg: '#e6f6f8',
+      color: '#a16d36',
+      bg: '#fbf3ea',
     },
     {
       title: 'QUALITY',
       icon: ShieldCheck,
       desc: 'Committed to global quality standards to ensure reliability, durability and performance.',
       note: 'Every product goes through stringent testing and quality processes to ensure maximum reliability.',
-      color: '#4a2d8a',
-      bg: '#f0ebfb',
+      color: '#c42126',
+      bg: '#fdecec',
     },
     {
       title: 'CUSTOMER CENTRICITY',
       icon: Users,
       desc: 'We listen, we understand and we deliver solutions that exceed customer expectations.',
       note: 'Our customers are at the heart of every decision we make.',
-      color: '#f07c22',
-      bg: '#fef3e8',
+      color: '#a16d36',
+      bg: '#fbf3ea',
     },
     {
       title: 'MAKE IN INDIA',
       icon: Landmark,
       desc: 'Proudly aligned with Make in India vision for self-reliance and nation building.',
       note: 'We are building Indian technology for India and the world.',
-      color: '#27843f',
-      bg: '#e8f5ec',
+      color: '#920609',
+      bg: '#fbeaea',
     },
     {
       title: 'PARTNER SUCCESS',
       icon: Handshake,
       desc: 'Growing together with our partners through trust, transparency and shared success.',
       note: 'Our partner ecosystem is the strength behind our Pan India presence and growth.',
-      color: '#B45309',
-bg: '#FEF3C7',
+      color: '#c42126',
+      bg: '#fdecec',
     },
   ];
 
   return (
-    <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
+    <div className="rounded-2xl bg-white border border-[#a16d36]/40 shadow-md p-8">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-extrabold text-gray-900">
-          The Core Strengths of <span className="text-green-700">AADONA</span>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          The Core Strengths of <span className="text-[#920609]">AADONA</span>
         </h2>
-        <p className="text-sm text-gray-500 mt-2">Six pillars that define how we think, build, and deliver.</p>
+        <span className="block w-16 h-1 bg-[#a16d36] rounded-full mx-auto mt-3" />
+        <p className="text-sm text-gray-500 mt-3">Six pillars that define how we think, build, and deliver.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {strengths.map((s) => {
           const Icon = s.icon;
           return (
-          <div
-            key={s.title}
-            className="rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg relative overflow-hidden"
-            style={{ borderColor: s.color + '44', background: '#fff' }}
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl" style={{ background: s.color }} />
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 mt-1"
-              style={{ background: s.bg }}
+              key={s.title}
+              className="rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg relative overflow-hidden"
+              style={{ borderColor: s.color + '44', background: '#fff' }}
             >
-              <Icon
-                size={22}
-                strokeWidth={2}
-                style={{ color: s.color }}
-              />
+              <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl" style={{ background: s.color }} />
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 mt-1"
+                style={{ background: s.bg }}
+              >
+                <Icon
+                  size={22}
+                  strokeWidth={2}
+                  style={{ color: s.color }}
+                />
+              </div>
+              <h3 className="text-sm font-semibold tracking-wide mb-2" style={{ color: s.color }}>
+                {s.title}
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{s.desc}</p>
+              <p className="text-xs italic mt-2 font-medium" style={{ color: s.color + 'cc' }}>{s.note}</p>
             </div>
-            <h3 className="text-sm font-bold tracking-wide mb-2" style={{ color: s.color }}>
-              {s.title}
-            </h3>
-            <p className="text-sm text-gray-600 leading-relaxed">{s.desc}</p>
-            <p className="text-xs italic mt-2 font-medium" style={{ color: s.color + 'cc' }}>{s.note}</p>
-          </div>
           );
-     })}
+        })}
       </div>
-      {/* <div className="mt-8 pt-5 border-t border-gray-100 flex flex-wrap gap-4 justify-center text-xs text-gray-500">
-        <span>📧 contact@aadona.com</span>
-        <span>🌐 www.aadona.com</span>
-        <span>📞 Toll Free: 1800-202-6599</span>
-      </div> */}
     </div>
   );
 };
 
-/* -------- IMAGE 2: Proudly Indian / Globally Ambitious - recreated in code -------- */
+/* -------- Proudly Indian / Globally Ambitious -------- */
 const IdentityBanner = () => {
   const indian = [
     { icon: Award, label: 'Start-up India Recognized' },
@@ -252,23 +258,46 @@ const IdentityBanner = () => {
     { num: 'Growing', label: 'Partner Ecosystem', sub: 'Stronger Together' },
   ];
 
+  const iconBox = {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    border: '1px solid rgba(255,255,255,0.15)',
+  };
+
   return (
-    <div className="rounded-2xl overflow-hidden shadow-md border border-green-200">
-      <div className="bg-gradient-to-r from-[#081C4D] via-[#123C8C] to-[#081C4D] px-6 py-8">
+    <div
+      className="rounded-2xl overflow-hidden shadow-md"
+      style={{
+        border: '1px solid rgba(161,109,54,0.5)',
+        backgroundColor: '#6e0407',
+        isolation: 'isolate',
+      }}
+    >
+      {/* ===== TOP SECTION ===== */}
+      <div className="px-6 py-8" style={redGradient}>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+          {/* Left */}
           <div className="flex-1">
-            <p className="text-xs font-bold tracking-widest text-orange-400 uppercase mb-4">Proudly Indian</p>
+            <p
+              className="text-xs font-semibold tracking-widest uppercase mb-4"
+              style={{ color: '#d9a566' }}
+            >
+              Proudly Indian
+            </p>
             <div className="flex flex-col gap-2">
               {indian.map((i) => {
                 const Icon = i.icon;
-
                 return (
                   <div key={i.label} className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center">
-                      <Icon size={18} className="text-orange-400" />
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center"
+                      style={iconBox}
+                    >
+                      <Icon size={18} style={{ color: '#d9a566' }} />
                     </div>
-
-                    <span className="text-sm text-white/80 font-medium">
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: 'rgba(255,255,255,0.9)' }}
+                    >
                       {i.label}
                     </span>
                   </div>
@@ -276,30 +305,69 @@ const IdentityBanner = () => {
               })}
             </div>
           </div>
+
+          {/* Center */}
           <div className="flex-1 text-center">
-            <div className="text-4xl font-black tracking-[4px] text-white">
-              AADONA<sup className="text-green-400 text-lg">®</sup>
+            <div
+              className="text-4xl font-semibold tracking-[4px]"
+              style={{ color: '#ffffff' }}
+            >
+              AADONA
+              <sup className="text-lg" style={{ color: '#d9a566' }}>®</sup>
             </div>
-            <div className="text-xs font-bold tracking-[3px] text-green-400 uppercase mt-1">Going Beyond Vision</div>
+            <div
+              className="text-xs font-semibold tracking-[3px] uppercase mt-1"
+              style={{ color: '#d9a566' }}
+            >
+              Going Beyond Vision
+            </div>
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              {['Enterprise Networking', 'Digital Infrastructure', 'PAN India', 'Manufacturing Vision', 'Global Expansion'].map(t => (
-                <span key={t} className="bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 rounded-full px-3 py-1 text-xs text-white/70">{t}</span>
+              {[
+                'Enterprise Networking',
+                'Digital Infrastructure',
+                'PAN India',
+                'Manufacturing Vision',
+                'Global Expansion',
+              ].map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full px-3 py-1 text-xs transition-all duration-300"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    color: 'rgba(255,255,255,0.85)',
+                  }}
+                >
+                  {t}
+                </span>
               ))}
             </div>
           </div>
+
+          {/* Right */}
           <div className="flex-1 text-right">
-            <p className="text-xs font-bold tracking-widest text-orange-400 uppercase mb-4">Globally Ambitious</p>
+            <p
+              className="text-xs font-semibold tracking-widest uppercase mb-4"
+              style={{ color: '#d9a566' }}
+            >
+              Globally Ambitious
+            </p>
             <div className="flex flex-col gap-2 items-end">
               {global.map((i) => {
                 const Icon = i.icon;
                 return (
                   <div key={i.label} className="flex items-center gap-3">
-                    <span className="text-sm text-white/80 font-medium">
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: 'rgba(255,255,255,0.9)' }}
+                    >
                       {i.label}
                     </span>
-
-                    <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center">
-                      <Icon size={18} className="text-orange-400" />
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center"
+                      style={iconBox}
+                    >
+                      <Icon size={18} style={{ color: '#d9a566' }} />
                     </div>
                   </div>
                 );
@@ -308,25 +376,47 @@ const IdentityBanner = () => {
           </div>
         </div>
       </div>
-      <div className="bg-[#162959] border-t border-white/10 px-6 py-4">
+
+      {/* ===== STATS BAR ===== */}
+      <div
+        className="px-6 py-4"
+        style={{
+          backgroundColor: '#6e0407',
+          borderTop: '1px solid rgba(161,109,54,0.5)',
+          opacity: 1,
+        }}
+      >
         <div className="flex flex-wrap justify-around gap-4">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <div className="text-orange-400 font-black text-sm">{s.num}</div>
-              <div className="text-white text-xs font-semibold uppercase tracking-wide">{s.label}</div>
-              <div className="text-white/40 text-xs">{s.sub}</div>
+              <div className="font-semibold text-sm" style={{ color: '#d9a566' }}>
+                {s.num}
+              </div>
+              <div
+                className="text-xs font-semibold uppercase tracking-wide"
+                style={{ color: '#ffffff' }}
+              >
+                {s.label}
+              </div>
+              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                {s.sub}
+              </div>
             </div>
           ))}
         </div>
-        <p className="text-center text-xs tracking-widest mt-4 text-white/40 uppercase">
-          Innovating Today · Connecting Tomorrow · <span className="text-orange-400">Empowering India</span>
+        <p
+          className="text-center text-xs tracking-widest mt-4 uppercase"
+          style={{ color: 'rgba(255,255,255,0.6)' }}
+        >
+          Innovating Today · Connecting Tomorrow ·{' '}
+          <span style={{ color: '#d9a566' }}>Empowering India</span>
         </p>
       </div>
     </div>
   );
 };
 
-/* -------- IMAGE 3: Journey Timeline - recreated in code -------- */
+/* -------- Journey Timeline -------- */
 const JourneyTimeline = () => {
   const milestones = [
     {
@@ -365,57 +455,80 @@ const JourneyTimeline = () => {
   ];
 
   return (
-    <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
+    <div className="rounded-2xl bg-white border border-[#a16d36]/40 shadow-md p-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-extrabold text-gray-900">
-          From a Vision to a <span className="text-green-700">National Technology Brand</span>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          From a Vision to a <span className="text-[#920609]">National Technology Brand</span>
         </h2>
-        <p className="text-sm text-gray-500 mt-2">
+        <span className="block w-16 h-1 bg-[#a16d36] rounded-full mt-3" />
+        <p className="text-sm text-gray-500 mt-3">
           Our journey is driven by innovation, trust and a commitment to build an Indian MNC in the Making.
         </p>
       </div>
       <div className="relative">
-        <div className="hidden lg:block absolute top-8 left-0 right-0 h-0.5 bg-gradient-to-r from-green-500 via-blue-500 to-orange-500 z-0" />
+        <div
+          className="hidden lg:block absolute top-8 left-0 right-0 h-0.5 z-0"
+          style={{
+            backgroundImage: 'linear-gradient(to right, #920609, #a16d36, #c42126)',
+          }}
+        />
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-6 relative z-10">
           {milestones.map((m) => {
             const Icon = m.icon;
             return (
-            <div key={m.year} className="group flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1E3A8A] via-[#1E40AF] to-[#0F172A] border-4 border-emerald-400 flex items-center justify-center mb-3 shadow-xl shadow-blue-900/30 transition-all duration-300 group-hover:scale-110">
-                <Icon
-                  size={28}
-                  strokeWidth={2}
-                  className="text-white"
-                />
+              <div key={m.year} className="group flex flex-col items-center text-center">
+                <div
+                  className="w-16 h-16 rounded-full border-4 border-[#a16d36] flex items-center justify-center mb-3 shadow-xl shadow-[#920609]/30 transition-all duration-300 group-hover:scale-110"
+                  style={{
+                    backgroundColor: '#920609',
+                    backgroundImage: 'linear-gradient(to bottom right, #920609, #c42126)',
+                  }}
+                >
+                  <Icon
+                    size={28}
+                    strokeWidth={2}
+                    style={{ color: '#ffffff' }}
+                  />
+                </div>
+                <div className="text-lg font-semibold text-[#a16d36]">{m.year}</div>
+                <div className="text-xs font-semibold text-[#920609] uppercase tracking-wide my-1">{m.phase}</div>
+                <p className="text-xs text-gray-500 leading-relaxed">{m.desc}</p>
               </div>
-              <div className="text-lg font-black text-orange-500">{m.year}</div>
-              <div className="text-xs font-bold text-green-600 uppercase tracking-wide my-1">{m.phase}</div>
-              <p className="text-xs text-gray-500 leading-relaxed">{m.desc}</p>
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
       </div>
-      <div className="mt-8 pt-5 border border-white/10 bg-gradient-to-r from-[#0F2E7B] via-[#1E3A8A] to-[#0B1F52] rounded-2xl px-6 py-5 shadow-xl shadow-blue-900/30">
+
+      {/* Bottom red strip */}
+      <div
+        className="mt-8 rounded-2xl px-6 py-5 shadow-xl shadow-[#920609]/30"
+        style={{ ...redGradient, border: '1px solid rgba(161,109,54,0.4)' }}
+      >
         <div className="flex flex-wrap justify-around gap-4">
           {bottomStats.map((s) => {
             const Icon = s.icon;
 
             return (
               <div key={s.label} className="text-center">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-2">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
+                >
                   <Icon
                     size={20}
                     strokeWidth={2}
-                    className="text-orange-400"
+                    style={{ color: '#d9a566' }}
                   />
                 </div>
 
-                <div className="text-orange-400 text-xs font-bold uppercase tracking-wide">
+                <div
+                  className="text-xs font-semibold uppercase tracking-wide"
+                  style={{ color: '#d9a566' }}
+                >
                   {s.label}
                 </div>
 
-                <div className="text-white/50 text-xs">
+                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
                   {s.sub}
                 </div>
               </div>
@@ -427,7 +540,7 @@ const JourneyTimeline = () => {
   );
 };
 
-/* -------- Recognised & Certified - merged into page flow -------- */
+/* -------- Recognised & Certified -------- */
 const RecognisedCertified = () => {
   const certs = [
     { icon: Award, label: 'Start-up India', sub: 'Registered under DIPP, Govt. of India' },
@@ -438,12 +551,13 @@ const RecognisedCertified = () => {
   ];
 
   return (
-    <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
+    <div className="rounded-2xl bg-white border border-[#a16d36]/40 shadow-md p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-extrabold text-gray-900">
-          Recognised &amp; <span className="text-green-700">Certified</span>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          Recognised &amp; <span className="text-[#920609]">Certified</span>
         </h2>
-        <p className="text-sm text-gray-500 mt-2">
+        <span className="block w-16 h-1 bg-[#a16d36] rounded-full mt-3" />
+        <p className="text-sm text-gray-500 mt-3">
           Every registration and certification reflects our commitment to quality, compliance, and long-term sustainability.
         </p>
       </div>
@@ -452,67 +566,46 @@ const RecognisedCertified = () => {
           const Icon = c.icon;
 
           return (
-          <div
-            key={c.label}
-            className="flex flex-col items-center text-center rounded-xl border border-green-100 bg-green-50 p-5 hover:border-green-400 hover:shadow-md transition-all duration-300"
-          >
-            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-3">
-              <Icon
-                size={28}
-                strokeWidth={2}
-                className="text-green-700"
-              />
+            <div
+              key={c.label}
+              className="flex flex-col items-center text-center rounded-xl border border-[#a16d36]/30 bg-[#fbf3ea] p-5 hover:border-[#a16d36] hover:shadow-md transition-all duration-300"
+            >
+              <div className="w-14 h-14 rounded-full bg-white border border-[#a16d36]/30 flex items-center justify-center mb-3">
+                <Icon
+                  size={28}
+                  strokeWidth={2}
+                  className="text-[#920609]"
+                />
+              </div>
+              <p className="text-sm font-semibold text-[#920609]">{c.label}</p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">{c.sub}</p>
             </div>
-            <p className="text-sm font-bold text-green-800">{c.label}</p>
-            <p className="text-xs text-gray-500 mt-1 leading-relaxed">{c.sub}</p>
-          </div>
-        );
-     })}
+          );
+        })}
       </div>
     </div>
   );
 };
 
-/* -------- What We Make - merged into page flow -------- */
-const WhatWeMake = () => {
-  const active = [
-    { label: 'Wireless', to: '/wireless', desc: 'Access points, routers & enterprise Wi-Fi solutions.', icon: Wifi },
-    { label: 'Surveillance', to: '/surveillance', desc: 'IP cameras, NVRs & complete CCTV systems.', icon: Camera },
-    { label: 'Network Switches', to: '/networkswitches', desc: 'Managed & unmanaged switches for every scale.', icon: Network },
-    { label: 'Industrial Switches', to: '/industrialswitches', desc: 'Ruggedised switches for harsh environments.', icon: Factory },
-    { label: 'Servers & Workstations', to: '/serversandworkstations', desc: 'Rack servers & high-performance workstations.', icon: Server },
-    { label: 'NAS', to: '/networkattachedstorages', desc: 'Network attached storage for business data.', icon: HardDrive },
-  ];
-  const passive = [
-    { label: 'Racks', to: '/racks', desc: 'Server racks, wall mounts & enclosures.', icon: Archive },
-    { label: 'Cables', to: '/cables', desc: 'CAT6, CAT6A, fiber optic & patch cables.', icon: Cable },
-    { label: 'Network Accessories', to: '/networkaccessories', desc: 'Patch panels, keystone jacks & cable managers.', icon: Package },
-  ];
-
-  const ProductCard = ({ item }) => {
+/* -------- What We Make -------- */
+const ProductCard = ({ item }) => {
   const Icon = item.icon;
 
   return (
     <Link
       to={item.to}
-      className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50 hover:shadow-md transition-all duration-300 group hover:-translate-y-1"
+      className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-[#a16d36] hover:bg-[#fbf3ea] hover:shadow-md transition-all duration-300 group hover:-translate-y-1"
     >
-      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200 flex items-center justify-center">
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#fbf3ea] to-[#f3e3cf] border border-[#a16d36]/40 flex items-center justify-center">
         <Icon
           size={20}
           strokeWidth={2}
-          className="
-            text-green-700
-            transition-all
-            duration-300
-            group-hover:scale-110
-            group-hover:rotate-6
-          "
+          className="text-[#920609] transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
         />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 group-hover:text-green-700">
+        <p className="text-sm font-semibold text-gray-800 group-hover:text-[#920609]">
           {item.label}
         </p>
 
@@ -522,7 +615,7 @@ const WhatWeMake = () => {
       </div>
 
       <svg
-        className="w-4 h-4 text-gray-300 group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-300"
+        className="w-4 h-4 text-gray-300 group-hover:text-[#920609] group-hover:translate-x-1 transition-all duration-300"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -538,20 +631,36 @@ const WhatWeMake = () => {
   );
 };
 
+const WhatWeMake = () => {
+  const active = [
+    { label: 'Wireless', to: '/wireless', desc: 'Access points, routers & enterprise Wi-Fi solutions.', icon: Wifi },
+    { label: 'Surveillance', to: '/surveillance', desc: 'IP cameras, NVRs & complete CCTV systems.', icon: Camera },
+    { label: 'Network Switches', to: '/networkswitches', desc: 'Managed & unmanaged switches for every scale.', icon: Network },
+    { label: 'Industrial Switches', to: '/industrialswitches', desc: 'Ruggedised switches for harsh environments.', icon: Factory },
+    { label: 'Servers & Workstations', to: '/serversandworkstations', desc: 'Rack servers & high-performance workstations.', icon: Server },
+    { label: 'NAS', to: '/networkattachedstorages', desc: 'Network attached storage for business data.', icon: HardDrive },
+  ];
+  const passive = [
+    { label: 'Racks', to: '/racks', desc: 'Server racks, wall mounts & enclosures.', icon: Archive },
+    { label: 'Cables', to: '/cables', desc: 'CAT6, CAT6A, fiber optic & patch cables.', icon: Cable },
+    { label: 'Network Accessories', to: '/networkaccessories', desc: 'Patch panels, keystone jacks & cable managers.', icon: Package },
+  ];
+
   return (
-    <div className="rounded-2xl bg-white border border-green-200 shadow-md p-8">
+    <div className="rounded-2xl bg-white border border-[#a16d36]/40 shadow-md p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-extrabold text-gray-900">
-          What We <span className="text-green-700">Make</span>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          What We <span className="text-[#920609]">Make</span>
         </h2>
-        <p className="text-sm text-gray-500 mt-2">
+        <span className="block w-16 h-1 bg-[#a16d36] rounded-full mt-3" />
+        <p className="text-sm text-gray-500 mt-3">
           Smart, scalable networking products built specifically for Indian businesses - from SMBs to large enterprises.
         </p>
       </div>
 
       <div className="mb-6">
-        <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <span className="w-6 h-0.5 bg-green-400 inline-block" /> Active Networking
+        <p className="text-xs font-semibold text-[#a16d36] uppercase tracking-widest mb-3 flex items-center gap-2">
+          <span className="w-6 h-0.5 bg-[#a16d36] inline-block" /> Active Networking
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {active.map((item) => <ProductCard key={item.label} item={item} />)}
@@ -559,8 +668,8 @@ const WhatWeMake = () => {
       </div>
 
       <div>
-        <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <span className="w-6 h-0.5 bg-green-400 inline-block" /> Passive Infrastructure
+        <p className="text-xs font-semibold text-[#a16d36] uppercase tracking-widest mb-3 flex items-center gap-2">
+          <span className="w-6 h-0.5 bg-[#a16d36] inline-block" /> Passive Infrastructure
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {passive.map((item) => <ProductCard key={item.label} item={item} />)}
@@ -579,7 +688,7 @@ const About = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         <title>About AADONA | Going Beyond Vision – India's Premium Networking Technology Brand</title>
@@ -594,6 +703,12 @@ const About = () => {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/about" />
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
+
         <meta property="og:type" content="website" />
         <meta property="og:title" content="About AADONA | Going Beyond Vision" />
         <meta property="og:description" content="Three engineers. One belief. AADONA - building India's own premium networking technology brand since 2018." />
@@ -610,11 +725,11 @@ const About = () => {
       {/* ── HERO ── */}
       <header
         className="pt-32 pb-16 bg-cover sm:bg-center bg-left bg-no-repeat"
-        style={{ backgroundImage: `url(${aboutusbanner})` }}
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent), url(${aboutusbanner})` }}
         aria-label="About AADONA hero banner"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+          <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
             Our Story
           </h1>
           <p className="mt-6 text-md text-white max-w-3xl mx-auto">
@@ -631,11 +746,11 @@ const About = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-10">
 
-          {/* ── 1. Going Beyond Vision (docx opening paragraph) ── */}
+          {/* ── 1. Going Beyond Vision ── */}
           <FadeCard>
             <article className={liftCard}>
-              <h2 className="text-3xl font-black text-green-700 tracking-widest mb-0.5">AADONA<sup className="text-green-500 text-sm align-super">®</sup></h2>
-              <p className="text-xs font-bold tracking-[3px] text-green-600 uppercase mb-5">Going Beyond Vision</p>
+              <h2 className="text-3xl font-semibold text-[#920609] tracking-widest mb-0.5">AADONA<sup className="text-[#a16d36] text-sm align-super">®</sup></h2>
+              <p className="text-xs font-semibold tracking-[3px] text-[#a16d36] uppercase mb-5">Going Beyond Vision</p>
               <p className="text-lg leading-relaxed text-gray-700">
                 Every nation that aspires to lead in the digital era must build its own technology capabilities.
                 For decades, Indian businesses, government institutions, and enterprises have relied heavily on
@@ -644,16 +759,16 @@ const About = () => {
                 market - a trusted Indian brand capable of delivering world-class networking technology with
                 innovation, reliability, and long-term value.
               </p>
-              <p className="text-lg leading-relaxed text-gray-700 mt-4 font-semibold text-green-700">
+              <p className="text-lg leading-relaxed mt-4 font-semibold text-[#920609]">
                 AADONA was born to bridge that gap.
               </p>
             </article>
           </FadeCard>
 
-          {/* ── 2. Who We Are - founding story ── */}
+          {/* ── 2. Who We Are ── */}
           <FadeCard>
             <article className={liftCard}>
-              <h2 className="text-xl font-bold text-green-800 mb-4">Who We Are</h2>
+              <h2 className="text-xl font-semibold text-[#920609] mb-4">Who We Are</h2>
               <p className="text-lg leading-relaxed text-gray-700">
                 Founded in 2018 under the visionary framework of the Government of India's Start-up India
                 initiative, AADONA emerged from a simple yet powerful belief shared by three passionate
@@ -673,7 +788,6 @@ const About = () => {
             </article>
           </FadeCard>
 
-          {/* ── IMAGE 2: Proudly Indian / Globally Ambitious ── */}
           <FadeCard>
             <IdentityBanner />
           </FadeCard>
@@ -681,7 +795,7 @@ const About = () => {
           {/* ── 3. Our Purpose ── */}
           <FadeCard>
             <article className={liftCard}>
-              <h2 className="text-xl font-bold text-green-800 mb-4">Our Purpose</h2>
+              <h2 className="text-xl font-semibold text-[#920609] mb-4">Our Purpose</h2>
               <p className="text-lg leading-relaxed text-gray-700">
                 Our purpose is much larger than certifications alone. We envision a future where organizations
                 no longer have to choose between expensive global brands and unreliable low-cost alternatives.
@@ -698,7 +812,6 @@ const About = () => {
             </article>
           </FadeCard>
 
-          {/* ── Recognised & Certified - merged into page flow ── */}
           <FadeCard>
             <RecognisedCertified />
           </FadeCard>
@@ -707,11 +820,11 @@ const About = () => {
           <FadeCard>
             <article className={liftCard}>
               <Link to="/leadershipTeam" className="group inline-flex items-center gap-2 mb-4">
-                <h2 className="text-xl font-bold text-green-800 group-hover:text-green-600 transition-colors duration-200">
+                <h2 className="text-xl font-semibold text-[#920609] group-hover:text-[#c42126] transition-colors duration-200">
                   The People Behind It
                 </h2>
                 <svg
-                  className="w-4 h-4 text-green-800 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  className="w-4 h-4 text-[#920609] opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                   fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -730,7 +843,6 @@ const About = () => {
             </article>
           </FadeCard>
 
-          {/* ── IMAGE 1: Core Strengths ── */}
           <FadeCard>
             <CoreStrengths />
           </FadeCard>
@@ -738,7 +850,7 @@ const About = () => {
           {/* ── 5. Our Footprint Across India ── */}
           <FadeCard>
             <article className={liftCard}>
-              <h2 className="text-xl font-bold text-green-800 mb-4">Our Footprint Across India</h2>
+              <h2 className="text-xl font-semibold text-[#920609] mb-4">Our Footprint Across India</h2>
               <p className="text-lg leading-relaxed text-gray-700">
                 Over the years, AADONA has expanded its footprint across India through a growing ecosystem of
                 partners, system integrators, distributors, and customers. Our PAN India presence reflects the
@@ -754,12 +866,10 @@ const About = () => {
             </article>
           </FadeCard>
 
-          {/* ── IMAGE 3: Journey Timeline ── */}
           <FadeCard>
             <JourneyTimeline />
           </FadeCard>
 
-          {/* ── What We Make - merged into page flow ── */}
           <FadeCard>
             <WhatWeMake />
           </FadeCard>
@@ -767,7 +877,7 @@ const About = () => {
           {/* ── 6. An Indian MNC in the Making ── */}
           <FadeCard>
             <article className={liftCard}>
-              <h2 className="text-xl font-bold text-green-800 mb-4">An Indian MNC in the Making</h2>
+              <h2 className="text-xl font-semibold text-[#920609] mb-4">An Indian MNC in the Making</h2>
               <p className="text-lg leading-relaxed text-gray-700">
                 Our ambition is clear: to evolve from a respected Indian technology brand into a globally
                 recognized networking powerhouse. We call ourselves <strong>"An Indian MNC in the Making"</strong> because
@@ -785,12 +895,18 @@ const About = () => {
                 the belief that the future of networking can be engineered in India, for India, and for the world.
               </p>
               {/* Closing brand statement */}
-              <div className="mt-6 rounded-xl bg-gradient-to-r from-green-800 to-green-600 px-6 py-5 text-white">
+              <div
+                className="mt-6 rounded-xl border-b-4 border-[#a16d36] px-6 py-5 text-white"
+                style={{
+                  backgroundColor: '#920609',
+                  backgroundImage: 'linear-gradient(to right, #920609, #c42126)',
+                }}
+              >
                 <p className="text-sm font-semibold leading-relaxed italic">
                   "A story driven by vision, built on innovation, and powered by the belief that the future of
                   networking can be engineered in India, for India, and for the world."
                 </p>
-                <p className="text-xs text-green-200 mt-3 font-bold tracking-widest uppercase">- AADONA</p>
+                <p className="text-xs text-[#f3e3cf] mt-3 font-semibold tracking-widest uppercase">- AADONA</p>
               </div>
             </article>
           </FadeCard>
@@ -799,7 +915,7 @@ const About = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

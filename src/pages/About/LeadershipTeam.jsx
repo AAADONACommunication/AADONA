@@ -9,7 +9,9 @@ import Govind from "../../assets/Govind_Madhav.avif";
 import Chandan from "../../assets/Chandan_Sharma.avif";
 import bg from "../../assets/bg.avif";
 import linkedin from "../../assets/linkedin.avif";
-import leadershipbanner from "../../assets/LeadershipBanner.avif";
+import leadershipbanner from "../../assets/LeadershipBanner.webp";
+
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -58,8 +60,8 @@ const structuredData = {
 
 /* -------- Hover-Lift Card Style -------- */
 const liftCard =
-  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-[#a16d36]/30 " +
+  "border border-[#a16d36]/40 hover:border-[#a16d36] transition-all duration-500 ease-out hover:-translate-y-1";
 
 const leaders = [
   {
@@ -98,7 +100,7 @@ const LeadershipTeam = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         {/* Primary Meta */}
@@ -114,6 +116,11 @@ const LeadershipTeam = () => {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/leadership" /> {/* ← update */}
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -144,11 +151,11 @@ const LeadershipTeam = () => {
       {/* ── HERO ── */}
       <header
                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                     style={{ backgroundImage: `url(${leadershipbanner})` }}
+                     style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${leadershipbanner})` }}
                      aria-label="Leadership herbanner"
                    >
                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                       <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+                       <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
                           Leadership Team
                        </h1>
                        <p className="mt-6 text-md text-white max-w-3xl mx-auto">
@@ -175,7 +182,7 @@ const LeadershipTeam = () => {
                   <img
                     src={leader.photo}
                     alt={`${leader.name} – ${leader.title} at AADONA`}
-                    className="w-full h-full rounded-full object-cover object-top border-2 border-gray-200 p-1 bg-white"
+                    className="w-full h-full rounded-full object-cover object-top border-2 border-[#a16d36] p-1 bg-white shadow-md"
                     loading="lazy"
                     decoding="async"
                     width={192}
@@ -186,14 +193,14 @@ const LeadershipTeam = () => {
                 {/* Text */}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h2 className="text-2xl font-bold text-gray-800">
+                    <h2 className="text-2xl font-semibold text-[#920609]">
                       {leader.name}
                     </h2>
                     <a
                       href={leader.linkedin}
                       target="_blank"
                       rel="noopener noreferrer nofollow"
-                      className="transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded"
+                      className="transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#920609] focus:ring-offset-2 rounded"
                       aria-label={`View ${leader.name}'s LinkedIn profile (opens in new tab)`}
                     >
                       <img
@@ -207,9 +214,10 @@ const LeadershipTeam = () => {
                       />
                     </a>
                   </div>
-                  <h3 className="text-gray-600 mt-1 text-lg font-medium">
+                  <h3 className="text-[#a16d36] mt-1 text-lg font-medium">
                     {leader.title}
                   </h3>
+                  <span className="block w-12 h-1 bg-[#a16d36]/60 rounded-full mt-2" />
                   <p className="mt-3 text-gray-700 leading-relaxed">
                     {leader.bio}
                   </p>
@@ -221,9 +229,8 @@ const LeadershipTeam = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 
 export default LeadershipTeam;
- {/* ── END AND AGAIN */}

@@ -1,10 +1,12 @@
-import { React, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import bg from '../../assets/bg.avif';
-import whistlebanner from '../../assets/WhistleBanner.avif';
+import whistlebanner from '../../assets/WhistleBanner.webp';
+
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -21,10 +23,34 @@ const structuredData = {
   },
 };
 
-/* -------- Hover-Lift Card Style -------- */
+/* -------- Hover-Lift Card Style (gold border + red-to-gold top strip) -------- */
 const liftCard =
-  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "relative overflow-hidden rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-[#a16d36]/30 " +
+  "border border-[#a16d36]/40 hover:border-[#a16d36] transition-all duration-500 ease-out hover:-translate-y-1";
+
+/* Thin red → gold strip across the top of every card */
+const TopStrip = () => (
+  <span
+    className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#920609] via-[#c42126] to-[#a16d36]"
+    aria-hidden="true"
+  />
+);
+
+/* Numbered badge: alternates red and gold */
+const Badge = ({ n, tone }) => (
+  <span
+    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shadow-md ${
+      tone === "red"
+        ? "bg-gradient-to-br from-[#920609] to-[#c42126]"
+        : "bg-gradient-to-br from-[#c79d47] to-[#a16d36]"
+    }`}
+    aria-hidden="true"
+  >
+    {n}
+  </span>
+);
+
+
 
 const WhistleBlower = () => {
   useEffect(() => {
@@ -32,7 +58,7 @@ const WhistleBlower = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         {/* Primary Meta */}
@@ -48,6 +74,11 @@ const WhistleBlower = () => {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/whistleblower" /> {/* ← update */}
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -76,19 +107,27 @@ const WhistleBlower = () => {
       <Navbar />
 
       {/* ── HERO ── */}
-        <header
-                           className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                           style={{ backgroundImage: `url(${whistlebanner})` }}
-                           aria-label=" Whistle Blower banner"
-                         >
-                           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                             <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
-                                Whistle Blower
-                             </h1>
-                             <p className="mt-6 text-md text-white max-w-3xl mx-auto">
-                                   Ensuring Ethics, Integrity &amp; Transparency                       </p>
-                           </div>
-                         </header>
+      <header
+        className="relative pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${whistlebanner})` }}
+        aria-label="Whistle Blower banner"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
+            Whistle Blower
+          </h1>
+          {/* red + gold underline */}
+          
+          <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+            Ensuring Ethics, Integrity &amp; Transparency
+          </p>
+        </div>
+        {/* red → gold bar along the bottom edge of the hero */}
+        <span
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#920609] via-[#c42126] to-[#a16d36]"
+          aria-hidden="true"
+        />
+      </header>
 
       {/* ── MAIN ── */}
       <main
@@ -98,44 +137,56 @@ const WhistleBlower = () => {
       >
         <div className="max-w-5xl mx-auto px-6 sm:px-8 mt-16 pb-20 space-y-10">
 
-          {/* Card 1 */}
-          <article className={liftCard} aria-label="Whistle Blower Policy Overview">
-            <p className="text-lg leading-relaxed text-gray-700">
-              As per AADONA top management, the final ruling regarding standards relating
-              to regular internal audit requires that AADONA COMMUNICATION provide a
-              facility for the receipt, retention, and treatment of complaints received
-              regarding accounting, misconducts, ethical, and integrity issues, internal
-              accounting controls, or auditing matters. Your message is encrypted and
-              will be delivered directly to the CEO.
-            </p>
+          {/* Card 1 - red accent */}
+          <article className={`${liftCard}`} aria-label="Whistle Blower Policy Overview">
+            <TopStrip />
+            <div className="flex items-start gap-5">
+              <Badge n="1" tone="red" />
+              <p className="text-lg leading-relaxed text-gray-700">
+                As per AADONA top management, the final ruling regarding standards relating
+                to regular internal audit requires that AADONA COMMUNICATION provide a
+                facility for the receipt, retention, and treatment of complaints received
+                regarding accounting, misconducts, ethical, and integrity issues, internal
+                accounting controls, or auditing matters. Your message is encrypted and
+                will be delivered directly to the CEO.
+              </p>
+            </div>
           </article>
 
-          {/* Card 2 */}
-          <article className={liftCard} aria-label="Financial and Audit Ethics">
-            <p className="text-lg leading-relaxed text-gray-700">
-              Understanding and acting upon any issues that exist regarding financial,
-              accounting, and/or audit matters is an essential component of AADONA
-              COMMUNICATION's ability to take action and ensure the highest levels of
-              ethics, integrity, and transparency to keep systems clean.
-            </p>
+          {/* Card 2 - gold accent */}
+          <article className={`${liftCard}`} aria-label="Financial and Audit Ethics">
+            <TopStrip />
+            <div className="flex items-start gap-5">
+              <Badge n="2" tone="gold" />
+              <p className="text-lg leading-relaxed text-gray-700">
+                Understanding and acting upon any issues that exist regarding financial,
+                accounting, and/or audit matters is an essential component of AADONA
+                COMMUNICATION's ability to take action and ensure the highest levels of
+                ethics, integrity, and transparency to keep systems clean.
+              </p>
+            </div>
           </article>
 
-          {/* Card 3 */}
-          <article className={liftCard} aria-label="Report Unethical Practices">
-            <p className="text-lg leading-relaxed text-gray-700">
-              We love our customers. If you have seen any unethical practice or behavior
-              in AADONA by any of our team members or partners related to our business,
-              feel free to drop us a mail through the secure form below or give us a
-              direct call and speak to the CEO during normal business hours. We are
-              committed to keeping things clean here.
-            </p>
+          {/* Card 3 - red accent */}
+          <article className={`${liftCard}`} aria-label="Report Unethical Practices">
+            <TopStrip />
+            <div className="flex items-start gap-5">
+              <Badge n="3" tone="red" />
+              <p className="text-lg leading-relaxed text-gray-700">
+                We love our customers. If you have seen any unethical practice or behavior
+                in AADONA by any of our team members or partners related to our business,
+                feel free to drop us a mail through the secure form below or give us a
+                direct call and speak to the CEO during normal business hours. We are
+                committed to keeping things clean here.
+              </p>
+            </div>
           </article>
 
-          {/* CTA Button */}
-          <div className="text-center">
+          {/* CTA */}
+          <div className="text-center pt-2">
             <Link
               to="/whistleButton"
-              className="inline-flex items-center px-8 py-4 text-lg font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
+              className="inline-flex items-center px-8 py-4 text-lg font-semibold rounded-lg text-white bg-gradient-to-r from-[#920609] to-[#c42126] border border-[#a16d36] hover:brightness-110 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#a16d36] focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-[#a16d36]/40"
               aria-label="Open Whistle Blower secure complaint form"
             >
               Whistle Blower Form
@@ -146,7 +197,7 @@ const WhistleBlower = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

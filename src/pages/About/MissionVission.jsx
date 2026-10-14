@@ -12,7 +12,9 @@ import goodCitizenship from '../../assets/GoodCitizenship.avif';
 import respectPeople from '../../assets/RespectforPeople.avif';
 import willToWin from '../../assets/Awilltowin.avif';
 import accountability from '../../assets/PersonalAccountability.avif';
-import missionbanner from '../../assets/MissionVissionBanner.avif';
+import missionbanner from '../../assets/MissionVissionBanner.webp';
+
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -33,13 +35,13 @@ const structuredData = {
 
 /* -------- Hover-Lift Card Style -------- */
 const liftCard =
-  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-[#a16d36]/30 " +
+  "border border-[#a16d36]/40 hover:border-[#a16d36] transition-all duration-500 ease-out hover:-translate-y-1";
 
 /* -------- Value Card Component -------- */
 const ValueCard = ({ title, description, image }) => (
   <article className={liftCard + " flex flex-col items-center"} aria-label={title}>
-    <div className="bg-[#f8faf9] rounded-full p-6 mb-6 flex items-center justify-center">
+    <div className="bg-[#fbf3ea] ring-2 ring-[#a16d36]/30 rounded-full p-6 mb-6 flex items-center justify-center">
       <img
         src={image}
         alt={`${title} – AADONA core value`}
@@ -50,7 +52,7 @@ const ValueCard = ({ title, description, image }) => (
         height={128}
       />
     </div>
-    <h3 className="text-xl font-medium text-green-800 mb-3">{title}</h3>
+    <h3 className="text-xl font-semibold text-[#920609] mb-3">{title}</h3>
     <p className="text-gray-600 text-center leading-relaxed">{description}</p>
   </article>
 );
@@ -72,7 +74,7 @@ const MissionVision = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         {/* Primary Meta */}
@@ -88,6 +90,11 @@ const MissionVision = () => {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/mission-vision" /> {/* ← update */}
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -118,11 +125,11 @@ const MissionVision = () => {
       {/* ── HERO ── */}
       <header
                           className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                          style={{ backgroundImage: `url(${missionbanner})` }}
+                          style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${missionbanner})` }}
                           aria-label="Mission herbanner"
                         >
                           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                            <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+                            <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
                              Mission &amp; Vision
                             </h1>
                             <p className="mt-6 text-md text-white max-w-3xl mx-auto">
@@ -144,8 +151,8 @@ const MissionVision = () => {
             className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16"
             aria-label="Our Mission and Vision"
           >
-            <article className={liftCard} aria-label="Our Mission">
-              <h2 className="text-3xl font-bold text-green-800 mb-6">Our Mission</h2>
+            <article className={`${liftCard} border-t-4 border-t-[#920609]`} aria-label="Our Mission">
+              <h2 className="text-3xl font-semibold text-[#920609] mb-6">Our Mission</h2>
               <p className="text-lg text-gray-600 leading-relaxed">
                 At AADONA, our mission revolves around your satisfaction. We are deeply committed
                 to the common good, striving to provide exceptional IT networking solutions with
@@ -153,8 +160,8 @@ const MissionVision = () => {
               </p>
             </article>
 
-            <article className={liftCard} aria-label="Our Vision">
-              <h2 className="text-3xl font-bold text-green-800 mb-6">Our Vision</h2>
+            <article className={`${liftCard} border-t-4 border-t-[#a16d36]`} aria-label="Our Vision">
+              <h2 className="text-3xl font-semibold text-[#a16d36] mb-6">Our Vision</h2>
               <p className="text-lg text-gray-600 leading-relaxed">
                 Our vision is clear: to become India&apos;s premier IT network solutions provider,
                 catering to diverse needs. Rooted in customer-centricity, our vision drives our
@@ -166,9 +173,10 @@ const MissionVision = () => {
           {/* Values Section */}
           <section aria-label="AADONA Core Values">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-green-800 mb-4">
+              <h2 className="text-3xl font-semibold text-[#920609]">
                 Our Values Define Us
               </h2>
+              <span className="block w-20 h-1 bg-[#a16d36] rounded-full mx-auto mt-3" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -193,7 +201,7 @@ const MissionVision = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

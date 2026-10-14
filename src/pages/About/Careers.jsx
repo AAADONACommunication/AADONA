@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.avif";
-import careerbanner from "../../assets/CareersBanner.avif";
+import careerbanner from "../../assets/CareersBanner.webp";
+
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
+/* Gold scale used for the golden touch: deep #a16d36 · rich #c8923f · light #e6c07b · pale #f6e7c8 */
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -29,15 +32,29 @@ const structuredData = {
   url: "https://www.aadona.com/careers", // ← update to your actual domain
 };
 
+/* -------- Gold helpers -------- */
+const goldGradient = "bg-gradient-to-r from-[#a16d36] via-[#e6c07b] to-[#a16d36]";
+
 /* -------- Hover-Lift Card Style -------- */
 const liftCard =
-  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-white to-[#f6e7c8]/60 p-8 " +
+  "shadow-md shadow-[#a16d36]/10 hover:shadow-2xl hover:shadow-[#a16d36]/40 " +
+  "border border-[#c8923f]/50 hover:border-[#a16d36] ring-1 ring-inset ring-[#f6e7c8] " +
+  "transition-all duration-500 ease-out hover:-translate-y-1";
 
 /* -------- Career Card Component -------- */
 const CareerCard = ({ title, description }) => (
   <article className={liftCard} aria-label={title}>
-    <h2 className="text-2xl font-bold text-green-800 mb-4">{title}</h2>
+    {/* gold top edge */}
+    <span
+      aria-hidden="true"
+      className={`absolute inset-x-0 top-0 h-0.5 ${goldGradient}`}
+    />
+    <h2 className="text-2xl font-semibold text-[#920609] mb-2">{title}</h2>
+    <span
+      aria-hidden="true"
+      className={`block w-16 h-1 rounded-full mb-4 ${goldGradient}`}
+    />
     <p className="text-gray-600 leading-relaxed">{description}</p>
   </article>
 );
@@ -48,7 +65,7 @@ const Careers = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         {/* Primary Meta */}
@@ -64,6 +81,11 @@ const Careers = () => {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/careers" /> {/* ← update */}
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -93,20 +115,21 @@ const Careers = () => {
       <Navbar />
 
       {/* ── HERO ── */}
-        <header
-                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${careerbanner})` }}
-                      aria-label="Career herbanner"
-                    >
-                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
-                          Careers
-                        </h1>
-                        <p className="mt-6 text-md text-white max-w-3xl mx-auto">
-                             Here's why you should join us!                       
-                              </p>
-                      </div>
-                    </header>
+      {/* ── HERO ── */}
+<header
+  className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+  style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${careerbanner})` }}
+  aria-label="Career herbanner"
+>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
+      Careers
+    </h1>
+    <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+      Here's why you should join us!
+    </p>
+  </div>
+</header>
 
       {/* ── MAIN ── */}
       <main
@@ -146,7 +169,7 @@ const Careers = () => {
           <div className="text-center mt-16">
             <Link
               to="/careers/applyNow"
-              className="inline-flex items-center px-8 py-4 text-lg font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
+              className="inline-flex items-center px-8 py-4 text-lg font-semibold rounded-md text-white bg-gradient-to-r from-[#920609] to-[#c42126] border-2 border-[#e6c07b] hover:brightness-110 hover:shadow-[0_0_24px_4px_rgba(200,146,63,0.55)] focus:outline-none focus:ring-2 focus:ring-[#c8923f] focus:ring-offset-2 transition-all duration-300 shadow-lg shadow-[#920609]/30"
               aria-label="Apply for a job at AADONA"
             >
               Apply Now
@@ -157,7 +180,7 @@ const Careers = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

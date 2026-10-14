@@ -4,12 +4,14 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { Link } from "react-router-dom";
 import bg from "../../assets/bg.avif";
-import csrbanner from '../../assets/CSRBanner.avif'
+import csrbanner from '../../assets/CSRBanner.webp'
+
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
 /* -------- Hover Lift Card Style -------- */
 const liftCard =
-  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-[#a16d36]/30 " +
+  "border border-[#a16d36]/40 border-t-4 border-t-[#a16d36] hover:border-[#a16d36] transition-all duration-500 ease-out hover:-translate-y-1";
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -32,7 +34,7 @@ const Csr = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         {/* Primary Meta */}
@@ -48,6 +50,11 @@ const Csr = () => {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/csr" /> {/* ← update */}
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -80,14 +87,14 @@ const Csr = () => {
       {/* ── HERO ── */}
         <header
                 className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url(${csrbanner})` }}
+                style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${csrbanner})` }}
                 aria-label="CSR herbanner"
               >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                  <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+                  <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
                     Corporate Social Responsibility
                   </h1>
-                  <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+                  <p className="mt-6 text-md text-white max-w-3xl mx-auto">
                      Supporting Our Heroes: AADONA's Commitment to Social Responsibility
                   </p>
                 </div>
@@ -115,12 +122,12 @@ const Csr = () => {
                   nation and society. Recognizing the immense sacrifices and
                   hardships endured by our Army Men, we pledge to support the
                   families of fallen soldiers through{" "}
-                  <strong>Bharat Ke Veer</strong>.
+                  <strong className="text-[#920609]">Bharat Ke Veer</strong>.
                 </p>
               </article>
 
               {/* Card 2 */}
-              <article className={liftCard}>
+              <article className={`${liftCard} border-l-8 border-l-[#920609]`}>
                 <p className="text-lg font-medium text-gray-900">
                   "Bharat Ke Veer" provides a platform for ordinary citizens to
                   contribute to the families of bravehearts who have sacrificed
@@ -142,7 +149,7 @@ const Csr = () => {
 
               {/* Card 4 */}
               <article className={liftCard}>
-                <h2 className="text-xl font-semibold text-green-900 mb-4">
+                <h2 className="text-xl font-semibold text-[#920609] mb-4">
                   Make a Difference Today
                 </h2>
                 <p className="text-gray-700">
@@ -151,7 +158,7 @@ const Csr = () => {
                     href="https://bharatkeveer.gov.in"
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="text-green-700 hover:text-green-900 font-medium underline underline-offset-2"
+                    className="text-[#c42126] hover:text-[#920609] font-medium underline underline-offset-2"
                     aria-label="Visit Bharat Ke Veer official website (opens in new tab)"
                   >
                     bharatkeveer.gov.in
@@ -168,15 +175,15 @@ const Csr = () => {
               className="lg:col-span-4"
               aria-label="AADONA CSR Impact Summary"
             >
-              <div className="bg-white rounded-2xl shadow-md p-6 sticky top-24 border border-green-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-white rounded-2xl shadow-md p-6 sticky top-24 border border-[#a16d36]/40">
+                <h2 className="text-lg font-semibold text-[#920609] mb-4">
                   Our Impact
                 </h2>
 
                 <div className="space-y-4">
-                  <div className="border-b pb-4">
+                  <div className="border-b border-[#a16d36]/30 pb-4">
                     <p
-                      className="text-3xl font-bold text-green-700"
+                      className="text-3xl font-semibold text-[#a16d36]"
                       aria-label="100 percent commitment to supporting veterans"
                     >
                       100%
@@ -192,7 +199,7 @@ const Csr = () => {
                     </p>
                     <Link
                       to="/contactus"
-                      className="mt-4 w-full inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200"
+                      className="mt-4 w-full inline-flex justify-center items-center px-4 py-2 text-sm font-semibold rounded-md text-white bg-gradient-to-r from-[#920609] to-[#c42126] hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[#a16d36] focus:ring-offset-2 transition-all duration-200"
                       aria-label="Contact AADONA about CSR initiatives"
                     >
                       Contact Us
@@ -207,7 +214,7 @@ const Csr = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 
