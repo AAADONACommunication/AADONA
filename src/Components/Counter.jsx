@@ -52,7 +52,7 @@ const CountUp = ({ target, label, icon, orbBg, tickColor, duration = 1500 }) => 
       ref={countRef}
       role="img"
       aria-label={`${target.toLocaleString()}+ ${label}`}
-      className="group flex flex-col items-center px-6 py-8 w-full sm:flex-1 sm:min-w-[160px] rounded-lg transition-colors duration-300 hover:bg-slate-100 cursor-default"
+      className="group flex flex-col items-center px-6 py-8 w-full sm:flex-1 sm:min-w-[160px] rounded-lg transition-colors duration-300 hover:bg-[#a16d36]/5 cursor-default"
     >
       <div
         className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
@@ -63,7 +63,7 @@ const CountUp = ({ target, label, icon, orbBg, tickColor, duration = 1500 }) => 
       </div>
 
       <div
-        className="text-[48px] sm:text-[56px] md:text-[60px] font-extrabold leading-none tracking-[-2px] text-[#00334E] group-hover:text-green-700 transition-colors duration-300 tabular-nums"
+        className="text-[48px] sm:text-[56px] md:text-[60px] font-semibold leading-none tracking-[-2px] text-[#920609] group-hover:text-[#c42126] transition-colors duration-300 tabular-nums"
         aria-hidden="true" // screen readers use parent aria-label
       >
         {count.toLocaleString()}
@@ -98,13 +98,13 @@ function CounterSection() {
       </Helmet>
 
       <section
-        className="bg-white overflow-hidden"
+        className="bg-white overflow-hidden font-['Poppins',sans-serif] font-semibold"
         aria-labelledby="achievements-heading"
       >
         <div className="bg-white px-8 pt-10 pb-6 text-center">
           <h2
             id="achievements-heading"
-            className="text-4xl font-extrabold text-green-700 m-0"
+            className="text-4xl font-semibold text-[#c42126] m-0"
           >
             Our Achievements
           </h2>
@@ -115,15 +115,15 @@ function CounterSection() {
           <CountUp
             target={1000}
             label="Customers"
-            orbBg="#d6e9c7"
-            tickColor="#166534"
+            orbBg="#f8dcdd"
+            tickColor="#c42126"
             icon={
               <svg
                 width="30"
                 height="30"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#2f5d0d"
+                stroke="#920609"
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -138,21 +138,21 @@ function CounterSection() {
             }
           />
 
-          <div className="hidden sm:block w-px self-center h-24 bg-slate-200 flex-shrink-0" aria-hidden="true" />
-          <div className="block sm:hidden w-24 h-px bg-slate-200 flex-shrink-0" aria-hidden="true" />
+          <div className="hidden sm:block w-px self-center h-24 bg-[#a16d36]/30 flex-shrink-0" aria-hidden="true" />
+          <div className="block sm:hidden w-24 h-px bg-[#a16d36]/30 flex-shrink-0" aria-hidden="true" />
 
           <CountUp
             target={600}
             label="Products"
-            orbBg="#c9e4ef"
-            tickColor="#00263a"
+            orbBg="#f1e4d3"
+            tickColor="#a16d36"
             icon={
               <svg
                 width="30"
                 height="30"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#00263a"
+                stroke="#a16d36"
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -166,21 +166,21 @@ function CounterSection() {
             }
           />
 
-          <div className="hidden sm:block w-px self-center h-24 bg-slate-200 flex-shrink-0" aria-hidden="true" />
-          <div className="block sm:hidden w-24 h-px bg-slate-200 flex-shrink-0" aria-hidden="true" />
+          <div className="hidden sm:block w-px self-center h-24 bg-[#a16d36]/30 flex-shrink-0" aria-hidden="true" />
+          <div className="block sm:hidden w-24 h-px bg-[#a16d36]/30 flex-shrink-0" aria-hidden="true" />
 
           <CountUp
             target={500}
             label="Partners"
-            orbBg="#d9f5e0"
-            tickColor="#166534"
+            orbBg="#f8dcdd"
+            tickColor="#c42126"
             icon={
               <svg
                 width="30"
                 height="30"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#166534"
+                stroke="#920609"
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"

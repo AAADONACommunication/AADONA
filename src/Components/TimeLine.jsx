@@ -74,17 +74,17 @@ const Timeline = () => {
       </Helmet>
 
       <section
-        className="relative pt-8 sm:pt-12 md:pt-14 bg-white"
+        className="relative pt-8 sm:pt-12 md:pt-14 bg-white font-['Poppins',sans-serif] font-semibold"
         aria-labelledby="milestones-heading"
       >
         <header className="max-w-7xl mx-auto px-4 sm:px-6 text-center mb-8">
           <h2
             id="milestones-heading"
-            className="text-4xl font-extrabold text-green-700 mb-4"
+            className="text-4xl font-semibold text-[#c42126] mb-4"
           >
             Milestones
           </h2>
-          <p className="text-lg sm:text-xl text-gray-500">
+          <p className="text-lg sm:text-xl font-semibold text-[#a16d36]">
             Milestones that shaped our story
           </p>
         </header>
@@ -93,22 +93,22 @@ const Timeline = () => {
 
           {/* DESKTOP LINE */}
           <div
-            className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-0 w-1 bg-green-200 h-full"
+            className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-0 w-1 bg-[#a16d36]/30 h-full"
             aria-hidden="true"
           />
           <div
-            className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-0 w-1 bg-green-500 z-10 transition-all duration-75"
+            className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-0 w-1 bg-gradient-to-b from-[#920609] to-[#c42126] z-10 transition-all duration-75"
             style={{ height: `${lineHeight}px` }}
             aria-hidden="true"
           />
 
           {/* MOBILE LINE */}
           <div
-            className="sm:hidden absolute left-6 top-0 w-1 bg-green-200 h-full"
+            className="sm:hidden absolute left-6 top-0 w-1 bg-[#a16d36]/30 h-full"
             aria-hidden="true"
           />
           <div
-            className="sm:hidden absolute left-6 top-0 w-1 bg-green-500 z-10 transition-all duration-75"
+            className="sm:hidden absolute left-6 top-0 w-1 bg-gradient-to-b from-[#920609] to-[#c42126] z-10 transition-all duration-75"
             style={{ height: `${lineHeight}px` }}
             aria-hidden="true"
           />
@@ -117,7 +117,7 @@ const Timeline = () => {
           {dotPositions.map((top, index) => (
             <div
               key={index}
-              className="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-green-500 ring-4 ring-green-200 z-20"
+              className="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-[#920609] to-[#c42126] ring-4 ring-[#a16d36]/40 border-2 border-[#a16d36] z-20"
               style={{
                 top: `${top}px`,
                 left: isMobile ? '24px' : '50%',

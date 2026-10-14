@@ -27,6 +27,15 @@ const getCompanyName = (imgPath) => {
     .trim() || "Customer Company";
 };
 
+// Tab styling: golden background + red text.
+// NOTE: Tailwind needs literal class names, so colours are written inline (no variables).
+const tabClass = (isActive) =>
+  `px-2.5 py-2 sm:px-4 sm:py-2 md:py-3 md:px-8 rounded-lg font-semibold transition-all text-xs sm:text-sm md:text-lg whitespace-nowrap ${
+    isActive
+      ? "bg-[#c89d47] text-[#920609] scale-105 shadow-md"
+      : "bg-[#c89d47]/25 text-[#920609] hover:bg-[#c89d47]/50"
+  }`;
+
 const OurCustomers = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("government");
@@ -75,13 +84,13 @@ const OurCustomers = () => {
       </Helmet>
 
       <section
-        className="bg-white py-16 px-4 mt-14 mb-1"
+        className="bg-white py-16 px-4 mt-14 mb-1 font-['Poppins',sans-serif] font-semibold"
         aria-labelledby="customers-heading"
       >
         <div className="max-w-7xl mx-auto text-center">
           <h2
             id="customers-heading"
-            className="text-3xl md:text-4xl font-extrabold text-green-700 mb-10"
+            className="text-3xl md:text-4xl font-semibold text-[#c42126] mb-10"
           >
             Our Customers
           </h2>
@@ -98,11 +107,7 @@ const OurCustomers = () => {
               aria-selected={activeTab === "government"}
               aria-controls="customer-logos-panel"
               onClick={() => handleTabSwitch("government")}
-              className={`px-2.5 py-2 sm:px-4 sm:py-2 md:py-3 md:px-8 rounded-lg font-medium transition-all text-s sm:text-sm md:text-lg whitespace-nowrap ${
-                activeTab === "government"
-                  ? "bg-green-600 text-white scale-105 shadow-md"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={tabClass(activeTab === "government")}
             >
               Government Enterprises
             </button>
@@ -112,11 +117,7 @@ const OurCustomers = () => {
               aria-selected={activeTab === "private"}
               aria-controls="customer-logos-panel"
               onClick={() => handleTabSwitch("private")}
-              className={`px-2.5 py-2 sm:px-4 sm:py-2 md:py-3 md:px-8 rounded-lg font-medium transition-all text-s sm:text-sm md:text-lg whitespace-nowrap ${
-                activeTab === "private"
-                  ? "bg-green-600 text-white scale-105 shadow-md"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={tabClass(activeTab === "private")}
             >
               Private Enterprises
             </button>
@@ -182,7 +183,7 @@ const OurCustomers = () => {
               type="button"
               onClick={handleSeeMore}
               aria-label="See more AADONA customers"
-              className="group inline-flex items-center justify-center px-8 py-3 border border-green-700 text-green-700 font-semibold rounded-lg hover:bg-green-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg"
+              className="group inline-flex items-center justify-center px-8 py-3 border border-[#c42126] text-[#c42126] font-semibold rounded-lg hover:bg-[#c42126] hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg"
             >
               See More
               <img

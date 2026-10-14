@@ -32,6 +32,16 @@ import RejectQuotationModal from "../../Components/shared/RejectQuotationModal";
 
 const PUBLIC_API = `${import.meta.env.VITE_API_URL}/public/quotation`;
 
+/* ─────────────────────────────────────────────────────────────
+   AADONA COMMUNICATION - BRAND THEME
+   Red   : #920609 → #c42126 (gradient)
+   Gold  : #a16d36
+   Font  : Poppins
+   Gold tints: #fbf6ee (bg) · #f3e6d0 (icon chip) · #ecdcc4 (border) · #d9b98a
+   Semantic colours (green = accepted, blue = partner, amber/orange = negotiation,
+   red = rejected) are intentionally kept so statuses stay easy to read.
+   ───────────────────────────────────────────────────────────── */
+
 // ────────────────────────────────────────────────────────────────
 // Status pill styling - same status keys/values as before, now with
 // an icon + slightly refreshed palette per design spec.
@@ -272,7 +282,7 @@ function StatusPill({ status, size = "md" }) {
   const sizeClasses = size === "lg" ? "px-4 py-1.5 text-sm gap-2" : "px-3 py-1 text-xs gap-1.5";
   return (
     <span
-      className={`inline-flex items-center rounded-full font-bold border shadow-sm whitespace-nowrap ${meta.classes} ${sizeClasses}`}
+      className={`inline-flex items-center rounded-full font-semibold border shadow-sm whitespace-nowrap ${meta.classes} ${sizeClasses}`}
     >
       <Icon size={size === "lg" ? 15 : 13} />
       {meta.label}
@@ -291,13 +301,13 @@ function StatCard({ icon: Icon, label, value, tone = "default", highlight = fals
 
   if (highlight) {
     return (
-      <div className="rounded-2xl bg-gradient-to-br from-green-700 to-green-900 border border-green-800 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="rounded-2xl bg-gradient-to-br from-[#920609] to-[#c42126] border border-[#920609] p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-center gap-2 mb-3">
           <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/15">
             <Icon size={16} className="text-white" />
           </span>
         </div>
-        <p className="text-xs font-medium text-green-100 mb-1">{label}</p>
+        <p className="text-xs font-medium text-[#f3e6d0] mb-1">{label}</p>
         <p className="text-xl font-extrabold text-white truncate">₹{Number(value || 0).toFixed(2)}</p>
       </div>
     );
@@ -323,10 +333,10 @@ function ItemsTable({ items, compact = false }) {
   const cellPad = compact ? "px-2.5 py-1.5" : "px-3 py-2.5";
   const textSize = compact ? "text-xs" : "text-sm";
   return (
-    <div className={`overflow-x-auto rounded-xl border ${compact ? "border-green-100" : "border-green-100"}`}>
+    <div className="overflow-x-auto rounded-xl border border-[#ecdcc4]">
       <table className={`w-full ${textSize}`}>
         <thead>
-          <tr className={`${compact ? "bg-green-100 text-green-800" : "bg-gradient-to-r from-green-700 to-green-600 text-white"} text-left`}>
+          <tr className={`${compact ? "bg-[#f3e6d0] text-[#7a5228]" : "bg-gradient-to-r from-[#920609] to-[#c42126] text-white"} text-left`}>
             <th className={`${cellPad} font-semibold`}>Product</th>
             {!compact && <th className={`${cellPad} font-semibold`}>Description</th>}
             <th className={`${cellPad} font-semibold`}>Qty</th>
@@ -339,7 +349,7 @@ function ItemsTable({ items, compact = false }) {
           {items.map((item, i) => (
             <tr
               key={i}
-              className={`border-b ${compact ? "border-green-100" : "border-green-50 odd:bg-green-50/40 hover:bg-green-50"} last:border-0 transition-colors`}
+              className={`border-b ${compact ? "border-[#ecdcc4]" : "border-[#f3e6d0] odd:bg-[#fbf6ee]/70 hover:bg-[#fbf6ee]"} last:border-0 transition-colors`}
             >
               <td className={`${cellPad} text-gray-800 font-medium`}>{item.name}</td>
               {!compact && <td className={`${cellPad} text-gray-500`}>{item.description || "-"}</td>}
@@ -360,7 +370,7 @@ function ItemsCards({ items }) {
   return (
     <div className="space-y-3 sm:hidden">
       {items.map((item, i) => (
-        <div key={i} className="rounded-xl border border-green-100 p-3.5 bg-white">
+        <div key={i} className="rounded-xl border border-[#ecdcc4] p-3.5 bg-white">
           <div className="flex items-start justify-between gap-2 mb-1.5">
             <p className="font-semibold text-gray-800 text-sm break-words">{item.name}</p>
             <span className="font-bold text-gray-800 text-sm shrink-0">₹{Number(item.total || 0).toFixed(2)}</span>
@@ -520,21 +530,21 @@ export default function CustomerQuotation() {
   // ════════════════════════════════════════
   if (loading) {
     return (
-      <div className="min-h-screen bg-green-50 py-10 px-4">
+      <div className="min-h-screen bg-[#fbf6ee] py-10 px-4 font-['Poppins',sans-serif]">
         <div className="max-w-5xl mx-auto space-y-5 animate-pulse">
-          <div className="h-16 bg-white rounded-2xl border border-green-100" />
-          <div className="h-44 bg-white rounded-3xl border border-green-100" />
+          <div className="h-16 bg-white rounded-2xl border border-[#ecdcc4]" />
+          <div className="h-44 bg-white rounded-3xl border border-[#ecdcc4]" />
           <div className="grid sm:grid-cols-2 gap-5">
-            <div className="h-40 bg-white rounded-2xl border border-green-100" />
-            <div className="h-40 bg-white rounded-2xl border border-green-100" />
+            <div className="h-40 bg-white rounded-2xl border border-[#ecdcc4]" />
+            <div className="h-40 bg-white rounded-2xl border border-[#ecdcc4]" />
           </div>
-          <div className="h-64 bg-white rounded-2xl border border-green-100" />
+          <div className="h-64 bg-white rounded-2xl border border-[#ecdcc4]" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-24 bg-white rounded-2xl border border-green-100" />
+              <div key={i} className="h-24 bg-white rounded-2xl border border-[#ecdcc4]" />
             ))}
           </div>
-          <div className="h-72 bg-white rounded-2xl border border-green-100" />
+          <div className="h-72 bg-white rounded-2xl border border-[#ecdcc4]" />
         </div>
       </div>
     );
@@ -545,8 +555,13 @@ export default function CustomerQuotation() {
   // ════════════════════════════════════════
   if (errorType) {
     return (
-      <div className="min-h-screen bg-green-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl shadow-sm border border-green-100 p-10 sm:p-12 max-w-md w-full text-center insights-fade-in">
+      <div className="min-h-screen bg-[#fbf6ee] flex items-center justify-center px-4 font-['Poppins',sans-serif]">
+        <div className="bg-white rounded-3xl shadow-sm border border-[#ecdcc4] border-t-4 border-t-[#a16d36] p-10 sm:p-12 max-w-md w-full text-center insights-fade-in">
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+            @keyframes portalFadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+            .insights-fade-in { animation: portalFadeIn 0.35s ease both; }
+          `}</style>
           {errorType === "expired" ? (
             <div className="mx-auto mb-5 w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center">
               <Clock className="text-amber-600" size={28} />
@@ -556,7 +571,7 @@ export default function CustomerQuotation() {
               <XCircle className="text-red-600" size={28} />
             </div>
           )}
-          <h1 className="text-xl font-extrabold text-gray-800 mb-2 tracking-tight">
+          <h1 className="text-xl font-semibold text-[#920609] mb-2 tracking-tight">
             {errorType === "expired" ? "Quotation Expired" : "Invalid Quotation"}
           </h1>
           <p className="text-sm text-gray-500 leading-relaxed mb-5">
@@ -564,7 +579,7 @@ export default function CustomerQuotation() {
               ? "This quotation link is no longer valid. Please reach out to your sales representative for an updated quotation."
               : "We couldn't find a quotation for this link. Please check the link or contact your sales representative."}
           </p>
-          <div className="pt-4 border-t border-gray-100 text-xs text-gray-400">
+          <div className="pt-4 border-t border-[#ecdcc4] text-xs text-gray-400">
             Need help? Contact the sales representative who shared this link with you.
           </div>
         </div>
@@ -623,7 +638,7 @@ export default function CustomerQuotation() {
           <div className="mx-auto mb-5 w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
             <CheckCircle2 className="text-green-600" size={36} />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-green-800 mb-2 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-green-800 mb-2 tracking-tight">
             Quotation Accepted
           </h2>
           <p className="text-gray-500 text-sm max-w-sm mx-auto mb-5">
@@ -642,7 +657,7 @@ export default function CustomerQuotation() {
           <div className="mx-auto mb-5 w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center">
             <MessageSquareWarning className="text-amber-600" size={36} />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-amber-800 mb-2 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-amber-800 mb-2 tracking-tight">
             Request Submitted
           </h2>
           <p className="text-gray-500 text-sm max-w-sm mx-auto mb-5">
@@ -663,7 +678,7 @@ export default function CustomerQuotation() {
           <div className="mx-auto mb-5 w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
             <XCircle className="text-red-600" size={36} />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-red-800 mb-2 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-red-800 mb-2 tracking-tight">
             Quotation Declined
           </h2>
           <p className="text-gray-500 text-sm max-w-sm mx-auto">
@@ -676,8 +691,9 @@ export default function CustomerQuotation() {
   };
 
   return (
-    <div className="min-h-screen bg-green-50">
+    <div className="min-h-screen bg-[#fbf6ee] font-['Poppins',sans-serif]">
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
         @keyframes portalFadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
         .insights-fade-in { animation: portalFadeIn 0.35s ease both; }
       `}</style>
@@ -686,7 +702,7 @@ export default function CustomerQuotation() {
       {/* NOTE: backdrop-blur removed here - combined with `sticky` it was causing
           the whole bar to repaint/flicker on some mobile browsers. Solid bg-white
           avoids that GPU-compositing flicker entirely. */}
-      <div className="sticky top-0 z-40 bg-white/95 border-b border-green-100 shadow-[0_1px_0_0_rgba(21,128,61,0.05)]">
+      <div className="sticky top-0 z-40 bg-white/95 border-b-2 border-[#a16d36]/40 shadow-[0_1px_0_0_rgba(146,6,9,0.05)]">
         <div className="max-w-5xl mx-auto px-4 md:px-6 py-3.5 flex items-center justify-between gap-3">
           <div className="h-11 sm:h-14 flex items-center shrink-0">
             {!logoFailed ? (
@@ -697,13 +713,13 @@ export default function CustomerQuotation() {
                 onError={() => setLogoFailed(true)}
               />
             ) : (
-              <span className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-br from-green-600 to-green-800 bg-clip-text text-transparent">
+              <span className="text-2xl sm:text-3xl font-semibold tracking-tight bg-gradient-to-br from-[#920609] to-[#c42126] bg-clip-text text-transparent">
                 AADONA
               </span>
             )}
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-100 rounded-full px-3.5 py-1.5">
-            <ShieldCheck size={13} />
+          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-[#7a5228] bg-[#fbf6ee] border border-[#e3cfae] rounded-full px-3.5 py-1.5">
+            <ShieldCheck size={13} className="text-[#a16d36]" />
             Secure Partner Portal
           </div>
         </div>
@@ -711,7 +727,7 @@ export default function CustomerQuotation() {
 
       {/* ── Page heading ── */}
       <div className="max-w-5xl mx-auto px-4 md:px-6 pt-8 pb-1">
-        <h1 className="text-2xl sm:text-[28px] font-extrabold text-green-900 tracking-tight">
+        <h1 className="text-2xl sm:text-[28px] font-semibold text-[#920609] tracking-tight">
           Quotation Portal
         </h1>
         <p className="text-sm text-gray-500 mt-1.5">
@@ -721,7 +737,7 @@ export default function CustomerQuotation() {
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 space-y-6">
         {/* ═══════════════ HERO - glass card, everything at a glance ═══════════════ */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-green-700 via-green-700 to-green-900 rounded-3xl shadow-lg shadow-green-900/10 p-6 sm:p-8 insights-fade-in">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#920609] via-[#a50d12] to-[#c42126] rounded-3xl shadow-lg shadow-[#920609]/20 p-6 sm:p-8 insights-fade-in">
           {/* Signature: a faint network/circuit trace, nodding to Aadona's
               networking-hardware identity instead of a generic decorative blob. */}
           <svg
@@ -743,18 +759,20 @@ export default function CustomerQuotation() {
             <circle cx="100" cy="230" r="4.5" fill="white" />
           </svg>
           <div className="pointer-events-none absolute left-1/3 -bottom-20 w-40 h-40 rounded-full bg-black/10 blur-2xl" />
+          {/* Gold accent line along the bottom edge */}
+          <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-1 bg-[#a16d36]" />
 
           <div className="relative">
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
               <div>
-                <p className="text-[11px] font-bold text-green-100 uppercase tracking-[0.16em] mb-1.5">
+                <p className="text-[11px] font-semibold text-[#f3dcc0] uppercase tracking-[0.16em] mb-1.5">
                   Quotation
                 </p>
-                <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
                   #{quotation.quotationNumber}
                 </p>
                 {quotation.validUntil && (
-                  <p className="text-xs sm:text-sm text-green-100 font-medium mt-1.5">
+                  <p className="text-xs sm:text-sm text-[#f3dcc0] font-medium mt-1.5">
                     Valid Until: {new Date(quotation.validUntil).toLocaleDateString("en-IN")}
                   </p>
                 )}
@@ -768,66 +786,66 @@ export default function CustomerQuotation() {
 
         {/* ── Partner + Sales Rep ── */}
         <div className="grid sm:grid-cols-2 gap-5">
-          <div className="bg-white rounded-2xl border border-green-100 shadow-sm hover:shadow-md transition-shadow p-6">
+          <div className="bg-white rounded-2xl border border-[#ecdcc4] shadow-sm hover:shadow-md transition-shadow p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-[#f3e6d0] text-[#a16d36] flex items-center justify-center">
                 <User size={16} />
               </div>
-              <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">
+              <h2 className="text-[11px] font-semibold text-[#920609] uppercase tracking-[0.12em]">
                 Partner Details
               </h2>
             </div>
             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                <User size={14} className="text-gray-400 shrink-0" />
+                <User size={14} className="text-[#a16d36] shrink-0" />
                 <span className="truncate">{quotation.customer?.personalName || "-"}</span>
               </p>
               {quotation.customer?.companyName && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                  <Building2 size={14} className="text-gray-400 shrink-0" />
+                  <Building2 size={14} className="text-[#a16d36] shrink-0" />
                   <span className="truncate">{quotation.customer.companyName}</span>
                 </p>
               )}
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                <Mail size={14} className="text-gray-400 shrink-0" />
+                <Mail size={14} className="text-[#a16d36] shrink-0" />
                 <span className="truncate">{quotation.customer?.email || "-"}</span>
               </p>
               {quotation.customer?.contactNumber && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                  <Phone size={14} className="text-gray-400 shrink-0" />
+                  <Phone size={14} className="text-[#a16d36] shrink-0" />
                   <span className="truncate">{quotation.customer.contactNumber}</span>
                 </p>
               )}
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-green-100 shadow-sm hover:shadow-md transition-shadow p-6">
+          <div className="bg-white rounded-2xl border border-[#ecdcc4] shadow-sm hover:shadow-md transition-shadow p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-[#f3e6d0] text-[#a16d36] flex items-center justify-center">
                 <Briefcase size={16} />
               </div>
-              <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">
+              <h2 className="text-[11px] font-semibold text-[#920609] uppercase tracking-[0.12em]">
                 Sales Representative
               </h2>
             </div>
             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                <User size={14} className="text-gray-400 shrink-0" />
+                <User size={14} className="text-[#a16d36] shrink-0" />
                 <span className="truncate">{quotation.salesRep?.name || "-"}</span>
               </p>
               {quotation.salesRep?.designation && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                  <Briefcase size={14} className="text-gray-400 shrink-0" />
+                  <Briefcase size={14} className="text-[#a16d36] shrink-0" />
                   <span className="truncate">{quotation.salesRep.designation}</span>
                 </p>
               )}
               <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                <Mail size={14} className="text-gray-400 shrink-0" />
+                <Mail size={14} className="text-[#a16d36] shrink-0" />
                 <span className="truncate">{quotation.salesRep?.email || "-"}</span>
               </p>
               {quotation.salesRep?.phone && (
                 <p className="flex items-center gap-2.5 text-gray-700 min-w-0">
-                  <Phone size={14} className="text-gray-400 shrink-0" />
+                  <Phone size={14} className="text-[#a16d36] shrink-0" />
                   <span className="truncate">{quotation.salesRep.phone}</span>
                 </p>
               )}
@@ -836,19 +854,19 @@ export default function CustomerQuotation() {
         </div>
 
         {/* ── Products (+ Totals) ── */}
-        <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-6 sm:p-7">
+        <div className="bg-white rounded-2xl border border-[#ecdcc4] shadow-sm p-6 sm:p-7">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-[#f3e6d0] text-[#a16d36] flex items-center justify-center">
               <FileText size={16} />
             </div>
-            <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">Products</h2>
+            <h2 className="text-[11px] font-semibold text-[#920609] uppercase tracking-[0.12em]">Products</h2>
           </div>
 
           {/* Desktop / tablet: sticky-header table */}
-          <div className="hidden sm:block overflow-auto max-h-[520px] rounded-xl border border-green-100">
+          <div className="hidden sm:block overflow-auto max-h-[520px] rounded-xl border border-[#ecdcc4]">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10">
-                <tr className="bg-gradient-to-r from-green-700 to-green-600 text-white text-left">
+                <tr className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white text-left">
                   <th className="px-3 py-2.5 font-semibold">Product</th>
                   <th className="px-3 py-2.5 font-semibold">Description</th>
                   <th className="px-3 py-2.5 font-semibold">Qty</th>
@@ -861,7 +879,7 @@ export default function CustomerQuotation() {
                 {(quotation.items || []).map((item, i) => (
                   <tr
                     key={i}
-                    className="border-b border-green-50 last:border-0 odd:bg-green-50/40 hover:bg-green-50 transition-colors"
+                    className="border-b border-[#f3e6d0] last:border-0 odd:bg-[#fbf6ee]/70 hover:bg-[#fbf6ee] transition-colors"
                   >
                     <td className="px-3 py-2.5 text-gray-800 font-medium">{item.name}</td>
                     <td className="px-3 py-2.5 text-gray-500">{item.description || "-"}</td>
@@ -881,7 +899,7 @@ export default function CustomerQuotation() {
           <ItemsCards items={quotation.items} />
 
           {/* ── Totals (merged from the old standalone Summary card) ── */}
-          <div className="mt-6 pt-5 border-t border-green-100">
+          <div className="mt-6 pt-5 border-t border-[#ecdcc4]">
             <div className="max-w-md ml-auto">
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -907,9 +925,9 @@ export default function CustomerQuotation() {
                   </div>
                 )}
 
-                <hr className="my-3" />
+                <hr className="my-3 border-[#ecdcc4]" />
 
-                <div className="flex justify-between text-2xl font-bold text-green-700">
+                <div className="flex justify-between text-2xl font-semibold text-[#920609]">
                   <span>Grand Total</span>
                   <span>
                     ₹{Number(quotation.grandTotal || 0).toFixed(2)}
@@ -925,7 +943,7 @@ export default function CustomerQuotation() {
           <div className="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle size={16} className="text-red-600" />
-              <h2 className="text-[11px] font-bold text-red-700 uppercase tracking-[0.12em]">Notes</h2>
+              <h2 className="text-[11px] font-semibold text-red-700 uppercase tracking-[0.12em]">Notes</h2>
             </div>
             <p className="text-sm text-red-700 font-medium whitespace-pre-wrap leading-relaxed">
               {dedupeNotes(quotation.notes)}
@@ -935,7 +953,7 @@ export default function CustomerQuotation() {
 
         {/* ── Complete History: Partner ↔ Sales only ── */}
         {timeline.length > 1 && (
-          <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-6 sm:p-7">
+          <div className="bg-white rounded-2xl border border-[#ecdcc4] shadow-sm p-6 sm:p-7">
             <button
               type="button"
               onClick={() => setHistoryOpen((prev) => !prev)}
@@ -943,22 +961,22 @@ export default function CustomerQuotation() {
               className="w-full flex items-center justify-between gap-2 focus:outline-none"
             >
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-[#f3e6d0] text-[#a16d36] flex items-center justify-center">
                   <HistoryIcon size={16} />
                 </div>
-                <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">
+                <h2 className="text-[11px] font-semibold text-[#920609] uppercase tracking-[0.12em]">
                   Quotation History
                 </h2>
               </div>
               <ChevronDown
                 size={18}
-                className={`text-green-600 transition-transform duration-200 ${historyOpen ? "rotate-180" : ""}`}
+                className={`text-[#a16d36] transition-transform duration-200 ${historyOpen ? "rotate-180" : ""}`}
               />
             </button>
 
             {historyOpen && (
               <div className="relative pl-6 mt-6">
-                <div className="absolute left-[7px] top-1.5 bottom-1.5 w-px bg-green-100" />
+                <div className="absolute left-[7px] top-1.5 bottom-1.5 w-px bg-[#e3cfae]" />
 
                 {timeline.map((entry, i) => {
                   const isCustomer = entry.kind === "customer";
@@ -967,7 +985,7 @@ export default function CustomerQuotation() {
                     <div key={`${entry.kind}-${entry.at}-${i}`} className="relative pb-6 last:pb-0">
                       <div
                         className={`absolute -left-6 top-1 w-3.5 h-3.5 rounded-full ring-4 ring-white ${
-                          isCustomer ? "bg-blue-500" : "bg-green-600"
+                          isCustomer ? "bg-blue-500" : "bg-[#a16d36]"
                         }`}
                       />
 
@@ -975,7 +993,7 @@ export default function CustomerQuotation() {
                         className={`rounded-xl border-l-4 border p-4 ${
                           isCustomer
                             ? "bg-blue-50 border-blue-100 border-l-blue-500"
-                            : "bg-green-50 border-green-100 border-l-green-600"
+                            : "bg-[#fbf6ee] border-[#ecdcc4] border-l-[#a16d36]"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -983,11 +1001,11 @@ export default function CustomerQuotation() {
                             {isCustomer ? (
                               <User size={13} className="text-blue-600" />
                             ) : (
-                              <Briefcase size={13} className="text-green-700" />
+                              <Briefcase size={13} className="text-[#a16d36]" />
                             )}
                             <p
-                              className={`text-[11px] font-bold uppercase tracking-wide ${
-                                isCustomer ? "text-blue-700" : "text-green-700"
+                              className={`text-[11px] font-semibold uppercase tracking-wide ${
+                                isCustomer ? "text-blue-700" : "text-[#7a5228]"
                               }`}
                             >
                               {entry.label}
@@ -1002,7 +1020,7 @@ export default function CustomerQuotation() {
                         </div>
 
                         {isCustomer ? (
-                          <p className="text-lg font-extrabold mt-1.5 text-blue-800">
+                          <p className="text-lg font-bold mt-1.5 text-blue-800">
                             ₹{Number(entry.amount || 0).toFixed(2)}
                           </p>
                         ) : (
@@ -1025,7 +1043,7 @@ export default function CustomerQuotation() {
                                 <span>− ₹{Number(entry.discountAmount).toFixed(2)}</span>
                               </div>
                             )}
-                            <div className="flex justify-between font-extrabold text-green-800 border-t border-green-200 pt-1 mt-1">
+                            <div className="flex justify-between font-bold text-[#920609] border-t border-[#e3cfae] pt-1 mt-1">
                               <span>Total</span>
                               <span>₹{Number(entry.amount || 0).toFixed(2)}</span>
                             </div>
@@ -1049,7 +1067,7 @@ export default function CustomerQuotation() {
           <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
             <div className="bg-gradient-to-r from-amber-600 to-amber-500 px-6 sm:px-7 py-4 flex items-center gap-2.5">
               <RefreshCw size={16} className="text-white" />
-              <h2 className="text-[11px] font-bold text-white uppercase tracking-[0.14em]">
+              <h2 className="text-[11px] font-semibold text-white uppercase tracking-[0.14em]">
                 Counter Offer From Our Team
               </h2>
             </div>
@@ -1070,7 +1088,7 @@ export default function CustomerQuotation() {
                 </div>
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <p className="text-amber-600 font-semibold uppercase text-[11px] mb-1">Sales Negotiated Offer</p>
-                  <p className="text-amber-700 font-extrabold text-xl">
+                  <p className="text-amber-700 font-bold text-xl">
                     ₹{Number(quotation.counterOfferAmount || 0).toFixed(2)}
                   </p>
                 </div>
@@ -1121,7 +1139,7 @@ export default function CustomerQuotation() {
                           </div>
                         )}
                         <hr className="my-2.5 border-amber-100" />
-                        <div className="flex justify-between text-xl font-bold text-amber-700">
+                        <div className="flex justify-between text-xl font-semibold text-amber-700">
                           <span>Grand Total</span>
                           <span>₹{counterGrandTotal.toFixed(2)}</span>
                         </div>
@@ -1144,19 +1162,19 @@ export default function CustomerQuotation() {
               <div className="flex flex-col sm:flex-row gap-3 mt-5">
                 <button
                   onClick={() => setCounterConfirmOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-700 to-green-600 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-bold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-700 to-green-600 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
                 >
                   <CheckCircle2 size={16} /> Accept Counter Offer
                 </button>
                 <button
                   onClick={() => setNegotiateOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-bold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
+                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
                 >
                   <MessageSquareWarning size={16} /> Negotiate Again
                 </button>
                 <button
                   onClick={() => setRejectConfirmOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-bold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-[#920609] to-[#c42126] hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126]"
                 >
                   <XCircle size={16} /> Do Not Proceed
                 </button>
@@ -1182,7 +1200,7 @@ export default function CustomerQuotation() {
             <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
               <XCircle className="text-red-600" size={26} />
             </div>
-            <h2 className="text-lg font-extrabold text-red-700 mb-3">Quotation Rejected</h2>
+            <h2 className="text-lg font-semibold text-red-700 mb-3">Quotation Rejected</h2>
             <div className="max-w-xs mx-auto text-left text-sm space-y-1.5">
               <p className="text-gray-700">
                 <span className="font-semibold">Rejected By:</span>{" "}
@@ -1209,9 +1227,9 @@ export default function CustomerQuotation() {
           !isAccepted &&
           quotation.status !== "rejected" &&
           getDisplayStatus(quotation.status) && (
-            <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-8 text-center">
-              <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-                <ShieldCheck className="text-green-600" size={26} />
+            <div className="bg-white rounded-2xl border border-[#ecdcc4] shadow-sm p-8 text-center">
+              <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-[#f3e6d0] flex items-center justify-center">
+                <ShieldCheck className="text-[#a16d36]" size={26} />
               </div>
               <StatusPill status={getDisplayStatus(quotation.status)} size="lg" />
             </div>
@@ -1222,7 +1240,7 @@ export default function CustomerQuotation() {
           <div className="bg-white rounded-2xl border-2 border-green-200 shadow-sm p-6 sm:p-7">
             <div className="flex items-center gap-2 mb-5">
               <BadgeCheck className="text-green-600" size={18} />
-              <h2 className="text-[11px] font-bold text-green-700 uppercase tracking-[0.12em]">
+              <h2 className="text-[11px] font-semibold text-green-700 uppercase tracking-[0.12em]">
                 Final Accepted Terms
               </h2>
             </div>
@@ -1231,16 +1249,16 @@ export default function CustomerQuotation() {
             </div>
             <ItemsCards items={finalItems} />
             <div className="flex justify-between items-center bg-gradient-to-r from-green-700 to-green-600 rounded-xl px-5 py-4 shadow-sm mt-4">
-              <span className="text-sm font-bold text-white uppercase tracking-wide">
+              <span className="text-sm font-semibold text-white uppercase tracking-wide">
                 Final Accepted Amount
               </span>
-              <span className="text-2xl font-extrabold text-white">₹{Number(finalAmount || 0).toFixed(2)}</span>
+              <span className="text-2xl font-bold text-white">₹{Number(finalAmount || 0).toFixed(2)}</span>
             </div>
             <a
               href={pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-green-700 to-green-600 hover:shadow-md hover:scale-[1.01] text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+              className="mt-5 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-[#920609] to-[#c42126] hover:shadow-md hover:scale-[1.01] text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126]"
             >
               <Download size={16} /> Download Final Quotation PDF
             </a>
@@ -1252,19 +1270,19 @@ export default function CustomerQuotation() {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => setConfirmOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-700 to-green-600 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-700 to-green-600 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-semibold text-base py-4 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
             >
               <CheckCircle2 size={17} /> Accept Quotation
             </button>
             <button
               onClick={() => setNegotiateOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-semibold text-base py-4 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
             >
               <MessageSquareWarning size={17} /> Request Negotiation
             </button>
             <button
               onClick={() => setRejectConfirmOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-bold text-base py-4 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-[#920609] to-[#c42126] hover:shadow-md hover:scale-[1.01] active:scale-[0.99] text-white font-semibold text-base py-4 rounded-xl shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126]"
             >
               <XCircle size={17} /> Do Not Proceed
             </button>
@@ -1273,10 +1291,10 @@ export default function CustomerQuotation() {
       </div>
 
       {/* ── Footer ── */}
-      <div className="border-t border-green-100 bg-white mt-10">
+      <div className="border-t-2 border-[#a16d36]/40 bg-white mt-10">
         <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
           <div className="flex items-center gap-2">
-            <ShieldCheck size={14} className="text-green-600" />
+            <ShieldCheck size={14} className="text-[#a16d36]" />
             <span>This is a secure, unique link generated only for you.</span>
           </div>
           <span>© {new Date().getFullYear()} Aadona · All rights reserved</span>
@@ -1286,18 +1304,18 @@ export default function CustomerQuotation() {
       {/* ── Confirm Accept Dialog ── */}
       {confirmOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative border-t-4 border-[#a16d36]">
             <button
               onClick={() => setConfirmOpen(false)}
               aria-label="Close dialog"
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 transition"
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#920609] rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126] transition"
             >
               <X size={18} />
             </button>
             <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center mb-3">
               <CheckCircle2 className="text-green-600" size={20} />
             </div>
-            <h3 className="text-lg font-extrabold text-gray-800 mb-2">Accept Quotation?</h3>
+            <h3 className="text-lg font-semibold text-[#920609] mb-2">Accept Quotation?</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
               By accepting, you confirm acceptance of the pricing and terms outlined in this quotation. This
               action cannot be undone.
@@ -1306,7 +1324,7 @@ export default function CustomerQuotation() {
               <button
                 onClick={() => setConfirmOpen(false)}
                 disabled={submitting}
-                className="flex-1 border border-green-200 text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-green-50 transition disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+                className="flex-1 border border-[#d9b98a] text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-[#fbf6ee] transition disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126]"
               >
                 Cancel
               </button>
@@ -1326,18 +1344,18 @@ export default function CustomerQuotation() {
       {/* ── Confirm Accept Counter Offer Dialog ── */}
       {counterConfirmOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative border-t-4 border-[#a16d36]">
             <button
               onClick={() => setCounterConfirmOpen(false)}
               aria-label="Close dialog"
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 transition"
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#920609] rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126] transition"
             >
               <X size={18} />
             </button>
             <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center mb-3">
               <CheckCircle2 className="text-green-600" size={20} />
             </div>
-            <h3 className="text-lg font-extrabold text-gray-800 mb-2">Accept Counter Offer?</h3>
+            <h3 className="text-lg font-semibold text-[#920609] mb-2">Accept Counter Offer?</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
               By accepting, you confirm the counter offer of{" "}
               <strong className="text-gray-700">₹{Number(quotation.counterOfferAmount || 0).toFixed(2)}</strong>{" "}
@@ -1347,7 +1365,7 @@ export default function CustomerQuotation() {
               <button
                 onClick={() => setCounterConfirmOpen(false)}
                 disabled={submitting}
-                className="flex-1 border border-green-200 text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-green-50 transition disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+                className="flex-1 border border-[#d9b98a] text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-[#fbf6ee] transition disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126]"
               >
                 Cancel
               </button>
@@ -1377,18 +1395,18 @@ export default function CustomerQuotation() {
       {/* ── Negotiate Modal ── */}
       {negotiateOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-[#a16d36]">
             <button
               onClick={() => setNegotiateOpen(false)}
               aria-label="Close dialog"
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 transition"
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#920609] rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126] transition"
             >
               <X size={20} />
             </button>
             <div className="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center mb-3">
               <MessageSquareWarning className="text-orange-600" size={20} />
             </div>
-            <h3 className="text-lg font-extrabold text-gray-800 mb-1">Request Negotiation</h3>
+            <h3 className="text-lg font-semibold text-[#920609] mb-1">Request Negotiation</h3>
             <p className="text-sm text-gray-500 mb-5">
               Tell us what would work better for you and we'll get back to you.
             </p>
@@ -1402,7 +1420,7 @@ export default function CustomerQuotation() {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="E.g. Budget constraints, competitor pricing, etc."
-                  className="w-full border border-green-300 rounded-xl px-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white text-sm"
+                  className="w-full border border-[#d9b98a] rounded-xl px-4 py-2.5 focus:border-[#c42126] focus:ring-2 focus:ring-[#c42126]/30 outline-none transition bg-white text-sm"
                 />
               </div>
               <div>
@@ -1417,7 +1435,7 @@ export default function CustomerQuotation() {
                   value={expectedBudget}
                   onChange={(e) => setExpectedBudget(e.target.value)}
                   placeholder="e.g. 45000"
-                  className="w-full border border-green-300 rounded-xl px-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white text-sm"
+                  className="w-full border border-[#d9b98a] rounded-xl px-4 py-2.5 focus:border-[#c42126] focus:ring-2 focus:ring-[#c42126]/30 outline-none transition bg-white text-sm"
                 />
               </div>
               <div>
@@ -1427,7 +1445,7 @@ export default function CustomerQuotation() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Any other details you'd like to share (optional)"
-                  className="w-full border border-green-300 rounded-xl px-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white text-sm"
+                  className="w-full border border-[#d9b98a] rounded-xl px-4 py-2.5 focus:border-[#c42126] focus:ring-2 focus:ring-[#c42126]/30 outline-none transition bg-white text-sm"
                 />
               </div>
 
@@ -1440,7 +1458,7 @@ export default function CustomerQuotation() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-700 to-green-600 text-white font-semibold py-2.5 rounded-xl hover:shadow-md transition disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#920609] to-[#c42126] text-white font-semibold py-2.5 rounded-xl hover:shadow-md transition disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c42126]"
               >
                 {submitting && <ButtonSpinner />}
                 {submitting ? "Submitting..." : "Submit"}

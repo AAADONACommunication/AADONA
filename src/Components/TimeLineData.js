@@ -1,4 +1,3 @@
-import hero6 from '../assets/hero6.avif'
 import vision1 from '../assets/vision1.avif'
 import vision2 from '../assets/vision2.avif'
 import vision3 from '../assets/vision3.avif'

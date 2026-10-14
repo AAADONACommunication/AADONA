@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import linkedin from '../assets/linkedin.avif';
 import facebook from '../assets/facebook.avif';
 import insta from '../assets/insta.avif';
-import whitelogo from '../assets/WhiteLogo.avif';
+import whitelogo from '../assets/WhiteLogo.webp';
 
 // ─── Security helpers ──────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ const checkRateLimit = () => {
 // ─── Nav data (single source of truth - good for SEO crawlability) ────────────
 
 const QUICK_LINKS = [
-  { to: '/about',          label: 'About Us'       },
+  { to: '/ourStory',          label: 'About Us'       },
   { to: '/warranty',       label: 'Support'        },
   { to: '/careers',        label: 'Careers'        },
   { to: '/contactus',      label: 'Contact Us'     },
@@ -147,7 +147,7 @@ const NewsletterForm = () => {
       </div>
 
       {status === 'success' ? (
-        <p role="status" className="text-green-300 font-semibold text-sm py-2">
+        <p role="status" className="text-[#f1e4d3] font-semibold text-sm py-2">
           Thank you for subscribing!
         </p>
       ) : (
@@ -174,10 +174,10 @@ const NewsletterForm = () => {
                 setEmail(e.target.value);
                 setErrorMsg('');
               }}
-              className="w-full p-3 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-md disabled:opacity-60"
+              className="w-full p-3 rounded-lg bg-white text-gray-800 font-semibold focus:outline-none focus:ring-2 focus:ring-[#a16d36] shadow-md disabled:opacity-60"
             />
             {errorMsg && (
-              <p id="newsletter-error" role="alert" className="text-red-300 text-xs mt-1 italic">
+              <p id="newsletter-error" role="alert" className="text-[#ffd9d9] text-xs mt-1">
                 {errorMsg}
               </p>
             )}
@@ -187,7 +187,7 @@ const NewsletterForm = () => {
             type="submit"
             disabled={status === 'submitting'}
             aria-busy={status === 'submitting'}
-            className="w-full p-3 rounded-lg font-semibold bg-green-500 hover:bg-green-400 text-white shadow-lg hover:shadow-xl transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full p-3 rounded-lg font-semibold bg-[#a16d36] hover:bg-[#b57c3f] text-white shadow-lg hover:shadow-xl transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
           </button>
@@ -202,11 +202,11 @@ const NewsletterForm = () => {
 const Footer = () => (
   <footer
     aria-label="Site footer"
-    className="w-full mt-auto bg-gradient-to-br from-green-700 via-emerald-800 to-green-900 text-white py-20 relative overflow-hidden"
+    className="w-full mt-auto bg-gradient-to-br from-[#c42126] via-[#920609] to-[#4a0305] text-white py-20 relative overflow-hidden font-['Poppins',sans-serif] font-semibold"
   >
     {/* Decorative background glows - aria-hidden so screen readers skip */}
-    <div aria-hidden="true" className="absolute -top-24 -left-24 w-80 h-80 bg-green-400 opacity-10 rounded-full blur-3xl" />
-    <div aria-hidden="true" className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500 opacity-10 rounded-full blur-3xl" />
+    <div aria-hidden="true" className="absolute -top-24 -left-24 w-80 h-80 bg-[#a16d36] opacity-20 rounded-full blur-3xl" />
+    <div aria-hidden="true" className="absolute bottom-0 right-0 w-96 h-96 bg-[#c42126] opacity-20 rounded-full blur-3xl" />
 
     <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
@@ -215,18 +215,18 @@ const Footer = () => (
         <div className="space-y-6">
           <Link to="/" aria-label="AADONA Communication – go to homepage">
             <img
-              src={whitelogo}
-              alt="AADONA Communication Pvt Ltd logo"
-              className="h-12 w-auto object-contain"
-              width="160"
-              height="48"
-              loading="lazy"
-            />
+  src={whitelogo}
+  alt="AADONA Communication Pvt Ltd logo"
+  className="h-28 w-auto object-contain object-left -ml-11 -my-8"
+  width="160"
+  height="112"
+  loading="lazy"
+/>
           </Link>
 
-          <address className="not-italic space-y-6 text-sm text-gray-200 leading-relaxed">
+          <address className="not-italic space-y-6 text-sm text-gray-100 leading-relaxed">
             <div>
-              <p className="text-green-300 font-semibold text-xs uppercase tracking-wider mb-2">
+              <p className="text-[#e6c79c] font-semibold text-xs uppercase tracking-wider mb-2">
                 Headquarters
               </p>
               <p className="font-semibold text-white">AADONA Communication Pvt Ltd.</p>
@@ -239,12 +239,12 @@ const Footer = () => (
 
             <div className="grid grid-cols-2 gap-1">
               <div>
-                <p className="text-green-300 font-semibold text-xs uppercase tracking-wider mb-1">
+                <p className="text-[#e6c79c] font-semibold text-xs uppercase tracking-wider mb-1">
                   Phone
                 </p>
                 <a
                   href="tel:18002026599"
-                  className="hover:text-green-300 transition duration-300 focus:outline-none focus:underline"
+                  className="hover:text-[#e6c79c] transition duration-300 focus:outline-none focus:underline"
                   aria-label="Call AADONA toll free: 1800-202-6599"
                 >
                   1800-202-6599
@@ -252,12 +252,12 @@ const Footer = () => (
               </div>
 
               <div>
-                <p className="text-green-300 font-semibold text-xs uppercase tracking-wider mb-1">
+                <p className="text-[#e6c79c] font-semibold text-xs uppercase tracking-wider mb-1">
                   Email
                 </p>
                 <a
                   href="mailto:contact@aadona.com"
-                  className="hover:text-green-300 transition duration-300 focus:outline-none focus:underline"
+                  className="hover:text-[#e6c79c] transition duration-300 focus:outline-none focus:underline"
                   aria-label="Email AADONA at contact@aadona.com"
                 >
                   contact@aadona.com
@@ -266,7 +266,7 @@ const Footer = () => (
             </div>
 
             <div>
-              <p className="text-green-300 font-semibold text-xs uppercase tracking-wider mb-1">
+              <p className="text-[#e6c79c] font-semibold text-xs uppercase tracking-wider mb-1">
                 Business Hours
               </p>
               <p>Monday to Friday: 10:30 AM – 06:30 PM IST</p>
@@ -276,15 +276,15 @@ const Footer = () => (
 
         {/* ── Column 2: Quick Links ── */}
         <nav aria-label="Footer quick links" className="space-y-6">
-          <h2 className="text-xl font-semibold border-b border-green-500 pb-2 w-fit">
+          <h2 className="text-xl font-semibold border-b border-[#a16d36] pb-2 w-fit">
             Quick Links
           </h2>
-          <ul className="space-y-3 text-sm text-gray-200" role="list">
+          <ul className="space-y-3 text-sm text-gray-100" role="list">
             {QUICK_LINKS.map(({ to, label }) => (
               <li key={to}>
                 <Link
                   to={to}
-                  className="hover:text-green-300 hover:translate-x-1 transition duration-300 inline-block focus:outline-none focus:underline"
+                  className="hover:text-[#e6c79c] hover:translate-x-1 transition duration-300 inline-block focus:outline-none focus:underline"
                 >
                   {label}
                 </Link>
@@ -295,10 +295,10 @@ const Footer = () => (
 
         {/* ── Column 3: Newsletter + Social ── */}
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold border-b border-green-500 pb-2 w-fit">
+          <h2 className="text-xl font-semibold border-b border-[#a16d36] pb-2 w-fit">
             Newsletter
           </h2>
-          <p className="text-sm text-gray-200">
+          <p className="text-sm text-gray-100">
             Subscribe for the latest updates and offers.
           </p>
 
@@ -313,7 +313,7 @@ const Footer = () => (
                 aria-label={label}
                 target="_blank"
                 rel="noopener noreferrer"           /* Security: prevents tab-napping */
-                className="transition duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 rounded"
+                className="transition duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#a16d36] rounded"
               >
                 <img
                   src={icon}
@@ -330,7 +330,7 @@ const Footer = () => (
       </div>
 
       {/* ── Bottom Bar ── */}
-      <div className="mt-10 pt-5 border-t border-green-600 text-center text-sm text-gray-300">
+      <div className="mt-10 pt-5 border-t border-[#a16d36]/60 text-center text-sm text-gray-200">
         <p>
           &copy; {new Date().getFullYear()} AADONA Communication Pvt Ltd. All rights reserved.
         </p>

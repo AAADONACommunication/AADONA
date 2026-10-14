@@ -67,7 +67,7 @@ function Highlight({ text, query }) {
   return (
     <span>
       {text.slice(0, idx)}
-      <mark className="bg-green-100 text-green-800 rounded px-0.5 not-italic">
+      <mark className="bg-[#a16d36]/15 text-[#920609] rounded px-0.5 not-italic">
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
@@ -284,9 +284,9 @@ export default function SearchBar() {
   const noResults = productResults.length === 0 && pageResults.length === 0;
 
   return (
-    <section className="flex flex-col items-center mb-0 gap-4 py-12 px-4">
+    <section className="flex flex-col items-center mb-0 gap-4 py-12 px-4 font-['Poppins',sans-serif] font-semibold">
 
-      <p className="text-xs font-semibold tracking-widest uppercase text-gray-500">
+      <p className="text-xs font-semibold tracking-widest uppercase text-[#a16d36]">
         Quick Search
       </p>
 
@@ -295,12 +295,12 @@ export default function SearchBar() {
         <div
           className={`flex items-center bg-white pl-5 pr-1.5 h-14 rounded-full border transition-all duration-200
             ${focused
-              ? "border-green-500 shadow-[0_0_0_3px_rgba(0,168,89,0.13)]"
-              : "border-green-200 border-2"
+              ? "border-[#c42126] shadow-[0_0_0_3px_rgba(196,33,38,0.15)]"
+              : "border-[#a16d36]/50 border-2"
             }`}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-            stroke="#00A859" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+            stroke="#c42126" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
             className="flex-shrink-0 mr-3">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
@@ -315,17 +315,17 @@ export default function SearchBar() {
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               autoComplete="off"
-              className="w-full bg-transparent border-none outline-none text-[16px] text-gray-900 caret-green-600 relative z-10"
+              className="w-full bg-transparent border-none outline-none text-[16px] font-semibold text-gray-900 caret-[#c42126] relative z-10"
             />
             {!value && !focused && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[15px] sm:text-[18px] text-gray-400 pointer-events-none whitespace-nowrap z-0">
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[15px] sm:text-[18px] font-semibold text-[#a16d36]/70 pointer-events-none whitespace-nowrap z-0">
                 {placeholder}
               </span>
             )}
           </div>
 
           {productsLoading && (
-            <svg className="animate-spin flex-shrink-0 w-4 h-4 text-green-400 mx-2"
+            <svg className="animate-spin flex-shrink-0 w-4 h-4 text-[#a16d36] mx-2"
               viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
               <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
@@ -334,7 +334,7 @@ export default function SearchBar() {
 
           <button
             onClick={handleSearch}
-            className="flex-shrink-0 bg-gradient-to-br from-green-400 via-green-600 to-green-700
+            className="flex-shrink-0 bg-gradient-to-b from-[#920609] to-[#c42126]
               text-white text-[12px] sm:text-[13px] font-semibold rounded-full px-4 py-2 sm:px-6 sm:py-2.5
               hover:opacity-90 transition-opacity ml-auto"
           >
@@ -343,7 +343,7 @@ export default function SearchBar() {
         </div>
 
         {dropdownOpen && (
-          <div className="absolute top-full mt-2.5 left-0 right-0 bg-white border border-gray-200
+          <div className="absolute top-full mt-2.5 left-0 right-0 bg-white border border-[#a16d36]/30
             rounded-2xl shadow-xl z-50 max-h-[420px] overflow-y-auto">
 
             {noResults ? (
@@ -356,35 +356,35 @@ export default function SearchBar() {
               <>
                 {productResults.length > 0 && (
                   <>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-4 pt-3 pb-1.5">
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-[#a16d36] px-4 pt-3 pb-1.5">
                       Products
                     </p>
                     {productResults.map((p) => (
                       <div
                         key={p.id}
                         onMouseDown={() => handleProductClick(p)}
-                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-[#c42126]/5 transition-colors"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-[#c42126]/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                           {p.icon ? (
                             <img src={p.icon} alt={p.name} className="w-full h-full object-contain p-1" />
                           ) : (
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                              stroke="#00A859" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              stroke="#c42126" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                               <rect x="2" y="7" width="20" height="14" rx="2" />
                               <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
                             </svg>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
                             <Highlight text={p.name} query={value} />
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs font-medium text-gray-500 truncate">
                             {p.category}{p.subCategory ? ` › ${p.subCategory}` : ""}
                           </p>
                         </div>
-                        <span className="ml-auto text-[11px] font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full flex-shrink-0">
+                        <span className="ml-auto text-[11px] font-semibold bg-[#c42126]/10 text-[#920609] px-2.5 py-1 rounded-full flex-shrink-0">
                           Product
                         </span>
                       </div>
@@ -393,35 +393,35 @@ export default function SearchBar() {
                 )}
 
                 {productResults.length > 0 && pageResults.length > 0 && (
-                  <div className="h-px bg-gray-100 my-1" />
+                  <div className="h-px bg-[#a16d36]/20 my-1" />
                 )}
 
                 {pageResults.length > 0 && (
                   <>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-4 pt-3 pb-1.5">
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-[#a16d36] px-4 pt-3 pb-1.5">
                       Pages
                     </p>
                     {pageResults.map((p) => (
                       <div
                         key={p.path}
                         onMouseDown={() => handlePageClick(p.path)}
-                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-[#a16d36]/5 transition-colors"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-[#a16d36]/10 flex items-center justify-center flex-shrink-0">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                            stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            stroke="#a16d36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                             <polyline points="14,2 14,8 20,8" />
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
                             <Highlight text={p.name} query={value} />
-                            <span className="text-gray-400 text-xs ml-1">↗</span>
+                            <span className="text-[#a16d36] text-xs ml-1">↗</span>
                           </p>
-                          <p className="text-xs text-gray-500">{p.path}</p>
+                          <p className="text-xs font-medium text-gray-500">{p.path}</p>
                         </div>
-                        <span className="ml-auto text-[11px] font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full flex-shrink-0">
+                        <span className="ml-auto text-[11px] font-semibold bg-[#a16d36]/15 text-[#a16d36] px-2.5 py-1 rounded-full flex-shrink-0">
                           Page
                         </span>
                       </div>
@@ -439,9 +439,9 @@ export default function SearchBar() {
           <button
             key={chip.label}
             onMouseDown={() => handleChipClick(chip)}
-            className="bg-gray-100 border border-gray-200 rounded-full px-4 py-1.5 text-xs font-medium
-              text-gray-600 cursor-pointer hover:border-green-500 hover:text-green-600
-              hover:bg-green-50 transition-all"
+            className="bg-white border border-[#a16d36]/40 rounded-full px-4 py-1.5 text-xs font-semibold
+              text-[#a16d36] cursor-pointer hover:border-[#c42126] hover:text-[#c42126]
+              hover:bg-[#c42126]/5 transition-all"
           >
             {chip.label}
           </button>

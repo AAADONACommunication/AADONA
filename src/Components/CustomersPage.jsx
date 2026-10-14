@@ -4,7 +4,9 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import bg from "../assets/bg.avif";
 import { FaSearch } from "react-icons/fa";
-import customersbanner from "../assets/OurCustomerBanner.avif";
+import customersbanner from "../assets/OurCustomerBanner.webp";
+
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
 /* -------- Structured Data (JSON-LD) for SEO -------- */
 const structuredData = {
@@ -57,7 +59,7 @@ const allImages = sortImages(imageModules);
 /* -------- Logo Card Component -------- */
 const LogoCard = ({ data }) => (
   <div className="flex flex-col items-center justify-start p-2">
-    <div className="flex items-center justify-center h-32 w-32 p-2 bg-white border border-green-600 rounded-lg shadow-md transition duration-300 hover:shadow-xl hover:scale-[1.05]">
+    <div className="flex items-center justify-center h-32 w-32 p-2 bg-white border border-[#a16d36]/60 hover:border-[#920609] rounded-lg shadow-md transition duration-300 hover:shadow-xl hover:shadow-[#a16d36]/30 hover:scale-[1.05]">
       <img
         src={data.src}
         alt={`${data.name} logo`}
@@ -91,7 +93,7 @@ export default function CustomerPage() {
   );
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO HEAD ── */}
       <Helmet>
         {/* Primary Meta */}
@@ -107,6 +109,11 @@ export default function CustomerPage() {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href="https://www.aadona.com/customers" /> {/* ← update */}
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -137,13 +144,14 @@ export default function CustomerPage() {
       {/* ── HERO ── */}
         <header
                                  className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                                 style={{ backgroundImage: `url(${customersbanner})` }}
+                                 style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${customersbanner})` }}
                                  aria-label="v banner"
                                >
                                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                                   <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+                                   <h1 className="text-5xl font-semibold text-gray-100 sm:text-5xl md:text-6xl">
                                      Our Customers
                                    </h1>
+                                   <span className="block w-24 h-1 bg-[#a16d36] rounded-full mx-auto mt-4" />
                                    <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
                                       Building Trust, Delivering Excellence                                             
                                       </p>
@@ -168,10 +176,10 @@ export default function CustomerPage() {
                 id="companySearch"
                 type="search"
                 placeholder="Search for a company..."
-                className="w-full px-5 pr-12 py-3 rounded-xl border-2 border-green-400
-                  shadow-md text-gray-800 transition-all duration-300
-                  focus:outline-none focus:border-green-600
-                  focus:ring-2 focus:ring-green-300 hover:shadow-lg"
+                className="w-full px-5 pr-12 py-3 rounded-xl border-2 border-[#a16d36]/60
+                  shadow-md text-gray-800 bg-white transition-all duration-300
+                  focus:outline-none focus:border-[#920609]
+                  focus:ring-2 focus:ring-[#920609]/30 hover:shadow-lg"
                 value={searchTerm}
                 onChange={handleSearch}
                 maxLength={100}
@@ -180,8 +188,8 @@ export default function CustomerPage() {
                 aria-label="Search companies"
               />
               <span
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg
-                  transition-all duration-300 group-hover:text-green-600
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a16d36] text-lg
+                  transition-all duration-300 group-hover:text-[#920609]
                   group-hover:scale-110 cursor-pointer"
                 onClick={() => document.getElementById("companySearch").focus()}
                 aria-hidden="true"
@@ -197,7 +205,7 @@ export default function CustomerPage() {
               className="max-w-7xl mx-auto py-12 px-4"
               aria-label="Government Enterprises"
             >
-              <h2 className="text-3xl font-bold text-center bg-white/90 p-4 mb-10 text-green-600 rounded-lg shadow-lg">
+              <h2 className="text-3xl font-semibold text-center bg-white/90 p-4 mb-10 text-[#920609] rounded-lg shadow-lg border-b-4 border-[#a16d36]">
                 Government Enterprises
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
@@ -214,7 +222,7 @@ export default function CustomerPage() {
               className="max-w-7xl mx-auto py-12 px-4"
               aria-label="Private Enterprises"
             >
-              <h2 className="text-3xl font-bold text-center bg-white/90 p-4 mb-10 text-green-600 rounded-lg shadow-lg">
+              <h2 className="text-3xl font-semibold text-center bg-white/90 p-4 mb-10 text-[#920609] rounded-lg shadow-lg border-b-4 border-[#a16d36]">
                 Private Enterprises
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
@@ -238,6 +246,6 @@ export default function CustomerPage() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

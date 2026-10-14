@@ -32,7 +32,6 @@ const certifications = [
   { url: c14, name: "Startup India Recognition" },
 ];
 
-// FIX 1: Default fallback `cert = {}` - prevents "Cannot read name of undefined"
 const CertCard = ({ cert = {}, index = 0, priority = false }) => {
   const cardRef = useRef(null);
 
@@ -50,8 +49,8 @@ const CertCard = ({ cert = {}, index = 0, priority = false }) => {
     const rotateX = ((y - centerY) / centerY) * -12;
     const rotateY = ((x - centerX) / centerX) * 12;
     card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08) translateY(-6px)`;
-    card.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 30px rgba(22,163,74,0.2), 0 8px 20px rgba(0,0,0,0.10)`;
-    card.style.border = '1px solid rgba(22,163,74,0.3)';
+    card.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 30px rgba(146,6,9,0.2), 0 8px 20px rgba(0,0,0,0.10)`;
+    card.style.border = '1px solid rgba(161,109,54,0.5)';
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -81,8 +80,8 @@ const CertCard = ({ cert = {}, index = 0, priority = false }) => {
       <img
         src={certUrl}
         alt={`${certName} – AADONA`}
-        loading= "lazy"
-        fetchPriority={priority ? "high" : "low"}   // FIX 2: camelCase - React 18+ correct prop
+        loading="lazy"
+        fetchPriority={priority ? "high" : "low"}
         decoding="async"
         draggable="false"
         className="w-full h-full object-contain"
@@ -159,14 +158,14 @@ const CertificationsSection = () => {
       </Helmet>
 
       <section
-        className="flex items-start justify-center font-inter mb-18"
+        className="flex items-start justify-center font-['Poppins',sans-serif] font-semibold mb-18"
         aria-labelledby="certifications-heading"
       >
         <div className="w-full max-w-7xl mt-6">
           <div className="px-2 py-4 sm:px-4 sm:py-4">
             <h2
               id="certifications-heading"
-              className="text-3xl md:text-4xl font-extrabold text-green-700 mb-8 text-center tracking-tight"
+              className="text-4xl font-semibold text-[#c42126] mb-8 text-center m-0"
             >
               Our Certifications
             </h2>
@@ -177,7 +176,7 @@ const CertificationsSection = () => {
                   type="button"
                   aria-label="Scroll certifications left"
                   onClick={() => scroll(-1)}
-                  className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-white border border-green-100 shadow-lg rounded-full w-9 h-9 flex items-center justify-center text-green-600 hover:bg-green-50 hover:border-green-300 hover:scale-110 active:scale-95 transition-all duration-200 text-xl leading-none"
+                  className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-white border border-[#a16d36]/30 shadow-lg rounded-full w-9 h-9 flex items-center justify-center text-[#920609] hover:bg-[#a16d36]/5 hover:border-[#a16d36] hover:scale-110 active:scale-95 transition-all duration-200 text-xl leading-none"
                 >
                   ‹
                 </button>
@@ -187,7 +186,7 @@ const CertificationsSection = () => {
                   type="button"
                   aria-label="Scroll certifications right"
                   onClick={() => scroll(1)}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 z-20 bg-white border border-green-100 shadow-lg rounded-full w-9 h-9 flex items-center justify-center text-green-600 hover:bg-green-50 hover:border-green-300 hover:scale-110 active:scale-95 transition-all duration-200 text-xl leading-none"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 z-20 bg-white border border-[#a16d36]/30 shadow-lg rounded-full w-9 h-9 flex items-center justify-center text-[#920609] hover:bg-[#a16d36]/5 hover:border-[#a16d36] hover:scale-110 active:scale-95 transition-all duration-200 text-xl leading-none"
                 >
                   ›
                 </button>
@@ -219,15 +218,15 @@ const CertificationsSection = () => {
                 ))}
               </ul>
 
-              <div className="relative mx-6 mt-1 h-0.5 bg-green-100 rounded-full" aria-hidden="true">
+              <div className="relative mx-6 mt-1 h-0.5 bg-[#a16d36]/20 rounded-full" aria-hidden="true">
                 <div
-                  className="absolute top-0 h-full bg-green-400 rounded-full transition-all duration-150 ease-out"
+                  className="absolute top-0 h-full bg-[#a16d36] rounded-full transition-all duration-150 ease-out"
                   style={{ left: thumbStyle.left, width: thumbStyle.width }}
                 />
               </div>
             </div>
 
-            <p className="text-center text-xs text-gray-400 mt-3 sm:hidden" aria-hidden="true">
+            <p className="text-center text-xs text-gray-500 mt-3 sm:hidden" aria-hidden="true">
               ← Swipe to see more →
             </p>
           </div>

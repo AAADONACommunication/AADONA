@@ -6,12 +6,14 @@ import Footer from './Footer';
 import bg from '../assets/bg.avif';
 import ppbanner from '../assets/privacypolicy.webp';
 
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
+
 /* ─────────────────────────────────────────────
    Reusable card style
 ───────────────────────────────────────────── */
 const liftCard =
-  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white p-8 shadow-md hover:shadow-2xl hover:shadow-[#a16d36]/30 " +
+  "border border-[#a16d36]/40 hover:border-[#a16d36] transition-all duration-500 ease-out hover:-translate-y-1";
 
 /* ─────────────────────────────────────────────
    Page-level constants
@@ -111,7 +113,7 @@ const sections = [
           "2.6. To comply with applicable legal requirements.",
         ].map((item) => (
           <li key={item} className="flex gap-2">
-            <span className="mt-1 text-green-500 shrink-0">✓</span>
+            <span className="mt-1 text-[#a16d36] shrink-0">✓</span>
             <span>{item}</span>
           </li>
         ))}
@@ -199,7 +201,7 @@ const PrivacyPolicy = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO Head ── */}
       <Helmet>
         {/* Encoding & Viewport */}
@@ -221,6 +223,11 @@ const PrivacyPolicy = () => {
         <meta name="robots" content="index, follow, noarchive, max-snippet:-1" />
         <meta name="author" content="AADONA" />
         <link rel="canonical" href={CANONICAL_URL} />
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
 
         {/* Geo */}
         <meta name="geo.region" content="IN" />
@@ -245,8 +252,8 @@ const PrivacyPolicy = () => {
         <meta name="twitter:image" content={OG_IMAGE} />
         <meta name="twitter:image:alt" content="AADONA Privacy Policy" />
 
-        {/* Theme */}
-        <meta name="theme-color" content="#0a2342" />
+        {/* Theme (browser UI colour) */}
+        <meta name="theme-color" content="#920609" />
 
         {/* JSON-LD */}
         <script type="application/ld+json">
@@ -283,9 +290,10 @@ const PrivacyPolicy = () => {
               H1: descriptive keyword phrase - matches what users search.
               Only ONE h1 per page.
             */}
-            <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+            <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
               Privacy Policy
             </h1>
+            <span className="block w-24 h-1 bg-[#a16d36] rounded-full mx-auto mt-4" />
             <p className="mt-6 text-md text-white max-w-3xl mx-auto">
               How AADONA collects, uses, and protects your personal information.
             </p>
@@ -313,10 +321,11 @@ const PrivacyPolicy = () => {
             >
               <h2
                 id={`${id}-heading`}
-                className="text-green-700 text-xl uppercase font-bold mb-4"
+                className="text-[#920609] text-xl uppercase font-semibold mb-2"
               >
                 {heading}
               </h2>
+              <span className="block w-12 h-1 bg-[#a16d36] rounded-full mb-4" />
               {content}
             </article>
           ))}
@@ -325,10 +334,11 @@ const PrivacyPolicy = () => {
           <article id="contact-us" className={liftCard} aria-labelledby="contact-heading">
             <h2
               id="contact-heading"
-              className="text-green-700 text-xl uppercase font-bold mb-4"
+              className="text-[#920609] text-xl uppercase font-semibold mb-2"
             >
               Contact Us
             </h2>
+            <span className="block w-12 h-1 bg-[#a16d36] rounded-full mb-4" />
             <p className="text-lg leading-relaxed text-gray-700">
               If you have any questions about this Privacy Policy or our data practices, please
               contact us:
@@ -338,7 +348,7 @@ const PrivacyPolicy = () => {
               <p>Email:{" "}
                 <a
                   href="mailto:privacy@aadona.com"
-                  className="text-green-700 hover:underline"
+                  className="text-[#c42126] hover:underline"
                 >
                   privacy@aadona.com          {/* ← update */}
                 </a>
@@ -346,7 +356,7 @@ const PrivacyPolicy = () => {
               <p>Website:{" "}
                 <a
                   href="https://www.aadona.com"
-                  className="text-green-700 hover:underline"
+                  className="text-[#c42126] hover:underline"
                   rel="noopener noreferrer"
                 >
                   www.aadona.com
@@ -360,7 +370,7 @@ const PrivacyPolicy = () => {
       <footer>
         <Footer />
       </footer>
-    </>
+    </div>
   );
 };
 

@@ -4,7 +4,7 @@ const TimeLineItem = ({ data, index }) => {
   const isEven = index % 2 === 0;
 
   return (
-    <div className="relative flex items-start w-full">
+    <div className="relative flex items-start w-full font-['Poppins',sans-serif] font-semibold">
 
       <div
         className={`flex flex-col sm:flex-row w-full items-start sm:items-center gap-6 sm:gap-8 pl-16 sm:pl-0 ${
@@ -13,7 +13,7 @@ const TimeLineItem = ({ data, index }) => {
       >
         {/* Image */}
         <div className="w-full sm:w-1/2 px-0 sm:px-4">
-          <div className="relative overflow-hidden rounded-lg shadow-lg">
+          <div className="relative overflow-hidden rounded-lg shadow-lg border-2 border-[#a16d36]/50">
             <img
               src={data?.image}
               alt={data?.title}
@@ -26,11 +26,11 @@ const TimeLineItem = ({ data, index }) => {
         {/* Content */}
         <div className="w-full sm:w-1/2 px-0 sm:px-4">
           <div className={`py-4 sm:p-6 ${!isEven ? 'sm:text-right' : 'sm:text-left'}`}>
-            <div className="inline-block px-3 py-1 mb-2 text-xs sm:text-sm font-semibold text-green-800 bg-green-100 rounded-full">
+            <div className="inline-block px-3 py-1 mb-2 text-xs sm:text-sm font-semibold text-white bg-[#a16d36] rounded-full">
               {data?.year}
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold mb-2">{data?.title}</h3>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            <h3 className="text-xl sm:text-2xl font-semibold text-[#920609] mb-2">{data?.title}</h3>
+            <p className="text-sm sm:text-base font-semibold text-gray-600 leading-relaxed">
               {data?.description}
             </p>
           </div>
