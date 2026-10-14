@@ -213,18 +213,20 @@ const Footer = () => (
 
         {/* ── Column 1: Company Info ── */}
         <div className="space-y-6">
-          <Link to="/" aria-label="AADONA Communication – go to homepage">
-            <img
-  src={whitelogo}
-  alt="AADONA Communication Pvt Ltd logo"
-  className="h-28 w-auto object-contain object-left -ml-11 -my-8"
-  width="160"
-  height="112"
-  loading="lazy"
-/>
-          </Link>
+<Link
+  to="/"
+  aria-label="AADONA Communication – go to homepage"
+  className="inline-block "
+>
+  <img
+    src={whitelogo}
+    alt="AADONA Communication Pvt Ltd logo"
+    className="h-9 md:h-10 w-auto max-w-full object-contain object-left -ml-2"
+    loading="lazy"
+  />
+</Link>
 
-          <address className="not-italic space-y-6 text-sm text-gray-100 leading-relaxed">
+          <address className="not-italic space-y-6 -mt-2 text-sm text-gray-100 leading-relaxed">
             <div>
               <p className="text-[#e6c79c] font-semibold text-xs uppercase tracking-wider mb-2">
                 Headquarters
