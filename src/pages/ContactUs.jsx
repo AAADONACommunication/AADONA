@@ -2,6 +2,11 @@
  * ContactPage.jsx
  * SEO Optimized  - react-helmet-async meta tags, JSON-LD structured data, semantic HTML
  * Security Hardened - input sanitization, XSS prevention, honeypot, rate-limit guard, strict validation
+ *
+ * Aadona brand theme:
+ *   Gold  #a16d36
+ *   Red   #920609 → #c42126 (gradient)
+ *   Font  Poppins SemiBold
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
@@ -9,7 +14,7 @@ import { Helmet } from 'react-helmet-async'; // npm install react-helmet-async
 import Footer from '../Components/Footer';
 import Navbar from '../Components/Navbar';
 import bg from '../assets/bg.avif';
-import contactusbanner from '../assets/ContactUs.avif'
+import contactusbanner from '../assets/ContactUs.webp'
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -150,6 +155,27 @@ const buildJsonLd = () => ({
   ],
 });
 
+// ─── Decorative helpers (thin red + gold accents) ──────────────────────────────
+
+/** 2px red → gold strip. Parent must be `relative overflow-hidden`. */
+const TopStrip = () => (
+  <span
+    className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#920609] via-[#c42126] to-[#a16d36]"
+    aria-hidden="true"
+  />
+);
+
+/** red line · gold diamond · gold line */
+
+
+/** Short underline: half red, half gold */
+const MixedUnderline = ({ className = '' }) => (
+  <span className={`flex w-20 h-1 rounded-full overflow-hidden mx-auto ${className}`} aria-hidden="true">
+    <span className="flex-1 bg-[#c42126]" />
+    <span className="flex-1 bg-[#a16d36]" />
+  </span>
+);
+
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
 const Spinner = () => (
@@ -192,25 +218,25 @@ const BusinessDropdown = ({ value, onChange, disabled, error }) => {
         type="button"
         onClick={() => !disabled && setOpen(p => !p)}
         className={`mt-1 w-full flex items-center justify-between px-4 py-3 bg-white border rounded-lg shadow-sm 
-          text-green-800 text-sm font-semibold transition duration-150
-          focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500
-          hover:border-green-400 ${error ? 'border-red-500' : 'border-green-200'}`}
+          text-[#920609] text-sm font-semibold transition duration-150
+          focus:outline-none focus:ring-2 focus:ring-[#920609] focus:border-[#920609]
+          hover:border-[#a16d36] ${error ? 'border-red-500' : 'border-[#a16d36]/40'}`}
       >
         <span className={value === BUSINESS_OPTIONS[0] ? 'text-gray-400 font-normal' : ''}>{value}</span>
-        <svg className={`w-5 h-5 text-green-600 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        <svg className={`w-5 h-5 text-[#a16d36] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {open && (
-        <ul className="absolute z-20 mt-1 w-full bg-white border border-green-200 rounded-lg shadow-lg overflow-hidden">
+        <ul className="absolute z-20 mt-1 w-full bg-white border border-[#a16d36]/40 rounded-lg shadow-lg overflow-hidden">
           {BUSINESS_OPTIONS.slice(1).map(opt => (
             <li key={opt}>
               <button type="button"
                 onClick={() => { onChange({ target: { name: 'natureOfBusiness', value: opt } }); setOpen(false); }}
                 className={`w-full text-left px-4 py-3 text-sm transition-colors duration-100
-                  ${value === opt ? 'bg-green-50 text-green-800 font-semibold' : 'text-gray-700 hover:bg-green-50 hover:text-green-800'}`}
+                  ${value === opt ? 'bg-[#fbf3ea] text-[#920609] font-semibold' : 'text-gray-700 hover:bg-[#fbf3ea] hover:text-[#920609]'}`}
               >{opt}</button>
             </li>
           ))}
@@ -266,19 +292,20 @@ const EnquiryEmailDropdown = () => {
           onClick={() => setOpen((prev) => !prev)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-green-200 rounded-lg shadow-sm text-green-800 text-sm hover:border-green-400 transition duration-150"        >
+          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-[#a16d36]/40 rounded-lg shadow-sm text-[#920609] text-sm hover:border-[#a16d36] transition duration-150"
+        >
           <span className="flex items-center gap-2">
             {/* Mail icon */}
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className="w-4 h-4 text-[#a16d36]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            <span className={selected ? '' : 'text-gray-400 font-normal'}>
+            <span className={selected ? 'font-semibold' : 'text-gray-400 font-normal'}>
               {selected ? selected.label : 'Enquiry Type'}
             </span>
           </span>
           {/* Chevron */}
           <svg
-            className={`w-4 h-4 text-green-600 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-[#a16d36] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -293,7 +320,7 @@ const EnquiryEmailDropdown = () => {
           <ul
             role="listbox"
             aria-label="Enquiry email options"
-            className="absolute z-20 mt-1 w-full bg-white border border-green-200 rounded-lg shadow-lg overflow-hidden"
+            className="absolute z-20 mt-1 w-full bg-white border border-[#a16d36]/40 rounded-lg shadow-lg overflow-hidden"
           >
             {EMAIL_OPTIONS.map((option) => (
               <li key={option.email} role="option" aria-selected={selected?.email === option.email}>
@@ -302,12 +329,12 @@ const EnquiryEmailDropdown = () => {
                   onClick={() => { setSelected(option); setOpen(false); }}
                   className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors duration-100 group
                     ${selected?.email === option.email
-                      ? 'bg-green-50 text-green-800'
-                      : 'text-gray-700 hover:bg-green-50 hover:text-green-800'
+                      ? 'bg-[#fbf3ea] text-[#920609]'
+                      : 'text-gray-700 hover:bg-[#fbf3ea] hover:text-[#920609]'
                     }`}
                 >
-                  <span className="font-semibold text-green-700">{option.label}</span>
-                  <span className="text-gray-500 group-hover:text-green-600 text-xs">{option.email}</span>
+                  <span className="font-semibold text-[#920609]">{option.label}</span>
+                  <span className="text-gray-500 group-hover:text-[#a16d36] text-xs">{option.email}</span>
                 </button>
               </li>
             ))}
@@ -322,25 +349,27 @@ const EnquiryEmailDropdown = () => {
 
 const ContactDetails = () => (
   <aside aria-label="Contact information" className="md:pl-10 pt-10 md:pt-0">
-    <h2 className="text-xl font-bold text-green-700 mb-4 border-b pb-2 border-green-100">
+    <h2 className="text-xl font-semibold text-[#920609] mb-4 pb-2 border-b border-[#a16d36]/40 flex items-center gap-2">
+      <span className="w-2 h-2 rotate-45 bg-[#a16d36]" aria-hidden="true" />
       Toll Free Number
     </h2>
     <p className="text-sm text-gray-600 mb-2">
       For any enquiry, call our toll free number (10:30 – 18:30 IST)
     </p>
-    <p className="text-2xl font-extrabold text-green-700 mb-8">
+    <p className="text-2xl font-semibold text-[#c42126] mb-8 bg-[#fbf3ea] border border-[#a16d36]/30 rounded-lg px-4 py-3">
       <a href="tel:18002026599" className="hover:underline focus:underline focus:outline-none">
         1800-202-6599
       </a>
     </p>
 
-    <h2 className="text-xl font-bold text-green-700 mb-4 border-b pb-2 border-green-100">
+    <h2 className="text-xl font-semibold text-[#920609] mb-4 pb-2 border-b border-[#a16d36]/40 flex items-center gap-2">
+      <span className="w-2 h-2 rotate-45 bg-[#c42126]" aria-hidden="true" />
       Other Contacts
     </h2>
     <p className="text-sm text-gray-600 mb-2">
       Speak to our team during business hours (10:30 – 18:30 IST)
     </p>
-    <p className="text-xl font-extrabold text-green-700 mb-4">
+    <p className="text-xl font-semibold text-[#c42126] mb-4 bg-[#fbf3ea] border border-[#a16d36]/30 rounded-lg px-4 py-3">
       <a href="tel:+917714920035" className="hover:underline focus:underline focus:outline-none">
         Board: +91-77149-20035
       </a>
@@ -350,13 +379,15 @@ const ContactDetails = () => (
 
 const OfficeCard = ({ location }) => (
   <article
-    className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-white border rounded-2xl shadow-xl items-center"
+    className="relative overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-white border border-[#a16d36]/40 hover:border-[#a16d36] rounded-2xl shadow-xl hover:shadow-2xl hover:shadow-[#a16d36]/20 items-center transition-all duration-300"
     aria-label={`${location.name} – ${location.title}`}
   >
+    <TopStrip />
+
     {/* Address Details */}
     <div className="text-base text-gray-600 space-y-2">
-      <h3 className="text-2xl font-bold text-green-700 mb-1">{location.name}</h3>
-      <h4 className="text-lg font-bold text-green-700 mb-3 border-b pb-2">{location.title}</h4>
+      <h3 className="text-2xl font-semibold text-[#920609] mb-1">{location.name}</h3>
+      <h4 className="text-lg font-semibold text-[#a16d36] mb-3 border-b border-[#a16d36]/30 pb-2">{location.title}</h4>
       <p className="font-semibold text-gray-700">{location.company}</p>
       <p>{location.address}</p>
       {location.addressLine2 && <p>{location.addressLine2}</p>}
@@ -364,7 +395,7 @@ const OfficeCard = ({ location }) => (
       {location.tollFree && (
         <p>
           <span className="font-semibold text-gray-700">Toll Free: </span>
-          <a href={`tel:${location.tollFree.replace(/\D/g, '')}`} className="hover:underline">
+          <a href={`tel:${location.tollFree.replace(/\D/g, '')}`} className="text-[#c42126] hover:underline">
             {location.tollFree}
           </a>
         </p>
@@ -373,7 +404,7 @@ const OfficeCard = ({ location }) => (
       {location.phone && (
         <p>
           <span className="font-semibold text-gray-700">{location.phoneLabel}: </span>
-          <a href={`tel:${location.phone.replace(/\D/g, '')}`} className="hover:underline">
+          <a href={`tel:${location.phone.replace(/\D/g, '')}`} className="text-[#c42126] hover:underline">
             {location.phone}
           </a>
         </p>
@@ -385,13 +416,13 @@ const OfficeCard = ({ location }) => (
           {location.hours}
         </p>
       )}
-      <p className="text-red-500 text-xs mt-3">
+      <p className="text-[#c42126] text-xs mt-3">
         *Do not send products to this address without warranty authorization.
       </p>
     </div>
 
     {/* Embedded Map */}
-    <div className="w-full h-64 bg-gray-100 border rounded-lg overflow-hidden shadow-sm">
+    <div className="w-full h-64 bg-gray-100 border border-[#a16d36]/40 rounded-lg overflow-hidden shadow-sm">
       <iframe
         title={location.mapTitle}
         src={location.mapSrc}
@@ -411,9 +442,10 @@ const OfficeLocations = () => (
   <section aria-labelledby="offices-heading" className="pt-16">
     <h2
       id="offices-heading"
-      className="text-3xl md:text-4xl font-extrabold text-green-700 mb-12 text-center tracking-tight"
+      className="text-3xl md:text-4xl font-semibold text-[#920609] mb-12 text-center tracking-tight"
     >
       Our Offices
+      <MixedUnderline className="mt-3" />
     </h2>
     <div className="space-y-8">
       {LOCATIONS.map((loc) => (
@@ -570,9 +602,9 @@ export default function ContactPage() {
   // ── Shared input class ──
   const inputBase = useMemo(
     () =>
-      'mt-1 block w-full px-4 py-3 border rounded-lg shadow-sm text-green-800 bg-white ' +
-      'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none ' +
-      'transition duration-150 ease-in-out border-green-200',
+      'mt-1 block w-full px-4 py-3 border rounded-lg shadow-sm text-gray-800 bg-white ' +
+      'focus:outline-none focus:ring-2 focus:ring-[#920609] focus:border-[#920609] appearance-none ' +
+      'transition duration-150 ease-in-out border-[#a16d36]/40 hover:border-[#a16d36]',
     []
   );
 
@@ -580,7 +612,7 @@ export default function ContactPage() {
     `${inputBase} ${errors[name] ? 'border-red-500 focus:ring-red-400' : ''}`;
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* ── SEO Meta Tags ── */}
       <Helmet>
         <title>Contact Us | AADONA Communication Pvt Ltd – Hyderabad, Raipur, Noida</title>
@@ -594,6 +626,14 @@ export default function ContactPage() {
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://www.aadona.com/contact" />
+
+        {/* Poppins font */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+        />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -630,17 +670,22 @@ export default function ContactPage() {
       {/* ── Hero ── */}
       <header
         className="relative pt-32 pb-16 sm:pt-44 sm:pb-32 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${contactusbanner})` }}
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${contactusbanner})` }}
         aria-label="Contact us hero banner"
       >
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl font-bold text-white sm:text-5xl md:text-6xl">
+          <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
             Contact Us
           </h1>
-          <p className="mt-6 text-md text-white max-w-3xl mx-auto">
+          <p className="mt-6 text-md text-white  max-w-3xl mx-auto">
             We're here to help! Get in touch with our team
           </p>
         </div>
+        {/* thin red → gold bar along the bottom edge */}
+        <span
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#920609] via-[#c42126] to-[#a16d36]"
+          aria-hidden="true"
+        />
       </header>
 
       {/* ── Main Content ── */}
@@ -654,21 +699,22 @@ export default function ContactPage() {
             {/* ── Contact Form ── */}
             <section
               aria-labelledby="form-heading"
-              className="md:col-span-2 p-8 bg-white border rounded-2xl shadow-xl"
+              className="relative overflow-hidden md:col-span-2 p-8 bg-white border border-[#a16d36]/40 rounded-2xl shadow-xl"
             >
-              <h2 id="form-heading" className="text-3xl font-bold mb-1 text-green-700">
+              <TopStrip />
+              <h2 id="form-heading" className="text-3xl font-semibold mb-1 text-[#920609]">
                 Send us a message
               </h2>
-              <p className="mb-8 text-gray-600 text-lg border-b pb-4 border-green-50">
+              <p className="mb-8 text-gray-600 text-lg pb-4 border-b border-[#a16d36]/30">
                 and we'll get back to you shortly.
               </p>
 
               {submitted ? (
                 <div
                   role="alert"
-                  className="p-8 my-8 bg-green-50 border-l-4 border-green-600 rounded-xl shadow-md"
+                  className="p-8 my-8 bg-[#fbf3ea] border border-[#a16d36]/40 rounded-xl shadow-md"
                 >
-                  <h3 className="text-xl font-bold text-green-700 flex items-center">
+                  <h3 className="text-xl font-semibold text-[#920609] flex items-center">
                     <svg
                       className="w-6 h-6 mr-2"
                       fill="none"
@@ -685,7 +731,7 @@ export default function ContactPage() {
                     </svg>
                     Submission Successful!
                   </h3>
-                  <p className="text-green-600 mt-2">
+                  <p className="text-[#a16d36] mt-2">
                     Thank you for reaching out. We will contact you within 24–48 hours.
                   </p>
                 </div>
@@ -715,7 +761,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-                        Email <span aria-hidden="true" className="text-red-500">*</span>
+                        Email <span aria-hidden="true" className="text-[#c42126]">*</span>
                         <span className="sr-only">(required)</span>
                       </label>
                       <input
@@ -738,7 +784,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="subject" className="block text-sm font-semibold text-gray-700">
-                        Subject <span aria-hidden="true" className="text-red-500">*</span>
+                        Subject <span aria-hidden="true" className="text-[#c42126]">*</span>
                       </label>
                       <input
                         id="subject"
@@ -762,7 +808,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700">
-                        First name <span aria-hidden="true" className="text-red-500">*</span>
+                        First name <span aria-hidden="true" className="text-[#c42126]">*</span>
                       </label>
                       <input
                         id="firstName"
@@ -783,7 +829,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700">
-                        Last name <span aria-hidden="true" className="text-red-500">*</span>
+                        Last name <span aria-hidden="true" className="text-[#c42126]">*</span>
                       </label>
                       <input
                         id="lastName"
@@ -807,7 +853,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="phone" className="block text-sm font-semibold text-gray-700">
-                        Phone <span aria-hidden="true" className="text-red-500">*</span>
+                        Phone <span aria-hidden="true" className="text-[#c42126]">*</span>
                       </label>
                       <input
                         id="phone"
@@ -828,7 +874,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="natureOfBusiness" className="block text-sm font-semibold text-gray-700">
-                        Nature of Business <span aria-hidden="true" className="text-red-500">*</span>
+                        Nature of Business <span aria-hidden="true" className="text-[#c42126]">*</span>
                       </label>
                       <BusinessDropdown
                         value={formData.natureOfBusiness}
@@ -844,7 +890,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1">
                       <label htmlFor="city" className="block text-sm font-semibold text-gray-700">
-                        City <span aria-hidden="true" className="text-red-500">*</span>
+                        City <span aria-hidden="true" className="text-[#c42126]">*</span>
                       </label>
                       <input
                         id="city"
@@ -865,7 +911,7 @@ export default function ContactPage() {
 
                     <div className="space-y-1">
                       <label htmlFor="zipCode" className="block text-sm font-semibold text-gray-700">
-                        ZIP / PIN Code <span aria-hidden="true" className="text-red-500">*</span>
+                        ZIP / PIN Code <span aria-hidden="true" className="text-[#c42126]">*</span>
                       </label>
                       <input
                         id="zipCode"
@@ -892,7 +938,7 @@ export default function ContactPage() {
                   {/* Message */}
                   <div className="mb-6 space-y-1">
                     <label htmlFor="message" className="block text-sm font-semibold text-gray-700">
-                      Your message <span aria-hidden="true" className="text-red-500">*</span>
+                      Your message <span aria-hidden="true" className="text-[#c42126]">*</span>
                     </label>
                     <textarea
                       id="message"
@@ -916,11 +962,11 @@ export default function ContactPage() {
                     type="submit"
                     disabled={isSubmitting}
                     aria-busy={isSubmitting}
-                    className={`w-full sm:w-1/2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg 
-                      shadow-md transition duration-300 ease-in-out flex items-center justify-center
+                    className={`w-full sm:w-1/2 text-white font-semibold py-3 px-6 rounded-lg border border-[#a16d36]
+                      shadow-md shadow-[#a16d36]/30 transition duration-300 ease-in-out flex items-center justify-center
                       ${isSubmitting
-                        ? 'bg-green-400 cursor-not-allowed'
-                        : 'hover:bg-green-700 hover:shadow-lg focus:ring-4 focus:ring-green-300 transform hover:-translate-y-0.5'
+                        ? 'bg-gradient-to-r from-[#920609] to-[#c42126] opacity-60 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-[#920609] to-[#c42126] hover:brightness-110 hover:shadow-lg focus:ring-4 focus:ring-[#a16d36]/50 transform hover:-translate-y-0.5'
                       }`}
                   >
                     {isSubmitting && <Spinner />}
@@ -932,7 +978,7 @@ export default function ContactPage() {
             </section>
 
             {/* ── Contact Details Sidebar ── */}
-            <div className="md:col-span-1 border-green-200/50 pt-12 md:pt-0 md:border-l-4">
+            <div className="md:col-span-1 border-[#a16d36]/50 pt-12 md:pt-0 md:border-l">
               <ContactDetails />
             </div>
           </div>
@@ -943,6 +989,6 @@ export default function ContactPage() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }
