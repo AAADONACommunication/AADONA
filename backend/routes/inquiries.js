@@ -46,14 +46,14 @@ router.post("/inquiries/:id/reply", verifyToken, async (req, res) => {
       to: inquiry.customerEmail,
       subject: `Re: Your ${inquiry.formType} inquiry`,
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534">AADONA Response</h2>
+        <div style="font-family:'Poppins',Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-top:4px solid #a16d36;border-radius:12px">
+          <h2 style="color:#920609">AADONA Response</h2>
           <p>Dear ${inquiry.customerName},</p>
-          <div style="background:#f0fdf4;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #16a34a">
+          <div style="background:#fdf8f3;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #a16d36">
             ${message}
           </div>
           <p style="color:#6b7280;font-size:13px">This is regarding your <b>${inquiry.formType}</b> inquiry submitted on ${new Date(inquiry.createdAt).toDateString()}.</p>
-          <p style="color:#166534;font-weight:bold">Team AADONA</p>
+          <p style="color:#920609;font-weight:bold">Team AADONA</p>
         </div>
       `,
     });

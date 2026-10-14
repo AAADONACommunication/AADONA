@@ -53,11 +53,11 @@ router.post("/newsletter-subscribe", formLimiter, async (req, res) => {
       to: process.env.COMPANY_EMAIL,
       subject: `New Newsletter Subscriber`,
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;
-          padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534">New Subscriber</h2>
-          <div style="background:#f0fdf4;padding:16px;border-radius:8px;
-            border-left:4px solid #16a34a;margin:20px 0">
+        <div style="font-family:'Poppins',Arial,sans-serif;max-width:500px;margin:auto;
+          padding:30px;border:1px solid #e5e7eb;border-top:4px solid #a16d36;border-radius:12px">
+          <h2 style="color:#920609">New Subscriber</h2>
+          <div style="background:#fdf8f3;padding:16px;border-radius:8px;
+            border-left:4px solid #a16d36;margin:20px 0">
             <b>Email:</b> ${cleanEmail}<br/>
             <b>Time:</b> ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
           </div>
@@ -111,16 +111,16 @@ router.post("/subscribers/broadcast",
         <!DOCTYPE html>
         <html>
         <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-        <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif">
+        <body style="margin:0;padding:0;background:#f3f4f6;font-family:'Poppins',Arial,sans-serif">
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 0">
             <tr><td align="center">
               <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
                 
                 <!-- Header -->
                 <tr>
-                  <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
+                  <td style="background:linear-gradient(135deg,#920609,#c42126);padding:32px;text-align:center;border-bottom:4px solid #a16d36">
                     <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px">AADONA Communication</h1>
-                    <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Your trusted networking partner</p>
+                    <p style="color:#f5e6d0;margin:6px 0 0;font-size:13px">Your trusted networking partner</p>
                   </td>
                 </tr>
 
@@ -137,7 +137,7 @@ router.post("/subscribers/broadcast",
                 ${heading?.trim() ? `
                 <tr>
                   <td style="padding:32px 40px 0">
-                    <h2 style="color:#166534;font-size:22px;font-weight:700;margin:0">${heading}</h2>
+                    <h2 style="color:#920609;font-size:22px;font-weight:700;margin:0">${heading}</h2>
                   </td>
                 </tr>` : ""}
 
@@ -154,10 +154,10 @@ router.post("/subscribers/broadcast",
                     <td style="padding:0 40px 32px;text-align:center">
                       ${buttons.filter(b => b.text?.trim() && b.url?.trim()).map(b => `
                         <a href="${b.url}" target="_blank"
-                          style="display:inline-block;background:#16a34a;color:#ffffff;
+                          style="display:inline-block;background:#920609;color:#ffffff;
                             text-decoration:none;font-weight:700;font-size:15px;
                             padding:14px 36px;border-radius:10px;margin:4px;
-                            box-shadow:0 4px 12px rgba(22,163,74,0.35)">
+                            box-shadow:0 4px 12px rgba(146,6,9,0.35)">
                           ${b.text}
                         </a>
                       `).join("")}

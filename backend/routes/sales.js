@@ -158,12 +158,13 @@ router.post("/admin/sales/invite", verifyToken, async (req, res) => {
       to: cleanEmail,
       subject: "You're invited to join AADONA Sales Portal",
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534">You're Invited!</h2>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+        <div style="font-family:'Poppins','Segoe UI',Arial,sans-serif;max-width:500px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
+          <h2 style="color:#c42126;font-weight:600">You're Invited!</h2>
           <p style="color:#374151">You have been invited by <b>${req.user.email}</b> to join the AADONA Sales Portal.</p>
           <p style="color:#374151">Click the button below to set up your account. This link expires in <b>7 days</b>.</p>
           <div style="text-align:center;margin:30px 0">
-            <a href="${inviteUrl}" style="background:#16a34a;color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;display:inline-block">
+            <a href="${inviteUrl}" style="background:#c42126;background-image:linear-gradient(135deg,#920609,#c42126);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;display:inline-block">
               Set Up My Account
             </a>
           </div>
@@ -226,10 +227,11 @@ router.post("/sales/signup/send-otp", async (req, res) => {
       to: email,
       subject: "Your OTP for Sales Portal Signup",
       html: `
-        <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534">Verify Your Email</h2>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+        <div style="font-family:'Poppins','Segoe UI',sans-serif;max-width:420px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
+          <h2 style="color:#c42126;font-weight:600">Verify Your Email</h2>
           <p style="color:#374151">Use the OTP below to verify your email:</p>
-          <div style="font-size:38px;font-weight:bold;letter-spacing:12px;color:#166534;text-align:center;padding:20px;background:#f0fdf4;border-radius:10px;margin:20px 0">
+          <div style="font-size:38px;font-weight:600;letter-spacing:12px;color:#c42126;text-align:center;padding:20px;background:#fbf5e9;border-radius:10px;margin:20px 0">
             ${otp}
           </div>
           <p style="color:#6b7280;font-size:13px">Expires in <strong>5 minutes</strong>. Do not share it.</p>

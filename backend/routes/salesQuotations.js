@@ -57,7 +57,7 @@ function buildQuotationEmailHtml({
   const itemRowsHtml = items
     .map(
       (item, i) => `
-      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#fbf5e9"}">
         <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">
           ${item.name}
           ${item.description ? `<br/><span style="font-size:12px;color:#6b7280">${item.description}</span>` : ""}
@@ -71,7 +71,7 @@ function buildQuotationEmailHtml({
         <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151;text-align:right">
           ${item.gst}%
         </td>
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#c42126;text-align:right">
           ₹${Number(item.total).toFixed(2)}
         </td>
       </tr>
@@ -82,8 +82,8 @@ function buildQuotationEmailHtml({
   return `
     <!DOCTYPE html>
     <html>
-    <head><meta charset="UTF-8"/></head>
-    <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif">
+    <head><meta charset="UTF-8"/><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" /></head>
+    <body style="margin:0;padding:0;background:#f3f4f6;font-family:'Poppins','Segoe UI',Arial,sans-serif">
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 0">
         <tr><td align="center">
           <table width="650" cellpadding="0" cellspacing="0"
@@ -91,9 +91,9 @@ function buildQuotationEmailHtml({
 
             <!-- Header -->
             <tr>
-              <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
-                <h1 style="color:#ffffff;margin:0;font-size:36px;font-weight:900;letter-spacing:1px">AADONA</h1>
-                <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Your Quotation</p>
+              <td style="background:#920609;background-image:linear-gradient(135deg,#920609,#c42126);padding:32px;text-align:center">
+                <h1 style="color:#ffffff;margin:0;font-size:36px;font-weight:600;letter-spacing:1px">AADONA</h1>
+                <p style="color:#c89c46;margin:6px 0 0;font-size:13px;font-weight:600">Your Quotation</p>
               </td>
             </tr>
 
@@ -103,7 +103,7 @@ function buildQuotationEmailHtml({
             <!-- Context Heading -->
             <tr>
               <td style="padding:28px 32px 0">
-                <h2 style="color:#166534;font-size:19px;margin:0">${heading}</h2>
+                <h2 style="color:#c42126;font-size:19px;margin:0;font-weight:600">${heading}</h2>
               </td>
             </tr>`
                 : ""
@@ -112,7 +112,7 @@ function buildQuotationEmailHtml({
             <!-- Info -->
             <tr>
               <td style="padding:${heading ? "16px" : "28px"} 32px 0">
-                <h2 style="color:#166534;font-size:18px;margin:0 0 16px">
+                <h2 style="color:#c42126;font-size:18px;margin:0 0 16px;font-weight:600">
                   Quotation #${quotationNumber}
                 </h2>
                 <table width="100%" cellpadding="0" cellspacing="0">
@@ -159,12 +159,12 @@ function buildQuotationEmailHtml({
                 <table width="100%" cellpadding="0" cellspacing="0"
                   style="border-collapse:collapse;border-radius:8px;overflow:hidden">
                   <thead>
-                    <tr style="background:#166534">
-                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:left;font-size:13px">Product</th>
-                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:center;font-size:13px">Qty</th>
-                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Unit Price</th>
-                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">GST</th>
-                      <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">Total</th>
+                    <tr style="background:#920609">
+                      <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:left;font-size:13px;font-weight:600">Product</th>
+                      <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:center;font-size:13px;font-weight:600">Qty</th>
+                      <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:right;font-size:13px;font-weight:600">Unit Price</th>
+                      <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:right;font-size:13px;font-weight:600">GST</th>
+                      <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:right;font-size:13px;font-weight:600">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -206,8 +206,8 @@ function buildQuotationEmailHtml({
                     <td colspan="2"><hr style="border:none;border-top:2px solid #e5e7eb;margin:8px 0"/></td>
                   </tr>
                   <tr>
-                    <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">Grand Total</td>
-                    <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">
+                    <td style="text-align:right;padding:4px 0;color:#c42126;font-weight:600;font-size:16px">Grand Total</td>
+                    <td style="text-align:right;padding:4px 0;color:#c42126;font-weight:600;font-size:16px">
                       ₹${Number(grandTotal).toFixed(2)}
                     </td>
                   </tr>
@@ -220,8 +220,8 @@ function buildQuotationEmailHtml({
                 ? `
             <tr>
               <td style="padding:20px 32px 0">
-                <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
-                  <p style="margin:0;font-size:13px;font-weight:600;color:#166534;margin-bottom:4px">Notes</p>
+                <div style="background:#fbf5e9;border-left:4px solid #c89c46;border-radius:8px;padding:14px 16px">
+                  <p style="margin:0;font-size:13px;font-weight:600;color:#c42126;margin-bottom:4px">Notes</p>
                   <p style="margin:0;font-size:13px;color:#374151">${notes.trim()}</p>
                 </div>
               </td>
@@ -239,22 +239,22 @@ function buildQuotationEmailHtml({
                   <tr>
                     <td style="padding:0 6px">
                       <a href="${viewQuotationUrl}"
-                        style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;
-                        font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px">
+                        style="display:inline-block;background:#c42126;background-image:linear-gradient(135deg,#920609,#c42126);color:#ffffff;text-decoration:none;
+                        font-weight:600;font-size:14px;padding:12px 22px;border-radius:8px">
                         Accept Offer
                       </a>
                     </td>
                     <td style="padding:0 6px">
                       <a href="${viewQuotationUrl}"
-                        style="display:inline-block;background:#f59e0b;color:#ffffff;text-decoration:none;
-                        font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px">
+                        style="display:inline-block;background:#c89c46;color:#ffffff;text-decoration:none;
+                        font-weight:600;font-size:14px;padding:12px 22px;border-radius:8px">
                         Negotiate
                       </a>
                     </td>
                     <td style="padding:0 6px">
                       <a href="${viewQuotationUrl}"
-                        style="display:inline-block;background:#dc2626;color:#ffffff;text-decoration:none;
-                        font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px">
+                        style="display:inline-block;background:#4b5563;color:#ffffff;text-decoration:none;
+                        font-weight:600;font-size:14px;padding:12px 22px;border-radius:8px">
                         Do Not Proceed
                       </a>
                     </td>
@@ -271,8 +271,8 @@ function buildQuotationEmailHtml({
             <!-- Sales Contact -->
             <tr>
               <td style="padding:20px 32px 0">
-                <div style="background:#f9fafb;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
-                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <div style="background:#f9fafb;border-left:4px solid #c89c46;border-radius:8px;padding:14px 16px">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#c42126;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                   <p style="margin:0;font-size:13px;color:#374151">${salesRepForEmail?.name || "AADONA Sales Team"}</p>
                   ${salesRepForEmail?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.phone}</p>` : ""}
                   ${salesRepForEmail?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRepForEmail.email}</p>` : ""}
@@ -284,7 +284,7 @@ function buildQuotationEmailHtml({
             <tr>
               <td style="padding:28px 32px;text-align:center">
                 <p style="color:#374151;font-size:14px;margin:0 0 4px">Regards,</p>
-                <p style="color:#166534;font-weight:700;font-size:15px;margin:0">AADONA</p>
+                <p style="color:#c42126;font-weight:600;font-size:15px;margin:0">AADONA</p>
               </td>
             </tr>
 
@@ -683,29 +683,30 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
       // ── Internal report (Sales / Admin) - kept as an internal report email,
       //    not the customer template. No discount column; grand total shown. ──
       const internalItemRowsHtml = quotation.items.map((item, i) => `
-        <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+        <tr style="background:${i % 2 === 0 ? "#ffffff" : "#fbf5e9"}">
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
           <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-          <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${Number(item.total).toFixed(2)}</td>
+          <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#c42126;text-align:right">₹${Number(item.total).toFixed(2)}</td>
         </tr>
       `).join("");
 
       const reportHtml = `
-        <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-          <h2 style="color:#166534">Negotiated Offer Accepted </h2>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+        <div style="font-family:'Poppins','Segoe UI',Arial,sans-serif;padding:24px;background:#fbf5e9">
+          <h2 style="color:#c42126;font-weight:600">Negotiated Offer Accepted </h2>
           <p style="color:#374151;font-size:14px"><strong>Sales Representative:</strong> ${salesRep?.name || quotation.salesRepUid}</p>
           <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
           <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
             <thead>
-              <tr style="background:#166534">
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Unit Price</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
-                <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
+              <tr style="background:#920609">
+                <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:left">Product</th>
+                <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px">Qty</th>
+                <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:right">Unit Price</th>
+                <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:right">GST</th>
+                <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:right">Total</th>
               </tr>
             </thead>
             <tbody>${internalItemRowsHtml}</tbody>
@@ -717,7 +718,7 @@ router.post("/sales-quotations/:id/accept-negotiation", verifySalesToken, async 
               : ""
           }
           <p style="color:#374151;font-size:14px"><strong>GST:</strong> ₹${Number(quotation.gstAmount).toFixed(2)}</p>
-          <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">
+          <p style="color:#c42126;font-size:16px;font-weight:600;text-align:right">
             Grand Total (Accepted Amount): ₹${Number(quotation.negotiatedAmount).toFixed(2)}
           </p>
         </div>
@@ -1540,15 +1541,15 @@ router.post("/sales-quotations/:id/reject", verifySalesToken, async (req, res) =
           to: quotation.customer.email,
           subject: `Quotation Withdrawn - #${quotation.quotationNumber}`,
           html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
-              <h2 style="color:#b91c1c">Quotation Withdrawn</h2>
+            <div style="font-family:'Poppins','Segoe UI',Arial,sans-serif;padding:24px;background:#fef2f2">
+              <h2 style="color:#b91c1c;font-weight:600">Quotation Withdrawn</h2>
               <p style="color:#374151;font-size:14px">
                 Quotation <strong>#${quotation.quotationNumber}</strong> has been withdrawn.
               </p>
               ${quotation.rejectReason ? `<p style="color:#374151;font-size:14px"><strong>Reason:</strong> ${quotation.rejectReason}</p>` : ""}
               <p style="color:#374151;font-size:14px"><strong>Grand Total:</strong> ₹${Number(quotation.grandTotal).toFixed(2)}</p>
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #b91c1c">
-                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#b91c1c;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
                 ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
                 ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}
@@ -1621,8 +1622,8 @@ router.post("/sales-quotations/:id/close", verifySalesToken, async (req, res) =>
           to: quotation.customer.email,
           subject: `Quotation Closed – AADONA`,
           html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f9fafb">
-              <h2 style="color:#374151">Quotation Closed</h2>
+            <div style="font-family:'Poppins','Segoe UI',Arial,sans-serif;padding:24px;background:#f9fafb">
+              <h2 style="color:#374151;font-weight:600">Quotation Closed</h2>
               <p style="color:#374151;font-size:14px">
                 Your quotation <strong>#${quotation.quotationNumber}</strong> has been closed due to
                 no response within the expected timeframe.
@@ -1631,7 +1632,7 @@ router.post("/sales-quotations/:id/close", verifySalesToken, async (req, res) =>
                 If you are still interested, please contact your Sales Representative to request a new quotation.
               </p>
               <div style="margin-top:20px;padding:14px 16px;background:#ffffff;border-radius:8px;border-left:4px solid #6b7280">
-                <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
+                <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.5px">Your Sales Contact</p>
                 <p style="margin:0;font-size:13px;color:#374151">${salesRep?.name || "AADONA Sales Team"}</p>
                 ${salesRep?.phone ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.phone}</p>` : ""}
                 ${salesRep?.email ? `<p style="margin:2px 0 0;font-size:13px;color:#374151"> ${salesRep.email}</p>` : ""}

@@ -145,7 +145,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       const itemTotalWithGst = parseFloat((item.total + item.gstAmount).toFixed(2));
 
       return `
-      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+      <tr style="background:${i % 2 === 0 ? "#ffffff" : "#fdf8f3"}">
         <td style="padding:10px 12px;border:1px solid #e5e7eb;color:#374151">
           ${item.name}
           ${item.description ? `<br/><span style="font-size:12px;color:#6b7280">${item.description}</span>` : ""}
@@ -160,7 +160,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
           ${item.gst}
         %</td>
 
-        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">
+        <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:#920609;text-align:right">
           ₹${itemTotalWithGst.toFixed(2)}
         </td>
       </tr>
@@ -171,7 +171,7 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
       <!DOCTYPE html>
       <html>
       <head><meta charset="UTF-8"/></head>
-      <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif">
+      <body style="margin:0;padding:0;background:#f3f4f6;font-family:'Poppins',Arial,sans-serif">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 0">
           <tr><td align="center">
             <table width="620" cellpadding="0" cellspacing="0" 
@@ -179,16 +179,16 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
 
               <!-- Header -->
               <tr>
-                <td style="background:linear-gradient(135deg,#166534,#16a34a);padding:32px;text-align:center">
+                <td style="background:linear-gradient(135deg,#920609,#c42126);padding:32px;text-align:center;border-bottom:4px solid #a16d36">
                   <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800">AADONA</h1>
-                  <p style="color:#bbf7d0;margin:6px 0 0;font-size:13px">Internal Pricing - Sales Use Only</p>
+                  <p style="color:#f5e6d0;margin:6px 0 0;font-size:13px">Internal Pricing - Sales Use Only</p>
                 </td>
               </tr>
 
               <!-- Info -->
               <tr>
                 <td style="padding:28px 32px 0">
-                  <h2 style="color:#166534;font-size:18px;margin:0 0 16px">
+                  <h2 style="color:#920609;font-size:18px;margin:0 0 16px">
                     Pricing Ready for Request #${requestNumber}
                   </h2>
                   <table width="100%" cellpadding="0" cellspacing="0">
@@ -232,20 +232,20 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                   <table width="100%" cellpadding="0" cellspacing="0" 
                     style="border-collapse:collapse;border-radius:8px;overflow:hidden">
                     <thead>
-                      <tr style="background:#166534">
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:left;font-size:13px">
+                      <tr style="background:#920609">
+                        <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:left;font-size:13px">
                           Product
                         </th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:center;font-size:13px">
+                        <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:center;font-size:13px">
                           Qty
                         </th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">
+                        <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:right;font-size:13px">
                           Unit Price
                         </th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">
+                        <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:right;font-size:13px">
                           GST
                         </th>
-                        <th style="padding:10px 12px;border:1px solid #166534;color:#fff;text-align:right;font-size:13px">
+                        <th style="padding:10px 12px;border:1px solid #920609;color:#fff;text-align:right;font-size:13px">
                           Total
                         </th>
                       </tr>
@@ -270,8 +270,8 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
                       <td style="text-align:right;padding:4px 0;color:#111827;font-size:13px">₹${gstAmount.toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td style="text-align:right;padding:4px 0;color:#166534;font-weight:800;font-size:16px">Grand Total</td>
-                      <td style="text-align:right;padding:4px 0 4px 24px;color:#166534;font-weight:800;font-size:16px">₹${grandTotal.toFixed(2)}</td>
+                      <td style="text-align:right;padding:4px 0;color:#920609;font-weight:800;font-size:16px">Grand Total</td>
+                      <td style="text-align:right;padding:4px 0 4px 24px;color:#920609;font-weight:800;font-size:16px">₹${grandTotal.toFixed(2)}</td>
                     </tr>
                   </table>
                 </td>
@@ -281,8 +281,8 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
               ${notes && notes.trim() ? `
               <tr>
                 <td style="padding:20px 32px 0">
-                  <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:8px;padding:14px 16px">
-                    <p style="margin:0;font-size:13px;font-weight:600;color:#166534;margin-bottom:4px">
+                  <div style="background:#fdf8f3;border-left:4px solid #a16d36;border-radius:8px;padding:14px 16px">
+                    <p style="margin:0;font-size:13px;font-weight:600;color:#920609;margin-bottom:4px">
                       Admin Notes
                     </p>
                     <p style="margin:0;font-size:13px;color:#374151">${notes.trim()}</p>
@@ -293,8 +293,8 @@ router.post("/admin/quotation-requests/:id/price", verifyToken, async (req, res)
               <!-- Notice -->
               <tr>
                 <td style="padding:20px 32px 0">
-                  <div style="background:#fefce8;border-left:4px solid #eab308;border-radius:8px;padding:14px 16px">
-                    <p style="margin:0;font-size:12px;color:#854d0e">
+                  <div style="background:#fdf8f3;border-left:4px solid #a16d36;border-radius:8px;padding:14px 16px">
+                    <p style="margin:0;font-size:12px;color:#6b4a24">
                       Note: This is an internal pricing document for sales use only. Do not share this email with the partner. 
                       Do NOT share this email with the partner. 
                       You may add your own markup and discount before sending the final quotation to the partner.

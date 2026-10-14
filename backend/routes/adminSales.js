@@ -60,10 +60,10 @@ router.post("/invite", verifyToken, async (req, res) => {
       to: cleanEmail,
       subject: "You're invited to join AADONA Sales Portal",
       html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534">Sales Rep Invitation</h2>
+        <div style="font-family:'Poppins',Arial,sans-serif;max-width:480px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-top:4px solid #a16d36;border-radius:12px">
+          <h2 style="color:#920609">Sales Rep Invitation</h2>
           <p style="color:#374151">You've been invited to join AADONA as a Sales Representative.</p>
-          <a href="${signupUrl}" style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
+          <a href="${signupUrl}" style="display:inline-block;background:#920609;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
             Complete Signup
           </a>
           <p style="color:#9ca3af;font-size:12px;margin-top:20px">If you did not expect this invite, you can ignore this email.</p>

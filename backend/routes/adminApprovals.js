@@ -225,8 +225,8 @@ router.post("/admin/sales-quotations/:id/approve", verifyToken, async (req, res)
           to: salesRep.email,
           subject: `Admin Approved - #${quotation.quotationNumber}`,
           html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Admin Approved the Discounted Price</h2>
+            <div style="font-family:'Poppins',Arial,sans-serif;padding:24px;background:#fdf8f3;border-top:4px solid #a16d36">
+              <h2 style="color:#920609">Admin Approved the Discounted Price</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
               <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
               <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
@@ -296,8 +296,8 @@ router.post("/admin/sales-quotations/:id/reject", verifyToken, async (req, res) 
           to: salesRep.email,
           subject: `Customer Offer Rejected - Action Required #${quotation.quotationNumber}`,
           html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#fef2f2">
-              <h2 style="color:#b91c1c">Admin Rejected the Discounted Price</h2>
+            <div style="font-family:'Poppins',Arial,sans-serif;padding:24px;background:#fdf2f2;border-top:4px solid #920609">
+              <h2 style="color:#920609">Admin Rejected the Discounted Price</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
               <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
               <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
@@ -450,12 +450,12 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
           const itemGstAmt = parseFloat((item.quantity * item.unitPrice * (item.gst / 100)).toFixed(2));
           const itemTotalWithGst = parseFloat((item.total + itemGstAmt).toFixed(2));
           return `
-            <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
+            <tr style="background:${i % 2 === 0 ? "#ffffff" : "#fdf8f3"}">
               <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151">${item.name}</td>
               <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:center">${item.quantity}</td>
               <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">₹${item.unitPrice.toFixed(2)}</td>
               <td style="padding:8px 10px;border:1px solid #e5e7eb;color:#374151;text-align:right">${item.gst}%</td>
-              <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#166534;text-align:right">₹${itemTotalWithGst.toFixed(2)}</td>
+              <td style="padding:8px 10px;border:1px solid #e5e7eb;font-weight:600;color:#920609;text-align:right">₹${itemTotalWithGst.toFixed(2)}</td>
             </tr>
           `;
         }).join("");
@@ -465,27 +465,27 @@ router.post("/admin/sales-quotations/:id/revise", verifyToken, async (req, res) 
           to: salesRep.email,
           subject: `Revised Pricing Ready - #${quotation.quotationNumber}`,
           html: `
-            <div style="font-family:Arial,sans-serif;padding:24px;background:#f0fdf4">
-              <h2 style="color:#166534">Admin Has Revised the Pricing</h2>
+            <div style="font-family:'Poppins',Arial,sans-serif;padding:24px;background:#fdf8f3;border-top:4px solid #a16d36">
+              <h2 style="color:#920609">Admin Has Revised the Pricing</h2>
               <p style="color:#374151;font-size:14px"><strong>Quotation:</strong> #${quotation.quotationNumber}</p>
               <p style="color:#374151;font-size:14px"><strong>Partner:</strong> ${quotation.customer?.personalName || "-"}</p>
               <p style="color:#374151;font-size:14px"><strong>End Customer:</strong> ${quotation.endCustomer?.endCustomerName || "-"}</p>
               <p style="color:#374151;font-size:14px"><strong>Customer Requested Amount:</strong> ₹${Number(quotation.expectedBudget).toFixed(2)}</p>
               <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">
                 <thead>
-                  <tr style="background:#166534">
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:left">Product</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px">Qty</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">New Price</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">GST</th>
-                    <th style="padding:8px 10px;border:1px solid #166534;color:#fff;font-size:12px;text-align:right">Total</th>
+                  <tr style="background:#920609">
+                    <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:left">Product</th>
+                    <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px">Qty</th>
+                    <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:right">New Price</th>
+                    <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:right">GST</th>
+                    <th style="padding:8px 10px;border:1px solid #920609;color:#fff;font-size:12px;text-align:right">Total</th>
                   </tr>
                 </thead>
                 <tbody>${itemRowsHtml}</tbody>
               </table>
               <p style="color:#374151;font-size:14px;text-align:right;margin:4px 0">Subtotal: ₹${revisedSubtotal.toFixed(2)}</p>
               <p style="color:#374151;font-size:14px;text-align:right;margin:4px 0">GST: ₹${gstTotal.toFixed(2)}</p>
-              <p style="color:#166534;font-size:16px;font-weight:800;text-align:right">New Grand Total: ₹${revisedGrandTotalWithGst.toFixed(2)}</p>
+              <p style="color:#920609;font-size:16px;font-weight:800;text-align:right">New Grand Total: ₹${revisedGrandTotalWithGst.toFixed(2)}</p>
               ${adminQuotation.remarks ? `<p style="color:#374151;font-size:14px"><strong>Admin Notes:</strong> ${adminQuotation.remarks}</p>` : ""}
               <p style="color:#374151;font-size:14px">Please log in to the Sales Portal, apply your discount, and resend the revised quotation to the customer.</p>
             </div>

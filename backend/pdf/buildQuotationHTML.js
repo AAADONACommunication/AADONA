@@ -39,20 +39,20 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
   const hasDiscount = discountAmount > 0.005;
 
   const itemRowsHTML = items.map((item, i) => `
-    <tr style="background:${i % 2 === 0 ? "#ffffff" : "#f0fdf4"}">
-      <td style="padding:9px 12px;border:0.5px solid #dde8dd;color:#374151;font-size:12px">
+    <tr style="background:${i % 2 === 0 ? "#ffffff" : "#fbf6ec"}">
+      <td style="padding:9px 12px;border:0.5px solid #eadfc8;color:#374151;font-size:12px">
         ${item.name}
         ${item.description ? `<br/><span style="font-size:10px;color:#6b7280">${item.description}</span>` : ""}
       </td>
-      <td style="padding:9px 12px;border:0.5px solid #dde8dd;color:#374151;font-size:12px;text-align:center">${item.quantity}</td>
-      <td style="padding:9px 12px;border:0.5px solid #dde8dd;color:#374151;font-size:12px;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
-      <td style="padding:9px 12px;border:0.5px solid #dde8dd;color:#374151;font-size:12px;text-align:right">${item.gst ?? 0}%</td>
-      <td style="padding:9px 12px;border:0.5px solid #dde8dd;font-weight:600;color:#166534;font-size:12px;text-align:right">₹${Number(item.total).toFixed(2)}</td>
+      <td style="padding:9px 12px;border:0.5px solid #eadfc8;color:#374151;font-size:12px;text-align:center">${item.quantity}</td>
+      <td style="padding:9px 12px;border:0.5px solid #eadfc8;color:#374151;font-size:12px;text-align:right">₹${Number(item.unitPrice).toFixed(2)}</td>
+      <td style="padding:9px 12px;border:0.5px solid #eadfc8;color:#374151;font-size:12px;text-align:right">${item.gst ?? 0}%</td>
+      <td style="padding:9px 12px;border:0.5px solid #eadfc8;font-weight:600;color:#920609;font-size:12px;text-align:right">₹${Number(item.total).toFixed(2)}</td>
     </tr>
   `).join("");
 
   const salesRepBlockHTML = `
-    <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
+    <div style="font-size:11px;font-weight:700;color:#920609;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #c89c45;padding-left:10px;">
       Sales Representative
     </div>
     <table style="width:100%;font-size:12px;color:#374151;">
@@ -72,7 +72,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
   `;
 
   const endCustomerBlockHTML = `
-    <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
+    <div style="font-size:11px;font-weight:700;color:#920609;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #c89c45;padding-left:10px;">
       End Customer Details
     </div>
     <table style="width:100%;font-size:12px;color:#374151;">
@@ -102,13 +102,16 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
 <html>
 <head>
 <meta charset="utf-8"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   @page { size: 794px 1123px; margin: 0; }
 
   * { box-sizing: border-box; margin: 0; padding: 0;
       -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { width: 794px; margin: 0; padding: 0;
-               font-family: Arial, sans-serif; background: #fff; }
+               font-family: 'Poppins', Arial, sans-serif; background: #fff; }
 
   .page-fixed {
     display: block;
@@ -130,7 +133,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     position: relative;
     z-index: 1;
     /* Top/bottom padding keeps content clear of the letterhead's logo+stripe
-       header and its green footer bar. */
+       header and its footer bar. */
     padding: 96px 64px 150px 64px;
   }
 </style>
@@ -144,9 +147,9 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
 
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:4px;height:20px;min-width:4px;background:#25a86a;border-radius:2px;"></div>
+        <div style="width:4px;height:20px;min-width:4px;background:#c89c45;border-radius:2px;"></div>
         <div>
-          <div style="font-size:18px;font-weight:800;color:#1b7f4c;">
+          <div style="font-size:18px;font-weight:800;color:#920609;">
             Quotation #${quotation.quotationNumber}
           </div>
           <div style="font-size:11px;color:#6b7280;margin-top:4px;">
@@ -155,7 +158,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
         </div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#1b7f4c;text-transform:uppercase;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#920609;text-transform:uppercase;">
           Final Quotation
         </div>
         ${copyLabel ? `
@@ -168,7 +171,7 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     <!-- Partner + (End Customer OR Sales Rep, depending on copy) -->
     <div style="display:flex;gap:24px;margin-bottom:20px;padding-left:14px;">
       <div style="flex:1;">
-        <div style="font-size:11px;font-weight:700;color:#1b7f4c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #25a86a;padding-left:10px;">
+        <div style="font-size:11px;font-weight:700;color:#920609;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;border-left:3px solid #c89c45;padding-left:10px;">
           Partner Details
         </div>
         <table style="width:100%;font-size:12px;color:#374151;">
@@ -209,12 +212,12 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
     <!-- Item table -->
     <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
       <thead>
-        <tr style="background:#166534;">
-          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:left;border:0.5px solid #166534;">Product</th>
-          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:center;border:0.5px solid #166534;">Qty</th>
-          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:right;border:0.5px solid #166534;">Price</th>
-          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:right;border:0.5px solid #166534;">GST</th>
-          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:right;border:0.5px solid #166534;">Total</th>
+        <tr style="background:#920609;">
+          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:left;border:0.5px solid #920609;">Product</th>
+          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:center;border:0.5px solid #920609;">Qty</th>
+          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:right;border:0.5px solid #920609;">Price</th>
+          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:right;border:0.5px solid #920609;">GST</th>
+          <th style="padding:9px 12px;color:#fff;font-size:11px;text-align:right;border:0.5px solid #920609;">Total</th>
         </tr>
       </thead>
       <tbody>${itemRowsHTML}</tbody>
@@ -238,8 +241,8 @@ const buildQuotationHTML = async (quotation, opts = {}) => {
         </tr>
         <tr><td colspan="2"><div style="height:1px;background:#d1d5db;margin:6px 0;"></div></td></tr>
         <tr>
-          <td style="padding:3px 0;font-weight:800;font-size:15px;color:#166534;">${amountLabel}</td>
-          <td style="padding:3px 0;text-align:right;font-weight:800;font-size:15px;color:#166534;">₹${finalAmount.toFixed(2)}</td>
+          <td style="padding:3px 0;font-weight:800;font-size:15px;color:#920609;">${amountLabel}</td>
+          <td style="padding:3px 0;text-align:right;font-weight:800;font-size:15px;color:#920609;">₹${finalAmount.toFixed(2)}</td>
         </tr>
       </table>
     </div>

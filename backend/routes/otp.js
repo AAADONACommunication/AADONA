@@ -19,10 +19,10 @@ router.post("/send-otp", verifyToken, async (req, res) => {
       to: email,
       subject: "Your Admin Account OTP",
       html: `
-        <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px">
-          <h2 style="color:#166534;margin-bottom:8px">Admin Account Verification</h2>
+        <div style="font-family:'Poppins',Arial,sans-serif;max-width:420px;margin:auto;padding:30px;border:1px solid #e5e7eb;border-top:4px solid #a16d36;border-radius:12px">
+          <h2 style="color:#920609;margin-bottom:8px">Admin Account Verification</h2>
           <p style="color:#374151;margin-bottom:20px">Use the OTP below to verify your email and create your admin account:</p>
-          <div style="font-size:38px;font-weight:bold;letter-spacing:12px;color:#166534;text-align:center;padding:20px;background:#f0fdf4;border-radius:10px;margin-bottom:20px">
+          <div style="font-size:38px;font-weight:bold;letter-spacing:12px;color:#920609;text-align:center;padding:20px;background:#fdf8f3;border-radius:10px;margin-bottom:20px">
             ${otp}
           </div>
           <p style="color:#6b7280;font-size:13px">This OTP expires in <strong>2 minutes</strong>. Do not share it with anyone.</p>
