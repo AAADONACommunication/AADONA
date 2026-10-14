@@ -7,6 +7,13 @@ import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import bg from '../assets/bg.avif'
 
+/* ── Aadona Communication brand theme ──
+   Gold      : #a16d36
+   Red       : #920609 → #c42126 (gradient)
+   Font      : Poppins SemiBold
+   (Tailwind classes below use these values as arbitrary colors.
+    Gold on dark hero uses a lighter tint #d9a566 for contrast.) */
+
 const UserIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
@@ -71,6 +78,15 @@ const BlogDetail = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
 
+    // Poppins font
+    if (!document.getElementById("poppins-font")) {
+      const font = document.createElement("link");
+      font.id = "poppins-font";
+      font.rel = "stylesheet";
+      font.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap";
+      document.head.appendChild(font);
+    }
+
     if (!document.querySelector('link[href*="quill"]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
@@ -82,22 +98,24 @@ const BlogDetail = () => {
       const style = document.createElement("style");
       style.id = "ql-render-styles";
       style.innerHTML = `
-        .ql-editor-content h1 { font-size: 2.4rem; font-weight: 800; color: #1a1a1a; margin: 1.5rem 0 0.75rem; line-height: 1.2; }
-        .ql-editor-content h2 { font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 1.25rem 0 0.6rem; line-height: 1.3; }
-        .ql-editor-content h3 { font-size: 1.4rem; font-weight: 600; color: #1a1a1a; margin: 1rem 0 0.5rem; }
+        .aadona-page, .aadona-page * { font-family: 'Poppins', sans-serif; }
+        .ql-editor-content h1 { font-size: 2.4rem; font-weight: 600; color: #920609; margin: 1.5rem 0 0.75rem; line-height: 1.2; }
+        .ql-editor-content h2 { font-size: 1.8rem; font-weight: 600; color: #920609; margin: 1.25rem 0 0.6rem; line-height: 1.3; }
+        .ql-editor-content h3 { font-size: 1.4rem; font-weight: 600; color: #a16d36; margin: 1rem 0 0.5rem; }
         .ql-editor-content p { font-size: 1.05rem; margin: 0 0 1rem; line-height: 1.85; word-wrap: break-word; overflow-wrap: break-word; }
-        .ql-editor-content strong { font-weight: 700; color: #111; }
+        .ql-editor-content strong { font-weight: 600; color: #111; }
         .ql-editor-content em { font-style: italic; }
         .ql-editor-content u { text-decoration: underline; }
         .ql-editor-content s { text-decoration: line-through; }
+        .ql-editor-content a { color: #c42126; text-decoration: underline; }
         .ql-editor-content ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0 1rem; }
         .ql-editor-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0 1rem; }
         .ql-editor-content li { margin-bottom: 0.4rem; line-height: 1.7; }
         .ql-editor-content blockquote { 
-          border-left: 4px solid #059669; 
+          border-left: 4px solid #920609; 
           padding: 0.75rem 1rem; 
-          background: #f0fdf4; 
-          color: #065f46; 
+          background: #fbf3ea; 
+          color: #7a0507; 
           font-style: italic; 
           margin: 1.25rem 0; 
           border-radius: 0 0.5rem 0.5rem 0; 
@@ -247,10 +265,10 @@ const BlogDetail = () => {
   /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="aadona-page min-h-screen flex items-center justify-center bg-gray-50" style={{ fontFamily: "'Poppins', sans-serif" }}>
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin w-12 h-12 border-2 border-emerald-100 border-t-emerald-600 rounded-full" />
-          <span className="text-emerald-500 text-xs tracking-widest uppercase font-mono">Loading</span>
+          <div className="animate-spin w-12 h-12 border-2 border-[#a16d36]/20 border-t-[#920609] rounded-full" />
+          <span className="text-[#a16d36] text-xs tracking-widest uppercase font-semibold">Loading</span>
         </div>
       </div>
     );
@@ -259,9 +277,9 @@ const BlogDetail = () => {
   /* ── 404 ── */
   if (!blog) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="aadona-page min-h-screen flex items-center justify-center bg-gray-50" style={{ fontFamily: "'Poppins', sans-serif" }}>
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Blog Not Found</h1>
+          <h1 className="text-4xl font-semibold text-[#920609] mb-4">Blog Not Found</h1>
           <p className="text-gray-500">The blog post you're looking for doesn't exist.</p>
         </div>
       </div>
@@ -272,8 +290,12 @@ const BlogDetail = () => {
   const canonicalUrl = `${window.location.origin}/blog/${blog.slug || slug}`;
   const ogImage = blog.image || "";
 
+  // Shared card style (brand gold border, red on hover)
+  const cardClass =
+    "bg-white rounded-2xl shadow-lg border-2 border-[#a16d36]/40 hover:border-[#a16d36] hover:shadow-xl";
+
   return (
-    <div className="min-h-screen font-sans bg-white">
+    <div className="aadona-page min-h-screen bg-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
 
       {/* ── OG / SEO Meta Tags ── */}
       <Helmet>
@@ -289,7 +311,7 @@ const BlogDetail = () => {
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:site_name" content="Our Blog" />
+        <meta property="og:site_name" content="Aadona Communication" />
 
         {/* Article specific */}
         {blog.author && <meta property="article:author" content={blog.author} />}
@@ -313,48 +335,50 @@ const BlogDetail = () => {
             alt={blog.title}
             className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-1000"
             onError={(e) => {
-              e.target.src = "https://placehold.co/1920x1080/2d2d2d/ffffff?text=Article";
+              e.target.src = "https://placehold.co/1920x1080/920609/ffffff?text=Article";
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+          {/* subtle brand red wash at the bottom */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#920609]/40 via-transparent to-transparent" />
         </div>
 
         <div className="relative z-10 h-full flex items-end pb-20 px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-6xl mx-auto">
             {blog.category && (
               <div className="mb-6">
-                <span className="inline-block px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full font-bold text-xs tracking-widest uppercase shadow-lg">
+                <span className="inline-block px-4 py-2 bg-gradient-to-r from-[#920609] to-[#c42126] text-white rounded-full font-semibold text-xs tracking-widest uppercase shadow-lg border border-[#a16d36]/60">
                   {blog.category}
                 </span>
               </div>
             )}
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-8 leading-tight drop-shadow-xl max-w-4xl break-words">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold text-white mb-8 leading-tight drop-shadow-xl max-w-4xl break-words">
               {blog.title}
             </h1>
 
             <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               {/* Author */}
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
-                <UserIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-[#a16d36] transition-all">
+                <UserIcon className="w-4 sm:w-5 h-4 sm:h-5 text-[#d9a566] flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{blog.author}</span>
               </div>
 
               {/* Date */}
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
-                <CalendarIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-[#a16d36] transition-all">
+                <CalendarIcon className="w-4 sm:w-5 h-4 sm:h-5 text-[#d9a566] flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{blog.date}</span>
               </div>
 
               {/* Read Time */}
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
-                <ClockIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-[#a16d36] transition-all">
+                <ClockIcon className="w-4 sm:w-5 h-4 sm:h-5 text-[#d9a566] flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{blog.readTime}</span>
               </div>
 
               {/* Views */}
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all">
-                <EyeIcon className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 flex-shrink-0" />
+              <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-[#a16d36] transition-all">
+                <EyeIcon className="w-4 sm:w-5 h-4 sm:h-5 text-[#d9a566] flex-shrink-0" />
                 <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base break-words">{viewsCount} views</span>
               </div>
 
@@ -362,9 +386,9 @@ const BlogDetail = () => {
               <button
                 onClick={handleShare}
                 disabled={shareLoading}
-                className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-[#920609] to-[#c42126] px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-[#a16d36]/70 hover:brightness-110 hover:border-[#a16d36] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <span className="text-lg leading-none flex items-center">
+                <span className="text-lg leading-none flex items-center text-white">
                   {shareLoading ? (
                     <Loader2 className="w-[18px] h-[18px] animate-spin" />
                   ) : shareCopied ? (
@@ -373,7 +397,7 @@ const BlogDetail = () => {
                     <Link2 className="w-[18px] h-[18px]" />
                   )}
                 </span>
-                <span className="text-white/90 font-medium text-xs sm:text-sm md:text-base">
+                <span className="text-white font-medium text-xs sm:text-sm md:text-base">
                   {shareLoading ? "Sharing..." : shareCopied ? "Copied!" : "Share"}
                 </span>
               </button>
@@ -390,7 +414,7 @@ const BlogDetail = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
 
           {/* Excerpt card */}
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 sm:p-12 mb-8">
+          <div className={`${cardClass} p-8 sm:p-12 mb-8 border-l-8 border-l-[#920609]`}>
             <p className="text-lg sm:text-xl text-gray-600 leading-relaxed italic font-light break-words">
               {blog.excerpt}
             </p>
@@ -401,7 +425,7 @@ const BlogDetail = () => {
             blog.blocks.map((block, index) => (
               <div key={index}>
                 {block.type === "text" && (
-                  <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 sm:p-12 mb-8">
+                  <div className={`${cardClass} p-8 sm:p-12 mb-8`}>
                     <div
                       className="ql-editor-content text-gray-700 leading-relaxed text-base break-words"
                       dangerouslySetInnerHTML={{ __html: block.content }}
@@ -410,21 +434,21 @@ const BlogDetail = () => {
                 )}
                 {block.type === "image" && (
                   <div className="mb-8">
-                    <div className="overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                    <div className="overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border-2 border-[#a16d36]/30">
                       <img
                         src={block.url}
                         alt={block.caption || "Blog image"}
                         className="w-full hover:scale-105 transition-transform duration-700"
                         onError={(e) => {
-                          e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Image";
+                          e.target.src = "https://placehold.co/800x500/F3E3CF/920609?text=Image";
                         }}
                       />
                     </div>
                     {block.caption && (
                       <p className="text-sm text-gray-500 italic text-center mt-4 flex items-center justify-center gap-2 break-words">
-                        <span className="w-8 h-px bg-gradient-to-r from-transparent to-gray-300" />
+                        <span className="w-8 h-px bg-gradient-to-r from-transparent to-[#a16d36]" />
                         {block.caption}
-                        <span className="w-8 h-px bg-gradient-to-l from-transparent to-gray-300" />
+                        <span className="w-8 h-px bg-gradient-to-l from-transparent to-[#a16d36]" />
                       </p>
                     )}
                   </div>
@@ -432,33 +456,33 @@ const BlogDetail = () => {
               </div>
             ))
           ) : (
-            <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 p-8 sm:p-12 mb-8">
+            <div className={`${cardClass} p-8 sm:p-12 mb-8`}>
               <p className="text-gray-400 italic">No content available.</p>
             </div>
           )}
 
           {/* Like button card */}
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 mb-8">
+          <div className={`${cardClass} p-8 mb-8`}>
             <div className="flex items-center gap-6">
               <button
                 onClick={handleLike}
                 disabled={liked || likeLoading}
-                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-base transition-all duration-300 border-2 ${
+                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 border-2 ${
                   liked
-                    ? "bg-red-50 text-red-600 border-red-200 cursor-default shadow-md"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 hover:shadow-lg active:scale-95"
+                    ? "bg-red-50 text-[#c42126] border-[#c42126]/30 cursor-default shadow-md"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-[#c42126] hover:border-[#c42126]/40 hover:shadow-lg active:scale-95"
                 }`}
               >
                 <HeartIcon
                   filled={liked}
                   className={`transition-all duration-300 flex-shrink-0 ${
-                    liked ? "text-red-600 scale-125" : "text-gray-400"
+                    liked ? "text-[#c42126] scale-125" : "text-gray-400"
                   }`}
                 />
                 <span>{likesCount} {likesCount === 1 ? "Like" : "Likes"}</span>
               </button>
               {liked && (
-                <p className="text-sm text-emerald-600 font-semibold flex items-center gap-2">
+                <p className="text-sm text-[#a16d36] font-semibold flex items-center gap-2">
                   <Check className="w-4 h-4" /> Thank you for your appreciation!
                 </p>
               )}
@@ -466,11 +490,11 @@ const BlogDetail = () => {
           </div>
 
           {/* Comments card */}
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-300 hover:shadow-xl p-8 mb-8">
+          <div className={`${cardClass} p-8 mb-8`}>
 
-            <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-800">Comments</h3>
-              <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-4 py-2 rounded-full border border-emerald-200 shadow-sm">
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-[#a16d36]/30">
+              <h3 className="text-2xl font-semibold text-[#920609]">Comments</h3>
+              <span className="bg-[#fbf3ea] text-[#920609] text-xs font-semibold px-4 py-2 rounded-full border border-[#a16d36]/40 shadow-sm">
                 {comments.length} {comments.length === 1 ? "comment" : "comments"}
               </span>
             </div>
@@ -478,14 +502,14 @@ const BlogDetail = () => {
             <div className="space-y-5 mb-10">
               {comments.length > 0 ? (
                 comments.map((c, i) => (
-                  <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200 border border-transparent hover:border-gray-200">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md text-white font-bold text-base ring-2 ring-white">
+                  <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-[#fbf3ea]/60 transition-colors duration-200 border border-transparent hover:border-[#a16d36]/30">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#920609] to-[#c42126] rounded-full flex items-center justify-center flex-shrink-0 shadow-md text-white font-semibold text-base ring-2 ring-[#a16d36]">
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 bg-gray-50 rounded-xl p-4 border border-gray-100">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-gray-800 text-sm break-words">{c.name}</span>
-                        <span className="text-xs text-gray-400 font-medium">
+                        <span className="font-semibold text-gray-800 text-sm break-words">{c.name}</span>
+                        <span className="text-xs text-[#a16d36] font-medium">
                           {new Date(c.createdAt).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -498,17 +522,17 @@ const BlogDetail = () => {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  <p className="text-gray-400 text-sm font-medium">No comments yet. Be the first to share your thoughts!</p>
+                <div className="text-center py-12 bg-[#fbf3ea]/50 rounded-xl border border-dashed border-[#a16d36]/40">
+                  <p className="text-[#a16d36] text-sm font-medium">No comments yet. Be the first to share your thoughts!</p>
                 </div>
               )}
             </div>
 
-            <div className="border-t border-gray-200 pt-8">
-              <h4 className="text-lg font-bold text-gray-800 mb-6">Leave a Comment</h4>
+            <div className="border-t border-[#a16d36]/30 pt-8">
+              <h4 className="text-lg font-semibold text-[#920609] mb-6">Leave a Comment</h4>
 
               {commentSuccess && (
-                <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-6 py-4 rounded-xl text-sm flex items-center gap-3 shadow-sm">
+                <div className="mb-6 bg-[#fbf3ea] border border-[#a16d36]/40 text-[#920609] px-6 py-4 rounded-xl text-sm flex items-center gap-3 shadow-sm">
                   <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
                   <span className="font-semibold">Comment posted successfully!</span>
                 </div>
@@ -520,19 +544,19 @@ const BlogDetail = () => {
                   placeholder="Your name"
                   value={commentName}
                   onChange={(e) => setCommentName(e.target.value)}
-                  className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300 break-words"
+                  className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#920609] focus:border-transparent transition-all duration-300 break-words"
                 />
                 <textarea
                   placeholder="Write your comment..."
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   rows={4}
-                  className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300 resize-none break-words"
+                  className="w-full border border-gray-200 bg-white rounded-lg px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#920609] focus:border-transparent transition-all duration-300 resize-none break-words"
                 />
                 <button
                   onClick={handleCommentSubmit}
                   disabled={commentLoading}
-                  className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                  className="flex items-center gap-2 bg-gradient-to-r from-[#920609] to-[#c42126] text-white px-6 py-3 rounded-lg font-semibold text-sm hover:brightness-110 active:scale-95 transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                 >
                   <SendIcon />
                   {commentLoading ? "Posting..." : "Post Comment"}
@@ -544,10 +568,10 @@ const BlogDetail = () => {
         </div>
 
         {/* RECENT POSTS */}
-        <div className="w-full border-t border-gray-300">
+        <div className="w-full border-t border-[#a16d36]/50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
 
-            <h3 className="text-3xl font-bold text-green-800 underline decoration-2 mb-12">
+            <h3 className="text-3xl font-semibold text-[#920609] underline decoration-[#a16d36] decoration-2 underline-offset-8 mb-12">
               More Articles-
             </h3>
 
@@ -561,23 +585,23 @@ const BlogDetail = () => {
                     to={`/blog/${post.slug}`}
                     className="group h-full"
                   >
-                    <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 h-full flex flex-col hover:border-emerald-200">
+                    <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-[#a16d36]/30 h-full flex flex-col hover:border-[#a16d36]">
                       <div className="relative overflow-hidden h-48 bg-gray-100">
                         <img
                           src={post.image}
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           onError={(e) => {
-                            e.target.src = "https://placehold.co/400x300/059669/ffffff?text=Blog";
+                            e.target.src = "https://placehold.co/400x300/920609/ffffff?text=Blog";
                           }}
                         />
                       </div>
                       <div className="flex-1 flex flex-col p-5">
-                        <h4 className="text-base font-bold text-gray-800 line-clamp-3 group-hover:text-emerald-600 transition-colors duration-200 mb-3 break-words">
+                        <h4 className="text-base font-semibold text-gray-800 line-clamp-3 group-hover:text-[#c42126] transition-colors duration-200 mb-3 break-words">
                           {post.title}
                         </h4>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mt-auto pt-3 border-t border-gray-100">
-                          <CalendarIcon className="w-4 h-4 text-emerald-500" />
+                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mt-auto pt-3 border-t border-[#a16d36]/20">
+                          <CalendarIcon className="w-4 h-4 text-[#a16d36]" />
                           <span>{post.date}</span>
                         </div>
                       </div>

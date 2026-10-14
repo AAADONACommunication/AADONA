@@ -1,11 +1,22 @@
 /* eslint-disable */
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import { Heart, Link2, Check, Loader2 } from "lucide-react";
 import bg from "../assets/bg.avif";
-import blogbanner from "../assets/BlogBanner.avif";
+import blogbanner from "../assets/BlogBanner.webp";
+
+// Brand theme (Aadona Communication) - same as Request DOA page
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36), crimson #c42126 (dark #920609)
+
+// ─── Style Constants ──────────────────────────────────────────────────────────
+
+const liftCard =
+  "rounded-2xl bg-white shadow-md hover:shadow-2xl hover:shadow-[#c79d47]/30 " +
+  "border border-[#c79d47]/40 hover:border-[#c79d47] transition-all duration-500 ease-out hover:-translate-y-1";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -65,7 +76,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
   const [shareCopied, setShareCopied] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
 
-  // Removed Layer 1 (file sharing) - WhatsApp crawls OG tags from URL automatically
+  // Share URL only - WhatsApp crawls OG tags from the URL automatically
   const handleShare = async (e) => {
     e.stopPropagation();
 
@@ -75,7 +86,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
     const slug = post.slug || generateSlug(post.title);
     const url = `${window.location.origin}/share/blog/${encodeURIComponent(slug)}`;
 
-    // Layer 1: Share URL only - WhatsApp will crawl OG tags and show preview automatically
+    // Layer 1: Native share sheet
     if (navigator.share) {
       try {
         await navigator.share({
@@ -107,7 +118,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
+      className={`${liftCard} overflow-hidden cursor-pointer flex flex-col h-full`}
       aria-label={`Read blog post: ${post.title}`}
     >
       <div className="relative overflow-hidden h-56">
@@ -118,7 +129,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
           loading="lazy"
           decoding="async"
           onError={(e) => {
-            e.target.src = "https://placehold.co/800x500/A7F3D0/065F46?text=Blog";
+            e.target.src = "https://placehold.co/800x500/F3E5C3/920609?text=Blog";
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -126,12 +137,12 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
 
       <div className="p-7 flex flex-col flex-grow">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <UserIcon className="w-5 h-5 text-green-600" aria-hidden="true" />
+          <div className="w-10 h-10 bg-[#c79d47]/15 rounded-full flex items-center justify-center flex-shrink-0">
+            <UserIcon className="w-5 h-5 text-[#c79d47]" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-800 leading-none">{post.author}</p>
-            <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
+            <p className="text-sm font-bold text-slate-800 leading-none">{post.author}</p>
+            <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-1">
               <span className="flex items-center gap-1">
                 <CalendarIcon className="w-3 h-3" aria-hidden="true" />
                 <time>{post.date}</time>
@@ -144,19 +155,19 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2 hover:text-green-600 transition-colors duration-300">
+        <h2 className="text-xl font-bold text-[#920609] mb-3 line-clamp-2 hover:text-[#c42126] transition-colors duration-300">
           {post.title}
         </h2>
 
-        <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
+        <p className="text-slate-600 text-sm mb-6 line-clamp-3 leading-relaxed">
           {post.excerpt}
         </p>
 
-        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="mt-auto pt-4 border-t border-[#c79d47]/30 flex items-center justify-between">
           {/* Left: views + likes + share */}
-          <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="flex items-center gap-3 text-xs text-slate-400">
             <span>{post.views || 0} views</span>
-            <span className="flex items-center gap-1 text-red-400 font-medium">
+            <span className="flex items-center gap-1 text-[#c42126] font-medium">
               <Heart className="w-3.5 h-3.5 fill-current" aria-hidden="true" /> {post.likes || 0}
             </span>
 
@@ -167,7 +178,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
               title="Share this post"
               className="flex items-center gap-1 font-semibold transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
-                color: shareCopied ? "#059669" : shareLoading ? "#9ca3af" : "#6b7280",
+                color: shareCopied ? "#a16d36" : shareLoading ? "#9ca3af" : "#6b7280",
               }}
             >
               <span style={{ fontSize: "14px" }} className="flex items-center">
@@ -185,7 +196,7 @@ const BlogCard = memo(({ post, isHovered, onMouseEnter, onMouseLeave, onClick })
             </button>
           </div>
 
-          <span className="text-green-600 font-bold text-sm flex items-center gap-1 group/btn">
+          <span className="text-[#c42126] font-bold text-sm flex items-center gap-1 group/btn">
             Read More
             <ArrowRightIcon className="w-5 h-5 transform group-hover/btn:translate-x-1 transition-transform" aria-hidden="true" />
           </span>
@@ -264,13 +275,21 @@ const BlogPage = () => {
   });
 
   return (
-    <div className="min-h-screen font-sans bg-white">
+    <div className="min-h-screen">
+      {/* Brand font */}
+      <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+      </Helmet>
+
       <Navbar />
 
       {/* HERO SECTION */}
       <div
         className="relative pt-32 pb-24 bg-cover sm:bg-center bg-right"
-        style={{ backgroundImage: `url(${blogbanner})` }}
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${blogbanner})` }}
       >
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
@@ -291,7 +310,7 @@ const BlogPage = () => {
                 id="blog-search"
                 type="search"
                 placeholder="Search articles..."
-                className="w-full px-6 py-4 rounded-full bg-white border border-green-200 text-gray-700 shadow-md focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 placeholder-gray-400"
+                className="w-full px-6 py-4 rounded-full bg-white border border-[#c42126]/40 text-gray-700 shadow-md focus:outline-none focus:border-[#c42126] focus:ring-4 focus:ring-[#c42126]/30 transition-all duration-300 placeholder-gray-400"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 maxLength={100}
@@ -299,7 +318,7 @@ const BlogPage = () => {
                 aria-label="Search blog articles"
               />
               <SearchIcon
-                className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 group-focus-within:scale-110 transition-transform"
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-[#c42126] group-focus-within:scale-110 transition-transform"
                 aria-hidden="true"
               />
             </div>
@@ -309,13 +328,13 @@ const BlogPage = () => {
       </div>
 
       {/* BLOG CARDS SECTION */}
-      <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
+      <main className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800">
+            <h2 className="text-3xl font-bold text-[#920609]">
               {searchQuery ? `Search Results for "${searchQuery}"` : "Latest Posts"}
             </h2>
-            <button className="text-green-600 hover:text-green-700 font-semibold flex items-center gap-2 transition-all duration-300 hover:gap-3">
+            <button className="text-[#c42126] hover:text-[#920609] font-semibold flex items-center gap-2 transition-all duration-300 hover:gap-3">
               View All
               <ArrowRightIcon className="w-5 h-5" aria-hidden="true" />
             </button>
@@ -323,7 +342,7 @@ const BlogPage = () => {
 
           {blogsLoading ? (
             <div className="flex justify-center py-20" aria-busy="true" aria-label="Loading articles">
-              <div className="animate-spin w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full" />
+              <div className="animate-spin w-12 h-12 border-4 border-[#c79d47] border-t-transparent rounded-full" />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -339,13 +358,13 @@ const BlogPage = () => {
                   />
                 ))
               ) : (
-                <div className="lg:col-span-3 text-center py-20 bg-white/80 backdrop-blur rounded-2xl shadow-inner border-2 border-dashed border-gray-300" role="status">
-                  <p className="text-xl text-gray-600 font-medium">
+                <div className="lg:col-span-3 text-center py-20 bg-white/80 backdrop-blur rounded-2xl border-2 border-dashed border-[#c79d47]/60" role="status">
+                  <p className="text-xl text-slate-600 font-medium">
                     No articles match "{searchQuery}"
                   </p>
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="mt-4 text-green-600 underline font-bold"
+                    className="mt-4 text-[#c42126] underline font-bold"
                   >
                     Clear Search
                   </button>
@@ -354,7 +373,7 @@ const BlogPage = () => {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>
