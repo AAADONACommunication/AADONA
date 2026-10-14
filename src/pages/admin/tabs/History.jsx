@@ -4,8 +4,8 @@ import { X } from "lucide-react";
 
 const ACTION_STYLES = {
   CREATE: { bg: "bg-green-100", text: "text-green-700", icon: "➕" },
-  UPDATE: { bg: "bg-blue-100",  text: "text-blue-700",  icon: "✏️" },
-  DELETE: { bg: "bg-red-100",   text: "text-red-700",   icon: "🗑️" },
+  UPDATE: { bg: "bg-[#f5ede1]", text: "text-[#a16d36]", icon: "✏️" },
+  DELETE: { bg: "bg-red-100",   text: "text-[#c42126]", icon: "🗑️" },
 };
 
 const ENTITY_ICONS = {
@@ -62,14 +62,18 @@ export default function History() {
 
   return (
     <>
+      {/* Brand: Aadona Communication
+          Red #920609 → #c42126 | Gold #a16d36 | Font: Poppins */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        .hs, .hs * { font-family: 'Poppins', sans-serif; }
         .hs * { box-sizing: border-box; }
         .hs { padding: 16px; }
 
         .hs-title {
           font-size: clamp(18px, 5vw, 24px);
-          font-weight: 800;
-          color: #166534;
+          font-weight: 600;
+          color: #920609;
           margin: 0 0 20px;
         }
 
@@ -82,7 +86,7 @@ export default function History() {
         }
         .hs-stat {
           background: #fff;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #efe3d3;
           border-radius: 16px;
           box-shadow: 0 1px 4px rgba(0,0,0,0.04);
           padding: 14px 16px;
@@ -96,13 +100,13 @@ export default function History() {
           display: flex; align-items: center; justify-content: center;
           font-size: 18px; flex-shrink: 0;
         }
-        .hs-stat-num { font-size: clamp(18px, 4vw, 22px); font-weight: 800; line-height: 1; margin-bottom: 2px; }
+        .hs-stat-num { font-size: clamp(18px, 4vw, 22px); font-weight: 600; line-height: 1; margin-bottom: 2px; }
         .hs-stat-label { font-size: 11px; color: #9ca3af; font-weight: 500; }
 
         /* Filters */
         .hs-filters {
           background: #fff;
-          border: 1px solid #dcfce7;
+          border: 1px solid #efe3d3;
           border-radius: 16px;
           box-shadow: 0 1px 4px rgba(0,0,0,0.04);
           padding: 14px 16px;
@@ -115,16 +119,16 @@ export default function History() {
         .hs-search {
           flex: 1;
           min-width: 160px;
-          border: 1px solid #d1fae5;
+          border: 1px solid #e3cfb4;
           border-radius: 10px;
           padding: 9px 14px;
           font-size: 13px;
           outline: none;
           transition: border-color 0.15s;
         }
-        .hs-search:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+        .hs-search:focus { border-color: #a16d36; box-shadow: 0 0 0 3px rgba(161,109,54,0.12); }
         .hs-select {
-          border: 1px solid #d1fae5;
+          border: 1px solid #e3cfb4;
           border-radius: 10px;
           padding: 9px 14px;
           font-size: 13px;
@@ -133,8 +137,9 @@ export default function History() {
           cursor: pointer;
           min-width: 120px;
         }
+        .hs-select:focus { border-color: #a16d36; }
         .hs-refresh {
-          background: #16a34a;
+          background: linear-gradient(135deg,#920609,#c42126);
           color: #fff;
           border: none;
           border-radius: 10px;
@@ -142,24 +147,24 @@ export default function History() {
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
-          transition: background 0.15s;
+          transition: opacity 0.15s;
           white-space: nowrap;
         }
-        .hs-refresh:hover { background: #15803d; }
+        .hs-refresh:hover { opacity: 0.9; }
 
         /* Log table */
         .hs-table {
           background: #fff;
-          border: 1px solid #dcfce7;
+          border: 1px solid #efe3d3;
           border-radius: 16px;
           box-shadow: 0 1px 4px rgba(0,0,0,0.04);
           overflow: hidden;
         }
         .hs-table-head {
           padding: 14px 18px;
-          background: #15803d;
+          background: linear-gradient(90deg,#920609,#c42126);
         }
-        .hs-table-head h3 { font-weight: 700; color: #fff; font-size: 14px; margin: 0; }
+        .hs-table-head h3 { font-weight: 600; color: #fff; font-size: 14px; margin: 0; }
 
         /* Log item */
         .hs-log-item {
@@ -167,13 +172,13 @@ export default function History() {
           display: flex;
           align-items: flex-start;
           gap: 12px;
-          border-bottom: 1px solid #f3f4f6;
+          border-bottom: 1px solid #f5ede1;
           transition: background 0.1s;
         }
         .hs-log-item:last-child { border-bottom: none; }
         .hs-log-item.clickable { cursor: pointer; }
-        .hs-log-item.clickable:hover { background: #eff6ff; }
-        .hs-log-item:not(.clickable):hover { background: #f9fafb; }
+        .hs-log-item.clickable:hover { background: #fbf6f0; }
+        .hs-log-item:not(.clickable):hover { background: #faf8f5; }
 
         .hs-log-icon {
           width: 34px; height: 34px;
@@ -193,7 +198,7 @@ export default function History() {
         }
         .hs-log-name {
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 600;
           color: #1f2937;
           white-space: nowrap;
           overflow: hidden;
@@ -202,7 +207,7 @@ export default function History() {
         }
         .hs-tag {
           font-size: 10px;
-          font-weight: 700;
+          font-weight: 600;
           padding: 2px 7px;
           border-radius: 999px;
           white-space: nowrap;
@@ -250,17 +255,17 @@ export default function History() {
           display: flex; flex-direction: column;
         }
         .hs-modal-head {
-          background: #15803d;
+          background: linear-gradient(90deg,#920609,#c42126);
           padding: 14px 18px;
           display: flex; align-items: center; justify-content: space-between;
           flex-shrink: 0; gap: 10px;
         }
         .hs-modal-head-text { min-width: 0; }
         .hs-modal-title {
-          font-weight: 700; color: #fff; font-size: 14px;
+          font-weight: 600; color: #fff; font-size: 14px;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .hs-modal-sub { color: #bbf7d0; font-size: 11px; margin-top: 2px; }
+        .hs-modal-sub { color: rgba(255,255,255,0.8); font-size: 11px; margin-top: 2px; }
         .hs-modal-close {
           background: rgba(255,255,255,0.15); border: none;
           border-radius: 8px; padding: 6px;
@@ -271,20 +276,20 @@ export default function History() {
 
         .hs-modal-body { overflow-y: auto; flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 
-        .hs-diff-block { border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; }
+        .hs-diff-block { border-radius: 12px; overflow: hidden; border: 1px solid #efe3d3; }
         .hs-diff-field {
-          background: #f3f4f6;
+          background: #fbf6f0;
           padding: 6px 12px;
           display: flex; align-items: center; gap: 8px;
         }
         .hs-diff-field-name {
-          font-size: 10px; font-weight: 700;
-          color: #6b7280; text-transform: uppercase; letter-spacing: 0.7px;
+          font-size: 10px; font-weight: 600;
+          color: #a16d36; text-transform: uppercase; letter-spacing: 0.7px;
         }
         .hs-diff-changed {
-          font-size: 9px; background: #dbeafe;
-          color: #2563eb; padding: 2px 6px;
-          border-radius: 4px; font-weight: 700;
+          font-size: 9px; background: #f5ede1;
+          color: #a16d36; padding: 2px 6px;
+          border-radius: 4px; font-weight: 600;
         }
         .hs-diff-row {
           display: flex; gap: 10px;
@@ -292,13 +297,13 @@ export default function History() {
         }
         .hs-diff-row.old { background: #fef2f2; border-bottom: 1px solid #fecaca; }
         .hs-diff-row.new { background: #f0fdf4; }
-        .hs-diff-sign { font-weight: 700; font-size: 14px; flex-shrink: 0; width: 14px; }
+        .hs-diff-sign { font-weight: 600; font-size: 14px; flex-shrink: 0; width: 14px; }
         .hs-diff-val { font-size: 13px; word-break: break-all; line-height: 1.6; }
 
         .hs-modal-footer {
           padding: 10px 16px;
-          border-top: 1px solid #f3f4f6;
-          background: #f9fafb;
+          border-top: 1px solid #f5ede1;
+          background: #fbf6f0;
           flex-shrink: 0;
           text-align: center;
           font-size: 11px; color: #9ca3af;
@@ -399,7 +404,7 @@ export default function History() {
                       <span className={`hs-tag ${s.bg} ${s.text}`}>{log.action}</span>
                       <span className="hs-tag" style={{ background: "#f3f4f6", color: "#6b7280" }}>{log.entity}</span>
                       {clickable && (
-                        <span className="hs-tag" style={{ background: "#dbeafe", color: "#2563eb" }}>🔍 View Changes</span>
+                        <span className="hs-tag" style={{ background: "#f5ede1", color: "#a16d36" }}>🔍 View Changes</span>
                       )}
                     </div>
                     <div className="hs-log-by">by {log.adminEmail}</div>

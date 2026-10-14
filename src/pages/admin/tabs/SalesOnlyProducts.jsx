@@ -5,6 +5,9 @@ import { safeJson, inputStyle } from "../AdminPanel";
 
 const SALES_ONLY_PRODUCTS_API = `${import.meta.env.VITE_API_URL}/admin/sales-only-products`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+
 export default function SalesOnlyProducts() {
   const [salesOnlyProducts, setSalesOnlyProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,22 +102,24 @@ export default function SalesOnlyProducts() {
   };
 
   return (
-    <div className="space-y-8">
-      <p className="text-sm text-gray-500 -mt-2">
+    <div className="space-y-8 font-['Poppins',sans-serif] font-semibold">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`}</style>
+
+      <p className="text-sm text-gray-500 font-medium -mt-2">
         Products added here never appear on the public website. They're only
         available to Sales reps in the product picker while creating a
         quotation request.
       </p>
 
       {/* ── Add Form ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-        <h2 className="text-lg font-bold text-green-800 mb-1">Add Sales-Only Product</h2>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
+        <h2 className="text-lg font-semibold text-[#920609] mb-1">Add Sales-Only Product</h2>
+        <p className="text-sm text-gray-500 font-medium mb-4">
           "Added By" is captured automatically from your admin session.
         </p>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-4">
+          <div className="bg-red-50 border border-[#c42126]/30 text-[#920609] px-4 py-3 rounded-xl text-sm mb-4">
             {error}
           </div>
         )}
@@ -143,7 +148,7 @@ export default function SalesOnlyProducts() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold disabled:opacity-60 whitespace-nowrap"
+            className={`flex items-center justify-center gap-2 ${BRAND_GRADIENT} text-white px-6 py-3 rounded-xl hover:brightness-110 transition font-semibold disabled:opacity-60 whitespace-nowrap`}
           >
             <Plus size={16} />
             {submitting ? "Adding..." : "Add Product"}
@@ -152,10 +157,10 @@ export default function SalesOnlyProducts() {
       </div>
 
       {/* ── List ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-green-100 bg-green-700">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 overflow-hidden">
+        <div className={`flex items-center gap-2 px-6 py-4 border-b border-[#a16d36] ${BRAND_GRADIENT}`}>
           <Tag size={18} className="text-white" />
-          <h2 className="text-lg font-bold text-white">Sales-Only Products</h2>
+          <h2 className="text-lg font-semibold text-white">Sales-Only Products</h2>
         </div>
 
         {loading ? (
@@ -168,30 +173,30 @@ export default function SalesOnlyProducts() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-green-50 text-left">
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Model</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Description</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Added By</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Email</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Date</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold text-right">Action</th>
+                <tr className="bg-[#a16d36]/10 text-left">
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Model</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Description</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Added By</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Email</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Date</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {salesOnlyProducts.map((p) => (
-                  <tr key={p._id} className="border-t border-green-50 hover:bg-green-50/50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{p.modelName}</td>
-                    <td className="px-4 py-3 text-gray-600">{p.description || "-"}</td>
-                    <td className="px-4 py-3 text-gray-600">{p.createdByName}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{p.createdByEmail}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">
+                  <tr key={p._id} className="border-t border-[#a16d36]/15 hover:bg-[#a16d36]/5">
+                    <td className="px-4 py-3 font-semibold text-gray-800">{p.modelName}</td>
+                    <td className="px-4 py-3 text-gray-600 font-medium">{p.description || "-"}</td>
+                    <td className="px-4 py-3 text-gray-600 font-medium">{p.createdByName}</td>
+                    <td className="px-4 py-3 text-gray-500 font-medium text-xs">{p.createdByEmail}</td>
+                    <td className="px-4 py-3 text-gray-500 font-medium text-xs">
                       {p.createdAt ? new Date(p.createdAt).toLocaleString() : "-"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end">
                         <button
                           onClick={() => handleDelete(p._id, p.modelName)}
-                          className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
+                          className="p-1.5 rounded-lg bg-[#c42126]/10 text-[#c42126] hover:bg-[#c42126]/20 transition"
                           aria-label="Delete"
                         >
                           <Trash2 size={15} />

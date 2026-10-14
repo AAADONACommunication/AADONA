@@ -6,6 +6,9 @@ import { safeJson, inputStyle } from "../AdminPanel";
 
 const SALES_API = `${import.meta.env.VITE_API_URL}/admin/sales`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+
 export default function ManageSales() {
   const navigate = useNavigate();
   const [salesReps, setSalesReps] = useState([]);
@@ -88,17 +91,17 @@ export default function ManageSales() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-['Poppins',sans-serif] font-semibold">
 
       {/* ── Invite Form ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-        <h2 className="text-lg font-bold text-green-800 mb-1">Invite Sales Rep</h2>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 p-6">
+        <h2 className="text-lg font-semibold text-[#920609] mb-1">Invite Sales Rep</h2>
+        <p className="text-sm text-gray-500 font-medium mb-4">
           An invite link will be sent to their email. They can sign up using that link.
         </p>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-4">
+          <div className="bg-red-50 border border-[#c42126]/30 text-[#920609] px-4 py-3 rounded-xl text-sm mb-4">
             {error}
           </div>
         )}
@@ -120,7 +123,7 @@ export default function ManageSales() {
           <button
             type="submit"
             disabled={inviting}
-            className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold disabled:opacity-60 whitespace-nowrap"
+            className={`flex items-center justify-center gap-2 ${BRAND_GRADIENT} text-white px-6 py-3 rounded-xl hover:brightness-110 transition font-semibold disabled:opacity-60 whitespace-nowrap`}
           >
             <Send size={16} />
             {inviting ? "Sending..." : "Send Invite"}
@@ -129,10 +132,10 @@ export default function ManageSales() {
       </div>
 
       {/* ── Sales Reps List ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-green-100 bg-green-700">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a16d36]/30 overflow-hidden">
+        <div className={`flex items-center gap-2 px-6 py-4 border-b border-[#a16d36] ${BRAND_GRADIENT}`}>
           <Users size={18} className="text-white" />
-          <h2 className="text-lg font-bold text-white">Sales Representatives</h2>
+          <h2 className="text-lg font-semibold text-white">Sales Representatives</h2>
         </div>
 
         {loading ? (
@@ -145,45 +148,46 @@ export default function ManageSales() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-green-50 text-left">
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Name</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Email</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Phone</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Region</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Status</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold">Invited By</th>
-                  <th className="px-4 py-3 text-gray-600 font-semibold text-right">Actions</th>
+                <tr className="bg-[#a16d36]/10 text-left">
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Name</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Email</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Phone</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Region</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Status</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold">Invited By</th>
+                  <th className="px-4 py-3 text-[#a16d36] font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {salesReps.map((rep) => (
-                  <tr key={rep.uid} className="border-t border-green-50 hover:bg-green-50/50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{rep.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{rep.email}</td>
-                    <td className="px-4 py-3 text-gray-600">{rep.phone || "-"}</td>
-                    <td className="px-4 py-3 text-gray-600">{rep.region || "-"}</td>
+                  <tr key={rep.uid} className="border-t border-[#a16d36]/15 hover:bg-[#a16d36]/5">
+                    <td className="px-4 py-3 font-semibold text-gray-800">{rep.name}</td>
+                    <td className="px-4 py-3 text-gray-600 font-medium">{rep.email}</td>
+                    <td className="px-4 py-3 text-gray-600 font-medium">{rep.phone || "-"}</td>
+                    <td className="px-4 py-3 text-gray-600 font-medium">{rep.region || "-"}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                         rep.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
+                          ? "bg-[#a16d36]/15 text-[#a16d36]"
+                          : "bg-[#c42126]/10 text-[#920609]"
                       }`}>
                         {rep.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{rep.createdBy}</td>
+                    <td className="px-4 py-3 text-gray-500 font-medium text-xs">{rep.createdBy}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => navigate(`/admin/sales/${rep.uid}/insights`)}
                           title="View Insights"
-                          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                          className="p-1.5 rounded-lg bg-[#a16d36]/10 text-[#a16d36] hover:bg-[#a16d36]/20 transition"
                         >
                           <TrendingUp size={15} />
                         </button>
                         <button
                           onClick={() => handleDelete(rep.uid, rep.name)}
-                          className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
+                          title="Delete"
+                          className="p-1.5 rounded-lg bg-[#c42126]/10 text-[#c42126] hover:bg-[#c42126]/20 transition"
                         >
                           <Trash2 size={15} />
                         </button>

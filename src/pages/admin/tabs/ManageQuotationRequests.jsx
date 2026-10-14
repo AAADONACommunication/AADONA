@@ -6,10 +6,16 @@ import { safeJson, inputStyle } from "../AdminPanel";
 const REQUESTS_API = `${import.meta.env.VITE_API_URL}/admin/quotation-requests`;
 const REQUIRED_NOTE = "Keep the Negotiation Buffer as per the customer";
 
+// Brand: Aadona Communication — Red #920609 → #c42126 | Gold #a16d36 | Poppins
 const statusStyles = {
-  pending: "bg-yellow-100 text-yellow-700",
+  pending: "bg-[#f5ede1] text-[#a16d36]",
   quoted: "bg-green-100 text-green-700",
 };
+
+const BrandFont = () => (
+  <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');`}</style>
+);
+const FONT_STYLE = { fontFamily: "'Poppins', sans-serif" };
 
 export default function ManageQuotationRequests() {
   const [requests, setRequests] = useState([]);
@@ -285,10 +291,11 @@ export default function ManageQuotationRequests() {
   // ════════════════════════════════════════
   if (selected) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6" style={FONT_STYLE}>
+        <BrandFont />
         <button
           onClick={backToList}
-          className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:underline"
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#920609] hover:underline"
         >
           <ChevronLeft size={16} /> Back to requests
         </button>
@@ -304,16 +311,16 @@ export default function ManageQuotationRequests() {
           </div>
         )}
         {draftRestored && !successMsg && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+          <div className="bg-[#fbf6f0] border border-[#e3cfb4] text-[#a16d36] px-4 py-3 rounded-xl text-sm flex items-center gap-2">
             <FileClock size={16} className="shrink-0" />
             A saved draft was found for this request — nothing has been sent yet, keep editing and hit Send Quotation when ready.
           </div>
         )}
 
         {/* ── Request Info ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#efe3d3] p-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h2 className="text-lg font-bold text-green-800">
+            <h2 className="text-lg font-semibold text-[#920609]">
               Request {selected.requestNumber}
             </h2>
             <span
@@ -337,7 +344,7 @@ export default function ManageQuotationRequests() {
             {selected.status === "quoted" && selected.adminQuotation?.validUntil && (
               <p className="text-gray-700">
                 <span className="font-semibold">Valid Till:</span>{" "}
-                <span className="text-green-700 font-semibold">
+                <span className="text-[#920609] font-semibold">
                   {new Date(selected.adminQuotation.validUntil).toLocaleDateString("en-IN")}
                 </span>
               </p>
@@ -346,7 +353,7 @@ export default function ManageQuotationRequests() {
 
           {/* ── Partner Details ── */}
           <div className="border-t border-gray-100 pt-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#a16d36] mb-2">
               Partner Details
             </p>
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
@@ -381,7 +388,7 @@ export default function ManageQuotationRequests() {
 
           {/* ── End Customer Details — from quotation.endCustomer, never from notes ── */}
           <div className="border-t border-gray-100 mt-4 pt-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#a16d36] mb-2">
               End Customer Details
             </p>
             {selected.endCustomer ? (
@@ -439,9 +446,9 @@ export default function ManageQuotationRequests() {
         {selected.status === "pending" ? (
           <form
             onSubmit={handleSubmitPricing}
-            className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6"
+            className="bg-white rounded-2xl shadow-sm border-2 border-[#e3cfb4] p-6"
           >
-            <h2 className="text-lg font-bold text-green-800 mb-1">Set Pricing</h2>
+            <h2 className="text-lg font-semibold text-[#920609] mb-1">Set Pricing</h2>
             <p className="text-sm text-gray-500 mb-4">
               Enter your price per unit for each product. This quotation will be sent to the
               sales rep, who will then add their own markup before sending it to the customer.
@@ -451,7 +458,7 @@ export default function ManageQuotationRequests() {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-green-700 text-white text-left">
+                  <tr className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white text-left">
                     <th className="px-3 py-2 rounded-tl-lg">Product</th>
                     <th className="px-3 py-2">Qty</th>
                     <th className="px-3 py-2">Price (₹)</th>
@@ -461,7 +468,7 @@ export default function ManageQuotationRequests() {
                 </thead>
                 <tbody>
                   {priceItems.map((item, index) => (
-                    <tr key={index} className="border-b border-green-100">
+                    <tr key={index} className="border-b border-[#efe3d3]">
                       <td className="px-3 py-2 min-w-[200px]">
                         <p className="font-medium text-gray-800">{item.name}</p>
                         {item.description && (
@@ -478,7 +485,7 @@ export default function ManageQuotationRequests() {
                           onChange={(e) => updatePriceItem(index, "price", e.target.value)}
                           placeholder="0.00"
                           required
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-[#a16d36] outline-none"
                         />
                       </td>
                       <td className="px-3 py-2 w-24">
@@ -491,7 +498,7 @@ export default function ManageQuotationRequests() {
                           onChange={(e) => updatePriceItem(index, "gst", e.target.value)}
                           placeholder="18"
                           required
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-green-500 outline-none"
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:border-[#a16d36] outline-none"
                         />
                       </td>
                       <td className="px-3 py-2 font-semibold text-gray-700">
@@ -511,7 +518,7 @@ export default function ManageQuotationRequests() {
               {priceItems.map((item, index) => (
                 <div
                   key={index}
-                  className="border border-green-200 rounded-xl p-3 bg-green-50/30"
+                  className="border border-[#e3cfb4] rounded-xl p-3 bg-[#fbf6f0]/50"
                 >
                   <p className="font-medium text-gray-800">{item.name}</p>
                   {item.description && (
@@ -532,7 +539,7 @@ export default function ManageQuotationRequests() {
                         onChange={(e) => updatePriceItem(index, "price", e.target.value)}
                         placeholder="0.00"
                         required
-                        className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:border-green-500 outline-none"
+                        className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:border-[#a16d36] outline-none"
                       />
                     </div>
                     <div>
@@ -548,12 +555,12 @@ export default function ManageQuotationRequests() {
                         onChange={(e) => updatePriceItem(index, "gst", e.target.value)}
                         placeholder="18"
                         required
-                        className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:border-green-500 outline-none"
+                        className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:border-[#a16d36] outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="text-right text-sm font-semibold text-green-700 mt-2">
+                  <div className="text-right text-sm font-semibold text-[#920609] mt-2">
                     Total: ₹
                     {(
                       ((Number(item.quantity) || 0) * (Number(item.price) || 0)) *
@@ -574,7 +581,7 @@ export default function ManageQuotationRequests() {
                   <span>GST</span>
                   <span>₹{gstAmount.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
+                <div className="flex justify-between text-base font-semibold text-[#920609] border-t border-[#e3cfb4] pt-1.5 mt-1.5">
                   <span>Total</span>
                   <span>₹{total.toFixed(2)}</span>
                 </div>
@@ -582,8 +589,8 @@ export default function ManageQuotationRequests() {
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Quotation Validity <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-[#920609] mb-1.5">
+                Quotation Validity <span className="text-[#c42126]">*</span>
               </label>
               <select
                 value={validityDays}
@@ -605,7 +612,7 @@ export default function ManageQuotationRequests() {
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-[#920609] mb-1.5">
                 Notes for Sales Rep
               </label>
               <textarea
@@ -624,7 +631,7 @@ export default function ManageQuotationRequests() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+                className="bg-gradient-to-br from-[#920609] to-[#c42126] text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submitting ? "Sending..." : "Send Quotation to Sales Rep"}
               </button>
@@ -656,10 +663,10 @@ export default function ManageQuotationRequests() {
                         };
 
                   return (
-                    <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm border-2 border-[#e3cfb4] p-6">
                       <div className="flex items-center justify-between gap-3 mb-5">
                         <div>
-                          <h2 className="text-lg font-bold text-green-800">
+                          <h2 className="text-lg font-semibold text-[#920609]">
                             Original Quotation Sent
                           </h2>
 
@@ -676,7 +683,7 @@ export default function ManageQuotationRequests() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
-                            <tr className="bg-green-700 text-white text-left">
+                            <tr className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white text-left">
                               <th className="px-3 py-2 rounded-tl-lg">
                                 Product
                               </th>
@@ -699,7 +706,7 @@ export default function ManageQuotationRequests() {
                             {(original.items || []).map((item, index) => (
                               <tr
                                 key={index}
-                                className="border-b border-green-100"
+                                className="border-b border-[#efe3d3]"
                               >
                                 <td className="px-3 py-2">
                                   <p className="font-medium text-gray-800">
@@ -742,7 +749,7 @@ export default function ManageQuotationRequests() {
                             <span>GST</span>
                             <span>₹{Number(original.gstAmount || 0).toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between text-base font-bold text-green-800 border-t border-green-200 pt-1.5 mt-1.5">
+                          <div className="flex justify-between text-base font-semibold text-[#920609] border-t border-[#e3cfb4] pt-1.5 mt-1.5">
                             <span>Total</span>
                             <span>₹{Number(original.grandTotal || 0).toFixed(2)}</span>
                           </div>
@@ -750,8 +757,8 @@ export default function ManageQuotationRequests() {
                       </div>
 
                       {original.remarks && (
-                        <div className="mt-4 bg-green-50 border border-green-100 rounded-xl p-3">
-                          <p className="text-xs font-semibold text-green-700 mb-1">
+                        <div className="mt-4 bg-[#fbf6f0] border border-[#efe3d3] rounded-xl p-3">
+                          <p className="text-xs font-semibold text-[#a16d36] mb-1">
                             Admin Notes
                           </p>
 
@@ -806,11 +813,11 @@ export default function ManageQuotationRequests() {
                       {revisedVersions.map((revision, index) => (
                         <div
                           key={`${revision.revisionNumber}-${index}`}
-                          className="bg-white rounded-2xl shadow-sm border-2 border-amber-200 p-6"
+                          className="bg-white rounded-2xl shadow-sm border-2 border-[#e3cfb4] p-6"
                         >
                           <div className="flex items-center justify-between gap-3 mb-5">
                             <div>
-                              <h2 className="text-lg font-bold text-amber-700">
+                              <h2 className="text-lg font-semibold text-[#a16d36]">
                                 Revised Quotation
                                 {revisedVersions.length > 1
                                   ? ` #${revision.revisionNumber}`
@@ -822,7 +829,7 @@ export default function ManageQuotationRequests() {
                               </p>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#f5ede1] text-[#a16d36]">
                               Revised
                             </span>
                           </div>
@@ -830,7 +837,7 @@ export default function ManageQuotationRequests() {
                           <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                               <thead>
-                                <tr className="bg-amber-500 text-white text-left">
+                                <tr className="bg-[#a16d36] text-white text-left">
                                   <th className="px-3 py-2 rounded-tl-lg">
                                     Product
                                   </th>
@@ -854,7 +861,7 @@ export default function ManageQuotationRequests() {
                                   (item, itemIndex) => (
                                     <tr
                                       key={itemIndex}
-                                      className="border-b border-amber-100"
+                                      className="border-b border-[#efe3d3]"
                                     >
                                       <td className="px-3 py-2">
                                         <p className="font-medium text-gray-800">
@@ -900,7 +907,7 @@ export default function ManageQuotationRequests() {
                                 <span>GST</span>
                                 <span>₹{Number(revision.gstAmount || 0).toFixed(2)}</span>
                               </div>
-                              <div className="flex justify-between text-base font-bold text-amber-700 border-t border-amber-200 pt-1.5 mt-1.5">
+                              <div className="flex justify-between text-base font-semibold text-[#a16d36] border-t border-[#e3cfb4] pt-1.5 mt-1.5">
                                 <span>Total</span>
                                 <span>₹{Number(revision.grandTotal || 0).toFixed(2)}</span>
                               </div>
@@ -908,8 +915,8 @@ export default function ManageQuotationRequests() {
                           </div>
 
                           {revision.remarks && (
-                            <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3">
-                              <p className="text-xs font-semibold text-amber-700 mb-1">
+                            <div className="mt-4 bg-[#fbf6f0] border border-[#efe3d3] rounded-xl p-3">
+                              <p className="text-xs font-semibold text-[#a16d36] mb-1">
                                 Admin Notes
                               </p>
 
@@ -933,7 +940,7 @@ export default function ManageQuotationRequests() {
                 })()}
               </>
             ) : (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-4 rounded-xl text-sm">
+              <div className="bg-[#fbf6f0] border border-[#e3cfb4] text-[#a16d36] px-4 py-4 rounded-xl text-sm">
                 This request is marked as quoted, but quotation details could not be loaded.
               </div>
             )}
@@ -947,7 +954,8 @@ export default function ManageQuotationRequests() {
   // LIST VIEW
   // ════════════════════════════════════════
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" style={FONT_STYLE}>
+      <BrandFont />
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="relative flex-1 min-w-[220px] max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -956,14 +964,14 @@ export default function ManageQuotationRequests() {
             placeholder="Search by partner, end customer, request #, or sales rep..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+            className="w-full border border-[#e3cfb4] rounded-xl pl-9 pr-4 py-2.5 focus:border-[#a16d36] focus:ring-2 focus:ring-[#efe3d3] outline-none transition bg-white"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => handleFilterChange(e.target.value)}
-          className="border border-green-300 rounded-xl px-3 py-2.5 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none bg-white"
+          className="border border-[#e3cfb4] rounded-xl px-3 py-2.5 text-sm focus:border-[#a16d36] focus:ring-2 focus:ring-[#efe3d3] outline-none bg-white"
         >
           <option value="pending">Pending</option>
           <option value="quoted">Already Quoted</option>
@@ -971,10 +979,10 @@ export default function ManageQuotationRequests() {
         </select>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-green-100 bg-green-700">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#efe3d3] overflow-hidden">
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-[#efe3d3] bg-gradient-to-r from-[#920609] to-[#c42126]">
           <Inbox size={18} className="text-white" />
-          <h2 className="text-lg font-bold text-white">Quotation Requests</h2>
+          <h2 className="text-lg font-semibold text-white">Quotation Requests</h2>
         </div>
 
         {loading ? (
@@ -989,7 +997,7 @@ export default function ManageQuotationRequests() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-green-50 text-left">
+                <tr className="bg-[#fbf6f0] text-left">
                   <th className="px-4 py-3 text-gray-600 font-semibold">Request #</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Sales Rep</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Partner</th>
@@ -1005,7 +1013,7 @@ export default function ManageQuotationRequests() {
                 {filtered.map((r) => (
                   <tr
                     key={r._id}
-                    className="border-t border-green-50 hover:bg-green-50/50 cursor-pointer"
+                    className="border-t border-[#f5ede1] hover:bg-[#fbf6f0]/70 cursor-pointer"
                     onClick={() => openRequest(r)}
                   >
                     <td className="px-4 py-3 font-medium text-gray-800">{r.requestNumber}</td>
@@ -1045,7 +1053,7 @@ export default function ManageQuotationRequests() {
                             e.stopPropagation();
                             openRequest(r);
                           }}
-                          className="text-green-700 font-semibold hover:underline"
+                          className="text-[#920609] font-semibold hover:underline"
                         >
                           {r.status === "pending" ? "Price it →" : "View →"}
                         </button>
@@ -1056,7 +1064,7 @@ export default function ManageQuotationRequests() {
                               e.stopPropagation();
                               handleDeleteRequest(r._id);
                             }}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-[#c42126] hover:text-[#920609]"
                             title="Delete Request"
                           >
                             <Trash2 size={18} />

@@ -40,6 +40,8 @@ import ManagePendingNegotiations from "./tabs/ManagePendingNegotiations";
 import FunnelReport from "./tabs/FunnelReport"
 import SalesOnlyProducts from "./tabs/SalesOnlyProducts";
 
+/* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
+
 const API = `${import.meta.env.VITE_API_URL}/products`;
 const BLOG_API = `${import.meta.env.VITE_API_URL}/blogs`;
 const CATEGORY_API = `${import.meta.env.VITE_API_URL}/categories`;
@@ -56,7 +58,7 @@ export const safeJson = async (res) => {
 };
 
 export const inputStyle =
-  "w-full border border-green-300 rounded-xl px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white";
+  "w-full border border-[#a16d36]/50 rounded-xl px-4 py-3 focus:border-[#920609] focus:ring-2 focus:ring-[#920609]/30 outline-none transition bg-white";
 
 // ── Tab registry - single source of truth for the dashboard tiles + the
 // in-tab switcher dropdown, so both stay in sync automatically.
@@ -106,6 +108,17 @@ export default function AdminPanel() {
     "quotation-requests": 0,
     "pending-negotiations": 0,
   });
+
+  // ── Load Poppins ──
+  useEffect(() => {
+    if (!document.getElementById("poppins-font")) {
+      const l = document.createElement("link");
+      l.id = "poppins-font";
+      l.rel = "stylesheet";
+      l.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap";
+      document.head.appendChild(l);
+    }
+  }, []);
 
   const loadPendingCounts = async () => {
     try {
@@ -261,7 +274,10 @@ export default function AdminPanel() {
 
   if (loading)
   return (
-    <div className="h-screen flex flex-col items-center justify-center text-green-700 font-bold italic">
+    <div
+      className="h-screen flex flex-col items-center justify-center text-[#920609] font-semibold italic"
+      style={{ fontFamily: "'Poppins', sans-serif" }}
+    >
       <h1>Verifying Admin Access...</h1>
       <p>Please wait while we authenticate your session.</p>
     </div>
@@ -270,15 +286,16 @@ export default function AdminPanel() {
   const activeTabMeta = TABS.find((t) => t.id === activeTab);
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
       <Navbar />
-      <div className="min-h-screen bg-green-50 pt-30 px-4 md:px-10 pb-10">
+      <div className="min-h-screen bg-[#fbf3ea] pt-30 px-4 md:px-10 pb-10">
         <div className="max-w-6xl mx-auto">
 
-          {/* ── Top Header Bar (unchanged) ── */}
+          {/* ── Top Header Bar ── */}
           <div className="flex justify-between items-center mb-10 flex-wrap gap-4">
-            <h1 className="text-3xl font-extrabold text-green-800 sm:align-middle tracking-tight">
+            <h1 className="text-3xl font-semibold text-[#920609] sm:align-middle tracking-tight">
               Admin Dashboard
+              <span className="block w-16 h-1 bg-[#a16d36] rounded-full mt-2" />
             </h1>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
 
@@ -287,7 +304,7 @@ export default function AdminPanel() {
       setShowAdminForm((v) => !v);
       if (showAdminList) setShowAdminList(false);
     }}
-    className="flex items-center justify-center gap-2 bg-green-600 text-white w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg hover:bg-green-700 transition shadow-md text-sm sm:text-base font-semibold"
+    className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#920609] to-[#c42126] text-white w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg hover:brightness-110 transition shadow-md text-sm sm:text-base font-semibold"
   >
     <UserPlus size={18} />
     {showAdminForm ? "Cancel" : "Create Admin"}
@@ -298,7 +315,7 @@ export default function AdminPanel() {
       setShowAdminList((v) => !v);
       if (showAdminForm) setShowAdminForm(false);
     }}
-    className="flex items-center justify-center gap-2 bg-orange-500 text-white w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg hover:bg-orange-600 transition shadow-md text-sm sm:text-base font-semibold"
+    className="flex items-center justify-center gap-2 bg-[#a16d36] text-white w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg hover:bg-[#85592a] transition shadow-md text-sm sm:text-base font-semibold"
   >
     👥 {showAdminList ? "Hide Admins" : "Manage Admins"}
   </button>
@@ -308,7 +325,7 @@ export default function AdminPanel() {
       const auth = await getFirebaseAuth();
       signOut(auth);
     }}
-    className="flex items-center justify-center gap-2 bg-red-500 text-white w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-red-600 transition shadow-md text-sm sm:text-base font-semibold"
+    className="flex items-center justify-center gap-2 bg-white text-[#c42126] border border-[#c42126]/50 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-[#c42126] hover:text-white transition shadow-md text-sm sm:text-base font-semibold"
   >
     <LogOut size={18} /> Logout
   </button>
@@ -328,7 +345,7 @@ export default function AdminPanel() {
 
           {/* ════════════════════════════════════════
               DASHBOARD LAUNCHER - shown when no tab is selected.
-              Now split into two stacked sections: Website, then
+              Split into two stacked sections: Website, then
               Sales Management - one below the other.
           ════════════════════════════════════════ */}
           {activeTab === null && (
@@ -338,7 +355,7 @@ export default function AdminPanel() {
                 const sectionTabs = TABS.filter((t) => t.group === section.key);
                 return (
                   <div key={section.key}>
-                    <div className="flex items-center gap-2 mb-6 text-green-700">
+                    <div className="flex items-center gap-2 mb-6 text-[#a16d36]">
                       <SectionIcon size={20} />
                       <p className="text-sm font-semibold uppercase tracking-wide">
                         {section.label}
@@ -352,18 +369,18 @@ export default function AdminPanel() {
                           <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className="group relative flex flex-col items-start gap-3 bg-white rounded-2xl border border-green-100 shadow-sm p-5 text-left hover:border-green-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                            className="group relative flex flex-col items-start gap-3 bg-white rounded-2xl border border-[#a16d36]/30 shadow-sm p-5 text-left hover:border-[#a16d36] hover:shadow-md hover:-translate-y-0.5 transition-all"
                           >
                             {count > 0 && (
-                              <span className="absolute top-5 right-5 text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                              <span className="absolute top-5 right-5 text-xs font-semibold bg-[#fbf3ea] text-[#920609] border border-[#a16d36]/40 px-2 py-0.5 rounded-full">
                                 {count > 99 ? "99+" : count}
                               </span>
                             )}
-                            <div className="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <div className="w-11 h-11 rounded-xl bg-[#fbf3ea] text-[#920609] flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-[#920609] group-hover:to-[#c42126] group-hover:text-white transition-colors">
                               <Icon size={20} />
                             </div>
                             <div>
-                              <p className="font-bold text-gray-800 leading-tight">{tab.label}</p>
+                              <p className="font-semibold text-gray-800 leading-tight">{tab.label}</p>
                               <p className="text-xs text-gray-500 mt-0.5">{tab.desc}</p>
                             </div>
                           </button>
@@ -381,21 +398,21 @@ export default function AdminPanel() {
           ════════════════════════════════════════ */}
           {activeTab !== null && (
             <>
-              <div className="flex flex-wrap items-center gap-3 mb-8 pb-4 border-b border-green-100">
+              <div className="flex flex-wrap items-center gap-3 mb-8 pb-4 border-b border-[#a16d36]/30">
                 <button
                   onClick={() => setActiveTab(null)}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:text-green-800 transition"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-[#920609] hover:text-[#c42126] transition"
                 >
                   <ArrowLeft size={16} /> Dashboard
                 </button>
                 <span className="text-gray-300">/</span>
-                <span className="text-sm font-bold text-gray-800">{activeTabMeta?.label}</span>
+                <span className="text-sm font-semibold text-gray-800">{activeTabMeta?.label}</span>
 
                 <div className="ml-auto">
                   <select
                     value={activeTab}
                     onChange={(e) => setActiveTab(e.target.value)}
-                    className="text-sm border border-green-200 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium focus:border-green-400 outline-none"
+                    className="text-sm border border-[#a16d36]/40 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium focus:border-[#920609] outline-none"
                   >
                     {SECTIONS.map((section) => (
                       <optgroup key={section.key} label={section.label}>
@@ -477,6 +494,6 @@ export default function AdminPanel() {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 }

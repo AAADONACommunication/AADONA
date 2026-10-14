@@ -12,7 +12,6 @@ const generateSlug = (title) =>
   title.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 
 // ── Rich Text Editor ──
-// ── Rich Text Editor ──
 const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }) => {
   const editorRef     = useRef(null);
   const quillRef      = useRef(null);
@@ -60,7 +59,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
   }, []);
 
   return (
-    <div className="rounded-xl overflow-hidden border border-green-300">
+    <div className="rounded-xl overflow-hidden border border-[#e3cfb4]">
       <div ref={editorRef} style={{ minHeight: "200px", fontSize: "15px" }} />
     </div>
   );
@@ -228,7 +227,11 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
   return (
     <>
+      {/* Brand: Aadona Communication
+          Red #920609 → #c42126 | Gold #a16d36 | Font: Poppins */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        .bl, .bl * { font-family: 'Poppins', sans-serif; }
         .bl * { box-sizing: border-box; }
         .bl {
           padding: 16px;
@@ -238,8 +241,8 @@ export default function Blogs({ blogs, reloadBlogs }) {
         /* Page title */
         .bl-title {
           font-size: clamp(18px, 5vw, 24px);
-          font-weight: 800;
-          color: #166534;
+          font-weight: 600;
+          color: #920609;
           margin: 0 0 20px;
         }
 
@@ -248,7 +251,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
           background: #fff;
           border-radius: 24px;
           box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-          border: 1px solid #dcfce7;
+          border: 1px solid #efe3d3;
           overflow: hidden;
           margin-bottom: 24px;
         }
@@ -256,8 +259,8 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
         .bl-section-title {
           font-size: clamp(15px, 3vw, 20px);
-          font-weight: 700;
-          color: #166534;
+          font-weight: 600;
+          color: #920609;
           margin: 0 0 20px;
         }
 
@@ -280,7 +283,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
         .bl-block-label {
           font-size: 13px;
           font-weight: 600;
-          color: #166534;
+          color: #920609;
           display: flex;
           align-items: center;
           gap: 6px;
@@ -301,7 +304,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
           flex-wrap: wrap;
           align-items: center;
           padding-top: 20px;
-          border-top: 1px solid #f0fdf4;
+          border-top: 1px solid #f5ede1;
         }
         .bl-submit-row button {
           white-space: nowrap;
@@ -325,7 +328,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
           padding: 14px 20px;
           transition: background 0.15s;
         }
-        .bl-item:hover { background: rgba(240,253,244,0.5); }
+        .bl-item:hover { background: rgba(251,246,240,0.7); }
 
         .bl-item-thumb {
           width: 72px;
@@ -333,7 +336,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
           object-fit: cover;
           border-radius: 12px;
           flex-shrink: 0;
-          border: 1px solid #dcfce7;
+          border: 1px solid #efe3d3;
         }
         .bl-item-thumb-placeholder {
           width: 72px;
@@ -348,13 +351,13 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
         .bl-item-body { flex: 1; min-width: 0; }
         .bl-item-title {
-          font-weight: 700;
+          font-weight: 600;
           color: #1f2937;
           font-size: clamp(13px, 2.5vw, 15px);
           margin-bottom: 4px;
           transition: color 0.15s;
         }
-        .bl-item:hover .bl-item-title { color: #16a34a; }
+        .bl-item:hover .bl-item-title { color: #c42126; }
         .bl-item-excerpt {
           font-size: 13px;
           color: #6b7280;
@@ -416,7 +419,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
               {/* Title */}
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">Blog Title</label>
+                <label className="block text-sm font-medium text-[#920609] mb-2">Blog Title</label>
                 <input type="text" value={blogForm.title}
                   onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
                   className={inputStyle} placeholder="Enter blog title" required />
@@ -427,7 +430,7 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
               {/* Excerpt */}
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">Excerpt</label>
+                <label className="block text-sm font-medium text-[#920609] mb-2">Excerpt</label>
                 <textarea value={blogForm.excerpt}
                   onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
                   className={`${inputStyle} h-24 resize-none`}
@@ -436,17 +439,17 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
               {/* Hero Image */}
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">Hero Image</label>
+                <label className="block text-sm font-medium text-[#920609] mb-2">Hero Image</label>
                 <input type="file" id="blog-hero-img" accept="image/*" className="hidden" onChange={uploadHeroImage} />
                 <label htmlFor="blog-hero-img"
-                  className={`flex items-center justify-between w-full border-2 border-dashed rounded-2xl px-4 py-4 cursor-pointer transition-all ${blogForm.image ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"}`}>
+                  className={`flex items-center justify-between w-full border-2 border-dashed rounded-2xl px-4 py-4 cursor-pointer transition-all ${blogForm.image ? "border-[#a16d36] bg-[#fbf6f0]" : "border-[#e3cfb4] bg-white hover:border-[#a16d36]"}`}>
                   <div className="flex items-center gap-3 min-w-0">
-                    {blogForm.image ? <CheckCircle2 className="text-green-600 flex-shrink-0" /> : <Upload className="text-gray-400 flex-shrink-0" />}
-                    <span className={`text-sm truncate ${blogForm.image ? "text-green-800 font-semibold" : "text-gray-400"}`}>
+                    {blogForm.image ? <CheckCircle2 className="text-[#a16d36] flex-shrink-0" /> : <Upload className="text-gray-400 flex-shrink-0" />}
+                    <span className={`text-sm truncate ${blogForm.image ? "text-[#920609] font-semibold" : "text-gray-400"}`}>
                       {blogForm.image ? "Hero image uploaded ✓" : "Click to upload hero image"}
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md flex-shrink-0 ml-2">Browse</span>
+                  <span className="text-xs font-semibold text-[#a16d36] uppercase tracking-widest bg-[#f5ede1] px-3 py-1 rounded-md flex-shrink-0 ml-2">Browse</span>
                 </label>
                 {blogForm.image && (
                   <img src={blogForm.image} alt="Hero preview"
@@ -457,13 +460,13 @@ export default function Blogs({ blogs, reloadBlogs }) {
               {/* Author + Read Time */}
               <div className="bl-2col">
                 <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-2">Author</label>
+                  <label className="block text-sm font-medium text-[#920609] mb-2">Author</label>
                   <input type="text" value={blogForm.author}
                     onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
                     className={inputStyle} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-2">Read Time</label>
+                  <label className="block text-sm font-medium text-[#920609] mb-2">Read Time</label>
                   <input type="text" value={blogForm.readTime}
                     onChange={(e) => setBlogForm({ ...blogForm, readTime: e.target.value })}
                     className={inputStyle} />
@@ -471,18 +474,18 @@ export default function Blogs({ blogs, reloadBlogs }) {
               </div>
 
               {/* Content Blocks */}
-              <div className="border-t border-green-100 pt-6">
-                <h3 className="text-base font-bold text-green-800 mb-5">Blog Content Blocks</h3>
+              <div className="border-t border-[#f5ede1] pt-6">
+                <h3 className="text-base font-semibold text-[#920609] mb-5">Blog Content Blocks</h3>
 
                 <div className="space-y-4 mb-6">
                   {blogForm.blocks.length === 0 && (
-                    <div className="text-center py-10 text-gray-400 border-2 border-dashed border-green-200 rounded-2xl bg-green-50/30 text-sm px-4">
+                    <div className="text-center py-10 text-gray-400 border-2 border-dashed border-[#e3cfb4] rounded-2xl bg-[#fbf6f0]/40 text-sm px-4">
                       No content blocks yet. Use the buttons below to add text or images.
                     </div>
                   )}
 
                   {blogForm.blocks.map((block, index) => (
-                    <div key={index} className="border border-green-200 rounded-2xl p-4 bg-green-50/40 shadow-sm">
+                    <div key={index} className="border border-[#efe3d3] rounded-2xl p-4 bg-[#fbf6f0]/50 shadow-sm">
                       <div className="bl-block-head">
                         <span className="bl-block-label">
                           {block.type === "text" ? "📝" : "🖼️"}
@@ -490,15 +493,15 @@ export default function Blogs({ blogs, reloadBlogs }) {
                         </span>
                         <div className="bl-block-actions">
                           <button type="button" onClick={() => moveBlock(index, "up")} disabled={index === 0}
-                            className="p-1.5 rounded-lg bg-white border border-green-200 hover:bg-green-100 disabled:opacity-30 transition text-green-700">
+                            className="p-1.5 rounded-lg bg-white border border-[#e3cfb4] hover:bg-[#f5ede1] disabled:opacity-30 transition text-[#920609]">
                             <ChevronUp size={14} />
                           </button>
                           <button type="button" onClick={() => moveBlock(index, "down")} disabled={index === blogForm.blocks.length - 1}
-                            className="p-1.5 rounded-lg bg-white border border-green-200 hover:bg-green-100 disabled:opacity-30 transition text-green-700">
+                            className="p-1.5 rounded-lg bg-white border border-[#e3cfb4] hover:bg-[#f5ede1] disabled:opacity-30 transition text-[#920609]">
                             <ChevronDown size={14} />
                           </button>
                           <button type="button" onClick={() => deleteBlock(index)}
-                            className="p-1.5 rounded-lg bg-red-50 border border-red-200 hover:bg-red-500 hover:text-white text-red-400 transition">
+                            className="p-1.5 rounded-lg bg-red-50 border border-red-200 hover:bg-[#c42126] hover:text-white text-red-400 transition">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -517,14 +520,14 @@ export default function Blogs({ blogs, reloadBlogs }) {
                           <input type="file" id={`block-img-${index}`} accept="image/*" className="hidden"
                             onChange={(e) => uploadBlockImage(e, index)} />
                           <label htmlFor={`block-img-${index}`}
-                            className={`flex items-center justify-between w-full border-2 border-dashed rounded-xl px-4 py-3 cursor-pointer transition-all mb-3 ${block.url ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"}`}>
+                            className={`flex items-center justify-between w-full border-2 border-dashed rounded-xl px-4 py-3 cursor-pointer transition-all mb-3 ${block.url ? "border-[#a16d36] bg-[#fbf6f0]" : "border-[#e3cfb4] bg-white hover:border-[#a16d36]"}`}>
                             <div className="flex items-center gap-2 min-w-0">
-                              {block.url ? <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" /> : <Upload size={16} className="text-gray-400 flex-shrink-0" />}
-                              <span className={`text-sm truncate ${block.url ? "text-green-800 font-semibold" : "text-gray-400"}`}>
+                              {block.url ? <CheckCircle2 size={16} className="text-[#a16d36] flex-shrink-0" /> : <Upload size={16} className="text-gray-400 flex-shrink-0" />}
+                              <span className={`text-sm truncate ${block.url ? "text-[#920609] font-semibold" : "text-gray-400"}`}>
                                 {block.url ? "Image uploaded ✓" : "Click to upload image"}
                               </span>
                             </div>
-                            <span className="text-xs font-bold text-green-600 uppercase bg-green-100 px-2 py-0.5 rounded flex-shrink-0 ml-2">Browse</span>
+                            <span className="text-xs font-semibold text-[#a16d36] uppercase bg-[#f5ede1] px-2 py-0.5 rounded flex-shrink-0 ml-2">Browse</span>
                           </label>
                           {block.url && (
                             <img src={block.url} alt="Block preview"
@@ -541,11 +544,11 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
                 <div className="bl-add-btns">
                   <button type="button" onClick={addTextBlock}
-                    className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 text-sm font-semibold shadow-sm transition">
+                    className="flex items-center gap-2 bg-gradient-to-br from-[#920609] to-[#c42126] text-white px-5 py-2.5 rounded-xl hover:opacity-90 text-sm font-semibold shadow-sm transition">
                     <Plus size={16} /> Add Text Block
                   </button>
                   <button type="button" onClick={addImageBlock}
-                    className="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 text-sm font-semibold shadow-sm transition">
+                    className="flex items-center gap-2 bg-[#a16d36] text-white px-5 py-2.5 rounded-xl hover:bg-[#8a5c2d] text-sm font-semibold shadow-sm transition">
                     <Plus size={16} /> Add Image Block
                   </button>
                 </div>
@@ -554,18 +557,18 @@ export default function Blogs({ blogs, reloadBlogs }) {
               {/* Submit */}
               <div className="bl-submit-row">
                 <button type="submit"
-                  className="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition font-bold shadow-lg">
+                  className="bg-gradient-to-br from-[#920609] to-[#c42126] text-white px-8 py-3 rounded-full hover:opacity-90 transition font-semibold shadow-lg">
                   {editingBlogId && !editingIsDraft ? "Update Blog" : "Publish Blog"}
                 </button>
                 {(!editingBlogId || editingIsDraft) && (
                   <button type="button" onClick={(e) => handleBlogSubmit(e, true)}
-                    className="bg-gray-100 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-200 transition font-bold border border-gray-300">
+                    className="bg-[#fbf6f0] text-[#920609] px-6 py-3 rounded-full hover:bg-[#f5ede1] transition font-semibold border border-[#e3cfb4]">
                     💾 Save as Draft
                   </button>
                 )}
                 {editingBlogId && (
                   <button type="button" onClick={resetBlogForm}
-                    className="text-gray-400 font-medium hover:text-red-500 transition px-2 py-3">
+                    className="text-gray-400 font-medium hover:text-[#c42126] transition px-2 py-3">
                     Cancel
                   </button>
                 )}
@@ -576,10 +579,10 @@ export default function Blogs({ blogs, reloadBlogs }) {
 
         {/* ── Published Blogs ── */}
         <div className="bl-card">
-          <div className="bl-list-head" style={{ background: "#15803d" }}>
+          <div className="bl-list-head" style={{ background: "linear-gradient(90deg,#920609,#c42126)" }}>
             <div>
-              <h2 className="text-lg font-bold text-white">Published Blogs</h2>
-              <p className="text-green-200 text-sm mt-0.5">
+              <h2 className="text-lg font-semibold text-white">Published Blogs</h2>
+              <p className="text-white/80 text-sm mt-0.5">
                 {blogs.length} blog{blogs.length !== 1 ? "s" : ""} published
               </p>
             </div>
@@ -602,22 +605,22 @@ export default function Blogs({ blogs, reloadBlogs }) {
                       <span>•</span>
                       <span>{blog.views || 0} views</span>
                       {blog.blocks?.length > 0 && (
-                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                        <span className="bg-[#f5ede1] text-[#a16d36] px-2 py-0.5 rounded-full font-semibold">
                           {blog.blocks.length} blocks
                         </span>
                       )}
                     </div>
                     {blog.slug && (
-                      <p className="text-xs text-blue-500 mt-1 truncate">/blog/{blog.slug}</p>
+                      <p className="text-xs text-[#a16d36] mt-1 truncate">/blog/{blog.slug}</p>
                     )}
                   </div>
                   <div className="bl-item-btns">
                     <button onClick={() => editBlog(blog)}
-                      className="p-2 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition shadow-sm">
+                      className="p-2 bg-[#fbf6f0] text-[#a16d36] hover:bg-[#a16d36] hover:text-white rounded-xl transition shadow-sm">
                       <Edit size={15} />
                     </button>
                     <button onClick={() => deleteBlog(blog._id)}
-                      className="p-2 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm">
+                      className="p-2 bg-red-50 text-red-400 hover:bg-[#c42126] hover:text-white rounded-xl transition shadow-sm">
                       <Trash2 size={15} />
                     </button>
                   </div>
@@ -628,16 +631,16 @@ export default function Blogs({ blogs, reloadBlogs }) {
         </div>
 
         {/* ── Drafts ── */}
-        <div className="bl-card" style={{ borderColor: "#fef9c3" }}>
-          <div className="bl-list-head" style={{ background: "#eab308" }}>
+        <div className="bl-card" style={{ borderColor: "#e3cfb4" }}>
+          <div className="bl-list-head" style={{ background: "#a16d36" }}>
             <div>
-              <h2 className="text-lg font-bold text-white">📝 Drafts</h2>
-              <p className="text-yellow-100 text-sm mt-0.5">
+              <h2 className="text-lg font-semibold text-white">📝 Drafts</h2>
+              <p className="text-white/80 text-sm mt-0.5">
                 {drafts.length} draft{drafts.length !== 1 ? "s" : ""} saved
               </p>
             </div>
             <button onClick={loadDrafts} disabled={draftsLoading}
-              className="bg-white text-yellow-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-yellow-50 transition disabled:opacity-50 flex-shrink-0">
+              className="bg-white text-[#a16d36] px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#fbf6f0] transition disabled:opacity-50 flex-shrink-0">
               {draftsLoading ? "Loading..." : "🔄 Load Drafts"}
             </button>
           </div>
@@ -650,14 +653,14 @@ export default function Blogs({ blogs, reloadBlogs }) {
                 <div key={draft._id} className="bl-item group">
                   {draft.image ? (
                     <img src={draft.image} alt={draft.title}
-                      className="bl-item-thumb" style={{ borderColor: "#fef9c3" }} />
+                      className="bl-item-thumb" style={{ borderColor: "#e3cfb4" }} />
                   ) : (
-                    <div className="bl-item-thumb-placeholder" style={{ background: "#fef9c3" }}>📝</div>
+                    <div className="bl-item-thumb-placeholder" style={{ background: "#f5ede1" }}>📝</div>
                   )}
                   <div className="bl-item-body">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="bl-item-title" style={{ marginBottom: 0 }}>{draft.title}</span>
-                      <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                      <span className="bg-[#f5ede1] text-[#a16d36] text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
                         DRAFT
                       </span>
                     </div>
@@ -670,12 +673,12 @@ export default function Blogs({ blogs, reloadBlogs }) {
                   </div>
                   <div className="bl-item-btns">
                     <button onClick={() => editBlog(draft, true)}
-                      className="p-2 bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white rounded-xl transition shadow-sm"
+                      className="p-2 bg-[#fbf6f0] text-[#a16d36] hover:bg-[#a16d36] hover:text-white rounded-xl transition shadow-sm"
                       title="Edit & Publish">
                       <Edit size={15} />
                     </button>
                     <button onClick={() => deleteBlog(draft._id, true)}
-                      className="p-2 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm">
+                      className="p-2 bg-red-50 text-red-400 hover:bg-[#c42126] hover:text-white rounded-xl transition shadow-sm">
                       <Trash2 size={15} />
                     </button>
                   </div>

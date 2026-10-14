@@ -7,6 +7,10 @@ import { safeJson, inputStyle } from "../AdminPanel";
 
 const API = `${import.meta.env.VITE_API_URL}/products`;
 
+// Aadona brand: gold #a16d36, red gradient #920609 → #c42126, Poppins SemiBold
+const BRAND_GRADIENT = "bg-gradient-to-r from-[#920609] to-[#c42126]";
+const BRAND_BTN = `${BRAND_GRADIENT} text-white hover:brightness-110`;
+
 export default function Products({ products, setProducts, allCategories, reloadProducts }) {
 
  const [form, setForm] = useState({
@@ -397,16 +401,17 @@ export default function Products({ products, setProducts, allCategories, reloadP
   };
 
   return (
-    <>
+    <div className="font-['Poppins',sans-serif] font-medium">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');`}</style>
 
-      <h1 className="text-2xl font-extrabold text-green-800 mb-6">
+      <h1 className="text-2xl font-semibold text-[#920609] mb-6">
         Manage Products – AADONA Admin Panel
       </h1>
 
       {/* ══════════════════════════════════════
           PRODUCT FORM
       ══════════════════════════════════════ */}
-      <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-green-100 mb-12">
+      <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-[#a16d36]/30 mb-12">
         <div className="grid md:grid-cols-2 gap-6">
 
           <select className={inputStyle} value={form.type || ""}
@@ -433,7 +438,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
           </select>
 
           {extraOptions.length > 0 && (
-            <select className={`${inputStyle} border-blue-300 bg-blue-50/30`}
+            <select className={`${inputStyle} border-[#a16d36] bg-[#a16d36]/5`}
               value={form.extraCategory || ""}
               onChange={(e) => setForm({ ...form, extraCategory: e.target.value })}>
               <option value="">Select Specification</option>
@@ -449,20 +454,20 @@ export default function Products({ products, setProducts, allCategories, reloadP
             onChange={(e) => setForm({ ...form, description: e.target.value })} />
 
           {/* Features */}
-          <div className="md:col-span-2 bg-green-50/50 p-6 rounded-2xl border border-green-200">
-            <label className="block text-sm font-bold text-green-800 mb-3">Key Features</label>
+          <div className="md:col-span-2 bg-[#a16d36]/10 p-6 rounded-2xl border border-[#a16d36]/30">
+            <label className="block text-sm font-semibold text-[#920609] mb-3">Key Features</label>
             <div className="flex gap-2 mb-4">
               <input className={inputStyle} placeholder="Type a feature and press Enter"
                 value={featureInput} onChange={(e) => setFeatureInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addFeature())} />
               <button type="button" onClick={addFeature}
-                className="bg-green-600 text-white px-5 rounded-xl hover:bg-green-700 transition">
+                className={`${BRAND_BTN} px-5 rounded-xl transition`}>
                 <Plus />
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {form.features?.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 bg-white text-green-700 px-3 py-1.5 rounded-lg border border-green-200 text-sm font-medium shadow-sm">
+                <div key={i} className="flex items-center gap-2 bg-white text-[#920609] px-3 py-1.5 rounded-lg border border-[#a16d36]/30 text-sm font-medium shadow-sm">
                   <span>• {f}</span>
                   <X size={14} className="cursor-pointer text-red-400 hover:text-red-600" onClick={() => removeFeature(i)} />
                 </div>
@@ -472,14 +477,14 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
           {/* Image Upload */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-bold text-green-800 mb-2">Product Image</label>
+            <label className="block text-sm font-semibold text-[#920609] mb-2">Product Image</label>
             <input type="file" id="product-img" className="hidden" accept="image/*"
               onChange={(e) => setForm({ ...form, imageFile: e.target.files[0] })} />
 
             <div className="flex items-center gap-4">
               {/* Preview Box */}
               {(form.imageFile || form.image) && (
-                <div className="shrink-0 w-20 h-20 rounded-xl border-2 border-green-300 bg-white shadow-sm overflow-hidden flex items-center justify-center">
+                <div className="shrink-0 w-20 h-20 rounded-xl border-2 border-[#a16d36]/50 bg-white shadow-sm overflow-hidden flex items-center justify-center">
                   <img
                     src={form.imageFile ? URL.createObjectURL(form.imageFile) : form.image}
                     alt="Preview"
@@ -491,11 +496,11 @@ export default function Products({ products, setProducts, allCategories, reloadP
               {/* Upload Label */}
               <label htmlFor="product-img"
                 className={`flex-1 flex items-center justify-between border-2 border-dashed rounded-2xl px-5 py-4 cursor-pointer transition-all ${
-                  form.imageFile ? "border-green-500 bg-green-50" : "border-green-300 bg-white hover:border-green-500"
+                  form.imageFile ? "border-[#a16d36] bg-[#a16d36]/10" : "border-[#a16d36]/50 bg-white hover:border-[#a16d36]"
                 }`}>
                 <div className="flex items-center gap-3">
-                  {form.imageFile ? <CheckCircle2 className="text-green-600" /> : <Upload className="text-gray-400" />}
-                  <span className={form.imageFile ? "text-green-800 font-semibold" : "text-gray-400"}>
+                  {form.imageFile ? <CheckCircle2 className="text-[#a16d36]" /> : <Upload className="text-gray-400" />}
+                  <span className={form.imageFile ? "text-[#920609] font-semibold" : "text-gray-400"}>
                     {form.imageFile
                       ? form.imageFile.name
                       : form.image
@@ -503,7 +508,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                         : "Click to upload product image"}
                   </span>
                 </div>
-                <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md">Browse</span>
+                <span className="text-xs font-semibold text-[#a16d36] uppercase tracking-widest bg-[#a16d36]/15 px-3 py-1 rounded-md">Browse</span>
               </label>
             </div>
           </div>
@@ -513,15 +518,15 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
         {/* ── Detailed Section (Step 2) ── */}
         {basicCompleted && (
-          <div className="mt-12 bg-white p-4 sm:p-8 rounded-2xl border border-green-200 shadow-md">
-            <h2 className="text-xl font-bold text-green-800 mb-6 flex items-center gap-2">
-              <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Step 2</span>
+          <div className="mt-12 bg-white p-4 sm:p-8 rounded-2xl border border-[#a16d36]/30 shadow-md">
+            <h2 className="text-xl font-semibold text-[#920609] mb-6 flex items-center gap-2">
+              <span className="bg-[#a16d36]/15 text-[#a16d36] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Step 2</span>
               Detailed Product Information
             </h2>
 
             {/* Overview */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-green-700 mb-2">Product Overview</label>
+              <label className="block text-sm font-semibold text-[#a16d36] mb-2">Product Overview</label>
               <textarea rows="4" className={inputStyle} value={form.overview?.content || ""}
                 onChange={(e) => setForm({ ...form, overview: { title: "Product Overview", content: e.target.value } })}
                 placeholder="Write a detailed product overview..." />
@@ -529,20 +534,20 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
             {/* Assembly Diagram Upload */}
 <div className="md:col-span-2">
-  <label className="block text-sm font-bold text-green-800 mb-2">
+  <label className="block text-sm font-semibold text-[#920609] mb-2">
     Assembly Diagram <span className="text-xs text-gray-400 font-normal">(Optional - PDF or Image)</span>
   </label>
   <input type="file" id="assembly-diagram" className="hidden" accept=".pdf,image/*"
     onChange={(e) => setForm({ ...form, assemblyDiagramFile: e.target.files[0] })} />
   <label htmlFor="assembly-diagram"
     className={`flex items-center justify-between w-full border-2 border-dashed rounded-2xl px-5 py-4 cursor-pointer transition-all ${
-      form.assemblyDiagramFile ? "border-green-500 bg-green-50" : "border-green-200 bg-white hover:border-green-400"
+      form.assemblyDiagramFile ? "border-[#a16d36] bg-[#a16d36]/10" : "border-[#a16d36]/40 bg-white hover:border-[#a16d36]"
     }`}>
     <div className="flex items-center gap-3">
       {form.assemblyDiagramFile
-        ? <CheckCircle2 className="text-green-500" />
+        ? <CheckCircle2 className="text-[#a16d36]" />
         : <Upload className="text-gray-400" />}
-      <span className={form.assemblyDiagramFile ? "text-green-800 font-semibold" : "text-gray-400"}>
+      <span className={form.assemblyDiagramFile ? "text-[#920609] font-semibold" : "text-gray-400"}>
         {form.assemblyDiagramFile
           ? form.assemblyDiagramFile.name
           : form.assemblyDiagram
@@ -550,14 +555,14 @@ export default function Products({ products, setProducts, allCategories, reloadP
             : "Click to upload assembly diagram (PDF or image)"}
       </span>
     </div>
-    <span className="text-xs font-bold text-green-600 uppercase tracking-widest bg-green-100 px-3 py-1 rounded-md">
+    <span className="text-xs font-semibold text-[#a16d36] uppercase tracking-widest bg-[#a16d36]/15 px-3 py-1 rounded-md">
       Browse
     </span>
   </label>
   {form.assemblyDiagram && !form.assemblyDiagramFile && (
     <div className="mt-2 flex items-center gap-2">
       <a href={form.assemblyDiagram} target="_blank" rel="noopener noreferrer"
-        className="text-xs text-blue-600 underline hover:text-blue-800">
+        className="text-xs text-[#a16d36] underline hover:text-[#920609]">
         View current assembly diagram ↗
       </a>
       <button type="button" onClick={() => setForm({ ...form, assemblyDiagram: "" })}
@@ -570,12 +575,12 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
             {/* Features Detail */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-green-700 mb-4">
+              <label className="block text-sm font-semibold text-[#a16d36] mb-4">
                 Features
               </label>
 
               {(form.featuresDetail || []).map((item, i) => (
-                <div key={i} className="mb-3 border border-green-200 rounded-xl p-4 bg-green-50/60 relative">
+                <div key={i} className="mb-3 border border-[#a16d36]/30 rounded-xl p-4 bg-[#a16d36]/10 relative">
                   <button
                     type="button"
                     className="absolute top-3 right-3 text-red-400 hover:text-red-600"
@@ -618,7 +623,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
               <div className="flex gap-3 mt-3">
                 <button
                   type="button"
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
+                  className={`${BRAND_BTN} px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition`}
                   onClick={() =>
                     setForm({
                       ...form,
@@ -631,7 +636,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
                 <button
                   type="button"
-                  className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
+                  className="bg-[#a16d36] hover:bg-[#85592a] text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
                   onClick={() =>
                     setForm({
                       ...form,
@@ -646,7 +651,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
             {/* Specifications */}
 <div className="mb-6">
-  <label className="block text-sm font-semibold text-green-700 mb-4">Specifications</label>
+  <label className="block text-sm font-semibold text-[#a16d36] mb-4">Specifications</label>
   {Object.entries(form.specifications || {}).map(([category, specs], catIndex) => {
     const allCatEntries = Object.entries(form.specifications || {});
     const totalCats = allCatEntries.length;
@@ -674,22 +679,22 @@ export default function Products({ products, setProducts, allCategories, reloadP
     };
 
     return (
-      <div key={category} className="mb-6 border border-green-200 p-5 rounded-xl bg-green-50/60">
+      <div key={category} className="mb-6 border border-[#a16d36]/30 p-5 rounded-xl bg-[#a16d36]/10">
         <div className="flex items-center gap-2 mb-4 flex-wrap">
 
           <div className="flex flex-col gap-0.5">
             <button type="button" onClick={() => moveCat(-1)} disabled={catIndex === 0}
-              className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+              className="text-[#a16d36] hover:text-[#920609] disabled:text-gray-300 disabled:cursor-not-allowed">
               <ChevronUp size={16} />
             </button>
             <button type="button" onClick={() => moveCat(1)} disabled={catIndex === totalCats - 1}
-              className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+              className="text-[#a16d36] hover:text-[#920609] disabled:text-gray-300 disabled:cursor-not-allowed">
               <ChevronDown size={16} />
             </button>
           </div>
 
           <input
-            className="flex-1 font-bold text-green-800 bg-white border border-green-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300"
+            className="flex-1 font-semibold text-[#920609] bg-white border border-[#a16d36]/50 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#a16d36]/40"
             value={category}
             placeholder="Category Name"
             onChange={(e) => {
@@ -711,8 +716,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
             }}
             className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border font-semibold transition ${
               copiedSpecCategory?.name === category
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-600 hover:text-white"
+                ? "bg-[#a16d36] text-white border-[#a16d36]"
+                : "bg-[#a16d36]/10 text-[#a16d36] border-[#a16d36]/40 hover:bg-[#a16d36] hover:text-white"
             }`}
           >
             {copiedSpecCategory?.name === category ? "✓ Copied!" : "Copy"}
@@ -734,18 +739,18 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
               <div className="flex flex-col gap-0.5 pt-2">
                 <button type="button" onClick={() => moveRow(idx, -1)} disabled={idx === 0}
-                  className="text-green-500 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+                  className="text-[#a16d36] hover:text-[#920609] disabled:text-gray-300 disabled:cursor-not-allowed">
                   <ChevronUp size={14} />
                 </button>
                 <button type="button" onClick={() => moveRow(idx, 1)} disabled={idx === totalRows - 1}
-                  className="text-green-500 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+                  className="text-[#a16d36] hover:text-[#920609] disabled:text-gray-300 disabled:cursor-not-allowed">
                   <ChevronDown size={14} />
                 </button>
               </div>
 
               <div className="w-full sm:w-5/12 flex flex-col gap-1">
                 <input
-                  className="w-full border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                  className="w-full border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#a16d36]/40"
                   placeholder="Key"
                   value={key.replace("__table__bold__", "").replace("__table__", "")}
                   onChange={(e) => {
@@ -781,10 +786,10 @@ export default function Products({ products, setProducts, allCategories, reloadP
                       newSpecs[category] = rebuilt;
                       setForm({ ...form, specifications: newSpecs });
                     }}
-                    className={`text-[11px] font-bold px-2 py-1 rounded-md border transition w-fit ${
+                    className={`text-[11px] font-semibold px-2 py-1 rounded-md border transition w-fit ${
                       key.startsWith("__table__")
-                        ? "bg-purple-600 text-white border-purple-600"
-                        : "bg-white text-purple-500 border-purple-300 hover:bg-purple-50"
+                        ? "bg-[#920609] text-white border-[#920609]"
+                        : "bg-white text-[#920609] border-[#920609]/40 hover:bg-[#920609]/10"
                     }`}
                   >
                     {key.startsWith("__table__") ? "⊞ Table ON" : "⊞ Table"}
@@ -810,10 +815,10 @@ export default function Products({ products, setProducts, allCategories, reloadP
                         newSpecs[category] = rebuilt;
                         setForm({ ...form, specifications: newSpecs });
                       }}
-                      className={`text-[11px] font-bold px-2 py-1 rounded-md border transition w-fit ${
+                      className={`text-[11px] font-semibold px-2 py-1 rounded-md border transition w-fit ${
                         key.startsWith("__table__bold__")
-                          ? "bg-yellow-500 text-white border-yellow-500"
-                          : "bg-white text-yellow-500 border-yellow-300 hover:bg-yellow-50"
+                          ? "bg-[#a16d36] text-white border-[#a16d36]"
+                          : "bg-white text-[#a16d36] border-[#a16d36]/40 hover:bg-[#a16d36]/10"
                       }`}
                     >
                       {key.startsWith("__table__bold__") ? "B Bold ON" : "B Bold"}
@@ -831,7 +836,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                         if (!mainSpecValueRefs.current[category][key]) mainSpecValueRefs.current[category][key] = [];
                         mainSpecValueRefs.current[category][key][vi] = el;
                       }}
-                      className="flex-1 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                      className="flex-1 border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#a16d36]/40"
                       placeholder={`Point ${vi + 1}`}
                       value={val}
                       onChange={(e) => {
@@ -884,7 +889,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                   </div>
                 ))}
                 <button type="button"
-                  className="text-green-600 hover:text-green-800 text-xs font-semibold flex items-center gap-1 mt-0.5"
+                  className="text-[#a16d36] hover:text-[#920609] text-xs font-semibold flex items-center gap-1 mt-0.5"
                   onClick={() => {
                     const newSpecs = { ...form.specifications };
                     const arr = Array.isArray(newSpecs[category][key])
@@ -912,7 +917,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
         <div className="flex gap-3 mt-3 flex-wrap">
           <button type="button"
-            className="text-sm text-green-700 font-semibold flex items-center gap-1 hover:text-green-900 transition"
+            className="text-sm text-[#920609] font-semibold flex items-center gap-1 hover:text-[#c42126] transition"
             onClick={() => {
               const newSpecs = { ...form.specifications };
               newSpecs[category][`Key ${Object.keys(newSpecs[category]).length + 1}`] = "";
@@ -922,7 +927,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
           </button>
 
           <button type="button"
-            className="text-sm text-blue-600 font-semibold flex items-center gap-1 hover:text-blue-800 transition"
+            className="text-sm text-[#a16d36] font-semibold flex items-center gap-1 hover:text-[#85592a] transition"
             onClick={() => {
               const newSpecs = { ...form.specifications };
               const subKey = `__sub__New Sub Category ${Object.keys(newSpecs[category]).filter(k => k.startsWith("__sub__")).length + 1}`;
@@ -938,11 +943,11 @@ export default function Products({ products, setProducts, allCategories, reloadP
           const subEntries = Object.entries(subSpecs || {});
 
           return (
-            <div key={subKey} className="mt-4 ml-6 border-l-2 border-blue-300 pl-4">
+            <div key={subKey} className="mt-4 ml-6 border-l-2 border-[#a16d36] pl-4">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-blue-400 text-xs font-bold uppercase tracking-widest">↳ Sub</span>
+                <span className="text-[#a16d36] text-xs font-semibold uppercase tracking-widest">↳ Sub</span>
                 <input
-                  className="flex-1 font-semibold text-blue-800 bg-white border border-blue-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-300"
+                  className="flex-1 font-semibold text-[#85592a] bg-white border border-[#a16d36]/50 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[#a16d36]/40"
                   value={subName}
                   placeholder="Sub Category Name"
                   onChange={(e) => {
@@ -968,15 +973,15 @@ export default function Products({ products, setProducts, allCategories, reloadP
                 </button>
               </div>
 
-              <div className="border border-blue-100 rounded-xl overflow-hidden bg-white">
+              <div className="border border-[#a16d36]/30 rounded-xl overflow-hidden bg-white">
                 {subEntries.map(([key, value], idx) => (
-                  <div key={idx} className={`flex flex-col sm:flex-row gap-2 items-start sm:items-center px-3 py-2 border-b border-gray-100 last:border-0 ${idx % 2 === 0 ? "bg-white" : "bg-blue-50/30"}`}>
+                  <div key={idx} className={`flex flex-col sm:flex-row gap-2 items-start sm:items-center px-3 py-2 border-b border-gray-100 last:border-0 ${idx % 2 === 0 ? "bg-white" : "bg-[#a16d36]/5"}`}>
                     <input
                       ref={(el) => {
                         if (!subInputRefs.current[subKey]) subInputRefs.current[subKey] = [];
                         subInputRefs.current[subKey][idx * 2] = el;
                       }}
-                      className="w-full sm:w-5/12 border border-gray-200 bg-white px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full sm:w-5/12 border border-gray-200 bg-white px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#a16d36]/40"
                       placeholder="Key"
                       value={key.startsWith("__empty__") ? "" : key}
                       onChange={(e) => {
@@ -1021,7 +1026,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                               if (!subInputRefs.current[`${subKey}_val`][key]) subInputRefs.current[`${subKey}_val`][key] = [];
                               subInputRefs.current[`${subKey}_val`][key][vi] = el;
                             }}
-                            className="flex-1 border border-gray-200 bg-white px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            className="flex-1 border border-gray-200 bg-white px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#a16d36]/40"
                             placeholder={`Value ${vi + 1}`}
                             value={val}
                             onChange={(e) => {
@@ -1092,7 +1097,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
               </div>
 
               <button type="button"
-                className="text-xs text-blue-600 font-semibold flex items-center gap-1 hover:text-blue-800 mt-2"
+                className="text-xs text-[#a16d36] font-semibold flex items-center gap-1 hover:text-[#85592a] mt-2"
                 onClick={() => {
                   const newSpecs = { ...form.specifications };
                   const entries = Object.entries(newSpecs[category][subKey]);
@@ -1116,7 +1121,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
   <div className="flex items-center gap-3 flex-wrap mt-2">
     <button type="button"
-      className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
+      className={`${BRAND_BTN} px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm`}
       onClick={() => {
         const newCatName = `New Category ${Object.keys(form.specifications || {}).length + 1}`;
         setForm({ ...form, specifications: { ...(form.specifications || {}), [newCatName]: { "": "" } } });
@@ -1127,7 +1132,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
     {copiedSpecCategory && (
       <button
         type="button"
-        className="bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300 px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
+        className="bg-[#a16d36]/15 hover:bg-[#a16d36]/25 text-[#85592a] border border-[#a16d36]/40 px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition shadow-sm"
         onClick={() => {
           const raw = localStorage.getItem("copiedSpecCategory");
           const data = raw ? JSON.parse(raw) : copiedSpecCategory;
@@ -1154,10 +1159,10 @@ export default function Products({ products, setProducts, allCategories, reloadP
   </div>
 </div>
 
-            <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-5 py-4">
-              <CheckCircle2 className="text-green-600 shrink-0" size={20} />
+            <div className="flex items-center gap-3 bg-[#a16d36]/10 border border-[#a16d36]/30 rounded-xl px-5 py-4">
+              <CheckCircle2 className="text-[#a16d36] shrink-0" size={20} />
               <div>
-                <p className="text-sm font-bold text-green-800">Datasheet PDF - Auto Generated</p>
+                <p className="text-sm font-semibold text-[#920609]">Datasheet PDF - Auto Generated</p>
                 <p className="text-xs text-gray-500 mt-0.5">PDF is automatically generated when you save the product.</p>
               </div>
             </div>
@@ -1167,7 +1172,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
         {/* Save Button */}
         <div className="flex items-center gap-4 mt-10">
           <button onClick={save} disabled={btnLoading}
-            className="bg-green-600 text-white px-12 py-3.5 rounded-full hover:bg-green-700 transition font-bold shadow-lg disabled:bg-gray-300">
+            className={`${BRAND_BTN} px-12 py-3.5 rounded-full transition font-semibold shadow-lg disabled:bg-none disabled:bg-gray-300`}>
             {btnLoading ? "Saving..." : editingId ? "Update Product" : "Add Product"}
           </button>
           {editingId && (
@@ -1181,8 +1186,8 @@ export default function Products({ products, setProducts, allCategories, reloadP
       {/* ══════════════════════════════════════
           RELATED PRODUCTS FORM
       ══════════════════════════════════════ */}
-      <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-green-100 mb-12">
-        <h2 className="text-xl font-bold text-green-800 mb-6">Related Products Configuration</h2>
+      <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-[#a16d36]/30 mb-12">
+        <h2 className="text-xl font-semibold text-[#920609] mb-6">Related Products Configuration</h2>
 
         <div className="grid md:grid-cols-4 gap-6 mb-6">
           <select className={inputStyle} value={form.relatedType || ""}
@@ -1220,23 +1225,23 @@ export default function Products({ products, setProducts, allCategories, reloadP
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-green-700 mb-3">
+          <label className="block text-sm font-semibold text-[#a16d36] mb-3">
             Select Related Products ({(form.relatedProducts || []).length} selected)
           </label>
           <input type="text" placeholder="Search products..."
             value={relatedSearch} onChange={(e) => setRelatedSearch(e.target.value)}
-            className="w-full mb-4 px-4 py-2 border border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500" />
+            className="w-full mb-4 px-4 py-2 border border-[#a16d36]/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#a16d36]" />
 
           {(form.relatedProducts || []).length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4 p-3 bg-green-50 border border-green-200 rounded-xl">
-              <span className="text-xs font-semibold text-green-700 w-full mb-1">Selected:</span>
+            <div className="flex flex-wrap gap-2 mb-4 p-3 bg-[#a16d36]/10 border border-[#a16d36]/30 rounded-xl">
+              <span className="text-xs font-semibold text-[#a16d36] w-full mb-1">Selected:</span>
               {(form.relatedProducts || []).map((productId) => {
                 const product = products.find((p) => p._id === productId);
                 if (!product) return null;
                 return (
-                  <div key={productId} className="flex items-center gap-1.5 bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                  <div key={productId} className={`flex items-center gap-1.5 ${BRAND_GRADIENT} text-white px-3 py-1 rounded-lg text-sm font-medium`}>
                     <span>{product.name}</span>
-                    <button onClick={() => removeRelatedProduct(productId)} className="hover:text-red-200 transition ml-0.5">
+                    <button onClick={() => removeRelatedProduct(productId)} className="hover:text-[#f1dcc0] transition ml-0.5">
                       <X size={13} />
                     </button>
                   </div>
@@ -1245,7 +1250,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
             </div>
           )}
 
-          <div className="grid md:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-green-200 rounded-xl p-4 bg-green-50/40">
+          <div className="grid md:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-[#a16d36]/30 rounded-xl p-4 bg-[#a16d36]/5">
             {filteredProducts.map((product) => {
               const isSelected = (form.relatedProducts || []).includes(product._id);
               return (
@@ -1257,7 +1262,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                       : [...current, product._id];
                     setForm({ ...form, relatedProducts: updated });
                   }}
-                  className={`cursor-pointer px-3 py-2 rounded-lg text-sm font-medium border transition ${isSelected ? "bg-green-600 text-white border-green-600" : "bg-white hover:bg-green-100 border-green-200"}`}>
+                  className={`cursor-pointer px-3 py-2 rounded-lg text-sm font-medium border transition ${isSelected ? `${BRAND_GRADIENT} text-white border-[#920609]` : "bg-white hover:bg-[#a16d36]/15 border-[#a16d36]/30"}`}>
                   {product.name}
                 </div>
               );
@@ -1267,15 +1272,15 @@ export default function Products({ products, setProducts, allCategories, reloadP
 
         <div className="mt-6 flex justify-center">
           <button type="button" disabled={relatedBtnLoading}
-            className="bg-green-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-green-700 transition shadow-md disabled:bg-gray-300"
+            className={`${BRAND_BTN} px-8 py-3 rounded-xl font-semibold transition shadow-md disabled:bg-none disabled:bg-gray-300`}
             onClick={saveRelatedProducts}>
             {relatedBtnLoading ? "Saving..." : "Save Related Products"}
           </button>
         </div>
 
         {/* View & Manage Saved Related */}
-        <div className="mt-8 border-t border-green-100 pt-8">
-          <h3 className="text-base font-bold text-green-800 mb-4">View & Manage Saved Related Products</h3>
+        <div className="mt-8 border-t border-[#a16d36]/30 pt-8">
+          <h3 className="text-base font-semibold text-[#920609] mb-4">View & Manage Saved Related Products</h3>
           <p className="text-sm text-gray-500 mb-5">
             View and remove currently saved related products for any category combo.
           </p>
@@ -1320,17 +1325,17 @@ export default function Products({ products, setProducts, allCategories, reloadP
               (getSubCategories(viewRelatedFor?.type || "", viewRelatedFor?.category || "").length > 0
                 && !viewRelatedFor?.subCategory)}
             onClick={() => loadSavedRelated(viewRelatedFor)}
-            className="bg-green-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-800 transition disabled:bg-gray-300 disabled:cursor-not-allowed mb-6">
+            className="bg-[#a16d36] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#85592a] transition disabled:bg-gray-300 disabled:cursor-not-allowed mb-6">
             Load Saved Related Products
           </button>
 
           {savedRelatedLoading && (
-            <div className="text-sm text-green-600 italic animate-pulse py-4">Loading...</div>
+            <div className="text-sm text-[#a16d36] italic animate-pulse py-4">Loading...</div>
           )}
 
           {!savedRelatedLoading && savedRelatedIds.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">
                 {savedRelatedIds.length} product(s) saved for this combo:
               </p>
               {savedRelatedIds.map((productId) => {
@@ -1349,7 +1354,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                       </div>
                     </div>
                     <button onClick={() => removeFromRelated(productId)} disabled={removeRelatedLoading === productId}
-                      className="flex items-center gap-1.5 text-xs bg-orange-50 text-orange-600 border border-orange-200 px-3 py-1.5 rounded-lg hover:bg-orange-500 hover:text-white hover:border-orange-500 transition font-semibold disabled:opacity-50">
+                      className="flex items-center gap-1.5 text-xs bg-[#c42126]/10 text-[#c42126] border border-[#c42126]/30 px-3 py-1.5 rounded-lg hover:bg-[#c42126] hover:text-white hover:border-[#c42126] transition font-semibold disabled:opacity-50">
                       {removeRelatedLoading === productId ? "Removing..." : "✕ Remove from List"}
                     </button>
                   </div>
@@ -1367,15 +1372,15 @@ export default function Products({ products, setProducts, allCategories, reloadP
       {/* ══════════════════════════════════════
           PRODUCTS TABLE
       ══════════════════════════════════════ */}
-      <div className="bg-white rounded-3xl shadow-lg border border-green-100 mb-8 overflow-hidden">
-        <div className="p-6 border-b border-green-100">
-          <h3 className="text-lg font-bold text-green-800 mb-4">Filter Listed Products</h3>
+      <div className="bg-white rounded-3xl shadow-lg border border-[#a16d36]/30 mb-8 overflow-hidden">
+        <div className="p-6 border-b border-[#a16d36]/30">
+          <h3 className="text-lg font-semibold text-[#920609] mb-4">Filter Listed Products</h3>
           <input
             type="text"
             placeholder="🔍 Search products by name..."
             value={filterSearch}
             onChange={(e) => setFilterSearch(e.target.value)}
-            className="w-full mb-4 px-4 py-2 border border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+            className="w-full mb-4 px-4 py-2 border border-[#a16d36]/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#a16d36] text-sm"
           />
           <div className="grid md:grid-cols-4 gap-4">
             <select className={inputStyle} value={filterType}
@@ -1414,17 +1419,17 @@ export default function Products({ products, setProducts, allCategories, reloadP
         </div>
 
         {reorderLoading && (
-          <div className="text-center text-sm text-green-600 font-medium animate-pulse py-2">⏳ Saving order...</div>
+          <div className="text-center text-sm text-[#a16d36] font-medium animate-pulse py-2">⏳ Saving order...</div>
         )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead className="bg-green-700 text-white">
+            <thead className={`${BRAND_GRADIENT} text-white`}>
               <tr>
-                <th className="p-5 text-xs font-bold uppercase tracking-widest">Product</th>
-                <th className="p-5 text-xs font-bold uppercase tracking-widest">Category</th>
-                <th className="p-5 text-xs font-bold uppercase tracking-widest text-center">Features</th>
-                <th className="p-5 text-xs font-bold uppercase tracking-widest text-center">Actions</th>
+                <th className="p-5 text-xs font-semibold uppercase tracking-widest">Product</th>
+                <th className="p-5 text-xs font-semibold uppercase tracking-widest">Category</th>
+                <th className="p-5 text-xs font-semibold uppercase tracking-widest text-center">Features</th>
+                <th className="p-5 text-xs font-semibold uppercase tracking-widest text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300">
@@ -1436,7 +1441,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                 </tr>
               )}
               {categoryFilteredProducts.map((p, index) => (
-                <tr key={p?._id} className="hover:bg-green-50/40 transition group">
+                <tr key={p?._id} className="hover:bg-[#a16d36]/5 transition group">
                   <td className="p-5 border-r border-gray-200">
                     <div className="flex items-center gap-4">
                       {filterType && filterCategory && (
@@ -1444,19 +1449,19 @@ export default function Products({ products, setProducts, allCategories, reloadP
                       ) && (
                         <div className="flex flex-col gap-1">
                           <button onClick={() => moveProduct(index, -1)} disabled={index === 0 || reorderLoading}
-                            className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+                            className="text-[#a16d36] hover:text-[#920609] disabled:text-gray-300 disabled:cursor-not-allowed">
                             <ChevronUp size={16} />
                           </button>
                           <button onClick={() => moveProduct(index, 1)} disabled={index === categoryFilteredProducts.length - 1 || reorderLoading}
-                            className="text-green-600 hover:text-green-800 disabled:text-gray-300 disabled:cursor-not-allowed">
+                            className="text-[#a16d36] hover:text-[#920609] disabled:text-gray-300 disabled:cursor-not-allowed">
                             <ChevronDown size={16} />
                           </button>
                         </div>
                       )}
                       <img src={p?.image} alt={p?.name} className="h-14 w-14 object-contain rounded-xl border p-1 bg-white shadow-sm" />
                       <div>
-                        <div className="font-bold text-green-900 group-hover:text-green-600">{p?.name}</div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{p?.type}</div>
+                        <div className="font-semibold text-[#920609] group-hover:text-[#c42126]">{p?.name}</div>
+                        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">{p?.type}</div>
                       </div>
                     </div>
                   </td>
@@ -1465,7 +1470,7 @@ export default function Products({ products, setProducts, allCategories, reloadP
                     <div className="text-xs text-gray-400 italic">{p?.subCategory}</div>
                   </td>
                   <td className="p-5 text-center border-r border-gray-200">
-                    <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[11px] font-bold border border-blue-100">
+                    <span className="bg-[#a16d36]/10 text-[#a16d36] px-3 py-1 rounded-full text-[11px] font-semibold border border-[#a16d36]/30">
                       {p?.features?.length || 0} Bullets
                     </span>
                   </td>
@@ -1473,16 +1478,16 @@ export default function Products({ products, setProducts, allCategories, reloadP
                     <div className="flex justify-center gap-3">
                       {/* ── Edit button - opens in new tab ── */}
                       <button onClick={() => openEditInNewTab(p)}
-                        className="p-2.5 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition shadow-sm">
+                        className="p-2.5 bg-[#a16d36]/10 text-[#a16d36] hover:bg-[#a16d36] hover:text-white rounded-xl transition shadow-sm">
                         <Edit size={18} />
                       </button>
                       <button onClick={() => del(p?._id)}
-                        className="p-2.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition shadow-sm">
+                        className="p-2.5 bg-[#c42126]/10 text-[#c42126] hover:bg-[#c42126] hover:text-white rounded-xl transition shadow-sm">
                         <Trash2 size={18} />
                       </button>
                       <div className="relative group/dup">
                         <button onClick={() => duplicateProduct(p)}
-                          className="p-2.5 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-xl transition shadow-sm">
+                          className="p-2.5 bg-gray-100 text-gray-600 hover:bg-gray-600 hover:text-white rounded-xl transition shadow-sm">
                           📄
                         </button>
                         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black text-white text-[11px] px-3 py-1 rounded-lg opacity-0 invisible group-hover/dup:opacity-100 group-hover/dup:visible transition duration-200 whitespace-nowrap">
@@ -1497,6 +1502,6 @@ export default function Products({ products, setProducts, allCategories, reloadP
           </table>
         </div>
       </div>
-    </>
+    </div>
   );
 }

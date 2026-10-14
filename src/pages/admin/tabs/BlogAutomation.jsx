@@ -104,41 +104,47 @@ export default function BlogAutomation() {
 
   return (
     <>
+      {/* Brand: Aadona Communication
+          Red #920609 → #c42126 | Gold #a16d36 | Font: Poppins */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        .auto, .auto * { font-family: 'Poppins', sans-serif; }
         .auto { padding: 16px; }
-        .auto-title { font-size: 24px; font-weight: 800; color: #166534; margin-bottom: 20px; }
-        .auto-card { background: linear-gradient(135deg,#ecfdf5,#ffffff); border-radius: 24px;
-          border: 1px solid #bbf7d0; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        .auto-title { font-size: 24px; font-weight: 600; color: #920609; margin-bottom: 20px; }
+        .auto-card { background: linear-gradient(135deg,#fbf6f0,#ffffff); border-radius: 24px;
+          border: 1px solid #efe3d3; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
           overflow: hidden; margin-bottom: 24px; }
         .auto-inner { padding: 28px; }
-        .auto-heading { font-size: 18px; font-weight: 700; color: #166534; margin-bottom: 10px; }
+        .auto-heading { font-size: 18px; font-weight: 600; color: #920609; margin-bottom: 10px; }
         .auto-desc { font-size: 14px; color: #6b7280; margin-bottom: 20px; }
-        .auto-input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #86efac;
+        .auto-input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e3cfb4;
           outline: none; font-size: 14px; transition: 0.2s; box-sizing: border-box; }
-        .auto-input:focus { border-color: #16a34a; box-shadow: 0 0 0 2px rgba(22,163,74,0.15); }
+        .auto-input:focus { border-color: #a16d36; box-shadow: 0 0 0 2px rgba(161,109,54,0.15); }
         .auto-btn { margin-top: 18px; width: 100%; padding: 14px; border-radius: 999px;
-          font-weight: 700; background: linear-gradient(135deg,#16a34a,#22c55e);
+          font-weight: 600; background: linear-gradient(135deg,#920609,#c42126);
           color: white; border: none; cursor: pointer; transition: 0.2s; font-size: 15px; }
-        .auto-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.3); }
+        .auto-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(146,6,9,0.3); }
         .auto-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .auto-info { margin-top: 20px; background: #f0fdf4; border: 1px dashed #bbf7d0;
-          padding: 14px; border-radius: 12px; font-size: 13px; color: #166534; }
+        .auto-info { margin-top: 20px; background: #fbf6f0; border: 1px dashed #e3cfb4;
+          padding: 14px; border-radius: 12px; font-size: 13px; color: #920609; }
         .sched-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
         .sched-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 120px; }
-        .sched-label { font-size: 13px; font-weight: 600; color: #374151; }
-        .sched-select { padding: 10px 12px; border-radius: 10px; border: 1px solid #86efac;
-          outline: none; font-size: 14px; background: white; }
+        .sched-label { font-size: 13px; font-weight: 500; color: #374151; }
+        .sched-select { padding: 10px 12px; border-radius: 10px; border: 1px solid #e3cfb4;
+          outline: none; font-size: 14px; background: white; transition: 0.2s; }
+        .sched-select:focus { border-color: #a16d36; box-shadow: 0 0 0 2px rgba(161,109,54,0.15); }
         .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-        .toggle-label { font-size: 14px; font-weight: 600; color: #374151; }
-        .sched-status { margin-top: 12px; font-size: 14px; font-weight: 600; }
+        .toggle-row input[type="checkbox"] { accent-color: #920609; width: 16px; height: 16px; }
+        .toggle-label { font-size: 14px; font-weight: 500; color: #374151; }
+        .sched-status { margin-top: 12px; font-size: 14px; font-weight: 500; color: #920609; }
         .auto-result { margin-top: 14px; padding: 12px 16px; border-radius: 12px;
-          font-weight: 600; font-size: 14px; }
+          font-weight: 500; font-size: 14px; }
         .auto-result.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-        .auto-result.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .auto-result.error { background: #fef2f2; color: #c42126; border: 1px solid #fecaca; }
         .retry-btn { margin-top: 10px; width: 100%; padding: 10px; border-radius: 999px;
-          background: #dc2626; color: white; border: none; cursor: pointer;
-          font-size: 13px; font-weight: 700; }
-        .retry-btn:hover { background: #b91c1c; }
+          background: #c42126; color: white; border: none; cursor: pointer;
+          font-size: 13px; font-weight: 600; }
+        .retry-btn:hover { background: #920609; }
         .retry-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .loading-hint { margin-top: 12px; font-size: 13px; color: #6b7280; text-align: center; }
       `}</style>

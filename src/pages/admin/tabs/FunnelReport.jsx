@@ -162,18 +162,21 @@ export default function ManageSales() {
   const anyStillLoading = salesReps.some((rep) => totals[rep.uid]?.loading);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');`}</style>
+      {/* Brand: Aadona Communication — Red #920609 → #c42126 | Gold #a16d36 | Poppins */}
+
       {/* ── Invite Form ── */}
       
 
       {/* ── Funnel Report / Insights Toggle ── */}
-      <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-2xl p-1.5 w-fit">
+      <div className="flex items-center gap-2 bg-[#fbf6f0] border border-[#efe3d3] rounded-2xl p-1.5 w-fit">
         <button
           onClick={() => setView("funnel")}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition ${
             view === "funnel"
-              ? "bg-green-700 text-white shadow-sm"
-              : "text-green-700 hover:bg-green-100"
+              ? "bg-gradient-to-br from-[#920609] to-[#c42126] text-white shadow-sm"
+              : "text-[#920609] hover:bg-[#f5ede1]"
           }`}
         >
           <Filter size={15} />
@@ -183,8 +186,8 @@ export default function ManageSales() {
           onClick={() => setView("insights")}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition ${
             view === "insights"
-              ? "bg-green-700 text-white shadow-sm"
-              : "text-green-700 hover:bg-green-100"
+              ? "bg-gradient-to-br from-[#920609] to-[#c42126] text-white shadow-sm"
+              : "text-[#920609] hover:bg-[#f5ede1]"
           }`}
         >
           <PieChartIcon size={15} />
@@ -193,10 +196,10 @@ export default function ManageSales() {
       </div>
 
       {/* ── Sales Reps List ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-green-100 bg-green-700">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#efe3d3] overflow-hidden">
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-[#efe3d3] bg-gradient-to-r from-[#920609] to-[#c42126]">
           <Users size={18} className="text-white" />
-          <h2 className="text-lg font-bold text-white">
+          <h2 className="text-lg font-semibold text-white">
             Sales Representatives - {view === "funnel" ? "Funnel Report" : "Insights"}
           </h2>
         </div>
@@ -211,7 +214,7 @@ export default function ManageSales() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-green-50 text-left">
+                <tr className="bg-[#fbf6f0] text-left">
                   <th className="px-4 py-3 text-gray-600 font-semibold">Name</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Email</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">{totalColumnLabel}</th>
@@ -225,7 +228,7 @@ export default function ManageSales() {
                     <tr
                       key={rep.uid}
                       onClick={() => handleRowClick(rep.uid)}
-                      className="border-t border-green-50 hover:bg-green-50/50 cursor-pointer transition-colors"
+                      className="border-t border-[#f5ede1] hover:bg-[#fbf6f0]/70 cursor-pointer transition-colors"
                     >
                       <td className="px-4 py-3 font-medium text-gray-800">{rep.name}</td>
                       <td className="px-4 py-3 text-gray-600">{rep.email}</td>
@@ -243,11 +246,11 @@ export default function ManageSales() {
                 })}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-green-200 bg-green-50">
-                  <td className="px-4 py-3 font-bold text-gray-800" colSpan={2}>
+                <tr className="border-t-2 border-[#e3cfb4] bg-[#fbf6f0]">
+                  <td className="px-4 py-3 font-semibold text-gray-800" colSpan={2}>
                     Total ({salesReps.length} {salesReps.length === 1 ? "rep" : "reps"})
                   </td>
-                  <td className="px-4 py-3 font-bold text-green-800">
+                  <td className="px-4 py-3 font-semibold text-[#920609]">
                     {anyStillLoading ? (
                       <span className="text-gray-400 italic text-xs font-normal">
                         Calculating...

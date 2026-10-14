@@ -6,6 +6,12 @@ import { safeJson, inputStyle } from "../AdminPanel";
 const PENDING_API = `${import.meta.env.VITE_API_URL}/admin/sales-quotations/pending-approval`;
 const ACTION_API = `${import.meta.env.VITE_API_URL}/admin/sales-quotations`;
 
+// Brand: Aadona Communication — Red #920609 → #c42126 | Gold #a16d36 | Poppins
+const BrandFont = () => (
+  <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');`}</style>
+);
+const FONT_STYLE = { fontFamily: "'Poppins', sans-serif" };
+
 export default function ManagePendingNegotiations() {
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -320,10 +326,11 @@ export default function ManagePendingNegotiations() {
       );
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6" style={FONT_STYLE}>
+        <BrandFont />
         <button
           onClick={backToList}
-          className="flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:underline"
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#920609] hover:underline"
         >
           <ChevronLeft size={16} /> Back to list
         </button>
@@ -339,20 +346,20 @@ export default function ManagePendingNegotiations() {
           </div>
         )}
         {draftRestored && !successMsg && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+          <div className="bg-[#fbf6f0] border border-[#e3cfb4] text-[#a16d36] px-4 py-3 rounded-xl text-sm flex items-center gap-2">
             <FileClock size={16} className="shrink-0" />
             A saved revision draft was found for this negotiation — nothing has been sent yet, click Revise to keep editing.
           </div>
         )}
 
         {/* ── Summary ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-          <h2 className="text-lg font-bold text-green-800 mb-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#efe3d3] p-6">
+          <h2 className="text-lg font-semibold text-[#920609] mb-4">
             Quotation #{selected.quotationNumber}
           </h2>
 
           <div className="border-b border-gray-100 pb-4 mb-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#a16d36] mb-2">
               Partner Details
             </p>
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
@@ -387,7 +394,7 @@ export default function ManagePendingNegotiations() {
           </div>
 
           <div className="pb-4 mb-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-green-700 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#a16d36] mb-2">
               End Customer Details
             </p>
             {selected.endCustomer ? (
@@ -431,24 +438,24 @@ export default function ManagePendingNegotiations() {
             )}
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-3 text-sm bg-orange-50 border border-orange-200 rounded-xl p-4">
+          <div className="grid sm:grid-cols-3 gap-3 text-sm bg-[#fbf6f0] border border-[#e3cfb4] rounded-xl p-4">
             <div>
               <p className="text-gray-500 text-xs font-semibold uppercase mb-1">Admin Subtotal</p>
-              <p className="font-bold text-gray-800">₹{adminSubtotal.toFixed(2)}</p>
+              <p className="font-semibold text-gray-800">₹{adminSubtotal.toFixed(2)}</p>
             </div>
             <div>
               <p className="text-gray-500 text-xs font-semibold uppercase mb-1">Sales Quotation Total</p>
-              <p className="font-bold text-gray-800">₹{Number(selected.grandTotal || 0).toFixed(2)}</p>
+              <p className="font-semibold text-gray-800">₹{Number(selected.grandTotal || 0).toFixed(2)}</p>
             </div>
             <div>
               <p className="text-gray-500 text-xs font-semibold uppercase mb-1">Customer Requested</p>
-              <p className="font-bold text-red-600">₹{offer.toFixed(2)}</p>
+              <p className="font-semibold text-[#c42126]">₹{offer.toFixed(2)}</p>
             </div>
           </div>
 
           <p className="text-sm text-gray-700 mt-3">
             <span className="font-semibold">Below admin price by:</span>{" "}
-            <span className="text-red-600 font-bold">₹{difference.toFixed(2)}</span>
+            <span className="text-[#c42126] font-semibold">₹{difference.toFixed(2)}</span>
           </p>
 
           {selected.customerMessage && (
@@ -459,8 +466,8 @@ export default function ManagePendingNegotiations() {
         </div>
 
         {/* ── Standalone Validity Extension — independent of pricing revision ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-blue-200 p-6">
-          <h3 className="text-base font-bold text-gray-800 mb-1">Quotation Validity</h3>
+        <div className="bg-white rounded-2xl shadow-sm border border-[#e3cfb4] p-6">
+          <h3 className="text-base font-semibold text-[#920609] mb-1">Quotation Validity</h3>
           <p className="text-xs text-gray-500 mb-3">
             Current Valid Till:{" "}
             <span className="font-semibold text-gray-700">
@@ -489,7 +496,7 @@ export default function ManagePendingNegotiations() {
               type="button"
               onClick={handleExtendValidity}
               disabled={extending || !standaloneExtendDays}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-60"
+              className="bg-gradient-to-br from-[#920609] to-[#c42126] hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-60"
             >
               {extending ? "Extending..." : "Extend Validity"}
             </button>
@@ -546,8 +553,8 @@ export default function ManagePendingNegotiations() {
           });
 
           return (
-            <div className="bg-white rounded-2xl shadow-sm border border-amber-200 p-6">
-              <h3 className="text-lg font-bold text-amber-700 mb-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#e3cfb4] p-6">
+              <h3 className="text-lg font-semibold text-[#a16d36] mb-4">
                 Admin Pricing History
               </h3>
 
@@ -555,7 +562,7 @@ export default function ManagePendingNegotiations() {
                 {versions.map((version, versionIndex) => (
                   <div
                     key={versionIndex}
-                    className="border border-amber-100 rounded-xl p-4 bg-amber-50/40"
+                    className="border border-[#efe3d3] rounded-xl p-4 bg-[#fbf6f0]/60"
                   >
                     <div className="flex justify-between items-center gap-3 mb-3">
                       <p className="font-semibold text-gray-800">
@@ -572,7 +579,7 @@ export default function ManagePendingNegotiations() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-amber-100 text-left">
+                          <tr className="bg-[#f5ede1] text-left">
                             <th className="px-3 py-2">Product</th>
                             <th className="px-3 py-2">Qty</th>
                             <th className="px-3 py-2">Unit Price</th>
@@ -590,7 +597,7 @@ export default function ManagePendingNegotiations() {
                             return (
                               <tr
                                 key={itemIndex}
-                                className="border-t border-amber-100"
+                                className="border-t border-[#efe3d3]"
                               >
                                 <td className="px-3 py-2">
                                   <p className="font-medium text-gray-800">
@@ -634,7 +641,7 @@ export default function ManagePendingNegotiations() {
                         <p className="text-gray-600">
                           GST: ₹{Number(version.gstAmount || 0).toFixed(2)}
                         </p>
-                        <p className="font-bold text-amber-700">
+                        <p className="font-semibold text-[#920609]">
                           Grand Total: ₹{Number(version.grandTotal || 0).toFixed(2)}
                         </p>
                       </div>
@@ -664,18 +671,18 @@ export default function ManagePendingNegotiations() {
               wasRejected
                 ? "bg-red-50 border-red-200"
                 : wasRevised
-                ? "bg-amber-50 border-amber-200"
+                ? "bg-[#fbf6f0] border-[#e3cfb4]"
                 : wasApproved
                 ? "bg-green-50 border-green-200"
                 : "bg-gray-50 border-gray-200"
             }`}
           >
             <h3
-              className={`font-bold ${
+              className={`font-semibold ${
                 wasRejected
-                  ? "text-red-700"
+                  ? "text-[#c42126]"
                   : wasRevised
-                  ? "text-amber-700"
+                  ? "text-[#a16d36]"
                   : wasApproved
                   ? "text-green-700"
                   : "text-gray-700"
@@ -707,8 +714,8 @@ export default function ManagePendingNegotiations() {
         {isPending && (
           <>
             {!reviseMode ? (
-              <div className="bg-white rounded-2xl shadow-sm border-2 border-green-200 p-6 space-y-4">
-            <h3 className="text-base font-bold text-gray-800">Choose an Action</h3>
+              <div className="bg-white rounded-2xl shadow-sm border-2 border-[#e3cfb4] p-6 space-y-4">
+            <h3 className="text-base font-semibold text-[#920609]">Choose an Action</h3>
             <div className="grid sm:grid-cols-3 gap-3">
               <button
                 onClick={handleApprove}
@@ -720,14 +727,14 @@ export default function ManagePendingNegotiations() {
               <button
                 onClick={() => setReviseMode(true)}
                 disabled={acting}
-                className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
+                className="flex items-center justify-center gap-2 bg-[#a16d36] hover:bg-[#8a5c2d] text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
               >
                 <PencilLine size={18} /> Revise Pricing
               </button>
               <button
                 onClick={handleReject}
                 disabled={acting}
-                className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
+                className="flex items-center justify-center gap-2 bg-[#c42126] hover:bg-[#920609] text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
               >
                 <XCircle size={18} /> Reject
               </button>
@@ -741,10 +748,10 @@ export default function ManagePendingNegotiations() {
         ) : (
           <form
             onSubmit={handleSubmitRevise}
-            className="bg-white rounded-2xl shadow-sm border-2 border-amber-200 p-6"
+            className="bg-white rounded-2xl shadow-sm border-2 border-[#e3cfb4] p-6"
           >
             <div className="flex justify-between items-start mb-1">
-              <h3 className="text-lg font-bold text-amber-700">Revise Your Pricing</h3>
+              <h3 className="text-lg font-semibold text-[#a16d36]">Revise Your Pricing</h3>
               <button
                 type="button"
                 onClick={() => setReviseMode(false)}
@@ -761,7 +768,7 @@ export default function ManagePendingNegotiations() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-amber-500 text-white text-left">
+                  <tr className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white text-left">
                     <th className="px-3 py-2 rounded-tl-lg">Product</th>
                     <th className="px-3 py-2">Qty</th>
                     <th className="px-3 py-2">GST</th>
@@ -773,7 +780,7 @@ export default function ManagePendingNegotiations() {
                   {reviseItems.map((item, index) => {
                     const currentPrice = selected.sourceQuotation?.items?.[index]?.unitPrice;
                     return (
-                      <tr key={index} className="border-b border-amber-100">
+                      <tr key={index} className="border-b border-[#efe3d3]">
                         <td className="px-3 py-2 min-w-[180px]">
                           <p className="font-medium text-gray-800">{item.name}</p>
                           {item.description && (
@@ -794,7 +801,7 @@ export default function ManagePendingNegotiations() {
                             onChange={(e) => updateReviseItem(index, "unitPrice", e.target.value)}
                             placeholder="0.00"
                             required
-                            className="w-full border border-amber-200 rounded-lg px-2 py-1.5 focus:border-amber-400 outline-none"
+                            className="w-full border border-[#e3cfb4] rounded-lg px-2 py-1.5 focus:border-[#a16d36] outline-none"
                           />
                         </td>
                       </tr>
@@ -808,14 +815,14 @@ export default function ManagePendingNegotiations() {
               <div className="text-sm text-right space-y-1">
                 <p className="text-gray-600">Subtotal: ₹{reviseSubtotal.toFixed(2)}</p>
                 <p className="text-gray-600">GST: ₹{reviseGst.toFixed(2)}</p>
-                <p className="text-base font-bold text-amber-700">
+                <p className="text-base font-semibold text-[#920609]">
                   New Grand Total: ₹{reviseGrandTotal.toFixed(2)}
                 </p>
               </div>
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-[#920609] mb-1.5">
                 Notes for Sales Rep (optional)
               </label>
               <textarea
@@ -831,7 +838,7 @@ export default function ManagePendingNegotiations() {
               <button
                 type="submit"
                 disabled={acting}
-                className="bg-amber-500 text-white px-6 py-2.5 rounded-lg hover:bg-amber-600 transition text-sm font-semibold shadow-md disabled:opacity-60"
+                className="bg-gradient-to-br from-[#920609] to-[#c42126] text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold shadow-md disabled:opacity-60"
               >
                 {acting ? "Sending..." : "Send Revised Pricing to Sales Rep"}
               </button>
@@ -848,7 +855,8 @@ export default function ManagePendingNegotiations() {
   // LIST VIEW
   // ════════════════════════════════════════
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" style={FONT_STYLE}>
+      <BrandFont />
       <div className="relative max-w-sm">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
@@ -856,7 +864,7 @@ export default function ManagePendingNegotiations() {
           placeholder="Search by partner, end customer, or quotation #..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border border-green-300 rounded-xl pl-9 pr-4 py-2.5 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white"
+          className="w-full border border-[#e3cfb4] rounded-xl pl-9 pr-4 py-2.5 focus:border-[#a16d36] focus:ring-2 focus:ring-[#efe3d3] outline-none transition bg-white"
         />
       </div>
 
@@ -873,8 +881,8 @@ export default function ManagePendingNegotiations() {
             onClick={() => setStatusFilter(value)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
               statusFilter === value
-                ? "bg-green-700 text-white"
-                : "bg-white border border-green-200 text-green-700 hover:bg-green-50"
+                ? "bg-gradient-to-br from-[#920609] to-[#c42126] text-white"
+                : "bg-white border border-[#e3cfb4] text-[#920609] hover:bg-[#fbf6f0]"
             }`}
           >
             {label}
@@ -882,9 +890,9 @@ export default function ManagePendingNegotiations() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-green-100 bg-orange-500">
-          <h2 className="text-lg font-bold text-white">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#efe3d3] overflow-hidden">
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-[#efe3d3] bg-gradient-to-r from-[#920609] to-[#c42126]">
+          <h2 className="text-lg font-semibold text-white">
             {statusFilter === "pending"
               ? "Pending Admin Approvals"
               : statusFilter === "approved"
@@ -909,7 +917,7 @@ export default function ManagePendingNegotiations() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-orange-50 text-left">
+                <tr className="bg-[#fbf6f0] text-left">
                   <th className="px-4 py-3 text-gray-600 font-semibold">Quotation #</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">Partner</th>
                   <th className="px-4 py-3 text-gray-600 font-semibold">End Customer</th>
@@ -923,7 +931,7 @@ export default function ManagePendingNegotiations() {
                 {filtered.map((q) => (
                   <tr
                     key={q._id}
-                    className="border-t border-orange-50 hover:bg-orange-50/50 cursor-pointer"
+                    className="border-t border-[#f5ede1] hover:bg-[#fbf6f0]/70 cursor-pointer"
                     onClick={() => openQuotation(q)}
                   >
                     <td className="px-4 py-3 font-medium text-gray-800">{q.quotationNumber}</td>
@@ -936,13 +944,13 @@ export default function ManagePendingNegotiations() {
                     <td className="px-4 py-3 text-gray-700">
                       ₹{Number(q.sourceQuotation?.subtotal || 0).toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-red-600">
+                    <td className="px-4 py-3 font-semibold text-[#c42126]">
                       ₹{Number(q.expectedBudget || 0).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {q.customerRespondedAt ? new Date(q.customerRespondedAt).toLocaleDateString() : "—"}
                     </td>
-                    <td className="px-4 py-3 text-right text-green-700 font-semibold">
+                    <td className="px-4 py-3 text-right text-[#920609] font-semibold">
                       Review →
                     </td>
                   </tr>

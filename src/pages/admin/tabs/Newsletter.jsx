@@ -220,25 +220,25 @@ export default function Newsletter() {
   const previewHtml = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f3f4f6;padding:24px">
       <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
-        <div style="background:linear-gradient(135deg,#166534,#16a34a);padding:28px;text-align:center">
+        <div style="background:linear-gradient(135deg,#920609,#c42126);padding:28px;text-align:center;border-bottom:3px solid #a16d36">
           <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800">AADONA Communication</h1>
-          <p style="color:#bbf7d0;margin:4px 0 0;font-size:12px">Your trusted networking partner</p>
+          <p style="color:#f1dcc0;margin:4px 0 0;font-size:12px">Your trusted networking partner</p>
         </div>
         ${bannerPreview ? `<img src="${bannerPreview}" style="width:100%;display:block;object-fit:cover;max-height:220px"/>` : ""}
-        ${heading ? `<div style="padding:24px 32px 0"><h2 style="color:#166534;font-size:20px;margin:0">${heading}</h2></div>` : ""}
+        ${heading ? `<div style="padding:24px 32px 0"><h2 style="color:#920609;font-size:20px;margin:0">${heading}</h2></div>` : ""}
         <div style="padding:16px 32px 24px;color:#374151;font-size:14px;line-height:1.75">
           ${bodyText.replace(/\n/g, "<br/>") || '<span style="color:#9ca3af;font-style:italic">Your content will appear here...</span>'}
         </div>
         ${buttons.filter((b) => b.text.trim() && b.url.trim()).length > 0 ? `
           <div style="padding:0 32px 28px;text-align:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
             ${buttons.filter((b) => b.text.trim() && b.url.trim()).map((b) =>
-              `<span style="display:inline-block;background:#16a34a;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">${b.text}</span>`
+              `<span style="display:inline-block;background:#c42126;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">${b.text}</span>`
             ).join("")}
           </div>` : ""}
         ${pdfFiles.length > 0 ? `
           <div style="padding:0 32px 20px">
             <p style="font-size:12px;color:#6b7280;font-weight:600;margin:0 0 8px">📎 Attachments:</p>
-            ${pdfFiles.map((f) => `<div style="font-size:12px;color:#166534;background:#f0fdf4;padding:6px 10px;border-radius:6px;margin-bottom:4px">📄 ${f.name}</div>`).join("")}
+            ${pdfFiles.map((f) => `<div style="font-size:12px;color:#920609;background:#fbf5ee;padding:6px 10px;border-radius:6px;margin-bottom:4px">📄 ${f.name}</div>`).join("")}
           </div>` : ""}
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 32px"/>
         <div style="padding:20px 32px;text-align:center;color:#6b7280;font-size:11px">${footerText}</div>
@@ -254,16 +254,19 @@ export default function Newsletter() {
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap');
+
+        /* Aadona brand: gold #a16d36 | red #920609 → #c42126 | Poppins SemiBold */
         .nl * { box-sizing: border-box; }
         .nl {
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           padding: 24px 20px;
-          color: #1a2e1a;
+          color: #2b1a14;
         }
 
         .nl-page-title {
           font-size: clamp(18px, 4vw, 24px);
-          font-weight: 800; color: #166534;
+          font-weight: 600; color: #920609;
           margin: 0 0 20px;
         }
 
@@ -275,7 +278,7 @@ export default function Newsletter() {
         }
         .nl-stat {
           background: #fff;
-          border: 1px solid #dcfce7;
+          border: 1px solid #ecdcc6;
           border-radius: 16px;
           padding: 16px 18px;
           display: flex; align-items: center; gap: 14px;
@@ -286,30 +289,31 @@ export default function Newsletter() {
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0; font-size: 20px;
         }
-        .nl-stat-num { font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+        .nl-stat-num { font-size: 24px; font-weight: 600; line-height: 1; margin-bottom: 2px; }
         .nl-stat-label { font-size: 11px; color: #6b7280; font-weight: 500; }
 
         /* Card */
         .nl-card {
           background: #fff;
-          border: 1px solid #dcfce7;
+          border: 1px solid #ecdcc6;
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 2px 8px rgba(0,0,0,0.05);
           margin-bottom: 20px;
         }
         .nl-card-head {
-          background: linear-gradient(135deg, #166534, #16a34a);
+          background: linear-gradient(135deg, #920609, #c42126);
+          border-bottom: 3px solid #a16d36;
           padding: 16px 20px;
           display: flex; align-items: center; justify-content: space-between;
         }
-        .nl-card-head-title { color: #fff; font-size: 15px; font-weight: 700; margin: 0; }
-        .nl-card-head-sub { color: #bbf7d0; font-size: 11px; margin: 3px 0 0; }
+        .nl-card-head-title { color: #fff; font-size: 15px; font-weight: 600; margin: 0; }
+        .nl-card-head-sub { color: #f1dcc0; font-size: 11px; margin: 3px 0 0; font-weight: 500; }
 
         /* Subscriber list */
         .nl-search-wrap {
           padding: 12px 16px;
-          border-bottom: 1px solid #f0fdf4;
+          border-bottom: 1px solid #f5ece0;
           display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
         }
         .nl-search-box { position: relative; flex: 1; min-width: 160px; }
@@ -319,38 +323,38 @@ export default function Newsletter() {
         }
         .nl-search-input {
           width: 100%;
-          border: 1px solid #d1fae5; border-radius: 10px;
+          border: 1px solid #e3cfb2; border-radius: 10px;
           padding: 8px 12px 8px 32px;
-          font-size: 13px; font-family: 'DM Sans', sans-serif;
-          color: #1a2e1a; outline: none; transition: border-color 0.15s;
+          font-size: 13px; font-family: 'Poppins', sans-serif; font-weight: 500;
+          color: #2b1a14; outline: none; transition: border-color 0.15s;
         }
-        .nl-search-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+        .nl-search-input:focus { border-color: #a16d36; box-shadow: 0 0 0 3px rgba(161,109,54,0.15); }
 
         .nl-sel-all {
           background: none; border: none; cursor: pointer;
-          font-size: 12px; color: #16a34a; font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
+          font-size: 12px; color: #a16d36; font-weight: 600;
+          font-family: 'Poppins', sans-serif;
           display: flex; align-items: center; gap: 5px;
           white-space: nowrap; padding: 0;
         }
-        .nl-sel-all:hover { color: #166534; }
+        .nl-sel-all:hover { color: #920609; }
 
         .nl-sub-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
           max-height: 300px; overflow-y: auto;
-          border-top: 1px solid #f0fdf4;
+          border-top: 1px solid #f5ece0;
         }
         .nl-sub-item {
           padding: 10px 14px;
           display: flex; align-items: center;
           justify-content: space-between;
           cursor: pointer;
-          border-bottom: 1px solid #f7fdf7;
+          border-bottom: 1px solid #fdf9f4;
           transition: background 0.1s; gap: 10px;
         }
-        .nl-sub-item:hover { background: #f0fdf4; }
-        .nl-sub-item.sel { background: #f0fdf4; border-left: 3px solid #16a34a; padding-left: 11px; }
+        .nl-sub-item:hover { background: #fbf5ee; }
+        .nl-sub-item.sel { background: #fbf5ee; border-left: 3px solid #a16d36; padding-left: 11px; }
 
         .nl-chk {
           width: 16px; height: 16px; border-radius: 4px;
@@ -358,10 +362,10 @@ export default function Newsletter() {
           display: flex; align-items: center; justify-content: center;
           transition: all 0.15s;
         }
-        .nl-chk.on { background: #16a34a; border-color: #16a34a; }
+        .nl-chk.on { background: #a16d36; border-color: #a16d36; }
 
         .nl-sub-email {
-          font-size: 13px; font-weight: 500; color: #1a2e1a;
+          font-size: 13px; font-weight: 500; color: #2b1a14;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           max-width: 170px;
         }
@@ -372,7 +376,7 @@ export default function Newsletter() {
           padding: 5px; color: #d1d5db; border-radius: 6px;
           transition: all 0.15s; flex-shrink: 0; display: flex; align-items: center;
         }
-        .nl-del:hover { color: #ef4444; background: #fef2f2; }
+        .nl-del:hover { color: #c42126; background: #fef2f2; }
 
         .nl-empty {
           grid-column: 1 / -1;
@@ -387,51 +391,51 @@ export default function Newsletter() {
           padding: 20px; display: flex; flex-direction: column; gap: 16px;
           overflow-y: auto;
         }
-        .nl-form.half { width: 50%; border-right: 1px solid #f0fdf4; }
+        .nl-form.half { width: 50%; border-right: 1px solid #f5ece0; }
         .nl-form.full { width: 100%; }
 
         .nl-field label {
-          display: block; font-size: 10px; font-weight: 700;
+          display: block; font-size: 10px; font-weight: 600;
           color: #6b7280; letter-spacing: 0.8px;
           text-transform: uppercase; margin-bottom: 6px;
         }
         .nl-input, .nl-textarea {
-          width: 100%; border: 1px solid #d1fae5; border-radius: 12px;
-          padding: 10px 14px; font-size: 13px;
-          font-family: 'DM Sans', sans-serif; color: #1a2e1a; outline: none;
+          width: 100%; border: 1px solid #e3cfb2; border-radius: 12px;
+          padding: 10px 14px; font-size: 13px; font-weight: 500;
+          font-family: 'Poppins', sans-serif; color: #2b1a14; outline: none;
           transition: border-color 0.15s, box-shadow 0.15s;
         }
         .nl-input:focus, .nl-textarea:focus {
-          border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+          border-color: #a16d36; box-shadow: 0 0 0 3px rgba(161,109,54,0.15);
         }
         .nl-textarea { resize: none; line-height: 1.75; }
 
         .nl-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
         .nl-upload {
-          width: 100%; border: 2px dashed #bbf7d0; border-radius: 12px;
+          width: 100%; border: 2px dashed #d9b98a; border-radius: 12px;
           padding: 20px; display: flex; flex-direction: column;
           align-items: center; gap: 6px; cursor: pointer;
-          background: none; color: #16a34a;
-          transition: background 0.15s; font-family: 'DM Sans', sans-serif;
+          background: none; color: #a16d36;
+          transition: background 0.15s; font-family: 'Poppins', sans-serif;
         }
-        .nl-upload:hover { background: #f0fdf4; }
+        .nl-upload:hover { background: #fbf5ee; }
         .nl-upload-lbl { font-size: 12px; font-weight: 600; }
-        .nl-upload-hint { font-size: 11px; color: #9ca3af; }
+        .nl-upload-hint { font-size: 11px; color: #9ca3af; font-weight: 500; }
 
         .nl-file-tag {
           display: flex; align-items: center; gap: 10px;
-          background: #f0fdf4; border: 1px solid #bbf7d0;
+          background: #fbf5ee; border: 1px solid #e3cfb2;
           border-radius: 12px; padding: 10px 14px;
         }
         .nl-file-name {
-          flex: 1; font-size: 13px; color: #166534; font-weight: 500;
+          flex: 1; font-size: 13px; color: #920609; font-weight: 500;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .nl-file-rm { background: none; border: none; cursor: pointer; color: #f87171; line-height: 0; }
-        .nl-file-rm:hover { color: #ef4444; }
+        .nl-file-rm:hover { color: #c42126; }
 
-        .nl-banner-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #d1fae5; }
+        .nl-banner-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #e3cfb2; }
         .nl-banner-wrap img { width: 100%; height: 110px; object-fit: cover; display: block; }
         .nl-banner-rm {
           position: absolute; top: 8px; right: 8px;
@@ -440,12 +444,12 @@ export default function Newsletter() {
           align-items: center; justify-content: center;
           cursor: pointer; color: #fff;
         }
-        .nl-banner-rm:hover { background: rgba(239,68,68,0.85); }
+        .nl-banner-rm:hover { background: rgba(196,33,38,0.9); }
 
         /* Button block */
         .nl-btn-block {
-          border: 1px solid #d1fae5; border-radius: 14px;
-          padding: 14px; background: #f0fdf4; margin-bottom: 8px;
+          border: 1px solid #e3cfb2; border-radius: 14px;
+          padding: 14px; background: #fbf5ee; margin-bottom: 8px;
         }
         .nl-btn-block-head {
           display: flex; align-items: center;
@@ -453,29 +457,29 @@ export default function Newsletter() {
           flex-wrap: wrap; gap: 6px;
         }
         .nl-btn-block-label {
-          font-size: 12px; font-weight: 700; color: #166534;
+          font-size: 12px; font-weight: 600; color: #920609;
           display: flex; align-items: center; gap: 5px;
         }
         .nl-btn-block-actions { display: flex; gap: 5px; }
         .nl-icon-btn {
-          padding: 4px 6px; border-radius: 8px; border: 1px solid #d1fae5;
+          padding: 4px 6px; border-radius: 8px; border: 1px solid #e3cfb2;
           background: #fff; cursor: pointer; display: flex; align-items: center;
-          transition: all 0.15s; color: #16a34a;
+          transition: all 0.15s; color: #a16d36;
         }
-        .nl-icon-btn:hover { background: #dcfce7; }
+        .nl-icon-btn:hover { background: #f5ece0; }
         .nl-icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .nl-icon-btn.danger { border-color: #fecaca; color: #f87171; }
-        .nl-icon-btn.danger:hover { background: #fef2f2; color: #ef4444; }
+        .nl-icon-btn.danger:hover { background: #fef2f2; color: #c42126; }
 
         /* PDF list */
         .nl-pdf-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
         .nl-pdf-item {
           display: flex; align-items: center; gap: 10px;
-          background: #f0fdf4; border: 1px solid #bbf7d0;
+          background: #fbf5ee; border: 1px solid #e3cfb2;
           border-radius: 10px; padding: 8px 12px;
         }
         .nl-pdf-item-name {
-          flex: 1; font-size: 12px; color: #166534; font-weight: 500;
+          flex: 1; font-size: 12px; color: #920609; font-weight: 500;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .nl-pdf-item-actions { display: flex; gap: 4px; }
@@ -483,31 +487,32 @@ export default function Newsletter() {
         /* Add buttons */
         .nl-add-btn {
           display: flex; align-items: center; gap: 6px;
-          background: #16a34a; color: #fff; border: none;
+          background: linear-gradient(135deg, #920609, #c42126);
+          color: #fff; border: none;
           border-radius: 10px; padding: 8px 14px; font-size: 12px;
-          font-weight: 700; font-family: 'DM Sans', sans-serif;
-          cursor: pointer; transition: background 0.15s;
+          font-weight: 600; font-family: 'Poppins', sans-serif;
+          cursor: pointer; transition: filter 0.15s, background 0.15s;
         }
-        .nl-add-btn:hover { background: #166534; }
-        .nl-add-btn.teal { background: #0d9488; }
-        .nl-add-btn.teal:hover { background: #0f766e; }
+        .nl-add-btn:hover { filter: brightness(1.12); }
+        .nl-add-btn.teal { background: #a16d36; }
+        .nl-add-btn.teal:hover { background: #85592a; filter: none; }
 
         .nl-result {
           padding: 11px 14px; border-radius: 12px;
           font-size: 13px; font-weight: 500;
         }
         .nl-result.ok { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .nl-result.err { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .nl-result.err { background: #fef2f2; color: #920609; border: 1px solid #fecaca; }
 
         .nl-send {
           width: 100%;
-          background: linear-gradient(135deg, #166534, #16a34a);
+          background: linear-gradient(135deg, #920609, #c42126);
           color: #fff; border: none; border-radius: 12px;
-          padding: 14px 20px; font-size: 14px; font-weight: 700;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          padding: 14px 20px; font-size: 14px; font-weight: 600;
+          font-family: 'Poppins', sans-serif; cursor: pointer;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           transition: opacity 0.15s, transform 0.1s;
-          box-shadow: 0 4px 12px rgba(22,163,74,0.25);
+          box-shadow: 0 4px 12px rgba(196,33,38,0.25);
         }
         .nl-send:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
         .nl-send:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
@@ -524,14 +529,15 @@ export default function Newsletter() {
           width: 50%; background: #f3f4f6; overflow-y: auto; padding: 16px;
         }
         .nl-preview-lbl {
-          font-size: 10px; font-weight: 700; color: #9ca3af;
+          font-size: 10px; font-weight: 600; color: #9ca3af;
           text-transform: uppercase; letter-spacing: 0.8px;
           text-align: center; margin-bottom: 12px;
         }
 
         .nl-refresh {
           background: none; border: none; cursor: pointer;
-          color: #bbf7d0; font-size: 12px; font-family: 'DM Sans', sans-serif;
+          color: #f1dcc0; font-size: 12px; font-family: 'Poppins', sans-serif;
+          font-weight: 600;
           display: flex; align-items: center; gap: 5px;
         }
         .nl-refresh:hover { color: #fff; }
@@ -539,7 +545,7 @@ export default function Newsletter() {
         .nl-download {
           background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
           border-radius: 8px; padding: 6px 12px; color: #fff;
-          font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+          font-size: 12px; font-weight: 600; font-family: 'Poppins', sans-serif;
           cursor: pointer; display: flex; align-items: center; gap: 5px;
           transition: background 0.15s; flex-shrink: 0;
         }
@@ -548,7 +554,7 @@ export default function Newsletter() {
         .nl-eye {
           background: rgba(255,255,255,0.2); border: none; border-radius: 8px;
           padding: 6px 12px; color: #fff; font-size: 12px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          font-family: 'Poppins', sans-serif; cursor: pointer;
           display: flex; align-items: center; gap: 5px;
           transition: background 0.15s; flex-shrink: 0;
         }
@@ -560,7 +566,7 @@ export default function Newsletter() {
           .nl-sub-grid { grid-template-columns: 1fr; }
           .nl-2col { grid-template-columns: 1fr; }
           .nl-builder-body { flex-direction: column; }
-          .nl-form.half { width: 100%; border-right: none; border-bottom: 1px solid #f0fdf4; }
+          .nl-form.half { width: 100%; border-right: none; border-bottom: 1px solid #f5ece0; }
           .nl-preview-panel { width: 100%; }
         }
         @media (max-width: 420px) {
@@ -575,25 +581,25 @@ export default function Newsletter() {
         {/* Stats */}
         <div className="nl-stats">
           <div className="nl-stat">
-            <div className="nl-stat-icon" style={{ background: "#dcfce7" }}>
-              <Users size={20} color="#166534" />
+            <div className="nl-stat-icon" style={{ background: "#f5ece0" }}>
+              <Users size={20} color="#920609" />
             </div>
             <div>
-              <div className="nl-stat-num" style={{ color: "#166534" }}>{subscribers.length}</div>
+              <div className="nl-stat-num" style={{ color: "#920609" }}>{subscribers.length}</div>
               <div className="nl-stat-label">Total Subscribers</div>
             </div>
           </div>
           <div className="nl-stat">
-            <div className="nl-stat-icon" style={{ background: "#dbeafe" }}>✅</div>
+            <div className="nl-stat-icon" style={{ background: "#f5ece0" }}>✅</div>
             <div>
-              <div className="nl-stat-num" style={{ color: "#1d4ed8" }}>{selected.size}</div>
+              <div className="nl-stat-num" style={{ color: "#a16d36" }}>{selected.size}</div>
               <div className="nl-stat-label">Selected</div>
             </div>
           </div>
           <div className="nl-stat">
-            <div className="nl-stat-icon" style={{ background: "#ede9fe" }}>📧</div>
+            <div className="nl-stat-icon" style={{ background: "#fbe9ea" }}>📧</div>
             <div>
-              <div className="nl-stat-num" style={{ color: "#7c3aed" }}>{willReceive}</div>
+              <div className="nl-stat-num" style={{ color: "#c42126" }}>{willReceive}</div>
               <div className="nl-stat-label">Will Receive</div>
             </div>
           </div>
@@ -633,7 +639,7 @@ export default function Newsletter() {
           <div className="nl-sub-grid">
             {loading ? (
               <div className="nl-empty">
-                <div className="nl-spin" style={{ borderColor: "#d1fae5", borderTopColor: "#16a34a" }} />
+                <div className="nl-spin" style={{ borderColor: "#e3cfb2", borderTopColor: "#c42126" }} />
                 <span>Loading...</span>
               </div>
             ) : filtered.length === 0 ? (
@@ -817,7 +823,7 @@ export default function Newsletter() {
                   <div className="nl-pdf-list">
                     {pdfFiles.map((file, index) => (
                       <div key={index} className="nl-pdf-item">
-                        <FileText size={15} color="#16a34a" style={{ flexShrink: 0 }} />
+                        <FileText size={15} color="#a16d36" style={{ flexShrink: 0 }} />
                         <span className="nl-pdf-item-name">{file.name}</span>
                         <div className="nl-pdf-item-actions">
                           <button
@@ -888,7 +894,7 @@ export default function Newsletter() {
 
                 {historyLoading ? (
                   <div className="nl-empty">
-                    <div className="nl-spin" style={{ borderColor: "#d1fae5", borderTopColor: "#16a34a" }} />
+                    <div className="nl-spin" style={{ borderColor: "#e3cfb2", borderTopColor: "#c42126" }} />
                     <span>Loading history...</span>
                   </div>
                 ) : history.length === 0 ? (
@@ -900,16 +906,16 @@ export default function Newsletter() {
                   <div>
                     {history.map((item) => (
                       <div key={item._id} style={{
-                        padding: "14px 20px", borderBottom: "1px solid #f0fdf4",
+                        padding: "14px 20px", borderBottom: "1px solid #f5ece0",
                         display: "flex", gap: 14, alignItems: "flex-start"
                       }}>
                         <div style={{
-                          width: 44, height: 44, borderRadius: 12, background: "#dcfce7",
+                          width: 44, height: 44, borderRadius: 12, background: "#f5ece0",
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 20, flexShrink: 0
                         }}>📨</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: "#1f2937", marginBottom: 3 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: "#1f2937", marginBottom: 3 }}>
                             {item.subject}
                           </div>
                           {item.heading && (
@@ -924,7 +930,7 @@ export default function Newsletter() {
                             <span style={{ color: "#16a34a", fontWeight: 600 }}>✅ {item.sentTo} sent</span>
                             {item.failed > 0 && (
                               <><span>•</span>
-                              <span style={{ color: "#ef4444", fontWeight: 600 }}>❌ {item.failed} failed</span></>
+                              <span style={{ color: "#c42126", fontWeight: 600 }}>❌ {item.failed} failed</span></>
                             )}
                             {item.buttons?.length > 0 && (
                               <><span>•</span>
@@ -939,8 +945,8 @@ export default function Newsletter() {
                             <div style={{ marginTop: 5, display: "flex", flexWrap: "wrap", gap: 5 }}>
                               {item.pdfNames.map((name, i) => (
                                 <span key={i} style={{
-                                  fontSize: 11, background: "#f0fdf4", color: "#166534",
-                                  border: "1px solid #bbf7d0", borderRadius: 6, padding: "2px 8px"
+                                  fontSize: 11, background: "#fbf5ee", color: "#920609",
+                                  border: "1px solid #e3cfb2", borderRadius: 6, padding: "2px 8px"
                                 }}>📄 {name}</span>
                               ))}
                             </div>

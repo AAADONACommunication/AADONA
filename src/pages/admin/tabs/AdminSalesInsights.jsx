@@ -26,10 +26,12 @@ const bucketOf = (status) => {
 
 const amountOf = (q) => Number(q.negotiatedAmount ?? q.grandTotal ?? 0);
 
+// Brand: Aadona Communication
+// Red  #920609 → #c42126 | Gold #a16d36 | Font: Poppins SemiBold
 const BUCKET_COLORS = {
   accepted: "#16a34a",
-  pending: "#f59e0b",
-  rejected: "#dc2626",
+  pending: "#a16d36",
+  rejected: "#c42126",
 };
 
 const BUCKET_STYLES = {
@@ -42,22 +44,24 @@ const BUCKET_STYLES = {
   },
   pending: {
     icon: Clock,
-    badge: "bg-amber-100 text-amber-700 border border-amber-200",
-    dot: "bg-amber-500",
-    text: "text-amber-700",
-    softBg: "bg-amber-50 border-amber-100",
+    badge: "bg-[#a16d36]/10 text-[#a16d36] border border-[#a16d36]/30",
+    dot: "bg-[#a16d36]",
+    text: "text-[#a16d36]",
+    softBg: "bg-[#fbf6f0] border-[#efe3d3]",
   },
   rejected: {
     icon: XCircle,
-    badge: "bg-red-100 text-red-700 border border-red-200",
-    dot: "bg-red-500",
-    text: "text-red-700",
+    badge: "bg-red-100 text-[#c42126] border border-red-200",
+    dot: "bg-[#c42126]",
+    text: "text-[#c42126]",
     softBg: "bg-red-50 border-red-100",
   },
 };
 
 const InsightsMotionStyles = () => (
   <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+    .insights-root, .insights-root * { font-family: 'Poppins', sans-serif; }
     @keyframes insightsFadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
@@ -134,7 +138,7 @@ const PieChart = memo(function PieChart({
       </svg>
       {(centerLabel || centerValue !== undefined) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-2 pointer-events-none">
-          <span className="text-xl sm:text-2xl font-bold text-green-800 leading-tight">
+          <span className="text-xl sm:text-2xl font-semibold text-[#920609] leading-tight">
             {centerValue}
           </span>
           <span className="text-[10px] sm:text-xs font-medium text-gray-500 leading-tight">
@@ -165,7 +169,7 @@ const MetricCard = memo(function MetricCard({ icon: Icon, label, count, amount, 
     <div
       className={`rounded-2xl border p-4 transition-transform duration-200 hover:-translate-y-0.5 ${
         isTotal
-          ? "bg-gradient-to-br from-green-700 to-green-900 border-green-800 text-white shadow-sm hover:shadow-md"
+          ? "bg-gradient-to-br from-[#c42126] to-[#920609] border-[#920609] text-white shadow-sm hover:shadow-md"
           : `${BUCKET_STYLES[tone].softBg} hover:shadow-sm`
       }`}
     >
@@ -178,15 +182,15 @@ const MetricCard = memo(function MetricCard({ icon: Icon, label, count, amount, 
           <Icon size={17} className={isTotal ? "text-white" : BUCKET_STYLES[tone].text} />
         </span>
         {count !== undefined && (
-          <span className={`text-xs font-semibold ${isTotal ? "text-green-100" : "text-gray-500"}`}>
+          <span className={`text-xs font-semibold ${isTotal ? "text-white/80" : "text-gray-500"}`}>
             {count} qtn{count !== 1 ? "s" : ""}
           </span>
         )}
       </div>
-      <p className={`text-xs font-medium mb-1 ${isTotal ? "text-green-100" : "text-gray-600"}`}>
+      <p className={`text-xs font-medium mb-1 ${isTotal ? "text-white/80" : "text-gray-600"}`}>
         {label}
       </p>
-      <p className={`text-lg font-bold truncate ${isTotal ? "text-white" : "text-gray-800"}`}>
+      <p className={`text-lg font-semibold truncate ${isTotal ? "text-white" : "text-gray-800"}`}>
         ₹{amount.toFixed(2)}
       </p>
     </div>
@@ -196,10 +200,10 @@ const MetricCard = memo(function MetricCard({ icon: Icon, label, count, amount, 
 const EmptyState = memo(function EmptyState({ icon: Icon = Inbox, heading, description }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-14 px-6">
-      <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center mb-4">
-        <Icon size={22} className="text-green-600" />
+      <div className="w-14 h-14 rounded-2xl bg-[#fbf6f0] border border-[#efe3d3] flex items-center justify-center mb-4">
+        <Icon size={22} className="text-[#a16d36]" />
       </div>
-      <h4 className="text-sm font-bold text-gray-800 mb-1">{heading}</h4>
+      <h4 className="text-sm font-semibold text-gray-800 mb-1">{heading}</h4>
       <p className="text-sm text-gray-500 max-w-xs">{description}</p>
     </div>
   );
@@ -215,14 +219,14 @@ function PillSearchInput({ value, onChange, placeholder, ariaLabel }) {
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-green-200 bg-green-50/40 rounded-full pl-10 pr-9 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100"
+        className="w-full border border-[#e3cfb4] bg-[#fbf6f0]/60 rounded-full pl-10 pr-9 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition focus:bg-white focus:border-[#a16d36] focus:ring-4 focus:ring-[#efe3d3]"
       />
       {value && (
         <button
           type="button"
           onClick={() => onChange("")}
           aria-label="Clear search"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 rounded-full p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 transition"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 rounded-full p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a16d36] transition"
         >
           <X size={14} />
         </button>
@@ -233,9 +237,9 @@ function PillSearchInput({ value, onChange, placeholder, ariaLabel }) {
 
 function InsightsSkeleton() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 lg:space-y-8 animate-pulse">
+    <div className="insights-root max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 lg:space-y-8 animate-pulse">
       <div className="h-5 w-24 bg-gray-200 rounded" />
-      <div className="bg-white rounded-3xl border border-green-100 p-6 lg:p-8">
+      <div className="bg-white rounded-3xl border border-[#efe3d3] p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] gap-8 items-center">
           <div className="space-y-2">
             <div className="h-5 w-40 bg-gray-200 rounded" />
@@ -251,13 +255,13 @@ function InsightsSkeleton() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="w-full lg:w-[380px] shrink-0 bg-white rounded-3xl border border-green-100 p-5 space-y-3">
+        <div className="w-full lg:w-[380px] shrink-0 bg-white rounded-3xl border border-[#efe3d3] p-5 space-y-3">
           <div className="h-9 bg-gray-100 rounded-full" />
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-20 bg-gray-100 rounded-2xl" />
           ))}
         </div>
-        <div className="hidden lg:flex flex-1 bg-white rounded-3xl border border-green-100 p-8 items-center justify-center">
+        <div className="hidden lg:flex flex-1 bg-white rounded-3xl border border-[#efe3d3] p-8 items-center justify-center">
           <div className="h-4 w-48 bg-gray-100 rounded" />
         </div>
       </div>
@@ -430,7 +434,8 @@ export default function Insights() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="insights-root max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <InsightsMotionStyles />
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3.5 rounded-2xl text-sm insights-fade-in">
           {error}
         </div>
@@ -447,24 +452,21 @@ export default function Insights() {
       ];
 
   return (
-    // ════════ Page container - gives the whole page consistent side padding
-    //          so nothing (especially the back button) sits flush against the corner ════════
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 lg:space-y-8">
+    <div className="insights-root max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 lg:space-y-8">
       <InsightsMotionStyles />
 
-      {/* ════════ Header row - back button, page title, and approved-filter badge all
-                  live together on one clean, vertically-centered line ════════ */}
+      {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={() => navigate(-1)}
             aria-label="Go back"
-            className="flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-white border border-green-100 text-green-700 hover:bg-green-50 hover:border-green-200 shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+            className="flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-white border border-[#efe3d3] text-[#920609] hover:bg-[#fbf6f0] hover:border-[#e3cfb4] shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a16d36]"
           >
             <ChevronLeft size={18} />
           </button>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold text-green-800 truncate">
+            <h1 className="text-lg sm:text-xl font-semibold text-[#920609] truncate">
               {isApprovedOnly ? "Approved Quotations" : "Quotation Insights"}
             </h1>
             <p className="text-xs text-gray-500 truncate">
@@ -478,7 +480,7 @@ export default function Insights() {
         {isApprovedOnly && (
           <button
             onClick={handleClearFunnelFilter}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 px-3 py-1.5 rounded-full transition shrink-0"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#920609] bg-[#fbf6f0] border border-[#e3cfb4] hover:bg-[#f5ede1] px-3 py-1.5 rounded-full transition shrink-0"
           >
             <CheckCircle2 size={13} />
             Approved only · Tap to view all
@@ -486,11 +488,11 @@ export default function Insights() {
         )}
       </div>
 
-      {/* ════════ Overview card ════════ */}
-      <div className="bg-white rounded-3xl shadow-sm border border-green-100 p-5 sm:p-6 lg:p-8 insights-fade-in">
+      {/* Overview card */}
+      <div className="bg-white rounded-3xl shadow-sm border border-[#efe3d3] p-5 sm:p-6 lg:p-8 insights-fade-in">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto] gap-6 lg:gap-8 items-center">
           <div className="min-w-0">
-            <h2 className="text-base sm:text-lg font-bold text-green-800 mb-1">
+            <h2 className="text-base sm:text-lg font-semibold text-[#920609] mb-1">
               {isApprovedOnly ? "Approved Total" : "Overview"}
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed">
@@ -550,19 +552,19 @@ export default function Insights() {
         </div>
       </div>
 
-      {/* ════════ Partners - master list + detail panel ════════ */}
+      {/* Partners - master list + detail panel */}
       <div className="flex flex-col lg:flex-row gap-6 lg:items-start">
         <div
           className={`${
             selectedPartnerId ? "hidden lg:flex" : "flex"
-          } flex-col w-full lg:w-[360px] shrink-0 bg-white rounded-3xl shadow-sm border border-green-100 overflow-hidden insights-fade-in`}
+          } flex-col w-full lg:w-[360px] shrink-0 bg-white rounded-3xl shadow-sm border border-[#efe3d3] overflow-hidden insights-fade-in`}
         >
-          <div className="p-5 pb-4 border-b border-green-50">
+          <div className="p-5 pb-4 border-b border-[#f5ede1]">
             <div className="flex items-center gap-2 mb-4">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-green-50">
-                <Users size={16} className="text-green-700" />
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-[#fbf6f0]">
+                <Users size={16} className="text-[#a16d36]" />
               </span>
-              <h3 className="text-base font-bold text-green-800">
+              <h3 className="text-base font-semibold text-[#920609]">
                 Partners{" "}
                 <span className="font-normal text-gray-400 text-sm">
                   ({partners.length})
@@ -577,7 +579,7 @@ export default function Insights() {
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto lg:max-h-[calc(100vh-320px)] divide-y divide-green-50">
+          <div className="flex-1 overflow-y-auto lg:max-h-[calc(100vh-320px)] divide-y divide-[#f5ede1]">
             {filteredPartners.length === 0 ? (
               <EmptyState
                 icon={partners.length === 0 ? Inbox : Search}
@@ -598,8 +600,8 @@ export default function Insights() {
                     key={p.id}
                     onClick={() => handleSelectPartner(p.id)}
                     aria-current={isActive}
-                    className={`w-full text-left px-5 py-4 flex items-start justify-between gap-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-400 ${
-                      isActive ? "bg-green-50" : "hover:bg-green-50/60"
+                    className={`w-full text-left px-5 py-4 flex items-start justify-between gap-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#a16d36] ${
+                      isActive ? "bg-[#fbf6f0]" : "hover:bg-[#fbf6f0]/70"
                     }`}
                   >
                     <div className="min-w-0 flex-1">
@@ -625,14 +627,14 @@ export default function Insights() {
                           </>
                         )}
                       </div>
-                      <p className="text-sm font-bold text-gray-800 mt-1.5">
+                      <p className="text-sm font-semibold text-gray-800 mt-1.5">
                         ₹{p.grandTotal.toFixed(2)}
                       </p>
                     </div>
                     <ChevronRight
                       size={16}
                       className={`mt-1 shrink-0 transition-transform ${
-                        isActive ? "text-green-600 translate-x-0.5" : "text-gray-300"
+                        isActive ? "text-[#a16d36] translate-x-0.5" : "text-gray-300"
                       }`}
                     />
                   </button>
@@ -649,25 +651,25 @@ export default function Insights() {
         >
           {!selectedPartner ? (
             <div className="hidden lg:flex flex-col gap-6">
-              <div className="bg-white rounded-3xl shadow-sm border border-green-100 px-8 py-10 flex flex-col items-center text-center">
-                <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center mb-4">
-                  <TrendingUp size={22} className="text-green-600" />
+              <div className="bg-white rounded-3xl shadow-sm border border-[#efe3d3] px-8 py-10 flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-2xl bg-[#fbf6f0] border border-[#efe3d3] flex items-center justify-center mb-4">
+                  <TrendingUp size={22} className="text-[#a16d36]" />
                 </div>
-                <h4 className="text-sm font-bold text-gray-800 mb-1">Select a partner</h4>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Select a partner</h4>
                 <p className="text-sm text-gray-500 max-w-xs">
                   Choose a partner from the list to see their quotation history and totals.
                 </p>
               </div>
 
               {topPartnersByValue.length > 0 && (
-                <div className="bg-white rounded-3xl shadow-sm border border-green-100 p-6">
-                  <h4 className="text-sm font-bold text-green-800 mb-4">Top partners by value</h4>
+                <div className="bg-white rounded-3xl shadow-sm border border-[#efe3d3] p-6">
+                  <h4 className="text-sm font-semibold text-[#920609] mb-4">Top partners by value</h4>
                   <div className="space-y-2">
                     {topPartnersByValue.map((p) => (
                       <button
                         key={p.id}
                         onClick={() => handleSelectPartner(p.id)}
-                        className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-green-50 hover:border-green-200 hover:bg-green-50/60 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-[#f5ede1] hover:border-[#e3cfb4] hover:bg-[#fbf6f0]/70 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a16d36]"
                       >
                         <div className="min-w-0 text-left">
                           <p className="text-sm font-semibold text-gray-800 truncate">
@@ -678,7 +680,7 @@ export default function Insights() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-sm font-bold text-gray-800">
+                          <span className="text-sm font-semibold text-gray-800">
                             ₹{p.grandTotal.toFixed(2)}
                           </span>
                           <ChevronRight size={15} className="text-gray-300" />
@@ -693,15 +695,15 @@ export default function Insights() {
             <>
               <button
                 onClick={handleBackToList}
-                className="lg:hidden flex items-center gap-1.5 text-sm font-semibold text-green-700 hover:underline w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 rounded"
+                className="lg:hidden flex items-center gap-1.5 text-sm font-semibold text-[#920609] hover:underline w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a16d36] rounded"
               >
                 <ChevronLeft size={16} /> Back to all partners
               </button>
 
-              <div className="bg-white rounded-3xl shadow-sm border border-green-100 p-6 insights-fade-in">
+              <div className="bg-white rounded-3xl shadow-sm border border-[#efe3d3] p-6 insights-fade-in">
                 <div className="flex flex-wrap items-start justify-between gap-6">
                   <div className="min-w-0">
-                    <h2 className="text-lg font-bold text-green-800 break-words">
+                    <h2 className="text-lg font-semibold text-[#920609] break-words">
                       {selectedPartner.customer?.personalName || "Unknown Partner"}
                     </h2>
                     {selectedPartner.customer?.companyName && (
@@ -788,9 +790,9 @@ export default function Insights() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl shadow-sm border border-green-100 overflow-hidden insights-fade-in-delay-1">
-                <div className="px-6 pt-5 pb-4 border-b border-green-50">
-                  <h3 className="text-sm font-bold text-green-800 mb-3">
+              <div className="bg-white rounded-3xl shadow-sm border border-[#efe3d3] overflow-hidden insights-fade-in-delay-1">
+                <div className="px-6 pt-5 pb-4 border-b border-[#f5ede1]">
+                  <h3 className="text-sm font-semibold text-[#920609] mb-3">
                     {isApprovedOnly ? "Approved quotations with " : "Quotations with "}
                     {selectedPartner.customer?.personalName || "this partner"}
                   </h3>
@@ -822,7 +824,7 @@ export default function Insights() {
                       {partnerDetail.filteredQuotations.map((q) => (
                         <div
                           key={q._id}
-                          className="border border-green-100 rounded-2xl p-4 transition hover:border-green-300 hover:shadow-sm"
+                          className="border border-[#efe3d3] rounded-2xl p-4 transition hover:border-[#d4b48a] hover:shadow-sm"
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <p className="font-semibold text-gray-800 text-sm break-words">
@@ -843,7 +845,7 @@ export default function Insights() {
                             <span>
                               {q.createdAt ? new Date(q.createdAt).toLocaleDateString() : "-"}
                             </span>
-                            <span className="font-bold text-gray-800 text-sm">
+                            <span className="font-semibold text-gray-800 text-sm">
                               ₹{amountOf(q).toFixed(2)}
                             </span>
                           </div>
@@ -854,7 +856,7 @@ export default function Insights() {
                     <div className="hidden sm:block overflow-auto max-h-[520px]">
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 z-10">
-                          <tr className="bg-green-700 text-white text-left">
+                          <tr className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white text-left">
                             <th className="px-4 py-3 font-semibold">Quotation #</th>
                             <th className="px-4 py-3 font-semibold">End Customer</th>
                             <th className="px-4 py-3 font-semibold">Date</th>
@@ -866,7 +868,7 @@ export default function Insights() {
                           {partnerDetail.filteredQuotations.map((q) => (
                             <tr
                               key={q._id}
-                              className="border-b border-green-50 transition-colors hover:bg-green-50/60"
+                              className="border-b border-[#f5ede1] transition-colors hover:bg-[#fbf6f0]/70"
                             >
                               <td className="px-4 py-3 font-medium text-gray-800">
                                 {q.quotationNumber || q._id?.slice(-6).toUpperCase()}

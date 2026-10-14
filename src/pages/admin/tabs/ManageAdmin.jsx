@@ -182,26 +182,28 @@ export default function ManageAdmin({
   };
 
   return (
-    <>
+    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');`}</style>
+      {/* Brand: Aadona Communication — Red #920609 → #c42126 | Gold #a16d36 | Poppins */}
 
-      <h1 className="text-2xl font-extrabold text-green-800 mb-4">
+      <h1 className="text-2xl font-semibold text-[#920609] mb-4">
         Manage Admins – AADONA Admin Panel
       </h1>
 
       {/* ── Create Admin Form ── */}
       {showAdminForm && (
-        <div className="bg-white p-6 rounded-3xl shadow-xl border border-green-100 mb-8">
+        <div className="bg-white p-6 rounded-3xl shadow-xl border border-[#efe3d3] mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-green-800">Create New Admin</h2>
+            <h2 className="text-lg font-semibold text-[#920609]">Create New Admin</h2>
             <div className="flex items-center gap-2">
               {[1, 2, 3].map((s) => (
                 <div key={s} className="flex items-center gap-1">
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                       adminStep > s
-                        ? "bg-green-600 text-white"
+                        ? "bg-[#920609] text-white"
                         : adminStep === s
-                        ? "bg-green-600 text-white ring-4 ring-green-100"
+                        ? "bg-[#920609] text-white ring-4 ring-[#efe3d3]"
                         : "bg-gray-100 text-gray-400"
                     }`}
                   >
@@ -209,7 +211,7 @@ export default function ManageAdmin({
                   </div>
                   {s < 3 && (
                     <div
-                      className={`w-8 h-0.5 ${adminStep > s ? "bg-green-600" : "bg-gray-200"}`}
+                      className={`w-8 h-0.5 ${adminStep > s ? "bg-[#920609]" : "bg-gray-200"}`}
                     />
                   )}
                 </div>
@@ -228,7 +230,7 @@ export default function ManageAdmin({
           {adminStep === 1 && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">
+                <label className="block text-sm font-medium text-[#920609] mb-2">
                   New Admin's Email
                 </label>
                 <input
@@ -246,7 +248,7 @@ export default function ManageAdmin({
               <button
                 onClick={sendOtp}
                 disabled={adminBtnLoading}
-                className="bg-green-600 text-white px-8 py-2.5 rounded-xl hover:bg-green-700 transition font-semibold disabled:bg-gray-300 flex items-center gap-2"
+                className="bg-gradient-to-br from-[#920609] to-[#c42126] text-white px-8 py-2.5 rounded-xl hover:opacity-90 transition font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {adminBtnLoading ? (
                   <>
@@ -263,17 +265,17 @@ export default function ManageAdmin({
           {/* Step 2 - OTP */}
           {adminStep === 2 && (
             <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
+              <div className="bg-[#fbf6f0] border border-[#e3cfb4] rounded-xl px-4 py-3 flex items-center gap-3">
                 <span className="text-xl">📧</span>
                 <div>
-                  <p className="text-sm font-semibold text-green-800">
-                    OTP sent to <span className="font-bold">{adminEmail}</span>
+                  <p className="text-sm font-semibold text-[#920609]">
+                    OTP sent to <span className="font-semibold">{adminEmail}</span>
                   </p>
                   <p className="text-xs text-gray-500">Check spam folder if not received.</p>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">
+                <label className="block text-sm font-medium text-[#920609] mb-2">
                   Enter OTP
                 </label>
                 <input
@@ -284,13 +286,13 @@ export default function ManageAdmin({
                     setAdminOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
                   }
                   onKeyDown={(e) => e.key === "Enter" && verifyOtp()}
-                  className="w-full border border-green-300 rounded-xl px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-300 outline-none transition bg-white tracking-[0.5em] text-center text-xl font-bold"
+                  className="w-full border border-[#e3cfb4] rounded-xl px-4 py-3 focus:border-[#a16d36] focus:ring-2 focus:ring-[#efe3d3] outline-none transition bg-white tracking-[0.5em] text-center text-xl font-semibold"
                   maxLength={6}
                 />
                 {otpTimer > 0 && (
                   <p className="text-xs text-gray-400 mt-1 text-center">
                     Expires in{" "}
-                    <span className="font-bold text-orange-500">
+                    <span className="font-semibold text-[#a16d36]">
                       {Math.floor(otpTimer / 60)}:
                       {String(otpTimer % 60).padStart(2, "0")}
                     </span>
@@ -299,7 +301,7 @@ export default function ManageAdmin({
                 {otpTimer === 0 && adminStep === 2 && (
                   <button
                     onClick={sendOtp}
-                    className="text-xs text-green-600 font-semibold mt-1 hover:underline block"
+                    className="text-xs text-[#920609] font-semibold mt-1 hover:underline block"
                   >
                     Resend OTP
                   </button>
@@ -309,7 +311,7 @@ export default function ManageAdmin({
                 <button
                   onClick={verifyOtp}
                   disabled={adminBtnLoading || adminOtp.length < 4}
-                  className="bg-green-600 text-white px-8 py-2.5 rounded-xl hover:bg-green-700 transition font-semibold disabled:bg-gray-300 flex items-center gap-2"
+                  className="bg-gradient-to-br from-[#920609] to-[#c42126] text-white px-8 py-2.5 rounded-xl hover:opacity-90 transition font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {adminBtnLoading ? (
                     <>
@@ -337,11 +339,11 @@ export default function ManageAdmin({
                 <span>✅</span>
                 <p className="text-sm font-semibold text-green-800">
                   Email verified! Set password for{" "}
-                  <span className="font-bold">{adminEmail}</span>
+                  <span className="font-semibold">{adminEmail}</span>
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">
+                <label className="block text-sm font-medium text-[#920609] mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -387,7 +389,7 @@ export default function ManageAdmin({
                 )}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">
+                <label className="block text-sm font-medium text-[#920609] mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -401,7 +403,7 @@ export default function ManageAdmin({
                         ? adminPassword === adminConfirmPassword
                           ? "border-green-400 focus:ring-green-300"
                           : "border-red-300 focus:ring-red-200"
-                        : "border-green-300 focus:ring-green-300"
+                        : "border-[#e3cfb4] focus:ring-[#efe3d3] focus:border-[#a16d36]"
                     }`}
                   />
                   <button
@@ -426,7 +428,7 @@ export default function ManageAdmin({
                     adminPassword !== adminConfirmPassword ||
                     !adminConfirmPassword
                   }
-                  className="bg-green-600 text-white px-8 py-2.5 rounded-xl hover:bg-green-700 transition font-semibold disabled:bg-gray-300 flex items-center gap-2"
+                  className="bg-gradient-to-br from-[#920609] to-[#c42126] text-white px-8 py-2.5 rounded-xl hover:opacity-90 transition font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {adminBtnLoading ? (
                     <>
@@ -451,13 +453,13 @@ export default function ManageAdmin({
 
       {/* ── Admin List ── */}
       {showAdminList && (
-        <div className="bg-white p-6 rounded-3xl shadow-xl border border-orange-100 mb-8">
+        <div className="bg-white p-6 rounded-3xl shadow-xl border border-[#efe3d3] mb-8">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-bold text-gray-800">👥 All Admins</h2>
+            <h2 className="text-lg font-semibold text-[#920609]">👥 All Admins</h2>
             <button
               onClick={loadAdminList}
               disabled={adminListLoading}
-              className="text-xs text-green-600 font-semibold hover:text-green-800 transition"
+              className="text-xs text-[#a16d36] font-semibold hover:text-[#920609] transition"
             >
               {adminListLoading ? "Loading..." : "🔄 Refresh"}
             </button>
@@ -470,52 +472,52 @@ export default function ManageAdmin({
             <div className="py-8 text-center text-gray-400 italic">No admins found.</div>
           ) : (
             <div className="space-y-3">
-  {adminList.map((admin) => (
-    <div
-      key={admin.uid}
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 border border-gray-100 rounded-2xl px-4 sm:px-5 py-4 hover:bg-orange-50/40 transition"
-    >
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm flex-shrink-0">
-          {admin.email?.[0]?.toUpperCase() || "A"}
-        </div>
+              {adminList.map((admin) => (
+                <div
+                  key={admin.uid}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#fbf6f0]/50 border border-[#efe3d3] rounded-2xl px-4 sm:px-5 py-4 hover:bg-[#fbf6f0] transition"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#920609] to-[#c42126] flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      {admin.email?.[0]?.toUpperCase() || "A"}
+                    </div>
 
-        <div className="min-w-0">
-          <p className="font-semibold text-gray-800 text-sm break-all">
-            {admin.email}
-          </p>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-800 text-sm break-all">
+                        {admin.email}
+                      </p>
 
-          <p className="text-xs text-gray-400 break-all">
-            UID: {admin.uid.slice(0, 12)}...
-            {admin.lastSignIn && (
-              <> · Last login: {new Date(admin.lastSignIn).toLocaleDateString()}</>
-            )}
-          </p>
-        </div>
-      </div>
+                      <p className="text-xs text-gray-400 break-all">
+                        UID: {admin.uid.slice(0, 12)}...
+                        {admin.lastSignIn && (
+                          <> · Last login: {new Date(admin.lastSignIn).toLocaleDateString()}</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
-      <button
-        onClick={() => removeAdmin(admin.uid, admin.email)}
-        disabled={removeAdminLoading === admin.uid}
-        className="flex items-center justify-center gap-1.5 text-xs bg-red-50 text-red-500 border border-red-100 px-3 sm:px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white hover:border-red-500 transition font-semibold disabled:opacity-50 w-full sm:w-auto"
-      >
-        {removeAdminLoading === admin.uid ? (
-          <>
-            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            Removing...
-          </>
-        ) : (
-          <>
-            <Trash2 size={13} /> Remove
-          </>
-        )}
-      </button>
-    </div>
-  ))}
-</div>
+                  <button
+                    onClick={() => removeAdmin(admin.uid, admin.email)}
+                    disabled={removeAdminLoading === admin.uid}
+                    className="flex items-center justify-center gap-1.5 text-xs bg-red-50 text-[#c42126] border border-red-100 px-3 sm:px-4 py-2 rounded-xl hover:bg-[#c42126] hover:text-white hover:border-[#c42126] transition font-semibold disabled:opacity-50 w-full sm:w-auto"
+                  >
+                    {removeAdminLoading === admin.uid ? (
+                      <>
+                        <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Removing...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 size={13} /> Remove
+                      </>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }
