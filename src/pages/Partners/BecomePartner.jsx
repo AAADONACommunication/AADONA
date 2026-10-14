@@ -5,6 +5,11 @@ import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.avif";
 import bapbanner from "../../assets/BecomePartnerBanner.avif";
 
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36, light #e6c77a), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
+
 // ─── Reveal Animation ─────────────────────────────────────────────────────────
 
 const Reveal = ({ children, className = "" }) => {
@@ -39,8 +44,9 @@ const Reveal = ({ children, className = "" }) => {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const liftCard =
-  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-green-200/60 " +
-  "border border-green-300 hover:border-green-500 transition-all duration-500 ease-out hover:-translate-y-1";
+  "rounded-2xl bg-white p-6 shadow-md hover:shadow-2xl hover:shadow-[#c79d47]/40 " +
+  "border border-[#c79d47]/50 border-l-4 border-l-[#c79d47] hover:border-[#c79d47] " +
+  "transition-all duration-500 ease-out hover:-translate-y-1";
 
 const COUNTRIES = [
   "Afghanistan","Aland Islands","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla",
@@ -157,7 +163,7 @@ const JSON_LD = JSON.stringify({
 const SelectField = ({ id, name, label, required, value, onChange, options, errors, inputClass }) => (
   <div className="flex flex-col">
     <label htmlFor={id} className="text-sm text-gray-600 mb-2 font-normal">
-      {label}{required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+      {label}{required && <span className="text-[#c42126] ml-1" aria-hidden="true">*</span>}
     </label>
     <select
       id={id} name={name}
@@ -176,7 +182,7 @@ const SelectField = ({ id, name, label, required, value, onChange, options, erro
 const InputField = ({ id, name, label, required, type = "text", placeholder, value, onChange, errors, inputClass, maxLength, autoComplete, inputMode }) => (
   <div className="flex flex-col">
     <label htmlFor={id} className="text-sm text-gray-600 mb-2 font-normal">
-      {label}{required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+      {label}{required && <span className="text-[#c42126] ml-1" aria-hidden="true">*</span>}
     </label>
     <input
       id={id} name={name} type={type}
@@ -300,18 +306,27 @@ export default function BecomePartner() {
   };
 
   const inputClasses =
-    "p-4 rounded-lg border border-blue-200 bg-white text-base transition-all " +
-    "focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 " +
+    "p-4 rounded-lg border border-[#c79d47]/60 bg-white text-base transition-all " +
+    "hover:border-[#c79d47] " +
+    "focus:outline-none focus:border-[#c79d47] focus:ring-2 focus:ring-[#c79d47] " +
+    "focus:shadow-[0_0_0_4px_rgba(199,157,71,0.18)] " +
     "text-gray-800 w-full placeholder:text-gray-400";
 
   const sharedProps = { errors, inputClass: inputClasses, onChange: handleChange };
+
+  const sectionHeading =
+    "text-lg font-semibold text-[#920609] border-b-2 border-[#c79d47]/60 border-l-4 border-l-[#c79d47] pl-3 pb-2";
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <>
       {/* ─── SEO ────────────────────────────────────────────────────────── */}
       <Helmet>
-        <title>Become a Partner | Your Company Name</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+        <title>Become a Partner | Aadona Communication</title>
         <meta
           name="description"
           content="Apply to become a distributor, system integrator, or solutions consultant. Join our expanding partner network and grow your business with exclusive benefits."
@@ -320,12 +335,12 @@ export default function BecomePartner() {
         <link rel="canonical" href={typeof window !== "undefined" ? window.location.href : ""} />
 
         <meta property="og:type"        content="website" />
-        <meta property="og:title"       content="Become a Partner | Your Company Name" />
+        <meta property="og:title"       content="Become a Partner | Aadona Communication" />
         <meta property="og:description" content="Join our partner network as a distributor, system integrator, or solutions consultant." />
         <meta property="og:url"         content={typeof window !== "undefined" ? window.location.href : ""} />
 
         <meta name="twitter:card"        content="summary" />
-        <meta name="twitter:title"       content="Become a Partner | Your Company Name" />
+        <meta name="twitter:title"       content="Become a Partner | Aadona Communication" />
         <meta name="twitter:description" content="Apply to join our partner network today." />
 
         <script type="application/ld+json">{JSON_LD}</script>
@@ -334,24 +349,31 @@ export default function BecomePartner() {
       <Navbar />
 
       {/* ─── Hero ───────────────────────────────────────────────────────── */}
-         <header
-                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${bapbanner})` }}
-                      aria-label="Become Partner herbanner"
-                    >
-                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
-                          Become a Partner
-                        </h1>
-                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
-                           Join our success story with a low risk, rapidly expanding business
-                              </p>
-                      </div>
-                    </header>
+      <header
+        className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${bapbanner})` }}
+        aria-label="Become Partner hero banner"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-semibold text-gray-100 sm:text-5xl md:text-6xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+            Become a Partner
+          </h1>
+          <div/>
+          <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+            Join our success story with a low risk, rapidly expanding business
+          </p>
+        </div>
+      </header>
 
       {/* ─── Body ───────────────────────────────────────────────────────── */}
-      <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
-        <div className="max-w-7xl mx-auto px-4 py-12 -mt-8">
+      <div className="relative bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
+        {/* Soft gold wash */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-b from-[#c79d47]/10 to-transparent pointer-events-none"
+        />
+
+        <div className="relative max-w-7xl mx-auto px-4 py-12 -mt-8">
 
           {/* ── Partner type cards ──────────────────────────────────────── */}
           <section aria-label="Partner types" className="py-6 mb-12">
@@ -384,7 +406,9 @@ export default function BecomePartner() {
               ].map(({ title, body }) => (
                 <Reveal key={title}>
                   <article className={liftCard}>
-                    <h2 className="text-xl font-bold text-teal-900 mb-2">{title}</h2>
+                    <h2 className="text-xl font-semibold text-[#920609] mb-3 pb-2 border-b border-[#c79d47]/40 inline-block">
+                      {title}
+                    </h2>
                     <p className="text-slate-700">{body}</p>
                   </article>
                 </Reveal>
@@ -395,16 +419,16 @@ export default function BecomePartner() {
           {/* ── Application form ────────────────────────────────────────── */}
           <main
             id="main-content"
-            className="flex justify-center -mt-4 px-5 pb-10"
+            className="relative flex justify-center -mt-4 px-5 pb-10"
             aria-label="Partner application form"
           >
-            <div className="relative bg-white w-full max-w-6xl rounded-3xl p-12 shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+            <div className="relative bg-white w-full max-w-6xl rounded-3xl p-12 border border-[#c79d47]/30 shadow-[0_10px_50px_rgba(199,157,71,0.28)]">
               <div
                 aria-hidden="true"
-                className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-t-3xl"
+                className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#a16d36] via-[#e6c77a] to-[#920609] rounded-t-3xl"
               />
 
-              <h2 className="text-3xl text-emerald-700 text-center mb-6 font-normal">
+              <h2 className="text-3xl text-[#920609] text-center mb-6 font-semibold">
                 Partner Application
               </h2>
 
@@ -413,17 +437,17 @@ export default function BecomePartner() {
                 <section
                   role="status"
                   aria-live="polite"
-                  className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-8 text-center"
+                  className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-8 text-center"
                 >
                   <svg
-                    className="mx-auto mb-4 h-12 w-12 text-green-500"
+                    className="mx-auto mb-4 h-12 w-12 text-[#c79d47]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <p className="font-semibold text-lg">Application submitted successfully!</p>
-                  <p className="mt-2 text-sm text-green-700">We'll get back to you soon.</p>
+                  <p className="mt-2 text-sm text-[#c42126]">We'll get back to you soon.</p>
                 </section>
               )}
 
@@ -444,7 +468,7 @@ export default function BecomePartner() {
                     </div>
                   )}
 
-                  {/* 🍯 Honeypot */}
+                  {/* Honeypot */}
                   <div aria-hidden="true" className="hidden" tabIndex={-1}>
                     <label htmlFor="_honeypot">Leave this field empty</label>
                     <input
@@ -455,7 +479,7 @@ export default function BecomePartner() {
                   </div>
 
                   {/* ── Section: Personal ───────────────────────────────── */}
-                  <h3 className="text-lg font-semibold text-emerald-700 border-b pb-2">
+                  <h3 className={sectionHeading}>
                     Personal &amp; Contact Information
                   </h3>
 
@@ -484,7 +508,7 @@ export default function BecomePartner() {
                       <InputField id="postalZip" name="postalZip" label="Postal / Zip Code" value={form.postalZip} autoComplete="postal-code" inputMode="numeric" placeholder="Enter postal or zip code" {...sharedProps} maxLength={12} />
                       <div className="flex flex-col">
                         <label htmlFor="country" className="text-sm text-gray-600 mb-2 font-normal">
-                          Country <span className="text-red-500 ml-1" aria-hidden="true">*</span>
+                          Country <span className="text-[#c42126] ml-1" aria-hidden="true">*</span>
                         </label>
                         <select
                           id="country" name="country"
@@ -503,7 +527,7 @@ export default function BecomePartner() {
                   </fieldset>
 
                   {/* ── Section: Business ───────────────────────────────── */}
-                  <h3 className="text-lg font-semibold text-emerald-700 border-b pb-2 pt-2">
+                  <h3 className={`${sectionHeading} pt-2`}>
                     Business Information
                   </h3>
 
@@ -530,13 +554,13 @@ export default function BecomePartner() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                       <SelectField id="marketSegmentExpertise" name="marketSegmentExpertise" label="Market Segment Expertise" required value={form.marketSegmentExpertise} options={MARKET_SEGMENTS}  {...sharedProps} />
-                      <SelectField id="wlanLanExpertise"       name="wlanLanExpertise"       label="WLAN &amp; LAN Expertise"          value={form.wlanLanExpertise}       options={YES_NO_PARTIAL}  {...sharedProps} />
+                      <SelectField id="wlanLanExpertise"       name="wlanLanExpertise"       label="WLAN & LAN Expertise"              value={form.wlanLanExpertise}       options={YES_NO_PARTIAL}  {...sharedProps} />
                       <InputField  id="brandsYouSell"          name="brandsYouSell"          label="Brands You Sell"                    value={form.brandsYouSell}          placeholder="Brands you currently sell" {...sharedProps} />
                     </div>
                   </fieldset>
 
                   {/* ── Section: Additional ─────────────────────────────── */}
-                  <h3 className="text-lg font-semibold text-emerald-700 border-b pb-2 pt-2">
+                  <h3 className={`${sectionHeading} pt-2`}>
                     Additional Details
                   </h3>
 
@@ -576,11 +600,12 @@ export default function BecomePartner() {
                       type="submit"
                       disabled={submitting}
                       aria-busy={submitting}
-                      className="bg-emerald-600 text-white font-semibold tracking-wider uppercase px-12 py-4 rounded-lg
-                                 text-lg transition-all duration-300 shadow-md hover:bg-emerald-700 hover:shadow-lg
-                                 focus:outline-none focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50
-                                 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                      className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white font-semibold px-12 py-4 rounded-lg
+                                 text-lg transition-all duration-300
+                                 border border-[#e6c77a]/70 shadow-[0_4px_16px_rgba(199,157,71,0.45)]
+                                 hover:from-[#c42126] hover:to-[#920609] hover:shadow-[0_6px_24px_rgba(199,157,71,0.65)] hover:-translate-y-0.5
+                                 focus:outline-none focus:ring-4 focus:ring-[#c79d47]/50
+                                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
                       {submitting ? (
                         <span className="flex items-center gap-2">
                           <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -594,7 +619,7 @@ export default function BecomePartner() {
                   </div>
 
                   <p className="text-center text-sm text-gray-500 mt-2">
-                    Fields marked with <span className="text-red-500">*</span> are required.
+                    Fields marked with <span className="text-[#c42126]">*</span> are required.
                   </p>
                 </form>
               )}

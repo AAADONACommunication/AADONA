@@ -6,6 +6,11 @@ import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.avif";
 import plbanner from "../../assets/ProjectLockBanner.avif";
 
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36, light #e6c77a), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
+
 const COUNTRIES = [
   "Afghanistan","Aland Islands","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antarctica",
   "Antigua and Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain",
@@ -56,7 +61,7 @@ export default function ProjectLocking() {
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // ── NEW: Product dropdown state ──
+  // Product dropdown state
   const [products, setProducts] = useState([]);
   const [modelSearch, setModelSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -66,7 +71,7 @@ export default function ProjectLocking() {
     window.scrollTo(0, 0);
   }, []);
 
-  // ── NEW: Fetch products from DB ──
+  // Fetch products from DB
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -80,7 +85,7 @@ export default function ProjectLocking() {
     fetchProducts();
   }, []);
 
-  // ── NEW: Close dropdown on outside click ──
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -91,7 +96,7 @@ export default function ProjectLocking() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ── NEW: Filtered products based on search ──
+  // Filtered products based on search
   const filteredProducts = products.filter((p) => {
     const search = modelSearch.toLowerCase();
     return (
@@ -157,14 +162,25 @@ export default function ProjectLocking() {
   }, [form, validate]);
 
   const inputClasses =
-    "py-3 px-4 rounded-lg border border-gray-300 bg-white text-base text-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-gray-400 shadow-sm w-full";
+    "py-3 px-4 rounded-lg border border-[#c79d47]/60 bg-white text-base text-gray-800 transition-all duration-200 " +
+    "hover:border-[#c79d47] " +
+    "focus:outline-none focus:ring-2 focus:ring-[#c79d47] focus:border-[#c79d47] " +
+    "focus:shadow-[0_0_0_4px_rgba(199,157,71,0.18)] " +
+    "placeholder:text-gray-400 shadow-sm w-full";
   const labelClasses = "text-sm font-medium text-gray-700 mb-1 block";
   const errorClasses = "text-red-500 text-xs mt-1";
+  const sectionHeading =
+    "text-xl font-semibold text-[#920609] border-b-2 border-[#c79d47]/60 border-l-4 border-l-[#c79d47] pl-3 pb-2";
 
   return (
     <>
-      {/* ── SEO Meta Tags ── */}
+      {/* ── SEO Meta Tags + Brand Font ── */}
       <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
         <title>Project Locking – Lock Inventory & Get Quotations | AADONA</title>
         <meta
           name="description"
@@ -193,38 +209,45 @@ export default function ProjectLocking() {
       <Navbar />
 
       {/* Hero Banner */}
-         <header
-                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${plbanner})` }}
-                      aria-label="Project Locking herbanner"
-                    >
-                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+      <header
+        className="pt-32 pb-16 bg-cover bg-center bg-no-repeat "
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${plbanner})` }}
+        aria-label="Project Locking hero banner"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-semibold text-gray-100 sm:text-5xl md:text-6xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
             Project Locking
-                        </h1>
-                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+          </h1>
+          <div/>
+          <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
             Submit project details to lock inventory / create quotations - our team will contact you
-                              </p>
-                      </div>
-                    </header>
+          </p>
+        </div>
+      </header>
 
       {/* Form Section */}
       <div
-        className="bg-cover bg-fixed py-16"
+        className="relative bg-cover bg-fixed py-16"
         style={{ backgroundImage: `url(${bg})` }}
       >
-        <main className="flex justify-center py-16 px-5" id="project-locking-form">
-          <div className="relative bg-white w-full max-w-5xl rounded-xl p-10 md:p-14 lg:p-16 shadow-2xl">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-green-600 rounded-t-xl" aria-hidden="true" />
+        {/* Soft gold wash */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-b from-[#c79d47]/10 to-transparent pointer-events-none"
+        />
+
+        <main className="relative flex justify-center py-16 px-5" id="project-locking-form">
+          <div className="relative bg-white w-full max-w-5xl rounded-xl p-10 md:p-14 lg:p-16 border border-[#c79d47]/30 shadow-[0_10px_50px_rgba(199,157,71,0.28)]">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#a16d36] via-[#e6c77a] to-[#920609] rounded-t-xl" aria-hidden="true" />
 
             {/* Success Message */}
             {submitted && (
               <div
                 role="alert"
                 aria-live="polite"
-                className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6 flex items-center justify-center gap-3"
+                className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-5 text-center font-semibold text-lg mb-6 flex items-center justify-center gap-3"
               >
-                <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" aria-hidden="true" />
+                <CheckCircle2 className="w-6 h-6 text-[#c79d47] shrink-0" aria-hidden="true" />
                 <span>Project application submitted successfully! Our team will contact you soon.</span>
               </div>
             )}
@@ -237,14 +260,14 @@ export default function ProjectLocking() {
                 className="flex flex-col gap-6"
               >
                 {/* ── Contact Info ── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 mb-4">
+                <h2 className={`${sectionHeading} mb-4`}>
                   Contact Information
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col">
                     <label htmlFor="firstName" className={labelClasses}>
-                      First Name <span className="text-red-500" aria-hidden="true">*</span>
+                      First Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="firstName" name="firstName" type="text"
@@ -257,7 +280,7 @@ export default function ProjectLocking() {
                   </div>
                   <div className="flex flex-col">
                     <label htmlFor="lastName" className={labelClasses}>
-                      Last Name <span className="text-red-500" aria-hidden="true">*</span>
+                      Last Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="lastName" name="lastName" type="text"
@@ -273,7 +296,7 @@ export default function ProjectLocking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col">
                     <label htmlFor="email" className={labelClasses}>
-                      Email <span className="text-red-500" aria-hidden="true">*</span>
+                      Email <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="email" name="email" type="email"
@@ -287,7 +310,7 @@ export default function ProjectLocking() {
                   </div>
                   <div className="flex flex-col">
                     <label htmlFor="phone" className={labelClasses}>
-                      Phone <span className="text-red-500" aria-hidden="true">*</span>
+                      Phone <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="phone" name="phone" type="tel"
@@ -302,13 +325,13 @@ export default function ProjectLocking() {
                 </div>
 
                 {/* ── Address ── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 pt-4 mb-4">
+                <h2 className={`${sectionHeading} pt-4 mb-4`}>
                   Address
                 </h2>
 
                 <div className="flex flex-col">
                   <label htmlFor="streetAddress" className={labelClasses}>
-                    Street Address Line 1 <span className="text-red-500" aria-hidden="true">*</span>
+                    Street Address Line 1 <span className="text-[#c42126]" aria-hidden="true">*</span>
                   </label>
                   <input
                     id="streetAddress" name="streetAddress" type="text"
@@ -334,7 +357,7 @@ export default function ProjectLocking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="flex flex-col">
                     <label htmlFor="city" className={labelClasses}>
-                      City <span className="text-red-500" aria-hidden="true">*</span>
+                      City <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="city" name="city" type="text"
@@ -347,7 +370,7 @@ export default function ProjectLocking() {
                   </div>
                   <div className="flex flex-col">
                     <label htmlFor="regionState" className={labelClasses}>
-                      State / Region <span className="text-red-500" aria-hidden="true">*</span>
+                      State / Region <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="regionState" name="regionState" type="text"
@@ -360,7 +383,7 @@ export default function ProjectLocking() {
                   </div>
                   <div className="flex flex-col">
                     <label htmlFor="postalZip" className={labelClasses}>
-                      Postal / Zip code <span className="text-red-500" aria-hidden="true">*</span>
+                      Postal / Zip code <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="postalZip" name="postalZip" type="text"
@@ -373,10 +396,10 @@ export default function ProjectLocking() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col">
                     <label htmlFor="country" className={labelClasses}>
-                      Country <span className="text-red-500" aria-hidden="true">*</span>
+                      Country <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <select
                       id="country" name="country"
@@ -403,16 +426,16 @@ export default function ProjectLocking() {
                 </div>
 
                 {/* ── Product & Project ── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 pt-4 mb-4">
-                  Product & Project Details
+                <h2 className={`${sectionHeading} pt-4 mb-4`}>
+                  Product &amp; Project Details
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                  {/* ── NEW: Searchable Model Dropdown ── */}
+                  {/* Searchable Model Dropdown */}
                   <div className="flex flex-col">
                     <label htmlFor="modelSearch" className={labelClasses}>
-                      Select Model <span className="text-red-500" aria-hidden="true">*</span>
+                      Select Model <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <div className="relative" ref={dropdownRef}>
                       <input
@@ -448,12 +471,12 @@ export default function ProjectLocking() {
 
                       {/* Selected checkmark badge */}
                       {form.modelName && !showDropdown && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 text-lg">✓</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c79d47] text-lg font-semibold">✓</span>
                       )}
 
                       {/* Dropdown list */}
                       {showDropdown && (
-                        <ul className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-56 overflow-y-auto mt-1">
+                        <ul className="absolute z-50 w-full bg-white border border-[#c79d47]/60 rounded-lg shadow-[0_8px_24px_rgba(199,157,71,0.3)] max-h-56 overflow-y-auto mt-1">
                           {products.length === 0 ? (
                             <li className="px-4 py-3 text-gray-400 text-sm">Loading products...</li>
                           ) : filteredProducts.length === 0 ? (
@@ -473,10 +496,10 @@ export default function ProjectLocking() {
                                     setShowDropdown(false);
                                     setErrors((prev) => ({ ...prev, modelName: undefined }));
                                   }}
-                                  className={`px-4 py-2 text-sm cursor-pointer border-b last:border-0 transition-colors ${
+                                  className={`px-4 py-2 text-sm cursor-pointer border-b border-[#c79d47]/20 last:border-0 transition-colors ${
                                     form.modelName === value
-                                      ? "bg-emerald-50 text-emerald-700 font-medium"
-                                      : "text-gray-700 hover:bg-emerald-50"
+                                      ? "bg-[#c79d47]/20 text-[#920609] font-medium border-l-4 border-l-[#c79d47]"
+                                      : "text-gray-700 hover:bg-[#c79d47]/10"
                                   }`}
                                 >
                                   {label}
@@ -492,7 +515,7 @@ export default function ProjectLocking() {
 
                   <div className="flex flex-col">
                     <label htmlFor="quantity" className={labelClasses}>
-                      Quantity <span className="text-red-500" aria-hidden="true">*</span>
+                      Quantity <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="quantity" name="quantity" type="number"
@@ -506,10 +529,9 @@ export default function ProjectLocking() {
                   </div>
                 </div>
 
-                {/* BUG FIX: was using name="streetAddress" - now correctly name="aadonaSales" */}
                 <div className="flex flex-col">
                   <label htmlFor="aadonaSales" className={labelClasses}>
-                    Enter AADONA Sales <span className="text-red-500" aria-hidden="true">*</span>
+                    Enter AADONA Sales <span className="text-[#c42126]" aria-hidden="true">*</span>
                   </label>
                   <input
                     id="aadonaSales" name="aadonaSales" type="text"
@@ -524,7 +546,7 @@ export default function ProjectLocking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col">
                     <label htmlFor="projectName" className={labelClasses}>
-                      Project Name <span className="text-red-500" aria-hidden="true">*</span>
+                      Project Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="projectName" name="projectName" type="text"
@@ -536,7 +558,7 @@ export default function ProjectLocking() {
                   </div>
                   <div className="flex flex-col">
                     <label htmlFor="projectTenderName" className={labelClasses}>
-                      Project / Tender Name <span className="text-red-500" aria-hidden="true">*</span>
+                      Project / Tender Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="projectTenderName" name="projectTenderName" type="text"
@@ -551,7 +573,7 @@ export default function ProjectLocking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col">
                     <label htmlFor="endCustomerName" className={labelClasses}>
-                      End Customer Name <span className="text-red-500" aria-hidden="true">*</span>
+                      End Customer Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="endCustomerName" name="endCustomerName" type="text"
@@ -563,7 +585,7 @@ export default function ProjectLocking() {
                   </div>
                   <div className="flex flex-col">
                     <label htmlFor="endCustomerContact" className={labelClasses}>
-                      End Customer Contact <span className="text-red-500" aria-hidden="true">*</span>
+                      End Customer Contact <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="endCustomerContact" name="endCustomerContact" type="text"
@@ -578,7 +600,7 @@ export default function ProjectLocking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                   <div className="flex flex-col">
                     <label htmlFor="expectedClosure" className={labelClasses}>
-                      Expected Closure <span className="text-red-500" aria-hidden="true">*</span>
+                      Expected Closure <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="expectedClosure" name="expectedClosure" type="date"
@@ -592,7 +614,7 @@ export default function ProjectLocking() {
                     <input
                       type="checkbox" id="siPartner" name="siPartner"
                       checked={form.siPartner} onChange={handleChange}
-                      className="accent-emerald-600 w-4 h-4 cursor-pointer"
+                      className="accent-[#c79d47] w-4 h-4 cursor-pointer"
                     />
                     <label htmlFor="siPartner" className="text-sm text-gray-700">
                       SI Partner Involved
@@ -606,14 +628,19 @@ export default function ProjectLocking() {
                     type="submit"
                     disabled={submitting}
                     aria-busy={submitting}
-                    className="bg-emerald-600 text-white font-semibold tracking-wider uppercase px-12 py-4 rounded-lg text-lg transition-all duration-300 shadow-md hover:bg-emerald-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white font-semibold px-12 py-4 rounded-lg
+                               text-lg transition-all duration-300
+                               border border-[#e6c77a]/70 shadow-[0_4px_16px_rgba(199,157,71,0.45)]
+                               hover:from-[#c42126] hover:to-[#920609] hover:shadow-[0_6px_24px_rgba(199,157,71,0.65)] hover:-translate-y-0.5
+                               focus:outline-none focus:ring-4 focus:ring-[#c79d47]/50
+                               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     {submitting ? "Submitting..." : "Submit Application"}
                   </button>
                 </div>
 
                 <p className="text-center text-sm text-gray-500 mt-4">
-                  Fields marked with <span className="text-red-500" aria-hidden="true">*</span> are required.
+                  Fields marked with <span className="text-[#c42126]" aria-hidden="true">*</span> are required.
                 </p>
               </form>
             )}

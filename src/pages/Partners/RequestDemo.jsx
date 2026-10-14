@@ -5,6 +5,11 @@ import Footer from "../../Components/Footer";
 import bg from "../../assets/bg.avif";
 import reqbanner from "../../assets/ReqDemoBanner.avif";
 
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36, light #e6c77a), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COUNTRIES = [
@@ -131,14 +136,14 @@ export default function RequestDemo() {
     // Honeypot check - bots fill hidden field
     if (formData._honeypot) return;
 
-    // ⏱ Client-side rate limiting
+    // Client-side rate limiting
     const now = Date.now();
     if (now - lastSubmit.current < RATE_LIMIT_MS) {
       setSubmitErr("Please wait a moment before submitting again.");
       return;
     }
 
-    // 🔍 Validate
+    // Validate
     const validationErrors = validate(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -151,7 +156,7 @@ export default function RequestDemo() {
     setSubmitting(true);
     lastSubmit.current = now;
 
-    // 🧼 Sanitize before sending
+    // Sanitize before sending
     const payload = {
       firstName:           sanitize(formData.firstName),
       lastName:            sanitize(formData.lastName),
@@ -211,13 +216,18 @@ export default function RequestDemo() {
   // ── Styles ────────────────────────────────────────────────────────────────
   const inputBase =
     "py-3 px-4 rounded-lg border bg-white text-base text-gray-800 transition-all duration-200 " +
-    "focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 " +
+    "hover:border-[#c79d47] " +
+    "focus:outline-none focus:ring-2 focus:ring-[#c79d47] focus:border-[#c79d47] " +
+    "focus:shadow-[0_0_0_4px_rgba(199,157,71,0.18)] " +
     "placeholder:text-gray-400 shadow-sm w-full";
 
   const inputClass = (field) =>
-    `${inputBase} ${errors[field] ? "border-red-500 focus:ring-red-400" : "border-gray-300"}`;
+    `${inputBase} ${errors[field] ? "border-red-500 focus:ring-red-400" : "border-[#c79d47]/60"}`;
 
   const labelClass = "text-sm font-medium text-gray-700 mb-1 block";
+
+  const sectionHeading =
+    "text-xl font-semibold text-[#920609] border-b-2 border-[#c79d47]/60 border-l-4 border-l-[#c79d47] pl-3 pb-2";
 
   const FieldError = ({ field }) =>
     errors[field] ? (
@@ -227,9 +237,14 @@ export default function RequestDemo() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ─── SEO: React Helmet ─────────────────────────────────────────────── */}
+      {/* ─── SEO: React Helmet + Brand Font ────────────────────────────────── */}
       <Helmet>
-        <title>Request a Demo | Your Company Name</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
+        <title>Request a Demo | Aadona Communication</title>
         <meta
           name="description"
           content="Request a personalized product demo. Fill out the form and our team will contact you to schedule a live demonstration tailored to your needs."
@@ -239,13 +254,13 @@ export default function RequestDemo() {
 
         {/* Open Graph */}
         <meta property="og:type"        content="website" />
-        <meta property="og:title"       content="Request a Demo | Your Company Name" />
+        <meta property="og:title"       content="Request a Demo | Aadona Communication" />
         <meta property="og:description" content="Schedule a personalized demo with our team and see our product in action." />
         <meta property="og:url"         content={typeof window !== "undefined" ? window.location.href : ""} />
 
         {/* Twitter Card */}
         <meta name="twitter:card"        content="summary" />
-        <meta name="twitter:title"       content="Request a Demo | Your Company Name" />
+        <meta name="twitter:title"       content="Request a Demo | Aadona Communication" />
         <meta name="twitter:description" content="Schedule a personalized demo with our team." />
 
         {/* JSON-LD Structured Data */}
@@ -255,37 +270,46 @@ export default function RequestDemo() {
       <Navbar />
 
       {/* ─── Hero ──────────────────────────────────────────────────────────── */}
-         <header
-                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${reqbanner})` }}
-                      aria-label="Request Demo herbanner"
-                    >
-                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
+      <header
+        className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${reqbanner})` }}
+        aria-label="Request Demo hero banner"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-semibold text-gray-100 sm:text-5xl md:text-6xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
             Request a Demo
-                        </h1>
-                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+          </h1>
+          <div/>
+            
+          
+          <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
             Fill out the form and our team will contact you to schedule a
             personalized demonstration
-                              </p>
-                      </div>
-                    </header>
+          </p>
+        </div>
+      </header>
 
       {/* ─── Main ──────────────────────────────────────────────────────────── */}
       <div
-        className="bg-cover bg-fixed py-16"
+        className="relative bg-cover bg-fixed py-16"
         style={{ backgroundImage: `url(${bg})` }}
       >
+        {/* Soft gold wash */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-b from-[#c79d47]/10 to-transparent pointer-events-none"
+        />
+
         <main
           id="main-content"
-          className="flex justify-center py-16 px-5"
+          className="relative flex justify-center py-16 px-5"
           aria-label="Demo request form"
         >
-          <div className="relative bg-white w-full max-w-5xl rounded-xl p-10 md:p-14 lg:p-16 shadow-2xl">
+          <div className="relative bg-white w-full max-w-5xl rounded-xl p-10 md:p-14 lg:p-16 border border-[#c79d47]/30 shadow-[0_10px_50px_rgba(199,157,71,0.28)]">
             {/* Decorative top bar */}
             <div
               aria-hidden="true"
-              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-green-600 rounded-t-xl"
+              className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#a16d36] via-[#e6c77a] to-[#920609] rounded-t-xl"
             />
 
             {/* ── Success state ────────────────────────────────────────────── */}
@@ -293,10 +317,10 @@ export default function RequestDemo() {
               <section
                 role="status"
                 aria-live="polite"
-                className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-8 text-center"
+                className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-8 text-center"
               >
                 <svg
-                  className="mx-auto mb-4 h-12 w-12 text-green-500"
+                  className="mx-auto mb-4 h-12 w-12 text-[#c79d47]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -308,7 +332,7 @@ export default function RequestDemo() {
                 <p className="font-semibold text-lg">
                   Demo request submitted successfully!
                 </p>
-                <p className="mt-2 text-sm text-green-700">
+                <p className="mt-2 text-sm text-[#c42126]">
                   Our team will contact you shortly.
                 </p>
               </section>
@@ -333,7 +357,7 @@ export default function RequestDemo() {
                   </div>
                 )}
 
-                {/* ── 🍯 Honeypot (hidden from real users, caught by bots) ── */}
+                {/* ── Honeypot (hidden from real users, caught by bots) ── */}
                 <div aria-hidden="true" className="hidden" tabIndex={-1}>
                   <label htmlFor="_honeypot">Leave this field empty</label>
                   <input
@@ -348,7 +372,7 @@ export default function RequestDemo() {
                 </div>
 
                 {/* ── Section: Contact ─────────────────────────────────────── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 mb-2">
+                <h2 className={`${sectionHeading} mb-2`}>
                   Contact Information
                 </h2>
 
@@ -358,7 +382,7 @@ export default function RequestDemo() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="firstName" className={labelClass}>
-                        First Name <span className="text-red-500" aria-hidden="true">*</span>
+                        First Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="firstName"
@@ -396,7 +420,7 @@ export default function RequestDemo() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="email" className={labelClass}>
-                        Email <span className="text-red-500" aria-hidden="true">*</span>
+                        Email <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="email"
@@ -418,7 +442,7 @@ export default function RequestDemo() {
 
                     <div className="flex flex-col">
                       <label htmlFor="phone" className={labelClass}>
-                        Phone <span className="text-red-500" aria-hidden="true">*</span>
+                        Phone <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="phone"
@@ -441,7 +465,7 @@ export default function RequestDemo() {
                 </fieldset>
 
                 {/* ── Section: Address ─────────────────────────────────────── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 pt-4 mb-2">
+                <h2 className={`${sectionHeading} pt-4 mb-2`}>
                   Address
                 </h2>
 
@@ -450,7 +474,7 @@ export default function RequestDemo() {
 
                   <div className="flex flex-col">
                     <label htmlFor="streetAddress" className={labelClass}>
-                      Street Address Line 1 <span className="text-red-500" aria-hidden="true">*</span>
+                      Street Address Line 1 <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="streetAddress"
@@ -488,7 +512,7 @@ export default function RequestDemo() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="city" className={labelClass}>
-                        City <span className="text-red-500" aria-hidden="true">*</span>
+                        City <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="city"
@@ -508,7 +532,7 @@ export default function RequestDemo() {
 
                     <div className="flex flex-col">
                       <label htmlFor="regionStateProvince" className={labelClass}>
-                        Region / State / Province <span className="text-red-500" aria-hidden="true">*</span>
+                        Region / State / Province <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="regionStateProvince"
@@ -528,7 +552,7 @@ export default function RequestDemo() {
 
                     <div className="flex flex-col">
                       <label htmlFor="postalZipCode" className={labelClass}>
-                        Postal / Zip Code <span className="text-red-500" aria-hidden="true">*</span>
+                        Postal / Zip Code <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="postalZipCode"
@@ -551,7 +575,7 @@ export default function RequestDemo() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="country" className={labelClass}>
-                        Country <span className="text-red-500" aria-hidden="true">*</span>
+                        Country <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <select
                         id="country"
@@ -588,7 +612,7 @@ export default function RequestDemo() {
                 </fieldset>
 
                 {/* ── Section: Additional ──────────────────────────────────── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 pt-4 mb-2">
+                <h2 className={`${sectionHeading} pt-4 mb-2`}>
                   Additional Details
                 </h2>
 
@@ -606,7 +630,7 @@ export default function RequestDemo() {
                           value={value}
                           checked={formData.customerType.includes(value)}
                           onChange={handleChange}
-                          className="accent-emerald-600 w-4 h-4 cursor-pointer"
+                          className="accent-[#c79d47] w-4 h-4 cursor-pointer"
                         />
                         <span>{label}</span>
                       </label>
@@ -638,10 +662,12 @@ export default function RequestDemo() {
                     type="submit"
                     disabled={submitting}
                     aria-busy={submitting}
-                    className="bg-emerald-600 text-white font-semibold tracking-wider uppercase px-12 py-4 rounded-lg text-lg
-                               transition-all duration-300 shadow-md hover:bg-emerald-700 hover:shadow-lg
-                               focus:outline-none focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50
-                               disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white font-semibold px-12 py-4 rounded-lg text-lg
+                               transition-all duration-300
+                               border border-[#e6c77a]/70 shadow-[0_4px_16px_rgba(199,157,71,0.45)]
+                               hover:from-[#c42126] hover:to-[#920609] hover:shadow-[0_6px_24px_rgba(199,157,71,0.65)] hover:-translate-y-0.5
+                               focus:outline-none focus:ring-4 focus:ring-[#c79d47]/50
+                               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     {submitting ? (
                       <span className="flex items-center gap-2">
@@ -662,7 +688,7 @@ export default function RequestDemo() {
                 </div>
 
                 <p className="text-center text-sm text-gray-500 mt-2">
-                  Fields marked with <span className="text-red-500">*</span> are required.
+                  Fields marked with <span className="text-[#c42126]">*</span> are required.
                 </p>
               </form>
             )}

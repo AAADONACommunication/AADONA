@@ -1,9 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Helmet } from 'react-helmet-async';
-import Navbar from '../../Components/Navbar';
-import Footer from '../../Components/Footer';
-import bg from '../../assets/bg.avif';
-import reqtbanner from '../../assets/ReqTrainingBanner.avif';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
+import Navbar from "../../Components/Navbar";
+import Footer from "../../Components/Footer";
+import bg from "../../assets/bg.avif";
+import reqtbanner from "../../assets/ReqTrainingBanner.avif";
+
+// Brand theme (Aadona Communication)
+// Font:   Poppins (loaded via Helmet below, no config needed)
+// Colors: gold #c79d47 (dark #a16d36, light #e6c77a), crimson #c42126 (dark #920609)
+// Colors use Tailwind arbitrary values, so no tailwind.config changes are needed.
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -31,36 +36,37 @@ const CUSTOMER_TYPES = [
   { value: "distributor", label: "Distributor / Reseller" },
 ];
 
-const RATE_LIMIT_MS   = 60_000;
-const MAX_FIELD_LEN   = 300;
-const MAX_COMMENT_LEN = 2000;
+const RATE_LIMIT_MS    = 60_000; // 1 minute between submissions
+const MAX_FIELD_LEN    = 300;
+const MAX_COMMENT_LEN  = 2000;
 const MAX_PARTICIPANTS = 10000;
 
 const emptyForm = {
-  firstName: '', lastName: '', email: '', streetAddress: '',
-  streetAddress2: '', phone: '', numberOfParticipants: '', city: '',
-  regionStateProvince: '', company: '', postalZipCode: '', country: '',
-  customerType: [], comment: '',
-  _honeypot: ''
+  firstName: "", lastName: "", email: "", streetAddress: "",
+  streetAddress2: "", phone: "", numberOfParticipants: "", city: "",
+  regionStateProvince: "", company: "", postalZipCode: "", country: "",
+  customerType: [], comment: "",
+  _honeypot: "" // anti-bot field (hidden from real users)
 };
 
-// ─── Sanitization ─────────────────────────────────────────────────────────────
+// ─── Sanitization helpers ─────────────────────────────────────────────────────
 
+/** Strip HTML tags and dangerous characters from a string */
 const sanitize = (str) =>
   String(str)
-    .replace(/<[^>]*>/g, '')
-    .replace(/[<>"'`\\]/g, '')
+    .replace(/<[^>]*>/g, "")   // strip HTML tags
+    .replace(/[<>"'`\\]/g, "") // strip XSS chars
     .trim()
     .slice(0, MAX_FIELD_LEN);
 
 const sanitizeComment = (str) =>
   String(str)
-    .replace(/<[^>]*>/g, '')
-    .replace(/[<>"'`\\]/g, '')
+    .replace(/<[^>]*>/g, "")
+    .replace(/[<>"'`\\]/g, "")
     .trim()
     .slice(0, MAX_COMMENT_LEN);
 
-// ─── Validation ───────────────────────────────────────────────────────────────
+// ─── Validation helpers ───────────────────────────────────────────────────────
 
 const EMAIL_RE  = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
 const PHONE_RE  = /^\+?[\d\s\-().]{7,20}$/;
@@ -78,17 +84,17 @@ const validate = (data) => {
   if (!POSTAL_RE.test(data.postalZipCode)) errors.postalZipCode       = "Enter a valid postal / zip code.";
   if (!data.country)                       errors.country             = "Please select a country.";
   if (
-    data.numberOfParticipants !== '' &&
+    data.numberOfParticipants !== "" &&
     (isNaN(Number(data.numberOfParticipants)) ||
-     Number(data.numberOfParticipants) < 1 ||
-     Number(data.numberOfParticipants) > MAX_PARTICIPANTS)
+      Number(data.numberOfParticipants) < 1 ||
+      Number(data.numberOfParticipants) > MAX_PARTICIPANTS)
   ) {
     errors.numberOfParticipants = `Enter a number between 1 and ${MAX_PARTICIPANTS}.`;
   }
   return errors;
 };
 
-// ─── JSON-LD Structured Data ──────────────────────────────────────────────────
+// ─── Structured data (JSON-LD) for SEO ────────────────────────────────────────
 
 const JSON_LD = JSON.stringify({
   "@context": "https://schema.org",
@@ -101,68 +107,73 @@ const JSON_LD = JSON.stringify({
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-const RequestTraining = () => {
+export default function RequestTraining() {
   const [formData,   setFormData]   = useState(emptyForm);
   const [errors,     setErrors]     = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted,  setSubmitted]  = useState(false);
-  const [submitErr,  setSubmitErr]  = useState('');
+  const [submitErr,  setSubmitErr]  = useState("");
   const lastSubmit   = useRef(0);
 
-  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, []);
+  // ── Scroll to top on mount ────────────────────────────────────────────────
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, []);
 
-  // ── Change handler ──────────────────────────────────────────────────────────
+  // ── Change handler ────────────────────────────────────────────────────────
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
 
-    if (type === 'checkbox' && name === 'customerType') {
+    if (type === "checkbox" && name === "customerType") {
       setFormData((prev) => ({
         ...prev,
         customerType: checked
           ? [...prev.customerType, value]
-          : prev.customerType.filter((item) => item !== value),
+          : prev.customerType.filter((v) => v !== value),
       }));
       return;
     }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear field-level error on change
     if (errors[name]) setErrors((prev) => { const e = { ...prev }; delete e[name]; return e; });
   }, [errors]);
 
-  // ── Submit handler ──────────────────────────────────────────────────────────
+  // ── Submit handler ────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitErr('');
+    setSubmitErr("");
 
-    // 🍯 Honeypot
+    // Honeypot check - bots fill hidden field
     if (formData._honeypot) return;
 
-    // ⏱ Rate limiting
+    // Client-side rate limiting
     const now = Date.now();
     if (now - lastSubmit.current < RATE_LIMIT_MS) {
-      setSubmitErr('Please wait a moment before submitting again.');
+      setSubmitErr("Please wait a moment before submitting again.");
       return;
     }
 
-    // 🔍 Validate
+    // Validate
     const validationErrors = validate(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      document.getElementById(Object.keys(validationErrors)[0])?.focus();
+      // Focus first error field
+      const firstKey = Object.keys(validationErrors)[0];
+      document.getElementById(firstKey)?.focus();
       return;
     }
 
     setSubmitting(true);
     lastSubmit.current = now;
 
-    // 🧼 Sanitize payload
+    // Sanitize before sending
     const payload = {
       firstName:            sanitize(formData.firstName),
       lastName:             sanitize(formData.lastName),
       email:                sanitize(formData.email).toLowerCase(),
       phone:                sanitize(formData.phone),
       company:              sanitize(formData.company),
-      numberOfParticipants: formData.numberOfParticipants === ''
+      numberOfParticipants: formData.numberOfParticipants === ""
                               ? null
                               : Math.min(Math.max(parseInt(formData.numberOfParticipants, 10), 1), MAX_PARTICIPANTS),
       streetAddress:        sanitize(formData.streetAddress),
@@ -178,63 +189,77 @@ const RequestTraining = () => {
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/submit-training`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          // CSRF token if your backend uses one (set via cookie / meta tag)
           ...(document.querySelector('meta[name="csrf-token"]')
-            ? { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
+            ? { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content }
             : {}),
         },
-        credentials: 'same-origin',
+        credentials: "same-origin", // send cookies for session/CSRF
         body: JSON.stringify(payload),
       });
 
-      const contentType = res.headers.get('content-type') || '';
-      const data = contentType.includes('application/json') ? await res.json() : {};
+      // Reject non-JSON or unexpected responses safely
+      const contentType = res.headers.get("content-type") || "";
+      const data = contentType.includes("application/json") ? await res.json() : {};
 
       if (res.ok) {
         setSubmitted(true);
         setFormData(emptyForm);
         setErrors({});
       } else if (res.status === 429) {
-        setSubmitErr('Too many requests. Please try again in a few minutes.');
+        setSubmitErr("Too many requests. Please try again in a few minutes.");
       } else {
         setSubmitErr(
-          typeof data.message === 'string' && data.message.length < 200
+          typeof data.message === "string" && data.message.length < 200
             ? data.message
-            : 'Something went wrong. Please try again.'
+            : "Something went wrong. Please try again."
         );
       }
     } catch (err) {
-      console.error('[RequestTraining] Submit error:', err);
-      setSubmitErr('Network error. Please check your connection and try again.');
+      console.error("[RequestTraining] Submit error:", err);
+      setSubmitErr("Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Styles ──────────────────────────────────────────────────────────────────
+  // ── Styles ────────────────────────────────────────────────────────────────
   const inputBase =
-    'py-3 px-4 rounded-lg border bg-white text-base text-gray-800 transition-all duration-200 ' +
-    'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ' +
-    'placeholder:text-gray-400 shadow-sm w-full';
+    "py-3 px-4 rounded-lg border bg-white text-base text-gray-800 transition-all duration-200 " +
+    "hover:border-[#c79d47] " +
+    "focus:outline-none focus:ring-2 focus:ring-[#c79d47] focus:border-[#c79d47] " +
+    "focus:shadow-[0_0_0_4px_rgba(199,157,71,0.18)] " +
+    "placeholder:text-gray-400 shadow-sm w-full";
 
   const inputClass = (field) =>
-    `${inputBase} ${errors[field] ? 'border-red-500 focus:ring-red-400' : 'border-gray-300'}`;
+    `${inputBase} ${errors[field] ? "border-red-500 focus:ring-red-400" : "border-[#c79d47]/60"}`;
 
-  const labelClass = 'text-sm font-medium text-gray-700 mb-1 block';
+  const labelClass = "text-sm font-medium text-gray-700 mb-1 block";
+
+  const sectionHeading =
+    "text-xl font-semibold text-[#920609] border-b-2 border-[#c79d47]/60 border-l-4 border-l-[#c79d47] pl-3 pb-2";
+
+  const describe = (field) => (errors[field] ? `err-${field}` : undefined);
 
   const FieldError = ({ field }) =>
-    errors[field]
-      ? <p role="alert" className="mt-1 text-xs text-red-600">{errors[field]}</p>
-      : null;
+    errors[field] ? (
+      <p id={`err-${field}`} role="alert" className="mt-1 text-xs text-red-600">{errors[field]}</p>
+    ) : null;
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ─── SEO ──────────────────────────────────────────────────────────── */}
+      {/* ─── SEO: React Helmet + Brand Font ────────────────────────────────── */}
       <Helmet>
-        <title>Request Training | Your Company Name</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+        <style>{`body, button, input, select, textarea { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }`}</style>
+
+        <title>Request Training | Aadona Communication</title>
         <meta
           name="description"
           content="Schedule a comprehensive, customized training session with our expert team. Submit your details and we'll tailor the program to your organization's needs."
@@ -242,58 +267,72 @@ const RequestTraining = () => {
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={typeof window !== "undefined" ? window.location.href : ""} />
 
+        {/* Open Graph */}
         <meta property="og:type"        content="website" />
-        <meta property="og:title"       content="Request Training | Your Company Name" />
+        <meta property="og:title"       content="Request Training | Aadona Communication" />
         <meta property="og:description" content="Schedule a customized training session with our expert team." />
         <meta property="og:url"         content={typeof window !== "undefined" ? window.location.href : ""} />
 
+        {/* Twitter Card */}
         <meta name="twitter:card"        content="summary" />
-        <meta name="twitter:title"       content="Request Training | Your Company Name" />
+        <meta name="twitter:title"       content="Request Training | Aadona Communication" />
         <meta name="twitter:description" content="Schedule a customized training session with our expert team." />
 
+        {/* JSON-LD Structured Data */}
         <script type="application/ld+json">{JSON_LD}</script>
       </Helmet>
 
       <Navbar />
 
-      {/* ─── Hero ─────────────────────────────────────────────────────────── */}
-         <header
-                      className="pt-32 pb-16 bg-cover bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${reqtbanner})` }}
-                      aria-label="v herbanner"
-                    >
-                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 className="text-5xl font-bold text-gray-100 sm:text-5xl md:text-6xl">
-                          Request Training
-                        </h1>
-                        <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
+      {/* ─── Hero ──────────────────────────────────────────────────────────── */}
+      <header
+        className="pt-32 pb-16 bg-cover bg-center bg-no-repeat "
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${reqtbanner})` }}
+        aria-label="Request Training hero banner"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-semibold text-gray-100 sm:text-5xl md:text-6xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+            Request Training
+          </h1>
+          <div/>
+          <p className="mt-6 text-md text-gray-100 max-w-3xl mx-auto">
             Submit your details below to schedule a comprehensive, customized training session
-                              </p>
-                      </div>
-                    </header>
+          </p>
+        </div>
+      </header>
 
-      {/* ─── Main ─────────────────────────────────────────────────────────── */}
-      <div className="bg-cover bg-fixed py-16" style={{ backgroundImage: `url(${bg})` }}>
+      {/* ─── Main ──────────────────────────────────────────────────────────── */}
+      <div
+        className="relative bg-cover bg-fixed py-16"
+        style={{ backgroundImage: `url(${bg})` }}
+      >
+        {/* Soft gold wash */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-b from-[#c79d47]/10 to-transparent pointer-events-none"
+        />
+
         <main
           id="main-content"
-          className="flex justify-center py-16 px-5"
+          className="relative flex justify-center py-16 px-5"
           aria-label="Training request form"
         >
-          <div className="relative bg-white w-full max-w-5xl rounded-xl p-10 md:p-14 lg:p-16 shadow-2xl">
+          <div className="relative bg-white w-full max-w-5xl rounded-xl p-10 md:p-14 lg:p-16 border border-[#c79d47]/30 shadow-[0_10px_50px_rgba(199,157,71,0.28)]">
+            {/* Decorative top bar */}
             <div
               aria-hidden="true"
-              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-green-600 rounded-t-xl"
+              className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#a16d36] via-[#e6c77a] to-[#920609] rounded-t-xl"
             />
 
-            {/* ── Success state ──────────────────────────────────────────────── */}
+            {/* ── Success state ────────────────────────────────────────────── */}
             {submitted && (
               <section
                 role="status"
                 aria-live="polite"
-                className="bg-green-50 border border-green-300 text-green-800 rounded-xl px-6 py-8 text-center"
+                className="bg-[#c79d47]/10 border border-[#c79d47] text-[#920609] rounded-xl px-6 py-8 text-center"
               >
                 <svg
-                  className="mx-auto mb-4 h-12 w-12 text-green-500"
+                  className="mx-auto mb-4 h-12 w-12 text-[#c79d47]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -302,12 +341,16 @@ const RequestTraining = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="font-semibold text-lg">Training request submitted successfully!</p>
-                <p className="mt-2 text-sm text-green-700">Our team will contact you shortly.</p>
+                <p className="font-semibold text-lg">
+                  Training request submitted successfully!
+                </p>
+                <p className="mt-2 text-sm text-[#c42126]">
+                  Our team will contact you shortly.
+                </p>
               </section>
             )}
 
-            {/* ── Form ───────────────────────────────────────────────────────── */}
+            {/* ── Form ─────────────────────────────────────────────────────── */}
             {!submitted && (
               <form
                 onSubmit={handleSubmit}
@@ -315,7 +358,7 @@ const RequestTraining = () => {
                 aria-label="Request training"
                 className="flex flex-col gap-6"
               >
-                {/* Global error */}
+                {/* Global error banner */}
                 {submitErr && (
                   <div
                     role="alert"
@@ -326,7 +369,7 @@ const RequestTraining = () => {
                   </div>
                 )}
 
-                {/* 🍯 Honeypot */}
+                {/* ── Honeypot (hidden from real users, caught by bots) ── */}
                 <div aria-hidden="true" className="hidden" tabIndex={-1}>
                   <label htmlFor="_honeypot">Leave this field empty</label>
                   <input
@@ -340,8 +383,8 @@ const RequestTraining = () => {
                   />
                 </div>
 
-                {/* ── Section: Contact ───────────────────────────────────────── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 mb-2">
+                {/* ── Section: Contact ─────────────────────────────────────── */}
+                <h2 className={`${sectionHeading} mb-2`}>
                   Contact Information
                 </h2>
 
@@ -351,14 +394,15 @@ const RequestTraining = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="firstName" className={labelClass}>
-                        First Name <span className="text-red-500" aria-hidden="true">*</span>
+                        First Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="firstName" name="firstName" type="text"
                         placeholder="Enter your first name"
                         required autoComplete="given-name"
                         aria-required="true"
-                        className={inputClass('firstName')}
+                        aria-describedby={describe("firstName")}
+                        className={inputClass("firstName")}
                         value={formData.firstName}
                         onChange={handleChange}
                         maxLength={MAX_FIELD_LEN}
@@ -368,14 +412,15 @@ const RequestTraining = () => {
 
                     <div className="flex flex-col">
                       <label htmlFor="lastName" className={labelClass}>
-                        Last Name <span className="text-red-500" aria-hidden="true">*</span>
+                        Last Name <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="lastName" name="lastName" type="text"
                         placeholder="Enter your last name"
                         required autoComplete="family-name"
                         aria-required="true"
-                        className={inputClass('lastName')}
+                        aria-describedby={describe("lastName")}
+                        className={inputClass("lastName")}
                         value={formData.lastName}
                         onChange={handleChange}
                         maxLength={MAX_FIELD_LEN}
@@ -385,14 +430,15 @@ const RequestTraining = () => {
 
                     <div className="flex flex-col">
                       <label htmlFor="email" className={labelClass}>
-                        Work Email <span className="text-red-500" aria-hidden="true">*</span>
+                        Work Email <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="email" name="email" type="email"
                         placeholder="Enter your work email address"
                         required autoComplete="email" inputMode="email"
                         aria-required="true"
-                        className={inputClass('email')}
+                        aria-describedby={describe("email")}
+                        className={inputClass("email")}
                         value={formData.email}
                         onChange={handleChange}
                         maxLength={254}
@@ -404,14 +450,15 @@ const RequestTraining = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="phone" className={labelClass}>
-                        Phone Number <span className="text-red-500" aria-hidden="true">*</span>
+                        Phone Number <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="phone" name="phone" type="tel"
                         placeholder="Enter your phone number"
                         required autoComplete="tel" inputMode="tel"
                         aria-required="true"
-                        className={inputClass('phone')}
+                        aria-describedby={describe("phone")}
+                        className={inputClass("phone")}
                         value={formData.phone}
                         onChange={handleChange}
                         maxLength={20}
@@ -425,7 +472,7 @@ const RequestTraining = () => {
                         id="company" name="company" type="text"
                         placeholder="Enter your company name"
                         autoComplete="organization"
-                        className={inputClass('company')}
+                        className={inputClass("company")}
                         value={formData.company}
                         onChange={handleChange}
                         maxLength={MAX_FIELD_LEN}
@@ -441,7 +488,8 @@ const RequestTraining = () => {
                         placeholder="e.g. 10"
                         inputMode="numeric"
                         min="1" max={MAX_PARTICIPANTS}
-                        className={inputClass('numberOfParticipants')}
+                        aria-describedby={describe("numberOfParticipants")}
+                        className={inputClass("numberOfParticipants")}
                         value={formData.numberOfParticipants}
                         onChange={handleChange}
                       />
@@ -450,8 +498,8 @@ const RequestTraining = () => {
                   </div>
                 </fieldset>
 
-                {/* ── Section: Location ──────────────────────────────────────── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 pt-4 mb-2">
+                {/* ── Section: Location ────────────────────────────────────── */}
+                <h2 className={`${sectionHeading} pt-4 mb-2`}>
                   Training Location
                 </h2>
 
@@ -460,14 +508,15 @@ const RequestTraining = () => {
 
                   <div className="flex flex-col">
                     <label htmlFor="streetAddress" className={labelClass}>
-                      Street Address Line 1 <span className="text-red-500" aria-hidden="true">*</span>
+                      Street Address Line 1 <span className="text-[#c42126]" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="streetAddress" name="streetAddress" type="text"
                       placeholder="Enter street address line 1"
                       required autoComplete="address-line1"
                       aria-required="true"
-                      className={inputClass('streetAddress')}
+                      aria-describedby={describe("streetAddress")}
+                      className={inputClass("streetAddress")}
                       value={formData.streetAddress}
                       onChange={handleChange}
                       maxLength={MAX_FIELD_LEN}
@@ -477,13 +526,13 @@ const RequestTraining = () => {
 
                   <div className="flex flex-col">
                     <label htmlFor="streetAddress2" className={labelClass}>
-                      Street Address Line 2 (Apt, Suite, etc.)
+                      Street Address Line 2
                     </label>
                     <input
                       id="streetAddress2" name="streetAddress2" type="text"
                       placeholder="Apartment, Suite, Unit, etc. (optional)"
                       autoComplete="address-line2"
-                      className={inputClass('streetAddress2')}
+                      className={inputClass("streetAddress2")}
                       value={formData.streetAddress2}
                       onChange={handleChange}
                       maxLength={MAX_FIELD_LEN}
@@ -493,14 +542,15 @@ const RequestTraining = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="city" className={labelClass}>
-                        City <span className="text-red-500" aria-hidden="true">*</span>
+                        City <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="city" name="city" type="text"
                         placeholder="Enter your city"
                         required autoComplete="address-level2"
                         aria-required="true"
-                        className={inputClass('city')}
+                        aria-describedby={describe("city")}
+                        className={inputClass("city")}
                         value={formData.city}
                         onChange={handleChange}
                         maxLength={MAX_FIELD_LEN}
@@ -510,14 +560,15 @@ const RequestTraining = () => {
 
                     <div className="flex flex-col">
                       <label htmlFor="regionStateProvince" className={labelClass}>
-                        State / Region / Province <span className="text-red-500" aria-hidden="true">*</span>
+                        Region / State / Province <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="regionStateProvince" name="regionStateProvince" type="text"
                         placeholder="Enter state, region, or province"
                         required autoComplete="address-level1"
                         aria-required="true"
-                        className={inputClass('regionStateProvince')}
+                        aria-describedby={describe("regionStateProvince")}
+                        className={inputClass("regionStateProvince")}
                         value={formData.regionStateProvince}
                         onChange={handleChange}
                         maxLength={MAX_FIELD_LEN}
@@ -527,14 +578,15 @@ const RequestTraining = () => {
 
                     <div className="flex flex-col">
                       <label htmlFor="postalZipCode" className={labelClass}>
-                        Postal / Zip Code <span className="text-red-500" aria-hidden="true">*</span>
+                        Postal / Zip Code <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <input
                         id="postalZipCode" name="postalZipCode" type="text"
                         placeholder="Enter postal or zip code"
                         required autoComplete="postal-code" inputMode="numeric"
                         aria-required="true"
-                        className={inputClass('postalZipCode')}
+                        aria-describedby={describe("postalZipCode")}
+                        className={inputClass("postalZipCode")}
                         value={formData.postalZipCode}
                         onChange={handleChange}
                         maxLength={12}
@@ -543,36 +595,37 @@ const RequestTraining = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col">
                       <label htmlFor="country" className={labelClass}>
-                        Country <span className="text-red-500" aria-hidden="true">*</span>
+                        Country <span className="text-[#c42126]" aria-hidden="true">*</span>
                       </label>
                       <select
                         id="country" name="country"
                         required autoComplete="country-name"
                         aria-required="true"
-                        className={inputClass('country') + ' cursor-pointer'}
+                        aria-describedby={describe("country")}
+                        className={inputClass("country") + " cursor-pointer"}
                         value={formData.country}
                         onChange={handleChange}
                       >
                         <option value="" disabled>Select Country</option>
-                        {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                        {COUNTRIES.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
                       </select>
                       <FieldError field="country" />
                     </div>
                   </div>
                 </fieldset>
 
-                {/* ── Section: Additional ────────────────────────────────────── */}
-                <h2 className="text-xl font-semibold text-emerald-700 border-b pb-2 pt-4 mb-2">
+                {/* ── Section: Additional ──────────────────────────────────── */}
+                <h2 className={`${sectionHeading} pt-4 mb-2`}>
                   Additional Details
                 </h2>
 
                 <fieldset aria-label="Customer type">
-                  <legend className={labelClass}>
-                    I am an <span className="text-red-500" aria-hidden="true">*</span>
-                  </legend>
+                  <legend className={labelClass}>I am an</legend>
                   <div className="flex gap-8 flex-wrap py-2">
                     {CUSTOMER_TYPES.map(({ value, label }) => (
                       <label
@@ -585,7 +638,7 @@ const RequestTraining = () => {
                           value={value}
                           checked={formData.customerType.includes(value)}
                           onChange={handleChange}
-                          className="accent-emerald-600 w-4 h-4 cursor-pointer"
+                          className="accent-[#c79d47] w-4 h-4 cursor-pointer"
                         />
                         <span>{label}</span>
                       </label>
@@ -598,10 +651,11 @@ const RequestTraining = () => {
                     Comments or Specific Training Needs
                   </label>
                   <textarea
-                    id="comment" name="comment"
+                    id="comment"
+                    name="comment"
                     placeholder="Tell us about your organization's specific training requirements, preferred dates, or any other important details here."
                     rows={5}
-                    className={inputClass('comment') + ' resize-y min-h-[8rem]'}
+                    className={inputClass("comment") + " resize-y min-h-[8rem]"}
                     value={formData.comment}
                     onChange={handleChange}
                     maxLength={MAX_COMMENT_LEN}
@@ -612,32 +666,39 @@ const RequestTraining = () => {
                   </p>
                 </div>
 
-                {/* ── Submit ─────────────────────────────────────────────────── */}
+                {/* ── Submit ───────────────────────────────────────────────── */}
                 <div className="flex justify-center pt-4">
                   <button
                     type="submit"
                     disabled={submitting}
                     aria-busy={submitting}
-                    className="bg-emerald-600 text-white font-semibold tracking-wider uppercase px-12 py-4 rounded-lg text-lg
-                               transition-all duration-300 shadow-md hover:bg-emerald-700 hover:shadow-lg
-                               focus:outline-none focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50
-                               disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-[#920609] to-[#c42126] text-white font-semibold px-12 py-4 rounded-lg text-lg
+                               transition-all duration-300
+                               border border-[#e6c77a]/70 shadow-[0_4px_16px_rgba(199,157,71,0.45)]
+                               hover:from-[#c42126] hover:to-[#920609] hover:shadow-[0_6px_24px_rgba(199,157,71,0.65)] hover:-translate-y-0.5
+                               focus:outline-none focus:ring-4 focus:ring-[#c79d47]/50
+                               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     {submitting ? (
                       <span className="flex items-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <svg
+                          className="animate-spin h-5 w-5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          aria-hidden="true"
+                        >
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor"
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
                         Submitting…
                       </span>
-                    ) : 'Submit Training Request'}
+                    ) : "Submit Training Request"}
                   </button>
                 </div>
 
                 <p className="text-center text-sm text-gray-500 mt-2">
-                  Fields marked with <span className="text-red-500">*</span> are required.
+                  Fields marked with <span className="text-[#c42126]">*</span> are required.
                 </p>
               </form>
             )}
@@ -648,6 +709,4 @@ const RequestTraining = () => {
       <Footer />
     </>
   );
-};
-
-export default RequestTraining;
+}
