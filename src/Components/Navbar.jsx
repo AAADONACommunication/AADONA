@@ -301,29 +301,31 @@ const Navbar = () => {
 
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-10 py-3">
           {/* Logo */}
-          <Link
-            to="/"
-            onClick={() => setOpenMobileSubmenu(null)}
-            className="flex items-center gap-2 sm:gap-3 group flex-shrink-0 min-w-0"
-            aria-label="Go to homepage"
-          >
-            <img
-              src={linklogo}
-              alt="Link logo"
-              className="h-8 sm:h-11 lg:h-14 w-auto object-contain"
-              loading="eager"
-              fetchPriority="high"
-            />
-            <img
-              src={logo}
-              alt="Company logo"
-              className="h-9 sm:h-11 lg:h-12 w-auto object-contain"
-              width="200"
-              height="80"
-              loading="eager"
-              fetchPriority="high"
-            />
-          </Link>
+          {/* Logo */}
+{/* Logo */}
+<Link
+  to="/"
+  onClick={() => setOpenMobileSubmenu(null)}
+  className="flex items-center gap-2 sm:gap-3 group flex-shrink-0 min-w-0"
+  aria-label="Go to homepage"
+>
+  <img
+    src={linklogo}
+    alt="Link logo"
+    className="h-12 sm:h-16 lg:h-20 w-auto object-contain"
+    loading="eager"
+    fetchPriority="high"
+  />
+  <img
+    src={logo}
+    alt="Company logo"
+    className="h-12 sm:h-16 lg:h-[72px] w-auto object-contain"
+    width="200"
+    height="80"
+    loading="eager"
+    fetchPriority="high"
+  />
+</Link>
 
           {/* ── Desktop Navigation ─────────────────────────────────────────────── */}
           <div className="hidden lg:flex items-center gap-1">
