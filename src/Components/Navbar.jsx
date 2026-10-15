@@ -139,6 +139,53 @@ const MobileDropdownLinks = ({ items, onClose, dotColor = "bg-[#c42126]" }) => (
 const DESKTOP_TOP_BTN =
   "flex items-center gap-1.5 px-3 xl:px-4 py-3 rounded-xl hover:bg-[#c42126]/5 hover:text-[#920609] transition-all duration-200 group-hover:text-[#920609] group-focus-within:text-[#920609] text-base";
 
+// ─── Desktop dropdown wrapper: closes after a link is clicked ─────────────────
+const DesktopMenuItem = ({ label, panelClass = "w-60", ariaLabel, children }) => {
+  const [closed, setClosed] = useState(false);
+
+  const handleClick = (e) => {
+    if (!e.target.closest("a")) return; // ignore clicks on the button / summary
+    setClosed(true);
+    // remove focus so group-focus-within stops keeping the menu open
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    // collapse nested <details> (Active / Passive)
+    e.currentTarget.querySelectorAll("details[open]").forEach((d) => d.removeAttribute("open"));
+  };
+
+  return (
+    <li
+      className="relative group"
+      role="none"
+      onClick={handleClick}
+      onMouseLeave={() => setClosed(false)} // allow reopening on next hover
+    >
+      <button
+        className={DESKTOP_TOP_BTN}
+        aria-haspopup="true"
+        aria-expanded="false"
+        role="menuitem"
+      >
+        {label}
+        <ChevronIcon className="w-4 h-4 mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
+      </button>
+
+      <ul
+        className={`absolute left-0 top-full invisible opacity-0 translate-y-2
+          group-hover:visible group-hover:opacity-100 group-hover:translate-y-0
+          group-focus-within:visible group-focus-within:opacity-100 group-focus-within:translate-y-0
+          transition-all duration-200 bg-white shadow-2xl rounded-2xl py-3 text-gray-700
+          border border-[#a16d36]/20 z-50 max-h-[75vh] overflow-y-auto ${panelClass}
+          ${closed ? "!invisible !opacity-0 pointer-events-none" : ""}`}
+        role="menu"
+        aria-label={ariaLabel}
+      >
+        <div className="h-0.5 w-full bg-gradient-to-r from-[#920609] to-[#a16d36] mb-2" aria-hidden="true" />
+        {children}
+      </ul>
+    </li>
+  );
+};
+
 // ─── Main Navbar ──────────────────────────────────────────────────────────────
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -301,31 +348,29 @@ const Navbar = () => {
 
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-10 py-3">
           {/* Logo */}
-          {/* Logo */}
-{/* Logo */}
-<Link
-  to="/"
-  onClick={() => setOpenMobileSubmenu(null)}
-  className="flex items-center gap-2 sm:gap-3 group flex-shrink-0 min-w-0"
-  aria-label="Go to homepage"
->
-  <img
-    src={linklogo}
-    alt="Link logo"
-    className="h-12 sm:h-16 lg:h-20 w-auto object-contain"
-    loading="eager"
-    fetchPriority="high"
-  />
-  <img
-    src={logo}
-    alt="Company logo"
-    className="h-12 sm:h-16 lg:h-[72px] w-auto object-contain"
-    width="200"
-    height="80"
-    loading="eager"
-    fetchPriority="high"
-  />
-</Link>
+          <Link
+            to="/"
+            onClick={() => setOpenMobileSubmenu(null)}
+            className="flex items-center gap-2 sm:gap-3 group flex-shrink-0 min-w-0"
+            aria-label="Go to homepage"
+          >
+            <img
+              src={linklogo}
+              alt="Link logo"
+              className="h-12 sm:h-16 lg:h-20 w-auto object-contain"
+              loading="eager"
+              fetchPriority="high"
+            />
+            <img
+              src={logo}
+              alt="Company logo"
+              className="h-12 sm:h-16 lg:h-[72px] w-auto object-contain"
+              width="200"
+              height="80"
+              loading="eager"
+              fetchPriority="high"
+            />
+          </Link>
 
           {/* ── Desktop Navigation ─────────────────────────────────────────────── */}
           <div className="hidden lg:flex items-center gap-1">
@@ -335,142 +380,76 @@ const Navbar = () => {
               aria-label="Primary navigation"
             >
               {/* Products Dropdown */}
-              <li className="relative group" role="none">
-                <button
-                  className={DESKTOP_TOP_BTN}
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  role="menuitem"
-                >
-                  Products
-                  <ChevronIcon className="w-4 h-4 mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
-                </button>
+              <DesktopMenuItem label="Products" panelClass="w-72" ariaLabel="Products submenu">
+                {/* Active Products */}
+                <li className="relative" role="none">
+                  <details className="group/details">
+                    <summary
+                      className="list-none cursor-pointer px-5 py-3 hover:bg-[#c42126]/5 hover:text-[#920609] flex items-center justify-between font-semibold text-gray-800 transition-colors duration-150 text-base"
+                      aria-haspopup="true"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#c42126] to-[#920609] shadow-sm shadow-[#c42126]/30 inline-block flex-shrink-0"
+                          aria-hidden="true"
+                        />
+                        Active Product
+                      </span>
+                      <ChevronRightIcon />
+                    </summary>
+                    <ul
+                      className="bg-gradient-to-b from-[#c42126]/5 to-white border-t border-[#a16d36]/20 py-1"
+                      role="menu"
+                      aria-label="Active products"
+                    >
+                      {renderCategoryLinks(activeCategories, "bg-[#c42126]", null)}
+                    </ul>
+                  </details>
+                </li>
 
-                <ul
-                  className="absolute left-0 top-full invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 translate-y-2 group-hover:translate-y-0 group-focus-within:translate-y-0 transition-all duration-200 bg-white shadow-2xl rounded-2xl py-3 w-72 text-gray-700 border border-[#a16d36]/20 z-50 max-h-[75vh] overflow-y-auto"
-                  role="menu"
-                  aria-label="Products submenu"
-                >
-                  <div className="h-0.5 w-full bg-gradient-to-r from-[#920609] to-[#a16d36] mb-2" aria-hidden="true" />
+                <li className="mx-4 h-px bg-[#a16d36]/20 my-1" role="separator" />
 
-                  {/* Active Products */}
-                  <li className="relative" role="none">
-                    <details className="group/details">
-                      <summary
-                        className="list-none cursor-pointer px-5 py-3 hover:bg-[#c42126]/5 hover:text-[#920609] flex items-center justify-between font-semibold text-gray-800 transition-colors duration-150 text-base"
-                        aria-haspopup="true"
-                      >
-                        <span className="flex items-center gap-2.5">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#c42126] to-[#920609] shadow-sm shadow-[#c42126]/30 inline-block flex-shrink-0"
-                            aria-hidden="true"
-                          />
-                          Active Product
-                        </span>
-                        <ChevronRightIcon />
-                      </summary>
-                      <ul
-                        className="bg-gradient-to-b from-[#c42126]/5 to-white border-t border-[#a16d36]/20 py-1"
-                        role="menu"
-                        aria-label="Active products"
-                      >
-                        {renderCategoryLinks(activeCategories, "bg-[#c42126]", null)}
-                      </ul>
-                    </details>
-                  </li>
-
-                  <li className="mx-4 h-px bg-[#a16d36]/20 my-1" role="separator" />
-
-                  {/* Passive Products */}
-                  <li className="relative" role="none">
-                    <details>
-                      <summary
-                        className="list-none cursor-pointer px-5 py-3 hover:bg-[#c42126]/5 hover:text-[#920609] flex items-center justify-between font-semibold text-gray-800 transition-colors duration-150 text-base"
-                        aria-haspopup="true"
-                      >
-                        <span className="flex items-center gap-2.5">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#c79d47] to-[#a16d36] shadow-sm shadow-[#a16d36]/30 inline-block flex-shrink-0"
-                            aria-hidden="true"
-                          />
-                          Passive Product
-                        </span>
-                        <ChevronRightIcon />
-                      </summary>
-                      <ul
-                        className="bg-gradient-to-b from-[#a16d36]/10 to-white border-t border-[#a16d36]/20 py-1"
-                        role="menu"
-                        aria-label="Passive products"
-                      >
-                        {renderCategoryLinks(passiveCategories, "bg-[#a16d36]", null)}
-                      </ul>
-                    </details>
-                  </li>
-                </ul>
-              </li>
+                {/* Passive Products */}
+                <li className="relative" role="none">
+                  <details>
+                    <summary
+                      className="list-none cursor-pointer px-5 py-3 hover:bg-[#c42126]/5 hover:text-[#920609] flex items-center justify-between font-semibold text-gray-800 transition-colors duration-150 text-base"
+                      aria-haspopup="true"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#c79d47] to-[#a16d36] shadow-sm shadow-[#a16d36]/30 inline-block flex-shrink-0"
+                          aria-hidden="true"
+                        />
+                        Passive Product
+                      </span>
+                      <ChevronRightIcon />
+                    </summary>
+                    <ul
+                      className="bg-gradient-to-b from-[#a16d36]/10 to-white border-t border-[#a16d36]/20 py-1"
+                      role="menu"
+                      aria-label="Passive products"
+                    >
+                      {renderCategoryLinks(passiveCategories, "bg-[#a16d36]", null)}
+                    </ul>
+                  </details>
+                </li>
+              </DesktopMenuItem>
 
               {/* Partners Dropdown */}
-              <li className="relative group" role="none">
-                <button
-                  className={DESKTOP_TOP_BTN}
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  role="menuitem"
-                >
-                  Partners
-                  <ChevronIcon className="w-4 h-4 mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
-                </button>
-                <ul
-                  className="absolute left-0 top-full hidden group-hover:block group-focus-within:block bg-white shadow-2xl rounded-2xl py-3 w-60 text-gray-700 border border-[#a16d36]/20 z-50 max-h-[75vh] overflow-y-auto"
-                  role="menu"
-                  aria-label="Partners submenu"
-                >
-                  <div className="h-0.5 w-full bg-gradient-to-r from-[#920609] to-[#a16d36] mb-2" aria-hidden="true" />
-                  <DesktopDropdownLinks items={PARTNER_LINKS} />
-                </ul>
-              </li>
+              <DesktopMenuItem label="Partners" panelClass="w-60" ariaLabel="Partners submenu">
+                <DesktopDropdownLinks items={PARTNER_LINKS} />
+              </DesktopMenuItem>
 
               {/* Support Dropdown */}
-              <li className="relative group" role="none">
-                <button
-                  className={DESKTOP_TOP_BTN}
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  role="menuitem"
-                >
-                  Support
-                  <ChevronIcon className="w-4 h-4 mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
-                </button>
-                <ul
-                  className="absolute left-0 top-full hidden group-hover:block group-focus-within:block bg-white shadow-2xl rounded-2xl py-3 w-64 text-gray-700 border border-[#a16d36]/20 z-50 max-h-[75vh] overflow-y-auto"
-                  role="menu"
-                  aria-label="Support submenu"
-                >
-                  <div className="h-0.5 w-full bg-gradient-to-r from-[#920609] to-[#a16d36] mb-2" aria-hidden="true" />
-                  <DesktopDropdownLinks items={SUPPORT_LINKS} />
-                </ul>
-              </li>
+              <DesktopMenuItem label="Support" panelClass="w-64" ariaLabel="Support submenu">
+                <DesktopDropdownLinks items={SUPPORT_LINKS} />
+              </DesktopMenuItem>
 
               {/* About Dropdown */}
-              <li className="relative group" role="none">
-                <button
-                  className={DESKTOP_TOP_BTN}
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  role="menuitem"
-                >
-                  About
-                  <ChevronIcon className="w-4 h-4 mt-0.5 transition-transform duration-200 group-hover:rotate-180" />
-                </button>
-                <ul
-                  className="absolute left-0 top-full hidden group-hover:block group-focus-within:block bg-white shadow-2xl rounded-2xl py-3 w-60 text-gray-700 border border-[#a16d36]/20 z-50 max-h-[75vh] overflow-y-auto"
-                  role="menu"
-                  aria-label="About submenu"
-                >
-                  <div className="h-0.5 w-full bg-gradient-to-r from-[#920609] to-[#a16d36] mb-2" aria-hidden="true" />
-                  <DesktopDropdownLinks items={ABOUT_LINKS} />
-                </ul>
-              </li>
+              <DesktopMenuItem label="About" panelClass="w-60" ariaLabel="About submenu">
+                <DesktopDropdownLinks items={ABOUT_LINKS} />
+              </DesktopMenuItem>
 
               <li role="none">
                 <Link
