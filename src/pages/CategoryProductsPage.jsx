@@ -217,9 +217,18 @@ const CategoryBanner = memo(({ categoryName, bannerUrl, bannerLoading }) => (
     <div className="absolute inset-0 bg-black/35" />
     <div className="relative z-10 text-center max-w-7xl mx-auto px-4">
       {categoryName && (
-        <h1 className="text-4xl sm:text-4xl md:text-6xl font-semibold text-white border-b-4 border-[#C79D46] inline-block pb-1">
-          {categoryName}
-        </h1>
+        <div className="inline-block">
+          <h1 className="text-4xl sm:text-4xl md:text-6xl font-semibold text-white pb-1">
+            {categoryName}
+          </h1>
+          <div
+            className="h-[5px] w-full rounded-full"
+            style={{
+              background:
+                "linear-gradient(to right, #E6CF9A 0%, #C79D46 50%, #920609 50%, #C42126 100%)",
+            }}
+          />
+        </div>
       )}
     </div>
   </div>

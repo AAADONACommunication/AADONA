@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import bg from '../assets/bg.avif';
-import ppbanner from '../assets/privacypolicy.webp';
+import ppbanner from '../assets/privacypolicy.png';
 
 /* Aadona brand theme: Gold #a16d36 · Red #920609 → #c42126 · Font Poppins SemiBold */
 
