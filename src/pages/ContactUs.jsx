@@ -667,17 +667,17 @@ export default function ContactPage() {
 
       <Navbar />
 
-      {/* ── Hero ── */}
+      {/* ── Hero (same classes as CSR header) ── */}
       <header
-        className="relative pt-32 pb-16 sm:pt-44 sm:pb-32 bg-cover bg-center bg-no-repeat"
+        className="relative pt-32 pb-16 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.6), transparent),url(${contactusbanner})` }}
         aria-label="Contact us hero banner"
       >
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-semibold text-white sm:text-5xl md:text-6xl">
             Contact Us
           </h1>
-          <p className="mt-6 text-md text-white  max-w-3xl mx-auto">
+          <p className="mt-6 text-md text-white max-w-3xl mx-auto">
             We're here to help! Get in touch with our team
           </p>
         </div>
