@@ -8,12 +8,32 @@ const RelatedProduct = require("../models/RelatedProduct");
 const logAction = require("../utils/auditLog");
 const { getArrayDiff } = require("../utils/diff");
 const { uploadToFirebase, deleteFromFirebase } = require("../utils/storageAliases");
+const { pdfCache } = require("../utils/datasheet");
 
 router.get("/categories", async (req, res) => {
   try {
-    const { type } = req.query;
+    const { type, includeHidden } = req.query;
     const query = type ? { type } : {};
-    const categories = await Category.find(query).sort({ order: 1, createdAt: 1 });
+    let categories = await Category.find(query)
+      .sort({ order: 1, createdAt: 1 })
+      .lean();
+
+    if (includeHidden !== "true") {
+      categories = categories
+        .filter((c) => !c.isHidden)
+        .map((c) => ({
+          ...c,
+          subCategories: (c.subCategories || [])
+            .filter((s) => !s.isHidden)
+            .map((s) => ({
+              ...s,
+              extraCategories: (s.extraCategories || []).filter(
+                (e) => !(s.hiddenExtraCategories || []).includes(e)
+              ),
+            })),
+        }));
+    }
+
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -180,6 +200,10 @@ router.put("/categories/:id/subcategory/:subName/extra/rename",
       if (oldExtra === trimmedNew) return res.json(category);
 
       sub.extraCategories[idx] = trimmedNew;
+
+      const hi = (sub.hiddenExtraCategories || []).indexOf(oldExtra);
+      if (hi !== -1) sub.hiddenExtraCategories[hi] = trimmedNew;
+      
       await category.save();
 
       await Product.updateMany(
@@ -443,6 +467,91 @@ router.delete("/categories/:id/subcategory/:subName",
         }
       );
 
+      res.json(category);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+router.put("/categories/:id/visibility", verifyToken, async (req, res) => {
+  try {
+    const isHidden = !!req.body.isHidden;
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      { $set: { isHidden } },
+      { new: true }
+    );
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
+
+    logAction(req.user.email, "UPDATE", "Category", category.name, {
+      changes: { visibility: { new: isHidden ? "hidden" : "visible" } },
+    });
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/categories/:id/subcategory/:subName/visibility",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const isHidden = !!req.body.isHidden;
+      const category = await Category.findById(req.params.id);
+      if (!category)
+        return res.status(404).json({ message: "Category not found" });
+
+      const subName = decodeURIComponent(req.params.subName);
+      const sub = category.subCategories.find((s) => s.name === subName);
+      if (!sub)
+        return res.status(404).json({ message: "SubCategory not found" });
+
+      sub.isHidden = isHidden;
+      await category.save();
+
+      logAction(req.user.email, "UPDATE", "Category", `${category.name} > ${subName}`, {
+        changes: { visibility: { new: isHidden ? "hidden" : "visible" } },
+      });
+      res.json(category);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+router.put("/categories/:id/subcategory/:subName/extra/visibility",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const { extra } = req.body;
+      const isHidden = !!req.body.isHidden;
+      if (!extra)
+        return res.status(400).json({ message: "extra is required" });
+
+      const category = await Category.findById(req.params.id);
+      if (!category)
+        return res.status(404).json({ message: "Category not found" });
+
+      const subName = decodeURIComponent(req.params.subName);
+      const sub = category.subCategories.find((s) => s.name === subName);
+      if (!sub)
+        return res.status(404).json({ message: "SubCategory not found" });
+      if (!sub.extraCategories.includes(extra))
+        return res.status(404).json({ message: "Extra category not found" });
+
+      const current = sub.hiddenExtraCategories || [];
+      if (isHidden) {
+        if (!current.includes(extra)) sub.hiddenExtraCategories.push(extra);
+      } else {
+        sub.hiddenExtraCategories = current.filter((e) => e !== extra);
+      }
+      await category.save();
+
+      logAction(req.user.email, "UPDATE", "Category", `${category.name} > ${subName} > ${extra}`, {
+        changes: { visibility: { new: isHidden ? "hidden" : "visible" } },
+      });
       res.json(category);
     } catch (err) {
       res.status(500).json({ error: err.message });

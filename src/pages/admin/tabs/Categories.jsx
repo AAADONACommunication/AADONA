@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { getFirebaseAuth } from "../../../firebase";
 import {
   Trash2, Edit, Plus, ChevronDown, ChevronUp, ChevronRight,
-  Image, Eye, X, Upload, Loader2
+  Image, Eye, EyeOff, X, Upload, Loader2
 } from "lucide-react";
 import { safeJson, inputStyle } from "../AdminPanel";
 
@@ -464,6 +464,42 @@ export default function Categories({
     } catch (err) { alert(err.message); }
   };
 
+  // ── Show / Hide on website ──
+  const sendVisibility = async (url, body) => {
+    try {
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await safeJson(res);
+        alert(data.message || "Failed to update visibility");
+        return;
+      }
+      reloadCategories();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const toggleCategoryHidden = (cat) =>
+    sendVisibility(`${CATEGORY_API}/${cat._id}/visibility`, { isHidden: !cat.isHidden });
+
+  const toggleSubHidden = (cat, sub) =>
+    sendVisibility(
+      `${CATEGORY_API}/${cat._id}/subcategory/${encodeURIComponent(sub.name)}/visibility`,
+      { isHidden: !sub.isHidden }
+    );
+
+  const toggleExtraHidden = (cat, sub, ex) =>
+    sendVisibility(
+      `${CATEGORY_API}/${cat._id}/subcategory/${encodeURIComponent(sub.name)}/extra/visibility`,
+      { extra: ex, isHidden: !(sub.hiddenExtraCategories || []).includes(ex) }
+    );
+
   // ── Reorder ──
   const moveCat = async (typeGroup, idx, dir) => {
     const groupCats = getCategoriesByType(typeGroup);
@@ -580,7 +616,7 @@ export default function Categories({
         <div className="p-4 sm:p-6 border-b border-[#efe3d3] bg-gradient-to-r from-[#920609] to-[#c42126]">
           <h2 className="text-lg sm:text-xl font-semibold text-white">All Categories</h2>
           <p className="text-white/80 text-sm mt-1">
-            Use ↑ ↓ to reorder
+            Use ↑ ↓ to reorder • Use the eye button to hide/show on the website
           </p>
         </div>
 
@@ -604,7 +640,7 @@ export default function Categories({
 
                         {/* Category Row */}
                         <div
-                          className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 hover:bg-[#fbf6f0]/60 cursor-pointer transition gap-2 flex-wrap sm:flex-nowrap"
+                          className={`flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 hover:bg-[#fbf6f0]/60 cursor-pointer transition gap-2 flex-wrap sm:flex-nowrap ${cat.isHidden ? "bg-gray-50" : ""}`}
                           onClick={() => setExpandedCat(expandedCat === cat._id ? null : cat._id)}
                         >
                           {/* Left: reorder + expand + name */}
@@ -640,7 +676,7 @@ export default function Categories({
                                   className="text-xs bg-gray-100 text-gray-500 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">✕</button>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-2 min-w-0">
+                              <div className={`flex items-center gap-2 min-w-0 ${cat.isHidden ? "opacity-60" : ""}`}>
                                 {/* Banner thumbnail - sirf tab dikhao jab set ho */}
                                 {cat.banner && (
                                   <img
@@ -653,6 +689,11 @@ export default function Categories({
                                 <span className="text-xs bg-[#f5ede1] text-[#a16d36] px-2 py-0.5 rounded-full normal-case flex-shrink-0">
                                   {cat.subCategories?.length || 0} sub
                                 </span>
+                                {cat.isHidden && (
+                                  <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full normal-case flex-shrink-0">
+                                    Hidden
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
@@ -661,6 +702,20 @@ export default function Categories({
                           <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
                             {/* ── BANNER CELL ── */}
                             <BannerCell cat={cat} onBannerSaved={handleBannerSaved} />
+
+                            {/* ── SHOW / HIDE ON WEBSITE ── */}
+                            <button
+                              onClick={() => toggleCategoryHidden(cat)}
+                              title={cat.isHidden ? "Website par wapas dikhao" : "Website se hatao"}
+                              className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap border ${
+                                cat.isHidden
+                                  ? "bg-gray-800 text-white border-gray-800"
+                                  : "bg-[#fbf6f0] text-[#a16d36] border-[#e3cfb4] hover:bg-[#f5ede1]"
+                              }`}
+                            >
+                              {cat.isHidden ? <Eye size={12} /> : <EyeOff size={12} />}
+                              <span className="hidden sm:inline">{cat.isHidden ? "Show" : "Hide"}</span>
+                            </button>
 
                             {renamingCatId !== cat._id && (
                               <button onClick={() => { setRenamingCatId(cat._id); setRenameCatInput(cat.name); }}
@@ -725,7 +780,7 @@ export default function Categories({
                               <div className="space-y-2">
                                 {cat.subCategories.map((sub, subIdx) => (
                                   <div key={sub.name}
-                                    className="bg-white border border-[#efe3d3] rounded-xl p-3 sm:p-4 flex items-start gap-2 sm:gap-3 justify-between">
+                                    className={`bg-white border border-[#efe3d3] rounded-xl p-3 sm:p-4 flex items-start gap-2 sm:gap-3 justify-between ${sub.isHidden ? "opacity-70" : ""}`}>
                                     <div className="flex items-start gap-2 flex-1 min-w-0">
                                       {/* Reorder sub */}
                                       <div className="flex flex-col gap-0.5 flex-shrink-0 mt-0.5">
@@ -765,6 +820,18 @@ export default function Categories({
                                               <button onClick={() => { setRenamingSubFor(`${cat._id}-${sub.name}`); setRenameSubInput(sub.name); }}
                                                 className="p-1 text-[#a16d36] hover:text-[#920609] transition flex-shrink-0">
                                                 <Edit size={12} />
+                                              </button>
+                                              {sub.isHidden && (
+                                                <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full normal-case flex-shrink-0">
+                                                  Hidden
+                                                </span>
+                                              )}
+                                              <button
+                                                onClick={() => toggleSubHidden(cat, sub)}
+                                                title={sub.isHidden ? "Website par wapas dikhao" : "Website se hatao"}
+                                                className={`p-1 transition flex-shrink-0 ${sub.isHidden ? "text-gray-800" : "text-[#a16d36] hover:text-[#920609]"}`}
+                                              >
+                                                {sub.isHidden ? <Eye size={13} /> : <EyeOff size={13} />}
                                               </button>
                                             </>
                                           )}
@@ -810,7 +877,9 @@ export default function Categories({
                                                   </span>
                                                 ) : (
                                                   <span key={ex}
-                                                    className="text-xs px-2 py-0.5 rounded-full border bg-[#fbf6f0] text-[#a16d36] border-[#efe3d3] flex items-center gap-1 normal-case">
+                                                    className={`text-xs px-2 py-0.5 rounded-full border bg-[#fbf6f0] text-[#a16d36] border-[#efe3d3] flex items-center gap-1 normal-case ${
+                                                      (sub.hiddenExtraCategories || []).includes(ex) ? "opacity-50 line-through" : ""
+                                                    }`}>
                                                     <button onClick={() => moveExtra(cat, sub, exIdx, -1)} disabled={exIdx === 0}
                                                       className="disabled:opacity-20 hover:text-[#920609] transition leading-none">‹</button>
                                                     {ex}
@@ -819,6 +888,12 @@ export default function Categories({
                                                     <button onClick={() => { setRenamingExtraFor(`${cat._id}-${sub.name}-${ex}`); setRenameExtraInput(ex); }}
                                                       className="hover:text-[#920609] transition leading-none ml-0.5">
                                                       <Edit size={9} />
+                                                    </button>
+                                                    <button
+                                                      onClick={() => toggleExtraHidden(cat, sub, ex)}
+                                                      title={(sub.hiddenExtraCategories || []).includes(ex) ? "Wapas dikhao" : "Website se hatao"}
+                                                      className="hover:text-[#920609] transition leading-none ml-0.5">
+                                                      {(sub.hiddenExtraCategories || []).includes(ex) ? <Eye size={10} /> : <EyeOff size={10} />}
                                                     </button>
                                                   </span>
                                                 )

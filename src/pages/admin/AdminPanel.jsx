@@ -160,7 +160,7 @@ export default function AdminPanel() {
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
-      const res = await fetch(CATEGORY_API);
+      const res = await fetch(`${CATEGORY_API}?includeHidden=true`);
       const data = await safeJson(res);
       setAllCategories(Array.isArray(data) ? data : []);
     } catch (err) {

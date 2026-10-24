@@ -146,7 +146,7 @@ export default function SalesPanel() {
 
   const loadCategories = async () => {
     try {
-      const res = await fetch(CATEGORIES_API);
+      const res = await fetch(`${CATEGORIES_API}?includeHidden=true`);
       const data = await safeJson(res);
       setAllCategories(Array.isArray(data) ? data : []);
     } catch (err) {

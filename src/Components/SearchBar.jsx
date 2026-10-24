@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const nameToSlug = (name) =>
   name.trim().toLowerCase().replace(/\s+/g, "").replace(/[^\w]+/g, "");
 
-const phrases = [
+const ALL_PHRASES = [
   "Wireless...",
   "Surveillance...",
   "Racks...",
@@ -90,7 +90,12 @@ export default function SearchBar() {
 
   const [pageResults, setPageResults]         = useState([]);
 
+  // Admin ne jo categories "Hide" ki hain - unke page links aur
+  // typing-animation wale naam yahan se hat jate hain
+  const [hiddenPaths, setHiddenPaths]         = useState([]);
+
   const phraseIdx    = useRef(0);
+  const phrasesRef   = useRef(ALL_PHRASES);
   const charIdx      = useRef(0);
   const deleting     = useRef(false);
   const timer        = useRef(null);
@@ -101,20 +106,60 @@ export default function SearchBar() {
       setProductsLoading(true);
       setProductsError(null);
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/products?sort=order&fields=list`
-        );
+        const API_URL = import.meta.env.VITE_API_URL;
+
+        // includeHidden=true: hidden categories ki list chahiye taaki unke
+        // products aur naam search se hataye ja sakein
+        const [res, catRes] = await Promise.all([
+          fetch(`${API_URL}/products?sort=order&fields=list`),
+          fetch(`${API_URL}/categories?includeHidden=true`).catch(() => null),
+        ]);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
-        const normalized = (Array.isArray(data) ? data : data.products ?? []).map((p) => ({
-          id:          p._id,
-          name:        p.name ?? "",
-          category:    p.category ?? "",
-          subCategory: p.subCategory ?? "",
-          icon:        p.image ?? null,
-          slug:        `${nameToSlug(p.category)}/${p.slug}`,
-        }));
+        let cats = [];
+        try {
+          if (catRes && catRes.ok) {
+            const c = await catRes.json();
+            if (Array.isArray(c)) cats = c;
+          }
+        } catch {
+          /* categories nahi aayi toh kuch hide nahi hoga */
+        }
+
+        const isHiddenProduct = (p) => {
+          const cat = cats.find((c) => c.name === p.category);
+          if (!cat) return false;
+          if (cat.isHidden) return true;
+          const sub = (cat.subCategories || []).find((s) => s.name === p.subCategory);
+          if (!sub) return false;
+          if (sub.isHidden) return true;
+          return (
+            !!p.extraCategory &&
+            (sub.hiddenExtraCategories || []).includes(p.extraCategory)
+          );
+        };
+
+        const hiddenCats = cats.filter((c) => c.isHidden);
+        setHiddenPaths(hiddenCats.map((c) => `/${nameToSlug(c.name)}`));
+
+        // Typing animation: hidden category ke naam hata do (kam se kam 1 rakho)
+        const hiddenNames = hiddenCats.map((c) => c.name.toLowerCase());
+        const visiblePhrases = ALL_PHRASES.filter(
+          (ph) => !hiddenNames.includes(ph.replace("...", "").toLowerCase())
+        );
+        phrasesRef.current = visiblePhrases.length ? visiblePhrases : ALL_PHRASES;
+
+        const normalized = (Array.isArray(data) ? data : data.products ?? [])
+          .filter((p) => !isHiddenProduct(p))
+          .map((p) => ({
+            id:          p._id,
+            name:        p.name ?? "",
+            category:    p.category ?? "",
+            subCategory: p.subCategory ?? "",
+            icon:        p.image ?? null,
+            slug:        `${nameToSlug(p.category)}/${p.slug}`,
+          }));
 
         setAllProducts(normalized);
       } catch (err) {
@@ -138,7 +183,8 @@ export default function SearchBar() {
   useEffect(() => {
     if (focused) return;
     const type = () => {
-      const current = phrases[phraseIdx.current];
+      const list = phrasesRef.current;
+      const current = list[phraseIdx.current % list.length];
       if (!deleting.current) {
         charIdx.current++;
         setPlaceholder(current.slice(0, charIdx.current));
@@ -153,7 +199,7 @@ export default function SearchBar() {
         setPlaceholder(current.slice(0, charIdx.current));
         if (charIdx.current === 0) {
           deleting.current = false;
-          phraseIdx.current = (phraseIdx.current + 1) % phrases.length;
+          phraseIdx.current = (phraseIdx.current + 1) % list.length;
           timer.current = setTimeout(type, 300);
         } else {
           timer.current = setTimeout(type, 30);
@@ -195,15 +241,16 @@ export default function SearchBar() {
       setPageResults(
         PAGES.filter(
           (p) =>
-            p.name.toLowerCase().includes(ql) ||
-            p.desc.toLowerCase().includes(ql) ||
-            p.path.toLowerCase().includes(ql)
+            !hiddenPaths.includes(p.path) &&
+            (p.name.toLowerCase().includes(ql) ||
+              p.desc.toLowerCase().includes(ql) ||
+              p.path.toLowerCase().includes(ql))
         ).slice(0, 4)
       );
 
       setDropdownOpen(true);
     },
-    [allProducts]
+    [allProducts, hiddenPaths]
   );
 
   const handleChange = (e) => {
