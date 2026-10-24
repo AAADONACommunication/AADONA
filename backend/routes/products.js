@@ -7,7 +7,10 @@ const logAction = require("../utils/auditLog");
 const { getDiff } = require("../utils/diff");
 const generateSlug = require("../utils/slug");
 const { uploadToFirebase, deleteFromFirebase } = require("../utils/storageAliases");
-const { generateAndUploadDatasheet } = require("../utils/datasheet");
+const mongoose = require("mongoose");
+const buildDatasheetHTML = require("../pdf/buildDatasheet");
+const { getBrowser } = require("../helpers/browserPool");
+const { generateAndUploadDatasheet, pdfCache } = require("../utils/datasheet");
 
 /* =============================
    PRODUCT ROUTES
