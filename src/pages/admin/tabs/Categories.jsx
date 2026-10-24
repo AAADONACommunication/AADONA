@@ -706,7 +706,7 @@ export default function Categories({
                             {/* ── SHOW / HIDE ON WEBSITE ── */}
                             <button
                               onClick={() => toggleCategoryHidden(cat)}
-                              title={cat.isHidden ? "Website par wapas dikhao" : "Website se hatao"}
+                              title={cat.isHidden ? "Show on website" : "Hide from website"}
                               className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap border ${
                                 cat.isHidden
                                   ? "bg-gray-800 text-white border-gray-800"
@@ -828,7 +828,7 @@ export default function Categories({
                                               )}
                                               <button
                                                 onClick={() => toggleSubHidden(cat, sub)}
-                                                title={sub.isHidden ? "Website par wapas dikhao" : "Website se hatao"}
+                                                title={sub.isHidden ? "Show on website" : "Hide from website"}
                                                 className={`p-1 transition flex-shrink-0 ${sub.isHidden ? "text-gray-800" : "text-[#a16d36] hover:text-[#920609]"}`}
                                               >
                                                 {sub.isHidden ? <Eye size={13} /> : <EyeOff size={13} />}
@@ -891,7 +891,7 @@ export default function Categories({
                                                     </button>
                                                     <button
                                                       onClick={() => toggleExtraHidden(cat, sub, ex)}
-                                                      title={(sub.hiddenExtraCategories || []).includes(ex) ? "Wapas dikhao" : "Website se hatao"}
+                                                      title={(sub.hiddenExtraCategories || []).includes(ex) ? "Show on website" : "Hide from website"}
                                                       className="hover:text-[#920609] transition leading-none ml-0.5">
                                                       {(sub.hiddenExtraCategories || []).includes(ex) ? <Eye size={10} /> : <EyeOff size={10} />}
                                                     </button>

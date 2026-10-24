@@ -295,11 +295,31 @@ export default function CategoryProductsPage() {
 
     Promise.all([
       fetch(`${API}?sort=order&fields=list`, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
-      fetch(CATEGORY_API, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
+      fetch(`${CATEGORY_API}?includeHidden=true`, { signal: controller.signal, credentials: "same-origin" }).then(r => r.json()),
     ])
       .then(([productsData, categoriesData]) => {
-        const filtered = productsData.filter(p => nameToSlug(p.category) === categorySlug);
         const categoryDoc = categoriesData.find(c => nameToSlug(c.name) === categorySlug);
+
+        // Hidden category: show the 404 page
+        if (categoryDoc?.isHidden) {
+          navigate("/404", { replace: true });
+          return;
+        }
+
+        // Products under a hidden sub-category or hidden extra category are excluded
+        const isProductHidden = (p) => {
+          const cat = categoriesData.find(c => c.name === p.category);
+          const sub = cat?.subCategories?.find(s => s.name === p.subCategory);
+          if (!sub) return false;
+          return (
+            !!sub.isHidden ||
+            (!!p.extraCategory && (sub.hiddenExtraCategories || []).includes(p.extraCategory))
+          );
+        };
+
+        const filtered = productsData.filter(
+          p => nameToSlug(p.category) === categorySlug && !isProductHidden(p)
+        );
 
         // 404 redirect: neither products nor category found
         if (filtered.length === 0 && !categoryDoc) {
@@ -318,11 +338,21 @@ export default function CategoryProductsPage() {
 
           if (categoryDoc && categoryDoc.subCategories?.length > 0) {
             const subsWithProducts = categoryDoc.subCategories
+              .filter(s => !s.isHidden)
               .map(s => s.name)
               .filter(subName => filtered.some(p => p.subCategory === subName));
             setOrderedSubCategories(subsWithProducts);
             setActiveSubCategory(subsWithProducts[0] || "");
-            setOrderedExtraCategories(categoryDoc.subCategories);
+            setOrderedExtraCategories(
+              categoryDoc.subCategories
+                .filter(s => !s.isHidden)
+                .map(s => ({
+                  ...s,
+                  extraCategories: (s.extraCategories || []).filter(
+                    e => !(s.hiddenExtraCategories || []).includes(e)
+                  ),
+                }))
+            );
           } else {
             const subCats = [...new Set(filtered.map(p => p.subCategory).filter(s => s && s.trim()))];
             setOrderedSubCategories(subCats);

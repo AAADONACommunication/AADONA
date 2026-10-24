@@ -90,8 +90,6 @@ export default function SearchBar() {
 
   const [pageResults, setPageResults]         = useState([]);
 
-  // Admin ne jo categories "Hide" ki hain - unke page links aur
-  // typing-animation wale naam yahan se hat jate hain
   const [hiddenPaths, setHiddenPaths]         = useState([]);
 
   const phraseIdx    = useRef(0);
@@ -108,8 +106,6 @@ export default function SearchBar() {
       try {
         const API_URL = import.meta.env.VITE_API_URL;
 
-        // includeHidden=true: hidden categories ki list chahiye taaki unke
-        // products aur naam search se hataye ja sakein
         const [res, catRes] = await Promise.all([
           fetch(`${API_URL}/products?sort=order&fields=list`),
           fetch(`${API_URL}/categories?includeHidden=true`).catch(() => null),
@@ -124,7 +120,6 @@ export default function SearchBar() {
             if (Array.isArray(c)) cats = c;
           }
         } catch {
-          /* categories nahi aayi toh kuch hide nahi hoga */
         }
 
         const isHiddenProduct = (p) => {
@@ -143,7 +138,6 @@ export default function SearchBar() {
         const hiddenCats = cats.filter((c) => c.isHidden);
         setHiddenPaths(hiddenCats.map((c) => `/${nameToSlug(c.name)}`));
 
-        // Typing animation: hidden category ke naam hata do (kam se kam 1 rakho)
         const hiddenNames = hiddenCats.map((c) => c.name.toLowerCase());
         const visiblePhrases = ALL_PHRASES.filter(
           (ph) => !hiddenNames.includes(ph.replace("...", "").toLowerCase())
