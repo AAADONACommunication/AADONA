@@ -8,7 +8,7 @@ export const timelineData = [
     id: 1,
     year: '2018',
     title: 'The Beginning',
-    description: 'Founded under the Start-up India Initiative by three passionate technologists. Recognized by DIPP, registered as an MSME (Udyam Aakanesha), and verified on the Government e-Marketplace (GeM).',
+    description: 'Founded under the Start-up India Initiative by three passionate technologists. Recognized by DIPP, registered as an MSME (Udyam Aakanksha), and verified on the Government e-Marketplace (GeM).',
     image: vision1
   },
   {
